@@ -97,7 +97,7 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-8 right-8 z-50 w-96 h-[600px] flex flex-col
+            className="fixed bottom-8 right-8 z-50 w-80 h-[500px] flex flex-col
                      bg-slate-900/80 backdrop-blur-xl border border-cyan-400/30 rounded-2xl
                      shadow-[0_0_60px_rgba(34,211,238,0.4)] overflow-hidden"
           >
