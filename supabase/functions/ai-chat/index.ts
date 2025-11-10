@@ -11,16 +11,34 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, mode = 'chat' } = await req.json();
+    const { messages, mode = 'chat', language = 'en' } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    const languageMap: Record<string, string> = {
+      en: 'English',
+      es: 'Spanish',
+      fr: 'French',
+      de: 'German',
+      it: 'Italian',
+      pt: 'Portuguese',
+      ru: 'Russian',
+      zh: 'Chinese',
+      ja: 'Japanese',
+      ko: 'Korean',
+      ar: 'Arabic',
+      hi: 'Hindi',
+    };
+
+    const languageName = languageMap[language] || 'English';
+    const languageInstruction = language !== 'en' ? ` Always respond in ${languageName}.` : '';
+
     const systemPrompt = mode === 'summarize' 
-      ? "You are an AI assistant specialized in summarizing content clearly and concisely. Provide brief, actionable summaries."
-      : "You are AeroVerse AI Assistant, a helpful guide for aerospace education. Be precise, crisp, and to the point. Give direct answers without extra explanations unless specifically asked. Keep responses concise and actionable. Only elaborate when the user requests more detail.";
+      ? `You are an AI assistant specialized in summarizing content clearly and concisely. Provide brief, actionable summaries.${languageInstruction}`
+      : `You are AeroVerse AI Assistant, a helpful guide for aerospace education. Be precise, crisp, and to the point. Give direct answers without extra explanations unless specifically asked. Keep responses concise and actionable. Only elaborate when the user requests more detail.${languageInstruction}`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

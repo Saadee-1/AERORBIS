@@ -1,14 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Minimize2, Trash2, Send, Sparkles, History, Plus } from 'lucide-react';
+import { MessageSquare, X, Minimize2, Trash2, Send, Sparkles, History, Plus, Globe } from 'lucide-react';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Español' },
+  { code: 'fr', name: 'Français' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'it', name: 'Italiano' },
+  { code: 'pt', name: 'Português' },
+  { code: 'ru', name: 'Русский' },
+  { code: 'zh', name: '中文' },
+  { code: 'ja', name: '日本語' },
+  { code: 'ko', name: '한국어' },
+  { code: 'ar', name: 'العربية' },
+  { code: 'hi', name: 'हिन्दी' },
+];
 
 const AIAssistant: React.FC = () => {
-  const { messages, isOpen, isLoading, mode, chatHistory, setIsOpen, setMode, sendMessage, clearChat, loadChatSession, startNewChat } = useAIAssistant();
+  const { messages, isOpen, isLoading, mode, language, chatHistory, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat } = useAIAssistant();
   const [inputValue, setInputValue] = useState('');
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -128,11 +144,28 @@ const AIAssistant: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger className="w-[110px] h-8 bg-slate-900/50 border-cyan-400/30 text-cyan-400 text-xs">
+                    <Globe className="w-3 h-3 mr-1" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-cyan-400/30">
+                    {LANGUAGES.map((lang) => (
+                      <SelectItem 
+                        key={lang.code} 
+                        value={lang.code}
+                        className="text-gray-300 focus:bg-cyan-400/20 focus:text-cyan-400 text-xs"
+                      >
+                        {lang.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowHistory(!showHistory)}
-                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
                   title="Chat history"
                 >
                   <History className="w-4 h-4" />
@@ -141,7 +174,7 @@ const AIAssistant: React.FC = () => {
                   variant="ghost"
                   size="icon"
                   onClick={startNewChat}
-                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
                   title="New chat"
                 >
                   <Plus className="w-4 h-4" />
@@ -150,7 +183,7 @@ const AIAssistant: React.FC = () => {
                   variant="ghost"
                   size="icon"
                   onClick={clearChat}
-                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
                   title="Clear chat"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -159,7 +192,7 @@ const AIAssistant: React.FC = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsOpen(false)}
-                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
                   title="Minimize"
                 >
                   <Minimize2 className="w-4 h-4" />

@@ -19,9 +19,11 @@ interface AIAssistantContextType {
   isOpen: boolean;
   isLoading: boolean;
   mode: 'chat' | 'summarize';
+  language: string;
   chatHistory: ChatSession[];
   setIsOpen: (isOpen: boolean) => void;
   setMode: (mode: 'chat' | 'summarize') => void;
+  setLanguage: (language: string) => void;
   sendMessage: (content: string) => Promise<void>;
   clearChat: () => void;
   loadChatSession: (sessionId: string) => void;
@@ -32,6 +34,7 @@ const AIAssistantContext = createContext<AIAssistantContextType | undefined>(und
 
 const STORAGE_KEY = 'aeroverse_ai_chat';
 const HISTORY_KEY = 'aeroverse_chat_history';
+const LANGUAGE_KEY = 'aeroverse_ai_language';
 const MAX_STORED_MESSAGES = 50;
 const MAX_HISTORY_SESSIONS = 20;
 
@@ -40,8 +43,24 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<'chat' | 'summarize'>('chat');
+  const [language, setLanguage] = useState<string>(() => {
+    try {
+      return localStorage.getItem(LANGUAGE_KEY) || 'en';
+    } catch {
+      return 'en';
+    }
+  });
   const [chatHistory, setChatHistory] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string>(() => Date.now().toString());
+
+  // Save language preference
+  useEffect(() => {
+    try {
+      localStorage.setItem(LANGUAGE_KEY, language);
+    } catch (error) {
+      console.error('Error saving language:', error);
+    }
+  }, [language]);
 
   // Load messages and history from localStorage on mount
   useEffect(() => {
@@ -109,7 +128,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages, mode }),
+        body: JSON.stringify({ messages: apiMessages, mode, language }),
       });
 
       const data = await response.json();
@@ -165,9 +184,11 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         isOpen,
         isLoading,
         mode,
+        language,
         chatHistory,
         setIsOpen,
         setMode,
+        setLanguage,
         sendMessage,
         clearChat,
         loadChatSession,
