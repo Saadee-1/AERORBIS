@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Deep Space Blue Background */
+    --background: 217 100% 22%;
+    --foreground: 0 0% 100%;
+
+    --card: 217 100% 18%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 217 100% 18%;
+    --popover-foreground: 0 0% 100%;
+
+    /* Stellar Yellow Primary */
+    --primary: 51 100% 50%;
+    --primary-foreground: 217 100% 22%;
+
+    /* Muted Sky Blue Secondary */
+    --secondary: 197 71% 73%;
+    --secondary-foreground: 217 100% 22%;
+
+    --muted: 217 60% 25%;
+    --muted-foreground: 197 40% 80%;
+
+    --accent: 217 60% 25%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 50% 30%;
+    --input: 217 50% 25%;
+    --ring: 51 100% 50%;
+
+    --radius: 0.75rem;
+    
+    --gradient-space: linear-gradient(135deg, hsl(217, 100%, 22%) 0%, hsl(225, 100%, 10%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(217, 100%, 22%) 0%, hsl(230, 100%, 15%) 50%, hsl(240, 100%, 10%) 100%);
+    --glow-primary: 0 0 40px hsl(51, 100%, 50% / 0.3);
+    --glow-secondary: 0 0 30px hsl(197, 71%, 73% / 0.2);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Deep Space Blue Background */
+    --background: 217 100% 22%;
+    --foreground: 0 0% 100%;
+  }
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: var(--glow-primary);
+  }
+  
+  .text-glow-secondary {
+    text-shadow: var(--glow-secondary);
+  }
+  
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--glow-primary);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-['Poppins',sans-serif];
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+}
+/* ============================= */
+/* 🌌 AEROVERSE HERO INTRO STYLES */
+/* ============================= */
+
+.hero-intro-container {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #050505 0%, #000 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 9999;
+  animation: fadeIn 1s ease-out;
+}
+
+.hero-intro-content {
+  text-align: center;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 2px;
+  animation: floatUp 2s ease-out forwards;
+}
+
+.hero-intro-logo {
+  font-size: 4rem;
+  font-weight: 700;
+  text-shadow: 0 0 20px rgba(0, 200, 255, 0.8);
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes floatUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 10px rgba(0, 200, 255, 0.6); }
+  to { text-shadow: 0 0 30px rgba(0, 255, 255, 1); }
+}
+
+/* Smooth fade-out for transition to main app */
+.fade-out {
+  animation: fadeOut 1s ease-in forwards;
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; visibility: hidden; }
+}

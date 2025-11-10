@@ -1,0 +1,360 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, X, Minimize2, Trash2, Send, Sparkles, Mic, MicOff } from 'lucide-react';
+import { useAIAssistant } from '@/contexts/AIAssistantContext';
+import { useVoiceRecording } from '@/hooks/useVoiceRecording';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import WaveformVisualizer from '@/components/WaveformVisualizer';
+
+const AIAssistant: React.FC = () => {
+  const { messages, isOpen, isLoading, mode, setIsOpen, setMode, sendMessage, clearChat } = useAIAssistant();
+  const { isRecording, startRecording, stopRecording, audioLevel, recordingDuration } = useVoiceRecording();
+  const { toast } = useToast();
+  const [inputValue, setInputValue] = useState('');
+  const [typingText, setTypingText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, typingText]);
+
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  // Typing effect for the last assistant message
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.role === 'assistant' && !isTyping) {
+      setIsTyping(true);
+      setTypingText('');
+      let index = 0;
+      const text = lastMessage.content;
+      
+      const timer = setInterval(() => {
+        if (index < text.length) {
+          setTypingText(text.slice(0, index + 1));
+          index++;
+        } else {
+          setIsTyping(false);
+          clearInterval(timer);
+        }
+      }, 20);
+
+      return () => clearInterval(timer);
+    }
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isLoading) return;
+    
+    const message = inputValue.trim();
+    setInputValue('');
+    await sendMessage(message);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleVoiceToggle = async () => {
+    if (isRecording) {
+      try {
+        setIsTranscribing(true);
+        const audioBase64 = await stopRecording();
+        
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ audio: audioBase64 }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Transcription failed');
+        }
+
+        if (data.text) {
+          setInputValue(data.text);
+          toast({
+            title: 'Voice transcribed',
+            description: 'Your message is ready to send',
+          });
+        }
+      } catch (error) {
+        console.error('Voice recording error:', error);
+        toast({
+          title: 'Recording failed',
+          description: error instanceof Error ? error.message : 'Failed to process voice input',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsTranscribing(false);
+      }
+    } else {
+      try {
+        await startRecording();
+        toast({
+          title: 'Recording started',
+          description: 'Speak your message now',
+        });
+      } catch (error) {
+        toast({
+          title: 'Microphone access denied',
+          description: 'Please allow microphone access to use voice input',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  return (
+    <>
+      {/* Floating Chat Bubble */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 
+                     shadow-[0_0_30px_rgba(34,211,238,0.6)] hover:shadow-[0_0_50px_rgba(34,211,238,0.8)]
+                     flex items-center justify-center transition-all duration-300 hover:scale-110"
+            style={{
+              animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            }}
+          >
+            <Sparkles className="w-8 h-8 text-black" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Chat Window */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed bottom-8 right-8 z-50 w-96 h-[600px] flex flex-col
+                     bg-slate-900/80 backdrop-blur-xl border border-cyan-400/30 rounded-2xl
+                     shadow-[0_0_60px_rgba(34,211,238,0.4)] overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-cyan-400/20 bg-slate-800/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 
+                              flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.6)]">
+                  <Sparkles className="w-6 h-6 text-black" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
+                               bg-clip-text text-transparent">
+                    AeroVerse AI
+                  </h3>
+                  <p className="text-xs text-gray-400">Your aerospace guide</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={clearChat}
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  title="Clear chat"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  title="Close"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Mode Toggle */}
+            <div className="flex gap-2 p-3 bg-slate-800/30">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMode('chat')}
+                className={cn(
+                  'flex-1 text-xs',
+                  mode === 'chat' 
+                    ? 'bg-cyan-400/20 text-cyan-400 hover:bg-cyan-400/30' 
+                    : 'text-gray-400 hover:text-cyan-400 hover:bg-cyan-400/10'
+                )}
+              >
+                Chat Mode
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMode('summarize')}
+                className={cn(
+                  'flex-1 text-xs',
+                  mode === 'summarize' 
+                    ? 'bg-blue-400/20 text-blue-400 hover:bg-blue-400/30' 
+                    : 'text-gray-400 hover:text-blue-400 hover:bg-blue-400/10'
+                )}
+              >
+                Summarize Mode
+              </Button>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 
+                          scrollbar-track-transparent">
+              {messages.length === 0 && (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center space-y-2">
+                    <Sparkles className="w-12 h-12 text-cyan-400 mx-auto drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+                    <p className="text-gray-400 text-sm">
+                      {mode === 'chat' 
+                        ? 'Ask me anything about aerospace!' 
+                        : 'Paste text to get a summary'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {messages.map((message, index) => {
+                const isLastAssistant = message.role === 'assistant' && index === messages.length - 1;
+                const displayContent = isLastAssistant && isTyping ? typingText : message.content;
+
+                return (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={cn(
+                      'flex',
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'max-w-[80%] p-3 rounded-2xl',
+                        message.role === 'user'
+                          ? 'bg-gradient-to-r from-cyan-400/20 to-blue-400/20 border border-cyan-400/30 text-gray-200'
+                          : 'bg-slate-800/60 backdrop-blur-sm border border-cyan-400/20 text-gray-300'
+                      )}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{displayContent}</p>
+                      {isLastAssistant && isTyping && (
+                        <span className="inline-block w-1 h-4 ml-1 bg-cyan-400 animate-pulse" />
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {isLoading && !isTyping && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-start"
+                >
+                  <div className="bg-slate-800/60 backdrop-blur-sm border border-cyan-400/20 p-3 rounded-2xl">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Recording Waveform */}
+            <AnimatePresence>
+              {isRecording && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="border-t border-cyan-400/20 bg-slate-800/30"
+                >
+                  <WaveformVisualizer audioLevel={audioLevel} duration={recordingDuration} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Input */}
+            <div className="p-4 border-t border-cyan-400/20 bg-slate-800/50">
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleVoiceToggle}
+                  disabled={isLoading || isTranscribing}
+                  className={cn(
+                    'transition-all duration-300',
+                    isRecording
+                      ? 'bg-red-500/20 border border-red-400/50 text-red-400 hover:bg-red-500/30 animate-pulse'
+                      : 'bg-slate-800/50 border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10'
+                  )}
+                  title={isRecording ? 'Stop recording' : 'Start voice input'}
+                >
+                  {isTranscribing ? (
+                    <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                  ) : isRecording ? (
+                    <MicOff className="w-4 h-4" />
+                  ) : (
+                    <Mic className="w-4 h-4" />
+                  )}
+                </Button>
+                <Input
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={mode === 'chat' ? 'Ask me anything...' : 'Paste text to summarize...'}
+                  disabled={isLoading || isRecording}
+                  className="flex-1 bg-slate-900/50 border-cyan-400/30 text-gray-200 placeholder:text-gray-500
+                           focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20"
+                />
+                <Button
+                  onClick={handleSend}
+                  disabled={isLoading || !inputValue.trim() || isRecording}
+                  className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black hover:shadow-[0_0_30px_rgba(34,211,238,0.6)]
+                           disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+export default AIAssistant;
