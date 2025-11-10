@@ -1,22 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Minimize2, Trash2, Send, Sparkles, Mic, MicOff } from 'lucide-react';
+import { MessageSquare, X, Minimize2, Trash2, Send, Sparkles } from 'lucide-react';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
-import { useVoiceRecording } from '@/hooks/useVoiceRecording';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import WaveformVisualizer from '@/components/WaveformVisualizer';
 
 const AIAssistant: React.FC = () => {
   const { messages, isOpen, isLoading, mode, setIsOpen, setMode, sendMessage, clearChat } = useAIAssistant();
-  const { isRecording, startRecording, stopRecording, audioLevel, recordingDuration } = useVoiceRecording();
-  const { toast } = useToast();
   const [inputValue, setInputValue] = useState('');
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -72,60 +66,6 @@ const AIAssistant: React.FC = () => {
     }
   };
 
-  const handleVoiceToggle = async () => {
-    if (isRecording) {
-      try {
-        setIsTranscribing(true);
-        const audioBase64 = await stopRecording();
-        
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ audio: audioBase64 }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Transcription failed');
-        }
-
-        if (data.text) {
-          setInputValue(data.text);
-          toast({
-            title: 'Voice transcribed',
-            description: 'Your message is ready to send',
-          });
-        }
-      } catch (error) {
-        console.error('Voice recording error:', error);
-        toast({
-          title: 'Recording failed',
-          description: error instanceof Error ? error.message : 'Failed to process voice input',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsTranscribing(false);
-      }
-    } else {
-      try {
-        await startRecording();
-        toast({
-          title: 'Recording started',
-          description: 'Speak your message now',
-        });
-      } catch (error) {
-        toast({
-          title: 'Microphone access denied',
-          description: 'Please allow microphone access to use voice input',
-          variant: 'destructive',
-        });
-      }
-    }
-  };
 
   return (
     <>
@@ -294,55 +234,22 @@ const AIAssistant: React.FC = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Recording Waveform */}
-            <AnimatePresence>
-              {isRecording && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="border-t border-cyan-400/20 bg-slate-800/30"
-                >
-                  <WaveformVisualizer audioLevel={audioLevel} duration={recordingDuration} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             {/* Input */}
             <div className="p-4 border-t border-cyan-400/20 bg-slate-800/50">
               <div className="flex gap-2">
-                <Button
-                  onClick={handleVoiceToggle}
-                  disabled={isLoading || isTranscribing}
-                  className={cn(
-                    'transition-all duration-300',
-                    isRecording
-                      ? 'bg-red-500/20 border border-red-400/50 text-red-400 hover:bg-red-500/30 animate-pulse'
-                      : 'bg-slate-800/50 border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10'
-                  )}
-                  title={isRecording ? 'Stop recording' : 'Start voice input'}
-                >
-                  {isTranscribing ? (
-                    <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-                  ) : isRecording ? (
-                    <MicOff className="w-4 h-4" />
-                  ) : (
-                    <Mic className="w-4 h-4" />
-                  )}
-                </Button>
                 <Input
                   ref={inputRef}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder={mode === 'chat' ? 'Ask me anything...' : 'Paste text to summarize...'}
-                  disabled={isLoading || isRecording}
+                  disabled={isLoading}
                   className="flex-1 bg-slate-900/50 border-cyan-400/30 text-gray-200 placeholder:text-gray-500
                            focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20"
                 />
                 <Button
                   onClick={handleSend}
-                  disabled={isLoading || !inputValue.trim() || isRecording}
+                  disabled={isLoading || !inputValue.trim()}
                   className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black hover:shadow-[0_0_30px_rgba(34,211,238,0.6)]
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 >
