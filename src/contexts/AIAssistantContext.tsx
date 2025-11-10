@@ -7,29 +7,43 @@ export interface Message {
   timestamp: number;
 }
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+  timestamp: number;
+}
+
 interface AIAssistantContextType {
   messages: Message[];
   isOpen: boolean;
   isLoading: boolean;
   mode: 'chat' | 'summarize';
+  chatHistory: ChatSession[];
   setIsOpen: (isOpen: boolean) => void;
   setMode: (mode: 'chat' | 'summarize') => void;
   sendMessage: (content: string) => Promise<void>;
   clearChat: () => void;
+  loadChatSession: (sessionId: string) => void;
+  startNewChat: () => void;
 }
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'aeroverse_ai_chat';
-const MAX_STORED_MESSAGES = 10;
+const HISTORY_KEY = 'aeroverse_chat_history';
+const MAX_STORED_MESSAGES = 50;
+const MAX_HISTORY_SESSIONS = 20;
 
 export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<'chat' | 'summarize'>('chat');
+  const [chatHistory, setChatHistory] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string>(() => Date.now().toString());
 
-  // Load messages from localStorage on mount
+  // Load messages and history from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -37,19 +51,40 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         const parsed = JSON.parse(stored);
         setMessages(parsed.slice(-MAX_STORED_MESSAGES));
       }
+      
+      const historyStored = localStorage.getItem(HISTORY_KEY);
+      if (historyStored) {
+        const parsedHistory = JSON.parse(historyStored);
+        setChatHistory(parsedHistory.slice(-MAX_HISTORY_SESSIONS));
+      }
     } catch (error) {
       console.error('Error loading chat history:', error);
     }
   }, []);
 
-  // Save messages to localStorage whenever they change
+  // Save messages and update history whenever messages change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-MAX_STORED_MESSAGES)));
+      
+      // Update chat history when there are messages
+      if (messages.length > 0) {
+        const sessionTitle = messages[0]?.content.slice(0, 50) || 'New Chat';
+        const updatedHistory = chatHistory.filter(s => s.id !== currentSessionId);
+        const currentSession: ChatSession = {
+          id: currentSessionId,
+          title: sessionTitle,
+          messages: messages,
+          timestamp: Date.now(),
+        };
+        const newHistory = [currentSession, ...updatedHistory].slice(0, MAX_HISTORY_SESSIONS);
+        setChatHistory(newHistory);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+      }
     } catch (error) {
       console.error('Error saving chat history:', error);
     }
-  }, [messages]);
+  }, [messages, currentSessionId]);
 
   const sendMessage = async (content: string) => {
     const userMessage: Message = {
@@ -109,6 +144,20 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  const loadChatSession = (sessionId: string) => {
+    const session = chatHistory.find(s => s.id === sessionId);
+    if (session) {
+      setMessages(session.messages);
+      setCurrentSessionId(sessionId);
+    }
+  };
+
+  const startNewChat = () => {
+    setMessages([]);
+    setCurrentSessionId(Date.now().toString());
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
   return (
     <AIAssistantContext.Provider
       value={{
@@ -116,10 +165,13 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         isOpen,
         isLoading,
         mode,
+        chatHistory,
         setIsOpen,
         setMode,
         sendMessage,
         clearChat,
+        loadChatSession,
+        startNewChat,
       }}
     >
       {children}

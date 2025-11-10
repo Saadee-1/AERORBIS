@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Minimize2, Trash2, Send, Sparkles } from 'lucide-react';
+import { MessageSquare, X, Minimize2, Trash2, Send, Sparkles, History, Plus } from 'lucide-react';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const AIAssistant: React.FC = () => {
-  const { messages, isOpen, isLoading, mode, setIsOpen, setMode, sendMessage, clearChat } = useAIAssistant();
+  const { messages, isOpen, isLoading, mode, chatHistory, setIsOpen, setMode, sendMessage, clearChat, loadChatSession, startNewChat } = useAIAssistant();
   const [inputValue, setInputValue] = useState('');
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -120,6 +122,24 @@ const AIAssistant: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={() => setShowHistory(!showHistory)}
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  title="Chat history"
+                >
+                  <History className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={startNewChat}
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  title="New chat"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={clearChat}
                   className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
                   title="Clear chat"
@@ -167,6 +187,36 @@ const AIAssistant: React.FC = () => {
                 Summarize Mode
               </Button>
             </div>
+
+            {/* Chat History Panel */}
+            {showHistory && (
+              <div className="border-b border-cyan-400/20 bg-slate-800/30 max-h-40">
+                <ScrollArea className="h-full">
+                  <div className="p-3 space-y-2">
+                    {chatHistory.length === 0 ? (
+                      <p className="text-xs text-gray-500 text-center py-2">No chat history yet</p>
+                    ) : (
+                      chatHistory.map((session) => (
+                        <button
+                          key={session.id}
+                          onClick={() => {
+                            loadChatSession(session.id);
+                            setShowHistory(false);
+                          }}
+                          className="w-full text-left p-2 rounded-lg bg-slate-900/50 hover:bg-slate-800/70 
+                                   border border-cyan-400/10 hover:border-cyan-400/30 transition-all"
+                        >
+                          <p className="text-xs text-gray-300 truncate">{session.title}</p>
+                          <p className="text-[10px] text-gray-500">
+                            {new Date(session.timestamp).toLocaleDateString()}
+                          </p>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 

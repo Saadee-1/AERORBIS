@@ -20,7 +20,7 @@ serve(async (req) => {
 
     const systemPrompt = mode === 'summarize' 
       ? "You are an AI assistant specialized in summarizing content clearly and concisely. Provide brief, actionable summaries."
-      : "You are AeroVerse AI Assistant, a helpful guide for aerospace education. You help users with research guidance, learning explanations, tool navigation, and general questions about aerospace and space exploration. Keep responses clear, engaging, and educational.";
+      : "You are AeroVerse AI Assistant, a helpful guide for aerospace education. Be precise, crisp, and to the point. Give direct answers without extra explanations unless specifically asked. Keep responses concise and actionable. Only elaborate when the user requests more detail.";
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
