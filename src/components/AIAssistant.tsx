@@ -106,16 +106,25 @@ const AIAssistant: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-cyan-400/20 bg-slate-800/50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
+                  title="Exit"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 
                               flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.6)]">
-                  <Sparkles className="w-6 h-6 text-black" />
+                  <Sparkles className="w-5 h-5 text-black" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
+                  <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
                                bg-clip-text text-transparent">
                     AeroVerse AI
                   </h3>
-                  <p className="text-xs text-gray-400">Your aerospace guide</p>
+                  <p className="text-[10px] text-gray-400">Your aerospace guide</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -151,9 +160,9 @@ const AIAssistant: React.FC = () => {
                   size="icon"
                   onClick={() => setIsOpen(false)}
                   className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
-                  title="Close"
+                  title="Minimize"
                 >
-                  <X className="w-4 h-4" />
+                  <Minimize2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
