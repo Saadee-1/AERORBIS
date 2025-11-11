@@ -55,8 +55,10 @@ const Navbar = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-gray-300 hover:text-cyan-400 transition-colors duration-200 font-medium ${
-                  location.pathname === item.href ? "text-cyan-400" : ""
+                className={`text-gray-300 hover:text-cyan-400 transition-all duration-200 font-medium ${
+                  location.pathname === item.href 
+                    ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,1)] font-bold" 
+                    : ""
                 }`}
               >
                 {item.name}
@@ -96,8 +98,10 @@ const Navbar = () => {
                     key={item.name}
                     to={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`text-gray-300 hover:text-cyan-400 transition-colors duration-200 font-medium py-2 ${
-                      location.pathname === item.href ? "text-cyan-400" : ""
+                    className={`text-gray-300 hover:text-cyan-400 transition-all duration-200 font-medium py-2 ${
+                      location.pathname === item.href 
+                        ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,1)] font-bold" 
+                        : ""
                     }`}
                   >
                     {item.name}
