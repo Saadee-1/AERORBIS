@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 interface NewsArticle {
   title: string;
@@ -52,6 +53,7 @@ const Research = () => {
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black relative">
       <DeepSpaceDataBackground />
       <Navbar />
+      <PageBreadcrumb />
       
       {/* Hero Section */}
       <section className="pt-32 pb-16 relative">

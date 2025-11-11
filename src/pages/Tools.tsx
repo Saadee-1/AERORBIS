@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 const Tools = () => {
   const ref = useRef(null);
@@ -66,6 +67,7 @@ const Tools = () => {
     <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
       <DeepSpaceDataBackground />
       <Navbar />
+      <PageBreadcrumb />
       
       {/* Hero Section */}
       <section className="relative py-24 overflow-hidden">

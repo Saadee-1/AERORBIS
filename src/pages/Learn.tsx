@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 const Learn = () => {
   const ref = useRef(null);
@@ -53,6 +54,7 @@ const Learn = () => {
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black relative">
       <DeepSpaceDataBackground />
       <Navbar />
+      <PageBreadcrumb />
       
       {/* Hero Section */}
       <section className="pt-32 pb-16 relative">

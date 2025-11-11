@@ -4,6 +4,7 @@ import DashboardTopbar from "./DashboardTopbar";
 import AeroBot from "./AeroBot";
 import { motion } from "framer-motion";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -43,6 +44,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       
       <div className={`flex-1 flex flex-col transition-all duration-300 relative z-10 ${sidebarOpen ? "ml-64" : "ml-20"}`}>
         <DashboardTopbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <PageBreadcrumb />
         
         <motion.main
           initial={{ opacity: 0, y: 20 }}
