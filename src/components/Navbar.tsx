@@ -57,7 +57,7 @@ const Navbar = () => {
                 to={item.href}
                 className={`text-gray-300 hover:text-cyan-400 transition-all duration-200 font-medium ${
                   location.pathname === item.href 
-                    ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,1)] font-bold" 
+                    ? "text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,1)] drop-shadow-[0_0_40px_rgba(34,211,238,0.8)] font-bold" 
                     : ""
                 }`}
               >
@@ -100,7 +100,7 @@ const Navbar = () => {
                     onClick={() => setIsOpen(false)}
                     className={`text-gray-300 hover:text-cyan-400 transition-all duration-200 font-medium py-2 ${
                       location.pathname === item.href 
-                        ? "text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,1)] font-bold" 
+                        ? "text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,1)] drop-shadow-[0_0_40px_rgba(34,211,238,0.8)] font-bold" 
                         : ""
                     }`}
                   >

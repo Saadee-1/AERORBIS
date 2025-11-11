@@ -53,11 +53,11 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
               to={item.href}
               className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 group relative ${
                 isActive
-                  ? "bg-cyan-400/20 text-cyan-400 border border-cyan-400/50 shadow-[0_0_30px_rgba(34,211,238,0.6)]"
+                  ? "bg-cyan-400/30 text-cyan-400 border-2 border-cyan-400/70 shadow-[0_0_50px_rgba(34,211,238,0.8)] shadow-cyan-400/50"
                   : "text-gray-300 hover:bg-cyan-400/5 hover:border hover:border-cyan-400/20 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]"
               }`}
             >
-              <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "drop-shadow-[0_0_12px_rgba(34,211,238,1)]" : "group-hover:text-cyan-400 group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]"}`} />
+              <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "drop-shadow-[0_0_20px_rgba(34,211,238,1)] drop-shadow-[0_0_40px_rgba(34,211,238,0.9)]" : "group-hover:text-cyan-400 group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]"}`} />
               {isOpen && (
                 <motion.span
                   initial={{ opacity: 0 }}
