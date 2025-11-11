@@ -31,6 +31,7 @@ serve(async (req) => {
       ko: 'Korean',
       ar: 'Arabic',
       hi: 'Hindi',
+      ur: 'Urdu',
     };
 
     const languageName = languageMap[language] || 'English';

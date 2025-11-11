@@ -21,6 +21,7 @@ const LANGUAGES = [
   { code: 'ko', name: '한국어' },
   { code: 'ar', name: 'العربية' },
   { code: 'hi', name: 'हिन्दी' },
+  { code: 'ur', name: 'اردو' },
 ];
 
 const AIAssistant: React.FC = () => {
