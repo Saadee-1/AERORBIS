@@ -87,9 +87,9 @@ const Community = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.03, y: -5 }}
+                whileHover={{ scale: 1.05, y: -8 }}
               >
-                <Card className="text-center bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300 rounded-2xl">
+                <Card className="text-center bg-slate-800/50 backdrop-blur-lg border-2 border-cyan-400/40 hover:border-cyan-400 hover:shadow-[0_0_60px_rgba(34,211,238,0.8)] hover:shadow-cyan-400/60 transition-all duration-300 rounded-2xl hover:bg-cyan-400/10">
                   <CardHeader>
                     <feature.icon className="w-12 h-12 mx-auto mb-4 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
                     <CardTitle className="text-lg text-white">{feature.title}</CardTitle>
@@ -114,10 +114,10 @@ const Community = () => {
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="flex flex-col gap-2 py-4 data-[state=active]:bg-cyan-400/20 data-[state=active]:text-cyan-400"
+                  className="flex flex-col gap-2 py-4 data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-xl transition-all duration-300"
                 >
-                  <tab.icon className="w-5 h-5" />
-                  <span className="text-xs md:text-sm">{tab.label}</span>
+                  <tab.icon className="w-5 h-5 data-[state=active]:drop-shadow-[0_0_15px_rgba(34,211,238,1)]" />
+                  <span className="text-xs md:text-sm data-[state=active]:drop-shadow-[0_0_10px_rgba(34,211,238,1)]">{tab.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -131,7 +131,7 @@ const Community = () => {
                     animate={isInView ? { opacity: 1, x: 0 } : {}}
                     transition={{ delay: index * 0.1 }}
                   >
-                  <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300 rounded-2xl">
+                  <Card className="bg-slate-800/50 backdrop-blur-lg border-2 border-cyan-400/30 hover:border-cyan-400 hover:shadow-[0_0_50px_rgba(34,211,238,0.9)] hover:shadow-cyan-400/70 transition-all duration-300 rounded-2xl hover:scale-[1.02]">
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div className="flex-grow">
@@ -164,7 +164,7 @@ const Community = () => {
                     animate={isInView ? { opacity: 1, scale: 1 } : {}}
                     transition={{ delay: index * 0.1 }}
                   >
-                  <Card className="h-full flex flex-col bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300 rounded-2xl">
+                  <Card className="h-full flex flex-col bg-slate-800/50 backdrop-blur-lg border-2 border-cyan-400/30 hover:border-cyan-400 hover:shadow-[0_0_50px_rgba(34,211,238,0.9)] hover:shadow-cyan-400/70 transition-all duration-300 rounded-2xl hover:scale-[1.02]">
                     <CardHeader>
                       <div className="text-6xl mb-4 text-center">{project.image}</div>
                       <CardTitle className="text-xl text-white">{project.title}</CardTitle>
@@ -195,7 +195,7 @@ const Community = () => {
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ delay: index * 0.1 }}
                   >
-                  <Card className="h-full bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300 rounded-2xl">
+                  <Card className="h-full bg-slate-800/50 backdrop-blur-lg border-2 border-cyan-400/30 hover:border-cyan-400 hover:shadow-[0_0_50px_rgba(34,211,238,0.9)] hover:shadow-cyan-400/70 transition-all duration-300 rounded-2xl hover:scale-[1.02]">
                     <CardHeader>
                       <div className="w-20 h-20 rounded-full bg-cyan-400/10 flex items-center justify-center mx-auto mb-4">
                         <Users className="w-10 h-10 text-cyan-400" />
@@ -225,7 +225,7 @@ const Community = () => {
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ delay: index * 0.1 }}
                   >
-                  <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300 rounded-2xl">
+                  <Card className="bg-slate-800/50 backdrop-blur-lg border-2 border-cyan-400/30 hover:border-cyan-400 hover:shadow-[0_0_50px_rgba(34,211,238,0.9)] hover:shadow-cyan-400/70 transition-all duration-300 rounded-2xl hover:scale-[1.02]">
                     <CardHeader>
                       <div className="flex items-start gap-4">
                         <div className="w-16 h-16 rounded-lg bg-cyan-400/10 flex items-center justify-center flex-shrink-0">
