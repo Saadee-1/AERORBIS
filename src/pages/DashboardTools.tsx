@@ -130,8 +130,15 @@ const DashboardTools = () => {
                       <p className="text-sm text-muted-foreground mb-4">{tool.description}</p>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">Used {tool.usageCount} times</span>
-                        <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                          Launch Tool →
+                        <Button 
+                          size="sm" 
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          asChild
+                          disabled={tool.name !== "Thrust Calculator"}
+                        >
+                          <a href={tool.name === "Thrust Calculator" ? "/tools/launch" : "#"}>
+                            {tool.name === "Thrust Calculator" ? "Launch Tool →" : "Coming Soon"}
+                          </a>
                         </Button>
                       </div>
                     </CardContent>
@@ -173,8 +180,16 @@ const DashboardTools = () => {
                     <p className="text-sm text-muted-foreground mb-4">{tool.description}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">Used {tool.usageCount} times</span>
-                      <Button size="sm" variant="outline" className="border-border hover:bg-muted">
-                        Launch Tool →
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="border-border hover:bg-muted"
+                        asChild
+                        disabled={tool.name !== "Thrust Calculator"}
+                      >
+                        <a href={tool.name === "Thrust Calculator" ? "/tools/launch" : "#"}>
+                          {tool.name === "Thrust Calculator" ? "Launch Tool →" : "Coming Soon"}
+                        </a>
                       </Button>
                     </div>
                   </CardContent>

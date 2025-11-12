@@ -1,0 +1,64 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Rocket, Plane } from "lucide-react";
+import ThrustCalculator from "@/components/tools/ThrustCalculator";
+import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
+
+const ToolsLauncher = () => {
+  const [activeTab, setActiveTab] = useState("thrust");
+
+  return (
+    <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
+      <DeepSpaceDataBackground />
+      <Navbar />
+      <PageBreadcrumb />
+      
+      <section className="relative py-12 flex-grow">
+        <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-8"
+          >
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-2 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
+                <TabsTrigger 
+                  value="thrust"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                >
+                  <Rocket className="w-4 h-4 mr-2" />
+                  Thrust Calculator
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="wing"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                >
+                  <Plane className="w-4 h-4 mr-2" />
+                  Wing Loading Calculator
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="thrust" className="mt-0">
+                <ThrustCalculator />
+              </TabsContent>
+
+              <TabsContent value="wing" className="mt-0">
+                <WingLoadingCalculator />
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default ToolsLauncher;

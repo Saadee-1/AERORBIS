@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import Learn from "./pages/Learn";
 import Research from "./pages/Research";
 import Tools from "./pages/Tools";
+import ToolsLauncher from "./pages/ToolsLauncher";
 import Community from "./pages/Community";
 import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const AnimatedRoutes = () => {
         <Route path="/learn" element={<PageTransition><Learn /></PageTransition>} />
         <Route path="/research" element={<PageTransition><Research /></PageTransition>} />
         <Route path="/tools" element={<PageTransition><Tools /></PageTransition>} />
+        <Route path="/tools/launch" element={<PageTransition><ToolsLauncher /></PageTransition>} />
         <Route path="/community" element={<PageTransition><Community /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
         <Route path="/dashboard" element={<PageTransition><DashboardOverview /></PageTransition>} />
