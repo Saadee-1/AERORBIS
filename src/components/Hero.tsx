@@ -2,12 +2,18 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Users } from "lucide-react";
 import heroImage from "@/assets/hero-rocket.jpg";
+import { useActiveSection } from "@/hooks/useActiveSection";
 
 const Hero = () => {
+  const activeSection = useActiveSection(["home", "about", "learn", "research", "tools", "community", "testimonials", "contact"]);
+  const isActive = activeSection === "home";
+
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero pt-20"
+      className={`relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero pt-20 transition-all duration-500 ${
+        isActive ? "shadow-[inset_0_0_100px_rgba(34,211,238,0.4)] border-t-4 border-b-4 border-cyan-400/50" : ""
+      }`}
     >
       {/* Background Image with Parallax Effect - Semi-transparent */}
       <motion.div

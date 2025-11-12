@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { FileText, Users, Lightbulb } from "lucide-react";
 import researchImage from "@/assets/research-lab.jpg";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
+import { useActiveSection } from "@/hooks/useActiveSection";
 
 const Research = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const activeSection = useActiveSection(["home", "about", "learn", "research", "tools", "community", "testimonials", "contact"]);
+  const isActive = activeSection === "research";
 
   const features = [
     {
@@ -29,7 +32,12 @@ const Research = () => {
   ];
 
   return (
-    <section id="research" className="py-24 bg-gradient-to-b from-black via-slate-900 to-black relative overflow-hidden">
+    <section 
+      id="research" 
+      className={`py-24 bg-gradient-to-b from-black via-slate-900 to-black relative overflow-hidden transition-all duration-500 ${
+        isActive ? "shadow-[inset_0_0_100px_rgba(34,211,238,0.4)] border-t-4 border-b-4 border-cyan-400/50" : ""
+      }`}
+    >
       <DeepSpaceDataBackground />
       <div className="container mx-auto px-4 lg:px-8 relative z-10" ref={ref}>
         <motion.div

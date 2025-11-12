@@ -3,6 +3,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Calculator, TrendingUp, Orbit, Database } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useActiveSection } from "@/hooks/useActiveSection";
 
 const tools = [
   {
@@ -30,9 +31,16 @@ const tools = [
 const Tools = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const activeSection = useActiveSection(["home", "about", "learn", "research", "tools", "community", "testimonials", "contact"]);
+  const isActive = activeSection === "tools";
 
   return (
-    <section id="tools" className="py-24 bg-gradient-to-b from-black via-slate-900 to-black relative overflow-hidden">
+    <section 
+      id="tools" 
+      className={`py-24 bg-gradient-to-b from-black via-slate-900 to-black relative overflow-hidden transition-all duration-500 ${
+        isActive ? "shadow-[inset_0_0_100px_rgba(34,211,238,0.4)] border-t-4 border-b-4 border-cyan-400/50" : ""
+      }`}
+    >
       <div className="container mx-auto px-4 lg:px-8 relative z-10" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 50 }}
