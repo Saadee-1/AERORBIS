@@ -294,7 +294,7 @@ const WingLoadingCalculator = () => {
       };
       // --- End Feasibility Check ---
 
-      setResult({ ...resultValues, steps, solvedFor, feasibility });
+      setResult({ ...resultValues, steps, solvedFor:solveFor, feasibility });
       
       const displayValue = convertFromSI(resultValues[solveFor] || resultValues.wingLoading, solveFor);
       
