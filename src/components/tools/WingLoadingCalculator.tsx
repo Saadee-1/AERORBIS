@@ -183,10 +183,15 @@ const WingLoadingCalculator = () => {
 
   const calculateWingLoading = () => {
     try {
+      // Trim input and check if it's an empty string
+      const weightInput = inputs.weight.trim();
+      const areaInput = inputs.wingArea.trim();
+      const loadingInput = inputs.wingLoading.trim();
+
       const rawValues: Record<string, number | undefined> = {
-        weight: inputs.weight ? convertToSI(parseFloat(inputs.weight), "weight") : undefined,
-        wingArea: inputs.wingArea ? convertToSI(parseFloat(inputs.wingArea), "wingArea") : undefined,
-        wingLoading: inputs.wingLoading ? convertToSI(parseFloat(inputs.wingLoading), "wingLoading") : undefined,
+        weight: weightInput ? convertToSI(parseFloat(weightInput), "weight") : undefined,
+        wingArea: areaInput ? convertToSI(parseFloat(areaInput), "wingArea") : undefined,
+        wingLoading: loadingInput ? convertToSI(parseFloat(loadingInput), "wingLoading") : undefined,
       };
 
       const emptyFields = Object.entries(rawValues).filter(([_, v]) => v === undefined);
