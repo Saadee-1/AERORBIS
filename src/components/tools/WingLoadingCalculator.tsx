@@ -46,11 +46,11 @@ interface CalculationStep {
   description: string;
 }
 
-// Updated Schema: Allows any number (positive, negative, or zero)
+// Updated Schema: Allows any number, but rejects NaN/Infinity
 const wingLoadingSchema = z.object({
-  weight: z.number().optional(),
-  wingArea: z.number().optional(),
-  wingLoading: z.number().optional(),
+  weight: z.number().finite("Weight must be a valid number").optional(),
+  wingArea: z.number().finite("Wing Area must be a valid number").optional(),
+  wingLoading: z.number().finite("Wing Loading must be a valid number").optional(),
 });
 
 const WingLoadingCalculator = () => {
@@ -209,104 +209,12 @@ const WingLoadingCalculator = () => {
         return;
       }
 
-      const validated = wingLoadingSchema.parse(rawValues);
-      const solveFor = emptyFields[0][0];
-      const steps: CalculationStep[] = [];
-      let resultValues: any = {};
-      let calculatedWingLoading_SI: number;
-
-      steps.push({ equation: "W/S = W ÷ S", description: "Wing loading equals weight divided by wing area" });
-
-      if (solveFor === "wingLoading") {
-        const w = validated.weight!;
-        const s = validated.wingArea!;
-        // Check for division by zero
-        if (s === 0) {
-          toast({ title: "Calculation Error", description: "Wing Area cannot be zero when solving for Wing Loading.", variant: "destructive" });
-          return;
-        }
-        const wl = w / s;
-        steps.push({ equation: `W/S = ${w.toFixed(2)} ÷ ${s.toFixed(2)}`, description: "Substitute known values" });
-        steps.push({ equation: `W/S = ${wl.toFixed(2)} N/m²`, description: "Calculate wing loading" });
-        const interpretation = interpretWingLoading(wl);
-        resultValues = { wingLoading: wl, ...interpretation };
-        calculatedWingLoading_SI = wl;
-
-        // Generate chart data only if physically plausible
-        if (wl > 0 && w > 0 && s > 0) {
-          const data = [];
-          for (let area = s * 0.5; area <= s * 1.5; area += s * 0.1) {
-            data.push({ 
-              wingArea: convertFromSI(area, "wingArea"), 
-              wingLoading: convertFromSI(w / area, "wingLoading") 
-            });
-          }
-          setChartData(data);
-        } else {
-          setChartData([]);
-        }
-
-      } else if (solveFor === "weight") {
-        const wl = validated.wingLoading!;
-        const s = validated.wingArea!;
-        const w = wl * s;
-        steps.push({ equation: "W = (W/S) × S", description: "Rearrange to solve for weight" });
-        steps.push({ equation: `W = ${wl.toFixed(2)} × ${s.toFixed(2)}`, description: "Substitute known values" });
-        steps.push({ equation: `W = ${w.toFixed(2)} N`, description: "Calculate aircraft weight" });
-        const interpretation = interpretWingLoading(wl);
-        resultValues = { weight: w, ...interpretation };
-        calculatedWingLoading_SI = wl;
-        setChartData([]); // No chart when solving for weight
-
-      } else { // solveFor === "wingArea"
-        const wl = validated.wingLoading!;
-        const w = validated.weight!;
-        // Check for division by zero
-        if (wl === 0) {
-          toast({ title: "Calculation Error", description: "Wing Loading cannot be zero when solving for Wing Area.", variant: "destructive" });
-          return;
-        }
-        const s = w / wl;
-        steps.push({ equation: "S = W ÷ (W/S)", description: "Rearrange to solve for wing area" });
-        steps.push({ equation: `S = ${w.toFixed(2)} ÷ ${wl.toFixed(2)}`, description: "Substitute known values" });
-        steps.push({ equation: `S = ${s.toFixed(2)} m²`, description: "Calculate wing area" });
-        const interpretation = interpretWingLoading(wl);
-        resultValues = { wingArea: s, ...interpretation };
-        calculatedWingLoading_SI = wl;
-        setChartData([]); // No chart when solving for area
-      }
-
-      // --- Feasibility Check ---
-      const final_wl = resultValues.wingLoading || validated.wingLoading!;
-      const final_w = resultValues.weight || validated.weight!;
-      const final_s = resultValues.wingArea || validated.wingArea!;
-
-      let feasibilityMessages = [];
-      if (final_wl <= 0) feasibilityMessages.push("Wing Loading is non-positive.");
-      if (final_w <= 0) feasibilityMessages.push("Aircraft Weight is non-positive.");
-      if (final_s <= 0) feasibilityMessages.push("Wing Area is non-positive.");
-      
-      const feasibility = {
-        feasible: feasibilityMessages.length === 0,
-        message: feasibilityMessages.length > 0 
-          ? `Not physically feasible: ${feasibilityMessages.join(" ")}`
-          : "The calculated values are physically plausible."
-      };
-      // --- End Feasibility Check ---
-
-      setResult({ ...resultValues, steps, solvedFor, feasibility });
-      
-      const displayValue = convertFromSI(resultValues[solveFor] || resultValues.wingLoading, solveFor);
-      toast({ 
-        title: "Calculation Complete", 
-        description: `${solveFor.charAt(0).toUpperCase() + solveFor.slice(1)}: ${displayValue.toFixed(2)} ${getUnit(solveFor)}` 
-      });
-
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // This should no longer be triggered by positive/negative, but by non-numeric input
-        toast({ title: "Invalid Input", description: "Please ensure all fields contain valid numbers.", variant: "destructive" });
+        // This will NOW be triggered, giving a better error
+        toast({ title: "Invalid Input", description: error.errors[0]?.message || "Please ensure all fields contain valid numbers.", variant: "destructive" });
       } else {
+        // This generic error should no longer be reachable from invalid numbers
         toast({ title: "Error", description: "Please enter valid numbers", variant: "destructive" });
       }
     }
