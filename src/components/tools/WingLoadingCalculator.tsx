@@ -399,7 +399,8 @@ const AdvancedWingLoadingCalculator = () => {
               <SelectContent>
                 <SelectItem value="SI">SI (Metric)</SelectItem>
                 <SelectItem value="Imperial">Imperial</SelectItem>
-                <SelectItem value."Custom">Custom</SelectItem>
+                {/* THIS IS THE FIX. The period is removed. */}
+                <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
             <Button type="button" onClick={resetCalculators} variant="outline" className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10">Reset All</Button>
@@ -550,7 +551,7 @@ const AdvancedWingLoadingCalculator = () => {
                     <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
                       {/* Display solved value */}
                       {advancedResult.stallSpeed ? `${convertFromSI(advancedResult.stallSpeed, "stallSpeed").toFixed(2)} ${getUnit("stallSpeed")}`
-                      : advancedResult.wingLoading ? `${convertFromSI(advancedResult.wingLoading, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}`
+                      : advancedResult.wingLoading ? `${convertFromSI(advancedVertical-align:super">2</text>
                       : advancedResult.clMax ? `${advancedResult.clMax.toFixed(3)} ${getUnit("clMax")}`
                       : `${convertFromSI(advancedResult.airDensity, "airDensity").toFixed(3)} ${getUnit("airDensity")}`
                       }
