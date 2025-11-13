@@ -1,20 +1,47 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Calculator, Rocket, Info, TrendingUp } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from "recharts";
-import { create, all } from "mathjs";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer, 
+  Legend 
+} from "recharts";
 
-const math = create(all);
+// --- Types & Schema ---
 
-type UnitSystem = "SI" | "Imperial" | "Custom";
+type UnitSystem = "SI" | "Imperial";
 
 interface CalculationStep {
   equation: string;
@@ -33,6 +60,8 @@ const thrustSchema = z.object({
 const ThrustCalculator = () => {
   const { toast } = useToast();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
+  
+  // State for input fields (kept as strings to allow empty values)
   const [inputs, setInputs] = useState({
     massFlowRate: "",
     exhaustVelocity: "",
@@ -41,6 +70,8 @@ const ThrustCalculator = () => {
     ambientPressure: "",
     thrust: "",
   });
+
+  // State for results
   const [result, setResult] = useState<{
     thrust?: number;
     massFlowRate?: number;
@@ -53,7 +84,10 @@ const ThrustCalculator = () => {
     steps: CalculationStep[];
     solvedFor: string;
   } | null>(null);
+
   const [chartData, setChartData] = useState<any[]>([]);
+
+  // --- Effects ---
 
   // Load preferences from localStorage
   useEffect(() => {
@@ -69,23 +103,19 @@ const ThrustCalculator = () => {
     localStorage.setItem("thrustCalc_inputs", JSON.stringify(inputs));
   }, [unitSystem, inputs]);
 
+  // --- Unit Conversion Logic ---
+
   const convertToSI = (value: number, field: string): number => {
     if (unitSystem === "SI") return value;
     
     switch (field) {
-      case "massFlowRate":
-        return unitSystem === "Imperial" ? value * 0.453592 : value; // lb/s to kg/s
-      case "exhaustVelocity":
-        return unitSystem === "Imperial" ? value * 0.3048 : value; // ft/s to m/s
-      case "exitArea":
-        return unitSystem === "Imperial" ? value * 0.092903 : value; // ft² to m²
+      case "massFlowRate": return value * 0.453592; // lb/s to kg/s
+      case "exhaustVelocity": return value * 0.3048; // ft/s to m/s
+      case "exitArea": return value * 0.092903; // ft² to m²
       case "exitPressure":
-      case "ambientPressure":
-        return unitSystem === "Imperial" ? value * 6894.76 : value; // psi to Pa
-      case "thrust":
-        return unitSystem === "Imperial" ? value * 4.44822 : value; // lbf to N
-      default:
-        return value;
+      case "ambientPressure": return value * 6894.76; // psi to Pa
+      case "thrust": return value * 4.44822; // lbf to N
+      default: return value;
     }
   };
 
@@ -93,30 +123,24 @@ const ThrustCalculator = () => {
     if (unitSystem === "SI") return value;
     
     switch (field) {
-      case "massFlowRate":
-        return unitSystem === "Imperial" ? value / 0.453592 : value;
-      case "exhaustVelocity":
-        return unitSystem === "Imperial" ? value / 0.3048 : value;
-      case "exitArea":
-        return unitSystem === "Imperial" ? value / 0.092903 : value;
+      case "massFlowRate": return value / 0.453592;
+      case "exhaustVelocity": return value / 0.3048;
+      case "exitArea": return value / 0.092903;
       case "exitPressure":
-      case "ambientPressure":
-        return unitSystem === "Imperial" ? value / 6894.76 : value;
-      case "thrust":
-        return unitSystem === "Imperial" ? value / 4.44822 : value;
-      default:
-        return value;
+      case "ambientPressure": return value / 6894.76;
+      case "thrust": return value / 4.44822;
+      default: return value;
     }
   };
 
   const getUnit = (field: string): string => {
     const units: Record<string, Record<UnitSystem, string>> = {
-      massFlowRate: { SI: "kg/s", Imperial: "lb/s", Custom: "kg/s" },
-      exhaustVelocity: { SI: "m/s", Imperial: "ft/s", Custom: "m/s" },
-      exitArea: { SI: "m²", Imperial: "ft²", Custom: "m²" },
-      exitPressure: { SI: "Pa", Imperial: "psi", Custom: "Pa" },
-      ambientPressure: { SI: "Pa", Imperial: "psi", Custom: "Pa" },
-      thrust: { SI: "N", Imperial: "lbf", Custom: "N" },
+      massFlowRate: { SI: "kg/s", Imperial: "lb/s" },
+      exhaustVelocity: { SI: "m/s", Imperial: "ft/s" },
+      exitArea: { SI: "m²", Imperial: "ft²" },
+      exitPressure: { SI: "Pa", Imperial: "psi" },
+      ambientPressure: { SI: "Pa", Imperial: "psi" },
+      thrust: { SI: "N", Imperial: "lbf" },
     };
     return units[field]?.[unitSystem] || "";
   };
@@ -125,9 +149,11 @@ const ThrustCalculator = () => {
     setInputs(prev => ({ ...prev, [field]: value }));
   };
 
+  // --- Main Calculation Logic ---
+
   const calculateThrust = () => {
     try {
-      // Convert inputs to SI units
+      // 1. Prepare raw values (convert to SI)
       const rawValues: Record<string, number | undefined> = {
         massFlowRate: inputs.massFlowRate ? convertToSI(parseFloat(inputs.massFlowRate), "massFlowRate") : undefined,
         exhaustVelocity: inputs.exhaustVelocity ? convertToSI(parseFloat(inputs.exhaustVelocity), "exhaustVelocity") : undefined,
@@ -137,27 +163,19 @@ const ThrustCalculator = () => {
         thrust: inputs.thrust ? convertToSI(parseFloat(inputs.thrust), "thrust") : undefined,
       };
 
-      // Count how many fields are empty
+      // 2. Determine what to solve for
       const emptyFields = Object.entries(rawValues).filter(([_, v]) => v === undefined);
       
       if (emptyFields.length === 0) {
-        toast({
-          title: "Too Many Inputs",
-          description: "Leave one field blank to solve for it",
-          variant: "destructive",
-        });
+        toast({ title: "Too Many Inputs", description: "Leave one field blank to solve for it", variant: "destructive" });
         return;
       }
-
       if (emptyFields.length > 1) {
-        toast({
-          title: "Insufficient Data",
-          description: "Please fill in all but one field",
-          variant: "destructive",
-        });
+        toast({ title: "Insufficient Data", description: "Please fill in all but one field", variant: "destructive" });
         return;
       }
 
+      // 3. Validate inputs
       const validated = thrustSchema.parse(rawValues);
       const solveFor = emptyFields[0][0];
       const steps: CalculationStep[] = [];
@@ -169,6 +187,7 @@ const ThrustCalculator = () => {
         description: "Thrust equals momentum thrust plus pressure thrust"
       });
 
+      // 4. Solve
       switch (solveFor) {
         case "thrust": {
           const mdot = validated.massFlowRate!;
@@ -186,12 +205,8 @@ const ThrustCalculator = () => {
             description: "Substitute known values"
           });
           steps.push({
-            equation: `F = ${momentumThrust.toFixed(2)} + ${pressureThrust.toFixed(2)}`,
-            description: "Calculate each component"
-          });
-          steps.push({
             equation: `F = ${totalThrust.toFixed(2)} N`,
-            description: "Sum the components to get total thrust"
+            description: "Sum components"
           });
 
           resultValues = { thrust: totalThrust, momentumThrust, pressureThrust };
@@ -208,22 +223,8 @@ const ThrustCalculator = () => {
           const pressureThrust = (pe - pa) * ae;
           const mdot = (f - pressureThrust) / ve;
 
-          steps.push({
-            equation: "ṁ = (F - (Pe - Pa)Ae) / Ve",
-            description: "Rearrange to solve for mass flow rate"
-          });
-          steps.push({
-            equation: `ṁ = (${f.toFixed(2)} - (${pe.toFixed(0)} - ${pa.toFixed(0)})(${ae.toFixed(4)})) / ${ve.toFixed(2)}`,
-            description: "Substitute known values"
-          });
-          steps.push({
-            equation: `ṁ = (${f.toFixed(2)} - ${pressureThrust.toFixed(2)}) / ${ve.toFixed(2)}`,
-            description: "Calculate pressure component"
-          });
-          steps.push({
-            equation: `ṁ = ${mdot.toFixed(4)} kg/s`,
-            description: "Final mass flow rate"
-          });
+          steps.push({ equation: "ṁ = (F - (Pe - Pa)Ae) / Ve", description: "Rearrange for mass flow" });
+          steps.push({ equation: `ṁ = ${mdot.toFixed(4)} kg/s`, description: "Calculated result" });
 
           resultValues = { massFlowRate: mdot, momentumThrust: mdot * ve, pressureThrust };
           break;
@@ -239,18 +240,8 @@ const ThrustCalculator = () => {
           const pressureThrust = (pe - pa) * ae;
           const ve = (f - pressureThrust) / mdot;
 
-          steps.push({
-            equation: "Ve = (F - (Pe - Pa)Ae) / ṁ",
-            description: "Rearrange to solve for exhaust velocity"
-          });
-          steps.push({
-            equation: `Ve = (${f.toFixed(2)} - ${pressureThrust.toFixed(2)}) / ${mdot.toFixed(4)}`,
-            description: "Substitute known values"
-          });
-          steps.push({
-            equation: `Ve = ${ve.toFixed(2)} m/s`,
-            description: "Final exhaust velocity"
-          });
+          steps.push({ equation: "Ve = (F - (Pe - Pa)Ae) / ṁ", description: "Rearrange for velocity" });
+          steps.push({ equation: `Ve = ${ve.toFixed(2)} m/s`, description: "Calculated result" });
 
           resultValues = { exhaustVelocity: ve, momentumThrust: mdot * ve, pressureThrust };
           break;
@@ -264,20 +255,21 @@ const ThrustCalculator = () => {
           const pa = validated.ambientPressure!;
           
           const momentumThrust = mdot * ve;
+          
+          // Check for division by zero (pressure balanced)
+          if (pe === pa) {
+            toast({ 
+              title: "Calculation Indeterminate", 
+              description: "Pressure is balanced (Pe = Pa). Area cannot be derived from this equation.", 
+              variant: "destructive" 
+            });
+            return;
+          }
+
           const ae = (f - momentumThrust) / (pe - pa);
 
-          steps.push({
-            equation: "Ae = (F - ṁVe) / (Pe - Pa)",
-            description: "Rearrange to solve for exit area"
-          });
-          steps.push({
-            equation: `Ae = (${f.toFixed(2)} - ${momentumThrust.toFixed(2)}) / (${pe.toFixed(0)} - ${pa.toFixed(0)})`,
-            description: "Substitute known values"
-          });
-          steps.push({
-            equation: `Ae = ${ae.toFixed(6)} m²`,
-            description: "Final exit area"
-          });
+          steps.push({ equation: "Ae = (F - ṁVe) / (Pe - Pa)", description: "Rearrange for Area" });
+          steps.push({ equation: `Ae = ${ae.toFixed(6)} m²`, description: "Calculated result" });
 
           resultValues = { exitArea: ae, momentumThrust, pressureThrust: (pe - pa) * ae };
           break;
@@ -293,18 +285,8 @@ const ThrustCalculator = () => {
           const momentumThrust = mdot * ve;
           const pe = pa + (f - momentumThrust) / ae;
 
-          steps.push({
-            equation: "Pe = Pa + (F - ṁVe) / Ae",
-            description: "Rearrange to solve for exit pressure"
-          });
-          steps.push({
-            equation: `Pe = ${pa.toFixed(0)} + (${f.toFixed(2)} - ${momentumThrust.toFixed(2)}) / ${ae.toFixed(4)}`,
-            description: "Substitute known values"
-          });
-          steps.push({
-            equation: `Pe = ${pe.toFixed(0)} Pa`,
-            description: "Final exit pressure"
-          });
+          steps.push({ equation: "Pe = Pa + (F - ṁVe) / Ae", description: "Rearrange for Exit Pressure" });
+          steps.push({ equation: `Pe = ${pe.toFixed(0)} Pa`, description: "Calculated result" });
 
           resultValues = { exitPressure: pe, momentumThrust, pressureThrust: (pe - pa) * ae };
           break;
@@ -320,35 +302,26 @@ const ThrustCalculator = () => {
           const momentumThrust = mdot * ve;
           const pa = pe - (f - momentumThrust) / ae;
 
-          steps.push({
-            equation: "Pa = Pe - (F - ṁVe) / Ae",
-            description: "Rearrange to solve for ambient pressure"
-          });
-          steps.push({
-            equation: `Pa = ${pe.toFixed(0)} - (${f.toFixed(2)} - ${momentumThrust.toFixed(2)}) / ${ae.toFixed(4)}`,
-            description: "Substitute known values"
-          });
-          steps.push({
-            equation: `Pa = ${pa.toFixed(0)} Pa`,
-            description: "Final ambient pressure"
-          });
+          steps.push({ equation: "Pa = Pe - (F - ṁVe) / Ae", description: "Rearrange for Ambient Pressure" });
+          steps.push({ equation: `Pa = ${pa.toFixed(0)} Pa`, description: "Calculated result" });
 
           resultValues = { ambientPressure: pa, momentumThrust, pressureThrust: (pe - pa) * ae };
           break;
         }
       }
 
-      // Validate physics
+      // 5. Physics Sanity Check
       if (resultValues.thrust && resultValues.thrust < 0) {
         toast({
           title: "Non-Physical Result",
-          description: "Negative thrust is not physically possible",
+          description: "Negative thrust is not physically possible with these inputs.",
           variant: "destructive",
         });
         return;
       }
 
-      // Generate chart data for sensitivity analysis
+      // 6. Generate Chart Data (Sensitivity Analysis)
+      // Only generate if we have enough info to vary Ve or ṁ
       if (solveFor === "thrust" && validated.massFlowRate && validated.exhaustVelocity) {
         const baseVe = validated.exhaustVelocity;
         const data = [];
@@ -361,6 +334,8 @@ const ThrustCalculator = () => {
           });
         }
         setChartData(data);
+      } else {
+        setChartData([]);
       }
 
       setResult({
@@ -374,6 +349,7 @@ const ThrustCalculator = () => {
         title: "Calculation Complete",
         description: `${solveFor}: ${displayValue.toFixed(2)} ${getUnit(solveFor)}`,
       });
+
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -382,9 +358,10 @@ const ThrustCalculator = () => {
           variant: "destructive",
         });
       } else {
+        console.error(error);
         toast({
           title: "Error",
-          description: "Please enter valid numbers",
+          description: "An unexpected error occurred.",
           variant: "destructive",
         });
       }
@@ -403,6 +380,8 @@ const ThrustCalculator = () => {
     setResult(null);
     setChartData([]);
   };
+
+  // --- Render ---
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6">
@@ -428,7 +407,6 @@ const ThrustCalculator = () => {
               <SelectContent>
                 <SelectItem value="SI">SI (Metric)</SelectItem>
                 <SelectItem value="Imperial">Imperial</SelectItem>
-                <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -456,95 +434,28 @@ const ThrustCalculator = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="thrust" className="text-gray-300">
-                  Thrust (F) <span className="text-gray-500">{getUnit("thrust")}</span>
-                </Label>
-                <Input
-                  id="thrust"
-                  type="number"
-                  step="0.01"
-                  value={inputs.thrust}
-                  onChange={(e) => handleInputChange("thrust", e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50 transition-all"
-                  placeholder="Leave blank to solve"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="massFlowRate" className="text-gray-300">
-                  Mass Flow Rate (ṁ) <span className="text-gray-500">{getUnit("massFlowRate")}</span>
-                </Label>
-                <Input
-                  id="massFlowRate"
-                  type="number"
-                  step="0.01"
-                  value={inputs.massFlowRate}
-                  onChange={(e) => handleInputChange("massFlowRate", e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50 transition-all"
-                  placeholder="Leave blank to solve"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="exhaustVelocity" className="text-gray-300">
-                  Exhaust Velocity (Ve) <span className="text-gray-500">{getUnit("exhaustVelocity")}</span>
-                </Label>
-                <Input
-                  id="exhaustVelocity"
-                  type="number"
-                  step="0.01"
-                  value={inputs.exhaustVelocity}
-                  onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50 transition-all"
-                  placeholder="Leave blank to solve"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="exitArea" className="text-gray-300">
-                  Exit Area (Ae) <span className="text-gray-500">{getUnit("exitArea")}</span>
-                </Label>
-                <Input
-                  id="exitArea"
-                  type="number"
-                  step="0.001"
-                  value={inputs.exitArea}
-                  onChange={(e) => handleInputChange("exitArea", e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50 transition-all"
-                  placeholder="Leave blank to solve"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="exitPressure" className="text-gray-300">
-                  Exit Pressure (Pe) <span className="text-gray-500">{getUnit("exitPressure")}</span>
-                </Label>
-                <Input
-                  id="exitPressure"
-                  type="number"
-                  step="1"
-                  value={inputs.exitPressure}
-                  onChange={(e) => handleInputChange("exitPressure", e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50 transition-all"
-                  placeholder="Leave blank to solve"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ambientPressure" className="text-gray-300">
-                  Ambient Pressure (Pa) <span className="text-gray-500">{getUnit("ambientPressure")}</span>
-                </Label>
-                <Input
-                  id="ambientPressure"
-                  type="number"
-                  step="1"
-                  value={inputs.ambientPressure}
-                  onChange={(e) => handleInputChange("ambientPressure", e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50 transition-all"
-                  placeholder="Leave blank to solve"
-                />
-              </div>
+              {[
+                { id: "thrust", label: "Thrust (F)" },
+                { id: "massFlowRate", label: "Mass Flow Rate (ṁ)" },
+                { id: "exhaustVelocity", label: "Exhaust Velocity (Ve)" },
+                { id: "exitArea", label: "Exit Area (Ae)" },
+                { id: "exitPressure", label: "Exit Pressure (Pe)" },
+                { id: "ambientPressure", label: "Ambient Pressure (Pa)" },
+              ].map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <Label htmlFor={field.id} className="text-gray-300">
+                    {field.label} <span className="text-gray-500">{getUnit(field.id)}</span>
+                  </Label>
+                  <Input
+                    id={field.id}
+                    type="number"
+                    value={inputs[field.id as keyof typeof inputs]}
+                    onChange={(e) => handleInputChange(field.id, e.target.value)}
+                    className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50 transition-all"
+                    placeholder="Leave blank to solve"
+                  />
+                </div>
+              ))}
 
               <div className="flex gap-3 pt-4">
                 <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -588,18 +499,20 @@ const ThrustCalculator = () => {
                         {result.solvedFor === "thrust" ? "Total Thrust" : `Solved: ${result.solvedFor}`}
                       </p>
                       <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
-                        {result.thrust !== undefined 
+                        {/* Result Display Logic */}
+                         {result.thrust !== undefined && result.solvedFor === "thrust"
                           ? `${convertFromSI(result.thrust, "thrust").toFixed(2)} ${getUnit("thrust")}`
-                          : result.massFlowRate !== undefined
+                          : result.massFlowRate !== undefined && result.solvedFor === "massFlowRate"
                           ? `${convertFromSI(result.massFlowRate, "massFlowRate").toFixed(4)} ${getUnit("massFlowRate")}`
-                          : result.exhaustVelocity !== undefined
+                          : result.exhaustVelocity !== undefined && result.solvedFor === "exhaustVelocity"
                           ? `${convertFromSI(result.exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
-                          : result.exitArea !== undefined
+                          : result.exitArea !== undefined && result.solvedFor === "exitArea"
                           ? `${convertFromSI(result.exitArea, "exitArea").toFixed(6)} ${getUnit("exitArea")}`
-                          : result.exitPressure !== undefined
+                          : result.exitPressure !== undefined && result.solvedFor === "exitPressure"
                           ? `${convertFromSI(result.exitPressure, "exitPressure").toFixed(0)} ${getUnit("exitPressure")}`
-                          : `${convertFromSI(result.ambientPressure!, "ambientPressure").toFixed(0)} ${getUnit("ambientPressure")}`
-                        }
+                          : result.ambientPressure !== undefined
+                          ? `${convertFromSI(result.ambientPressure, "ambientPressure").toFixed(0)} ${getUnit("ambientPressure")}`
+                          : "Error"}
                       </p>
                     </div>
 
@@ -637,16 +550,6 @@ const ThrustCalculator = () => {
                               <p className="text-gray-300 text-xs">{step.description}</p>
                             </div>
                           ))}
-                          <div className="p-3 bg-gradient-to-r from-cyan-400/5 to-blue-400/5 rounded-lg border border-cyan-400/20 mt-4">
-                            <p className="text-white text-sm font-semibold mb-1">Physical Interpretation</p>
-                            <p className="text-gray-300 text-xs leading-relaxed">
-                              The total thrust is the sum of momentum thrust (ṁVe) and pressure thrust ((Pe - Pa)Ae). 
-                              Momentum thrust results from the change in momentum of the exhaust gases, while pressure 
-                              thrust comes from the pressure difference between the nozzle exit and ambient conditions.
-                              {result.thrust !== undefined && result.thrust > 100000 && " This is a high-thrust engine suitable for heavy-lift applications."}
-                              {result.thrust !== undefined && result.thrust < 10000 && " This represents a smaller engine, possibly for upper stages or attitude control."}
-                            </p>
-                          </div>
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
@@ -716,17 +619,6 @@ const ThrustCalculator = () => {
                     <p><span className="text-cyan-400">Pa</span> = Ambient Pressure (Pa)</p>
                     <p><span className="text-cyan-400">Ae</span> = Exit Area (m²)</p>
                   </div>
-                </div>
-
-                <div className="text-gray-300 text-sm space-y-2">
-                  <p className="font-semibold text-white">Key Concepts:</p>
-                  <ul className="list-disc list-inside space-y-1 text-gray-400">
-                    <li>Momentum thrust dominates at high altitudes</li>
-                    <li>Pressure thrust depends on altitude and nozzle design</li>
-                    <li>Optimal nozzle has Pe = Pa for maximum efficiency</li>
-                    <li>Underexpanded nozzle: Pe &gt; Pa (loses potential thrust)</li>
-                    <li>Overexpanded nozzle: Pe &lt; Pa (can cause flow separation)</li>
-                  </ul>
                 </div>
               </CardContent>
             </Card>
