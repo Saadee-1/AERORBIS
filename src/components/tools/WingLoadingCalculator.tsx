@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,27 +7,87 @@ import { Button } from "@/components/ui/button";
 import { Gauge, Plane, Info, TrendingUp } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from "recharts";
+
+type UnitSystem = "SI" | "Imperial" | "Custom";
+type FlightCondition = "Takeoff" | "Cruise" | "Landing";
+
+interface CalculationStep {
+  equation: string;
+  description: string;
+}
 
 const wingLoadingSchema = z.object({
-  weight: z.number().positive("Aircraft weight must be positive"),
-  wingArea: z.number().positive("Wing area must be positive"),
+  weight: z.number().positive("Aircraft weight must be positive").optional(),
+  wingArea: z.number().positive("Wing area must be positive").optional(),
+  wingLoading: z.number().positive("Wing loading must be positive").optional(),
 });
 
 const WingLoadingCalculator = () => {
   const { toast } = useToast();
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
+  const [flightCondition, setFlightCondition] = useState<FlightCondition>("Cruise");
   const [inputs, setInputs] = useState({
     weight: "",
     wingArea: "",
+    wingLoading: "",
   });
   const [result, setResult] = useState<{
-    wingLoading: number;
+    wingLoading?: number;
+    weight?: number;
+    wingArea?: number;
     interpretation: string;
     category: string;
     characteristics: string[];
+    steps: CalculationStep[];
+    solvedFor: string;
   } | null>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
 
-  const handleInputChange = (field: string, value: string) => {
-    setInputs(prev => ({ ...prev, [field]: value }));
+  useEffect(() => {
+    const savedUnit = localStorage.getItem("wingLoadingCalc_unitSystem");
+    const savedInputs = localStorage.getItem("wingLoadingCalc_inputs");
+    const savedCondition = localStorage.getItem("wingLoadingCalc_condition");
+    if (savedUnit) setUnitSystem(savedUnit as UnitSystem);
+    if (savedInputs) setInputs(JSON.parse(savedInputs));
+    if (savedCondition) setFlightCondition(savedCondition as FlightCondition);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("wingLoadingCalc_unitSystem", unitSystem);
+    localStorage.setItem("wingLoadingCalc_inputs", JSON.stringify(inputs));
+    localStorage.setItem("wingLoadingCalc_condition", flightCondition);
+  }, [unitSystem, inputs, flightCondition]);
+
+  const convertToSI = (value: number, field: string): number => {
+    if (unitSystem === "SI") return value;
+    switch (field) {
+      case "weight": return unitSystem === "Imperial" ? value * 4.44822 : value;
+      case "wingArea": return unitSystem === "Imperial" ? value * 0.092903 : value;
+      case "wingLoading": return unitSystem === "Imperial" ? value * 47.8803 : value;
+      default: return value;
+    }
+  };
+
+  const convertFromSI = (value: number, field: string): number => {
+    if (unitSystem === "SI") return value;
+    switch (field) {
+      case "weight": return unitSystem === "Imperial" ? value / 4.44822 : value;
+      case "wingArea": return unitSystem === "Imperial" ? value / 0.092903 : value;
+      case "wingLoading": return unitSystem === "Imperial" ? value / 47.8803 : value;
+      default: return value;
+    }
+  };
+
+  const getUnit = (field: string): string => {
+    const units: Record<string, Record<UnitSystem, string>> = {
+      weight: { SI: "N", Imperial: "lbf", Custom: "N" },
+      wingArea: { SI: "m²", Imperial: "ft²", Custom: "m²" },
+      wingLoading: { SI: "N/m²", Imperial: "lb/ft²", Custom: "N/m²" },
+    };
+    return units[field]?.[unitSystem] || "";
   };
 
   const interpretWingLoading = (wl: number) => {
@@ -35,323 +95,211 @@ const WingLoadingCalculator = () => {
       return {
         interpretation: "Very Low Wing Loading",
         category: "Ultralight / Glider",
-        characteristics: [
-          "Excellent low-speed performance",
-          "High maneuverability at low speeds",
-          "Long takeoff and landing distances unnecessary",
-          "Susceptible to turbulence and gusts",
-          "Ideal for soaring and efficiency"
-        ]
+        characteristics: ["Excellent low-speed performance", "High maneuverability at low speeds", "Short takeoff and landing distances", "Susceptible to turbulence and gusts", "Ideal for soaring and efficiency"]
       };
     } else if (wl < 300) {
       return {
         interpretation: "Low Wing Loading",
         category: "General Aviation",
-        characteristics: [
-          "Good low-speed handling",
-          "Reasonable stall speed",
-          "Suitable for short field operations",
-          "Comfortable in light turbulence",
-          "Typical of training and light aircraft"
-        ]
+        characteristics: ["Good low-speed handling", "Reasonable stall speed", "Suitable for short field operations", "Comfortable in light turbulence", "Typical of training and light aircraft"]
       };
     } else if (wl < 500) {
       return {
         interpretation: "Medium Wing Loading",
         category: "Light Transport / Business Jet",
-        characteristics: [
-          "Balanced performance envelope",
-          "Better high-speed cruise efficiency",
-          "Moderate runway requirements",
-          "Smoother ride in turbulence",
-          "Typical of regional and business aircraft"
-        ]
+        characteristics: ["Balanced performance envelope", "Better high-speed cruise efficiency", "Moderate runway requirements", "Smoother ride in turbulence", "Typical of regional and business aircraft"]
       };
     } else if (wl < 700) {
       return {
         interpretation: "High Wing Loading",
         category: "Commercial Transport",
-        characteristics: [
-          "Higher cruise speeds possible",
-          "Longer takeoff and landing distances",
-          "Stable in rough air",
-          "Requires sophisticated high-lift devices",
-          "Typical of large commercial airliners"
-        ]
+        characteristics: ["Higher cruise speeds possible", "Longer takeoff and landing distances", "Stable in rough air", "Requires sophisticated high-lift devices", "Typical of large commercial airliners"]
       };
     } else {
       return {
         interpretation: "Very High Wing Loading",
         category: "Military Fighter / Heavy Transport",
-        characteristics: [
-          "Optimized for high-speed flight",
-          "Requires high approach speeds",
-          "Long runway requirements",
-          "Excellent ride quality in turbulence",
-          "Advanced aerodynamic features essential"
-        ]
+        characteristics: ["Optimized for high-speed flight", "Requires high approach speeds", "Long runway requirements", "Excellent ride quality in turbulence", "Advanced aerodynamic features essential"]
       };
     }
   };
 
   const calculateWingLoading = () => {
     try {
-      const values = {
-        weight: parseFloat(inputs.weight),
-        wingArea: parseFloat(inputs.wingArea),
+      const rawValues: Record<string, number | undefined> = {
+        weight: inputs.weight ? convertToSI(parseFloat(inputs.weight), "weight") : undefined,
+        wingArea: inputs.wingArea ? convertToSI(parseFloat(inputs.wingArea), "wingArea") : undefined,
+        wingLoading: inputs.wingLoading ? convertToSI(parseFloat(inputs.wingLoading), "wingLoading") : undefined,
       };
 
-      const validated = wingLoadingSchema.parse(values);
-
-      // Calculate wing loading: W/S (N/m²)
-      const wingLoading = validated.weight / validated.wingArea;
-      const interpretation = interpretWingLoading(wingLoading);
-
-      setResult({
-        wingLoading,
-        ...interpretation,
-      });
-
-      toast({
-        title: "Calculation Complete",
-        description: `Wing loading: ${wingLoading.toFixed(2)} N/m²`,
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: "Invalid Input",
-          description: error.errors[0].message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Please enter valid numbers for all fields",
-          variant: "destructive",
-        });
+      const emptyFields = Object.entries(rawValues).filter(([_, v]) => v === undefined);
+      
+      if (emptyFields.length === 0) {
+        toast({ title: "Too Many Inputs", description: "Leave one field blank to solve for it", variant: "destructive" });
+        return;
       }
+      if (emptyFields.length > 1) {
+        toast({ title: "Insufficient Data", description: "Please fill in all but one field", variant: "destructive" });
+        return;
+      }
+
+      const validated = wingLoadingSchema.parse(rawValues);
+      const solveFor = emptyFields[0][0];
+      const steps: CalculationStep[] = [];
+      let resultValues: any = {};
+
+      steps.push({ equation: "W/S = W ÷ S", description: "Wing loading equals weight divided by wing area" });
+
+      if (solveFor === "wingLoading") {
+        const w = validated.weight!, s = validated.wingArea!, wl = w / s;
+        steps.push({ equation: `W/S = ${w.toFixed(2)} ÷ ${s.toFixed(2)}`, description: "Substitute known values" });
+        steps.push({ equation: `W/S = ${wl.toFixed(2)} N/m²`, description: "Calculate wing loading" });
+        const interpretation = interpretWingLoading(wl);
+        resultValues = { wingLoading: wl, ...interpretation };
+        const data = [];
+        for (let area = s * 0.5; area <= s * 1.5; area += s * 0.1) {
+          data.push({ wingArea: convertFromSI(area, "wingArea"), wingLoading: convertFromSI(w / area, "wingLoading") });
+        }
+        setChartData(data);
+      } else if (solveFor === "weight") {
+        const wl = validated.wingLoading!, s = validated.wingArea!, w = wl * s;
+        steps.push({ equation: "W = (W/S) × S", description: "Rearrange to solve for weight" });
+        steps.push({ equation: `W = ${wl.toFixed(2)} × ${s.toFixed(2)}`, description: "Substitute known values" });
+        steps.push({ equation: `W = ${w.toFixed(2)} N`, description: "Calculate aircraft weight" });
+        const interpretation = interpretWingLoading(wl);
+        resultValues = { weight: w, ...interpretation };
+      } else {
+        const wl = validated.wingLoading!, w = validated.weight!, s = w / wl;
+        steps.push({ equation: "S = W ÷ (W/S)", description: "Rearrange to solve for wing area" });
+        steps.push({ equation: `S = ${w.toFixed(2)} ÷ ${wl.toFixed(2)}`, description: "Substitute known values" });
+        steps.push({ equation: `S = ${s.toFixed(2)} m²`, description: "Calculate wing area" });
+        const interpretation = interpretWingLoading(wl);
+        resultValues = { wingArea: s, ...interpretation };
+      }
+
+      setResult({ ...resultValues, steps, solvedFor });
+      const displayValue = convertFromSI(resultValues[solveFor] || resultValues.wingLoading, solveFor);
+      toast({ title: "Calculation Complete", description: `${solveFor}: ${displayValue.toFixed(2)} ${getUnit(solveFor)}` });
+    } catch (error) {
+      toast({ title: error instanceof z.ZodError ? "Invalid Input" : "Error", description: error instanceof z.ZodError ? error.errors[0]?.message : "Please enter valid numbers", variant: "destructive" });
     }
   };
 
   const resetCalculator = () => {
-    setInputs({
-      weight: "",
-      wingArea: "",
-    });
+    setInputs({ weight: "", wingArea: "", wingLoading: "" });
     setResult(null);
+    setChartData([]);
   };
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Plane className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Wing Loading Calculator
-          </h2>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex-1" />
+          <div className="flex items-center gap-3">
+            <Plane className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">Wing Loading Calculator</h2>
+          </div>
+          <div className="flex-1 flex justify-end gap-2">
+            <Select value={flightCondition} onValueChange={(v) => setFlightCondition(v as FlightCondition)}>
+              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Takeoff">Takeoff</SelectItem>
+                <SelectItem value="Cruise">Cruise</SelectItem>
+                <SelectItem value="Landing">Landing</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
+              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SI">SI (Metric)</SelectItem>
+                <SelectItem value="Imperial">Imperial</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-          Calculate wing loading to understand aircraft performance characteristics and handling qualities
-        </p>
+        <p className="text-gray-300 text-lg max-w-3xl mx-auto">Advanced multi-variable solver - Leave any field blank to solve for it</p>
       </motion.div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Input Section */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-        >
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
           <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-all duration-300 rounded-2xl">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Gauge className="w-5 h-5 text-cyan-400" />
-                Input Parameters
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Enter the aircraft specifications below
-              </CardDescription>
+              <CardTitle className="text-white flex items-center gap-2"><Gauge className="w-5 h-5 text-cyan-400" />Input Parameters</CardTitle>
+              <CardDescription className="text-gray-400">Flight Condition: {flightCondition} • {unitSystem} units</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="weight" className="text-gray-300">
-                  Aircraft Weight (W) <span className="text-gray-500">N</span>
-                </Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  step="0.01"
-                  value={inputs.weight}
-                  onChange={(e) => handleInputChange("weight", e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50"
-                  placeholder="e.g., 45000"
-                />
-                <p className="text-xs text-gray-500">
-                  Total weight of aircraft in Newtons (mass × 9.81)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="wingArea" className="text-gray-300">
-                  Wing Area (S) <span className="text-gray-500">m²</span>
-                </Label>
-                <Input
-                  id="wingArea"
-                  type="number"
-                  step="0.01"
-                  value={inputs.wingArea}
-                  onChange={(e) => handleInputChange("wingArea", e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50"
-                  placeholder="e.g., 25"
-                />
-                <p className="text-xs text-gray-500">
-                  Total planform area of both wings
-                </p>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  onClick={calculateWingLoading}
-                  className="flex-1 bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300"
-                >
-                  Calculate
-                </Button>
-                <Button
-                  onClick={resetCalculator}
-                  variant="outline"
-                  className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/60"
-                >
-                  Reset
-                </Button>
-              </div>
-
-              {/* Example Values */}
-              <div className="mt-6 p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                <h4 className="text-white text-sm font-semibold mb-2">Example Aircraft:</h4>
-                <div className="space-y-2 text-xs text-gray-400">
-                  <p>• Cessna 172: ~490 N/m² (1,000 lb/ft²)</p>
-                  <p>• Boeing 737: ~5,900 N/m² (123 lb/ft²)</p>
-                  <p>• F-16 Fighter: ~4,300 N/m² (88 lb/ft²)</p>
+              {["wingLoading", "weight", "wingArea"].map(field => (
+                <div key={field} className="space-y-2">
+                  <Label htmlFor={field} className="text-gray-300">
+                    {field === "wingLoading" ? "Wing Loading (W/S)" : field === "weight" ? "Aircraft Weight (W)" : "Wing Area (S)"} <span className="text-gray-500">{getUnit(field)}</span>
+                  </Label>
+                  <Input id={field} type="number" step="0.01" value={inputs[field as keyof typeof inputs]} onChange={(e) => setInputs(p => ({ ...p, [field]: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30 text-white focus:border-cyan-400 focus:ring-cyan-400/50 transition-all" placeholder="Leave blank to solve" />
                 </div>
+              ))}
+              <div className="flex gap-3 pt-4">
+                <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button onClick={calculateWingLoading} className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300"><Gauge className="w-4 h-4 mr-2" />Calculate</Button>
+                </motion.div>
+                <Button onClick={resetCalculator} variant="outline" className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10">Reset</Button>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Results & Analysis Section */}
         <div className="space-y-6">
-          {/* Results */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
             <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-white">Results</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-white">Results</CardTitle></CardHeader>
               <CardContent>
                 {result ? (
                   <div className="space-y-4">
                     <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                      <p className="text-gray-400 text-sm mb-1">Wing Loading (W/S)</p>
+                      <p className="text-gray-400 text-sm mb-1">Solved: {result.solvedFor}</p>
                       <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
-                        {result.wingLoading.toFixed(2)} N/m²
-                      </p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        ({(result.wingLoading * 0.020885).toFixed(2)} lb/ft²)
+                        {result.wingLoading !== undefined ? `${convertFromSI(result.wingLoading, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}` : result.weight !== undefined ? `${convertFromSI(result.weight, "weight").toFixed(2)} ${getUnit("weight")}` : `${convertFromSI(result.wingArea!, "wingArea").toFixed(2)} ${getUnit("wingArea")}`}
                       </p>
                     </div>
-
                     <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-4 h-4 text-cyan-400" />
-                        <h4 className="text-white font-semibold">{result.interpretation}</h4>
+                      <p className="text-cyan-400 font-semibold mb-1">{result.interpretation}</p>
+                      <p className="text-blue-400 text-sm mb-2">{result.category}</p>
+                      <ul className="list-disc list-inside space-y-1 text-gray-300 text-sm">{result.characteristics.map((c, i) => <li key={i}>{c}</li>)}</ul>
+                    </div>
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="steps" className="border-cyan-400/20">
+                        <AccordionTrigger className="text-white hover:text-cyan-400"><div className="flex items-center gap-2"><Info className="w-4 h-4 text-cyan-400" />Step-by-Step Solution</div></AccordionTrigger>
+                        <AccordionContent className="text-gray-300 space-y-3 pt-2">
+                          {result.steps.map((s, i) => (
+                            <div key={i} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                              <p className="text-xs text-gray-400 mb-1">Step {i + 1}</p>
+                              <code className="text-cyan-400 font-mono text-sm block mb-1">{s.equation}</code>
+                              <p className="text-gray-300 text-xs">{s.description}</p>
+                            </div>
+                          ))}
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                    {chartData.length > 0 && (
+                      <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                        <h4 className="text-white font-semibold mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-cyan-400" />Wing Loading vs Area</h4>
+                        <ResponsiveContainer width="100%" height={200}>
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                            <XAxis dataKey="wingArea" stroke="#94a3b8" />
+                            <YAxis stroke="#94a3b8" />
+                            <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} />
+                            <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} />
+                          </LineChart>
+                        </ResponsiveContainer>
                       </div>
-                      <p className="text-blue-400 text-sm font-medium mb-3">{result.category}</p>
-                      <ul className="space-y-2">
-                        {result.characteristics.map((char, idx) => (
-                          <li key={idx} className="text-gray-300 text-sm flex items-start gap-2">
-                            <span className="text-cyan-400 mt-1">•</span>
-                            <span>{char}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                      <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
-                        <Info className="w-4 h-4 text-cyan-400" />
-                        Performance Impact
-                      </h4>
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        Wing loading directly affects stall speed, takeoff/landing distances, maneuverability, 
-                        and ride quality. Lower wing loading provides better low-speed handling but increases 
-                        drag at high speeds. Higher wing loading enables faster cruise speeds and smoother 
-                        flight in turbulence but requires higher approach speeds and longer runways.
-                      </p>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12">
                     <Gauge className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-                    <p className="text-gray-400">
-                      Enter parameters and click Calculate to see results
-                    </p>
+                    <p className="text-gray-400">Fill in all but one field and click Calculate</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Theory */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-white">Wing Loading Formula</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-center text-2xl font-mono text-cyan-400 mb-2">
-                    W/S = W ÷ S
-                  </p>
-                  <div className="text-gray-400 text-sm space-y-1">
-                    <p><span className="text-cyan-400">W/S</span> = Wing Loading (N/m²)</p>
-                    <p><span className="text-cyan-400">W</span> = Aircraft Weight (N)</p>
-                    <p><span className="text-cyan-400">S</span> = Wing Area (m²)</p>
-                  </div>
-                </div>
-
-                <div className="text-gray-300 text-sm space-y-2">
-                  <p className="font-semibold text-white">Related Concepts:</p>
-                  <div className="space-y-3 text-gray-400">
-                    <div>
-                      <p className="text-cyan-400 font-medium">Stall Speed:</p>
-                      <p className="text-xs">Vs ∝ √(W/S) - Higher wing loading = higher stall speed</p>
-                    </div>
-                    <div>
-                      <p className="text-cyan-400 font-medium">Turn Rate:</p>
-                      <p className="text-xs">Lower wing loading = tighter turns at low speeds</p>
-                    </div>
-                    <div>
-                      <p className="text-cyan-400 font-medium">Takeoff Distance:</p>
-                      <p className="text-xs">Increases with wing loading due to higher rotation speed</p>
-                    </div>
-                    <div>
-                      <p className="text-cyan-400 font-medium">Gust Sensitivity:</p>
-                      <p className="text-xs">Higher wing loading = less affected by vertical gusts</p>
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </motion.div>
