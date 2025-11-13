@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Gauge, Plane, Info, TrendingUp, Settings2 } from "lucide-react";
+import { Gauge, Plane, Info, TrendingUp, Settings2, AlertTriangle, CheckCircle } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -46,10 +46,11 @@ interface CalculationStep {
   description: string;
 }
 
+// Updated Schema: Allows any number (positive, negative, or zero)
 const wingLoadingSchema = z.object({
-  weight: z.number().positive("Aircraft weight must be positive").optional(),
-  wingArea: z.number().positive("Wing area must be positive").optional(),
-  wingLoading: z.number().positive("Wing loading must be positive").optional(),
+  weight: z.number().optional(),
+  wingArea: z.number().optional(),
+  wingLoading: z.number().optional(),
 });
 
 const WingLoadingCalculator = () => {
@@ -82,6 +83,7 @@ const WingLoadingCalculator = () => {
     interpretation: string;
     category: string;
     characteristics: string[];
+    feasibility: { feasible: boolean; message: string; }; // New feasibility field
     steps: CalculationStep[];
     solvedFor: string;
   } | null>(null);
@@ -166,7 +168,9 @@ const WingLoadingCalculator = () => {
   // --- Interpretation ---
 
   const interpretWingLoading = (wl_si: number) => { // Expects SI units (N/m²)
-    if (wl_si < 100) {
+    if (wl_si <= 0) {
+      return { interpretation: "Non-Physical", category: "Invalid State", characteristics: ["Wing loading must be positive for lift.", "This calculation is not physically feasible."] };
+    } else if (wl_si < 100) {
       return { interpretation: "Very Low", category: "Ultralight / Glider", characteristics: ["Excellent low-speed performance", "High maneuverability at low speeds", "Short takeoff/landing", "Susceptible to turbulence"] };
     } else if (wl_si < 300) {
       return { interpretation: "Low", category: "General Aviation", characteristics: ["Good low-speed handling", "Reasonable stall speed", "Suitable for short fields", "Comfortable in light turbulence"] };
@@ -183,7 +187,7 @@ const WingLoadingCalculator = () => {
 
   const calculateWingLoading = () => {
     try {
-      // Trim input and check if it's an empty string
+      // Trim inputs to handle empty spaces
       const weightInput = inputs.weight.trim();
       const areaInput = inputs.wingArea.trim();
       const loadingInput = inputs.wingLoading.trim();
@@ -216,6 +220,11 @@ const WingLoadingCalculator = () => {
       if (solveFor === "wingLoading") {
         const w = validated.weight!;
         const s = validated.wingArea!;
+        // Check for division by zero
+        if (s === 0) {
+          toast({ title: "Calculation Error", description: "Wing Area cannot be zero when solving for Wing Loading.", variant: "destructive" });
+          return;
+        }
         const wl = w / s;
         steps.push({ equation: `W/S = ${w.toFixed(2)} ÷ ${s.toFixed(2)}`, description: "Substitute known values" });
         steps.push({ equation: `W/S = ${wl.toFixed(2)} N/m²`, description: "Calculate wing loading" });
@@ -223,15 +232,19 @@ const WingLoadingCalculator = () => {
         resultValues = { wingLoading: wl, ...interpretation };
         calculatedWingLoading_SI = wl;
 
-        // Generate chart data
-        const data = [];
-        for (let area = s * 0.5; area <= s * 1.5; area += s * 0.1) {
-          data.push({ 
-            wingArea: convertFromSI(area, "wingArea"), 
-            wingLoading: convertFromSI(w / area, "wingLoading") 
-          });
+        // Generate chart data only if physically plausible
+        if (wl > 0 && w > 0 && s > 0) {
+          const data = [];
+          for (let area = s * 0.5; area <= s * 1.5; area += s * 0.1) {
+            data.push({ 
+              wingArea: convertFromSI(area, "wingArea"), 
+              wingLoading: convertFromSI(w / area, "wingLoading") 
+            });
+          }
+          setChartData(data);
+        } else {
+          setChartData([]);
         }
-        setChartData(data);
 
       } else if (solveFor === "weight") {
         const wl = validated.wingLoading!;
@@ -248,7 +261,12 @@ const WingLoadingCalculator = () => {
       } else { // solveFor === "wingArea"
         const wl = validated.wingLoading!;
         const w = validated.weight!;
-        const s = w / wl; // Zod schema ensures wl is positive, no div by zero
+        // Check for division by zero
+        if (wl === 0) {
+          toast({ title: "Calculation Error", description: "Wing Loading cannot be zero when solving for Wing Area.", variant: "destructive" });
+          return;
+        }
+        const s = w / wl;
         steps.push({ equation: "S = W ÷ (W/S)", description: "Rearrange to solve for wing area" });
         steps.push({ equation: `S = ${w.toFixed(2)} ÷ ${wl.toFixed(2)}`, description: "Substitute known values" });
         steps.push({ equation: `S = ${s.toFixed(2)} m²`, description: "Calculate wing area" });
@@ -258,7 +276,25 @@ const WingLoadingCalculator = () => {
         setChartData([]); // No chart when solving for area
       }
 
-      setResult({ ...resultValues, steps, solvedFor });
+      // --- Feasibility Check ---
+      const final_wl = resultValues.wingLoading || validated.wingLoading!;
+      const final_w = resultValues.weight || validated.weight!;
+      const final_s = resultValues.wingArea || validated.wingArea!;
+
+      let feasibilityMessages = [];
+      if (final_wl <= 0) feasibilityMessages.push("Wing Loading is non-positive.");
+      if (final_w <= 0) feasibilityMessages.push("Aircraft Weight is non-positive.");
+      if (final_s <= 0) feasibilityMessages.push("Wing Area is non-positive.");
+      
+      const feasibility = {
+        feasible: feasibilityMessages.length === 0,
+        message: feasibilityMessages.length > 0 
+          ? `Not physically feasible: ${feasibilityMessages.join(" ")}`
+          : "The calculated values are physically plausible."
+      };
+      // --- End Feasibility Check ---
+
+      setResult({ ...resultValues, steps, solvedFor, feasibility });
       
       const displayValue = convertFromSI(resultValues[solveFor] || resultValues.wingLoading, solveFor);
       toast({ 
@@ -268,7 +304,8 @@ const WingLoadingCalculator = () => {
 
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast({ title: "Invalid Input", description: error.errors[0]?.message, variant: "destructive" });
+        // This should no longer be triggered by positive/negative, but by non-numeric input
+        toast({ title: "Invalid Input", description: "Please ensure all fields contain valid numbers.", variant: "destructive" });
       } else {
         toast({ title: "Error", description: "Please enter valid numbers", variant: "destructive" });
       }
@@ -370,7 +407,7 @@ const WingLoadingCalculator = () => {
                         className="bg-slate-800 border-cyan-400/30 text-white"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames.weight} = {customFactors.weight || "..."} N</p>
+                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames.weight || "Unit"} = {customFactors.weight || "..."} N</p>
                   </div>
                   {/* Area */}
                   <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
@@ -390,7 +427,7 @@ const WingLoadingCalculator = () => {
                         className="bg-slate-800 border-cyan-400/30 text-white"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames.wingArea} = {customFactors.wingArea || "..."} m²</p>
+                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames.wingArea || "Unit"} = {customFactors.wingArea || "..."} m²</p>
                   </div>
                   {/* Wing Loading */}
                   <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
@@ -410,7 +447,7 @@ const WingLoadingCalculator = () => {
                         className="bg-slate-800 border-cyan-400/30 text-white"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames.wingLoading} = {customFactors.wingLoading || "..."} N/m²</p>
+                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames.wingLoading || "Unit"} = {customFactors.wingLoading || "..."} N/m²</p>
                   </div>
                 </CardContent>
               </Card>
@@ -438,10 +475,27 @@ const WingLoadingCalculator = () => {
                       </p>
                     </div>
                     <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                      {/* --- Feasibility Check Display --- */}
+                      <div className={`flex items-start gap-2 p-3 rounded-lg mb-4 ${result.feasibility.feasible ? 'bg-green-900/50 border border-green-400/30' : 'bg-red-900/50 border border-red-400/30'}`}>
+                        {result.feasibility.feasible ? (
+                          <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                        ) : (
+                          <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                        )}
+                        <div>
+                          <p className={`font-semibold ${result.feasibility.feasible ? 'text-green-300' : 'text-red-300'}`}>
+                            {result.feasibility.feasible ? "Feasibility Check: OK" : "Feasibility Check: Warning"}
+                          </p>
+                          <p className="text-gray-300 text-sm">{result.feasibility.message}</p>
+                        </div>
+                      </div>
+                      
+                      {/* --- Interpretation --- */}
                       <p className="text-cyan-400 font-semibold mb-1">{result.interpretation} Wing Loading</p>
                       <p className="text-blue-400 text-sm mb-2">{result.category}</p>
                       <ul className="list-disc list-inside space-y-1 text-gray-300 text-sm">{result.characteristics.map((c, i) => <li key={i}>{c}</li>)}</ul>
                     </div>
+                    
                     <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value="steps" className="border-cyan-400/20">
                         <AccordionTrigger className="text-white hover:text-cyan-400"><div className="flex items-center gap-2"><Info className="w-4 h-4 text-cyan-400" />Step-by-Step Solution</div></AccordionTrigger>
