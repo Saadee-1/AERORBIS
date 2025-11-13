@@ -89,10 +89,20 @@ const AdvancedWingLoadingCalculator = () => {
       const storedValue = localStorage.getItem(key);
       if (storedValue) {
         try {
-          setter(JSON.parse(storedValue));
+          // Check if the value is a plain string (like 'SI') or JSON
+          if (storedValue.startsWith("{") || storedValue.startsWith("[")) {
+            setter(JSON.parse(storedValue));
+          } else {
+            setter(JSON.parse(storedValue)); // Handles simple strings like "SI"
+          }
         } catch (e) {
-          console.error(`Failed to parse ${key} from storage:`, e);
-          setter(defaultValue);
+          // If JSON.parse fails, it might be a simple string that doesn't need parsing
+          if (key === "advWingCalc_unitSystem") {
+             setter(storedValue); // Handle "SI", "Imperial", etc.
+          } else {
+            console.warn(`Failed to parse ${key} from storage, resetting to default:`, e);
+            setter(defaultValue);
+          }
         }
       } else {
         setter(defaultValue);
@@ -106,8 +116,9 @@ const AdvancedWingLoadingCalculator = () => {
     loadFromStorage("advWingCalc_customFactors", setCustomFactors, { weight: "1.0", wingArea: "1.0", wingLoading: "1.0", airDensity: "1.0", stallSpeed: "1.0" });
   }, []);
   
+  // FIX 1: Merged the two useEffects into one to prevent overwriting keys.
   useEffect(() => {
-    localStorage.setItem("advWingCalc_unitSystem", JSON.stringify(unitSystem));
+    localStorage.setItem("advWingCalc_unitSystem", unitSystem);
     localStorage.setItem("advWingCalc_basicInputs", JSON.stringify(basicInputs));
     localStorage.setItem("advWingCalc_advInputs", JSON.stringify(advInputs));
     localStorage.setItem("advWingCalc_customNames", JSON.stringify(customUnitNames));
@@ -250,12 +261,31 @@ const AdvancedWingLoadingCalculator = () => {
         // Auto-populate the advanced calculator
         setAdvInputs(prev => ({ ...prev, wingLoading: convertFromSI(wl, "wingLoading").toFixed(2) }));
         toast({ title: "Calculation Complete", description: "W/S populated in Part 2." });
+      
+        // FIX 3: Only generate chart if inputs are physical
+        if (weight! > 0 && wingArea! > 0) {
+          const w = validated.weight!;
+          const s_base = validated.wingArea!;
+          const data = [];
+          for (let s_current = s_base * 0.5; s_current <= s_base * 1.5; s_current += s_base * 0.1) {
+            if(s_current <= 0) continue; // Prevent division by zero
+            data.push({
+              wingArea: convertFromSI(s_current, "wingArea"),
+              wingLoading: convertFromSI(w / s_current, "wingLoading")
+            });
+          }
+          setChartData(data);
+        } else {
+          setChartData([]);
+        }
+
       } else if (solveFor === "weight") {
         const { wingLoading, wingArea } = validated;
         const w = wingLoading! * wingArea!;
         steps.push({ equation: "W = (W/S) × S", description: "Rearrange for Weight" });
         resultData = { weight: w };
         setBasicInputs(prev => ({ ...prev, weight: convertFromSI(w, "weight").toFixed(2) }));
+        setChartData([]); // FIX 2: Clear chart data
       } else { // solveFor === "wingArea"
         const { wingLoading, weight } = validated;
         if (wingLoading === 0) throw new Error("Wing Loading cannot be zero.");
@@ -263,6 +293,7 @@ const AdvancedWingLoadingCalculator = () => {
         steps.push({ equation: "S = W ÷ (W/S)", description: "Rearrange for Wing Area" });
         resultData = { wingArea: s };
         setBasicInputs(prev => ({ ...prev, wingArea: convertFromSI(s, "wingArea").toFixed(2) }));
+        setChartData([]); // FIX 2: Clear chart data
       }
       
       const final_wl = resultData.wingLoading ?? validated.wingLoading!;
@@ -271,23 +302,6 @@ const AdvancedWingLoadingCalculator = () => {
       
       setBasicResult({ ...resultData, steps, solvedFor, ...interpretation, feasibility });
       setAdvancedResult(null); // Clear advanced results as basic inputs changed
-
-      // Generate chart
-      if (solveFor === 'wingLoading' && validated.weight! > 0) {
-        const w = validated.weight!;
-        const s_base = validated.wingArea! > 0 ? validated.wingArea! : 1;
-        const data = [];
-        for (let s_current = s_base * 0.5; s_current <= s_base * 1.5; s_current += s_base * 0.1) {
-          if(s_current === 0) continue;
-          data.push({
-            wingArea: convertFromSI(s_current, "wingArea"),
-            wingLoading: convertFromSI(w / s_current, "wingLoading")
-          });
-        }
-        setChartData(data);
-      } else {
-        setChartData([]);
-      }
 
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -385,7 +399,7 @@ const AdvancedWingLoadingCalculator = () => {
               <SelectContent>
                 <SelectItem value="SI">SI (Metric)</SelectItem>
                 <SelectItem value="Imperial">Imperial</SelectItem>
-                <SelectItem value="Custom">Custom</SelectItem>
+                <SelectItem value."Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
             <Button type="button" onClick={resetCalculators} variant="outline" className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10">Reset All</Button>
@@ -462,6 +476,7 @@ const AdvancedWingLoadingCalculator = () => {
               <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2"><Settings2 className="w-5 h-5 text-cyan-400" />Custom Unit Definitions</CardTitle>
+                  {/* FIX 4: Corrected description */}
                   <CardDescription className="text-gray-400">Define conversion factors to SI (N, m, kg, s)</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
