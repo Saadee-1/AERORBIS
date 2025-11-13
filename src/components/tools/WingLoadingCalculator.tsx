@@ -1,15 +1,42 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Gauge, Plane, Info, TrendingUp } from "lucide-react";
+import { Gauge, Plane, Info, TrendingUp, Settings2 } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from "recharts";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer 
+} from "recharts";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type FlightCondition = "Takeoff" | "Cruise" | "Landing";
@@ -29,11 +56,25 @@ const WingLoadingCalculator = () => {
   const { toast } = useToast();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
   const [flightCondition, setFlightCondition] = useState<FlightCondition>("Cruise");
+  
   const [inputs, setInputs] = useState({
     weight: "",
     wingArea: "",
     wingLoading: "",
   });
+
+  const [customUnitNames, setCustomUnitNames] = useState({
+    weight: "Unit-W",
+    wingArea: "Unit-S",
+    wingLoading: "Unit-W/S",
+  });
+
+  const [customFactors, setCustomFactors] = useState({
+    weight: "1.0",
+    wingArea: "1.0",
+    wingLoading: "1.0",
+  });
+
   const [result, setResult] = useState<{
     wingLoading?: number;
     weight?: number;
@@ -44,85 +85,101 @@ const WingLoadingCalculator = () => {
     steps: CalculationStep[];
     solvedFor: string;
   } | null>(null);
+
   const [chartData, setChartData] = useState<any[]>([]);
+
+  // --- Effects ---
 
   useEffect(() => {
     const savedUnit = localStorage.getItem("wingLoadingCalc_unitSystem");
     const savedInputs = localStorage.getItem("wingLoadingCalc_inputs");
     const savedCondition = localStorage.getItem("wingLoadingCalc_condition");
+    const savedNames = localStorage.getItem("wingLoadingCalc_customNames");
+    const savedFactors = localStorage.getItem("wingLoadingCalc_customFactors");
+
     if (savedUnit) setUnitSystem(savedUnit as UnitSystem);
     if (savedInputs) setInputs(JSON.parse(savedInputs));
     if (savedCondition) setFlightCondition(savedCondition as FlightCondition);
+    if (savedNames) setCustomUnitNames(JSON.parse(savedNames));
+    if (savedFactors) setCustomFactors(JSON.parse(savedFactors));
   }, []);
 
   useEffect(() => {
     localStorage.setItem("wingLoadingCalc_unitSystem", unitSystem);
     localStorage.setItem("wingLoadingCalc_inputs", JSON.stringify(inputs));
     localStorage.setItem("wingLoadingCalc_condition", flightCondition);
-  }, [unitSystem, inputs, flightCondition]);
+    localStorage.setItem("wingLoadingCalc_customNames", JSON.stringify(customUnitNames));
+    localStorage.setItem("wingLoadingCalc_customFactors", JSON.stringify(customFactors));
+  }, [unitSystem, inputs, flightCondition, customUnitNames, customFactors]);
 
-  const convertToSI = (value: number, field: string): number => {
-    if (unitSystem === "SI") return value;
-    switch (field) {
-      case "weight": return unitSystem === "Imperial" ? value * 4.44822 : value;
-      case "wingArea": return unitSystem === "Imperial" ? value * 0.092903 : value;
-      case "wingLoading": return unitSystem === "Imperial" ? value * 47.8803 : value;
-      default: return value;
-    }
-  };
-
-  const convertFromSI = (value: number, field: string): number => {
-    if (unitSystem === "SI") return value;
-    switch (field) {
-      case "weight": return unitSystem === "Imperial" ? value / 4.44822 : value;
-      case "wingArea": return unitSystem === "Imperial" ? value / 0.092903 : value;
-      case "wingLoading": return unitSystem === "Imperial" ? value / 47.8803 : value;
-      default: return value;
-    }
-  };
+  // --- Unit Conversion Logic ---
 
   const getUnit = (field: string): string => {
     const units: Record<string, Record<UnitSystem, string>> = {
-      weight: { SI: "N", Imperial: "lbf", Custom: "N" },
-      wingArea: { SI: "m²", Imperial: "ft²", Custom: "m²" },
-      wingLoading: { SI: "N/m²", Imperial: "lb/ft²", Custom: "N/m²" },
+      weight: { SI: "N", Imperial: "lbf", Custom: customUnitNames.weight },
+      wingArea: { SI: "m²", Imperial: "ft²", Custom: customUnitNames.wingArea },
+      wingLoading: { SI: "N/m²", Imperial: "lb/ft²", Custom: customUnitNames.wingLoading },
     };
     return units[field]?.[unitSystem] || "";
   };
 
-  const interpretWingLoading = (wl: number) => {
-    if (wl < 100) {
-      return {
-        interpretation: "Very Low Wing Loading",
-        category: "Ultralight / Glider",
-        characteristics: ["Excellent low-speed performance", "High maneuverability at low speeds", "Short takeoff and landing distances", "Susceptible to turbulence and gusts", "Ideal for soaring and efficiency"]
-      };
-    } else if (wl < 300) {
-      return {
-        interpretation: "Low Wing Loading",
-        category: "General Aviation",
-        characteristics: ["Good low-speed handling", "Reasonable stall speed", "Suitable for short field operations", "Comfortable in light turbulence", "Typical of training and light aircraft"]
-      };
-    } else if (wl < 500) {
-      return {
-        interpretation: "Medium Wing Loading",
-        category: "Light Transport / Business Jet",
-        characteristics: ["Balanced performance envelope", "Better high-speed cruise efficiency", "Moderate runway requirements", "Smoother ride in turbulence", "Typical of regional and business aircraft"]
-      };
-    } else if (wl < 700) {
-      return {
-        interpretation: "High Wing Loading",
-        category: "Commercial Transport",
-        characteristics: ["Higher cruise speeds possible", "Longer takeoff and landing distances", "Stable in rough air", "Requires sophisticated high-lift devices", "Typical of large commercial airliners"]
-      };
+  const convertToSI = (value: number, field: string): number => {
+    if (unitSystem === "SI") return value;
+    
+    if (unitSystem === "Imperial") {
+      switch (field) {
+        case "weight": return value * 4.44822; // lbf to N
+        case "wingArea": return value * 0.092903; // ft² to m²
+        case "wingLoading": return value * 47.8803; // lb/ft² to N/m²
+        default: return value;
+      }
+    }
+
+    if (unitSystem === "Custom") {
+      const factor = parseFloat(customFactors[field as keyof typeof customFactors]);
+      return value * (isNaN(factor) ? 1.0 : factor);
+    }
+    
+    return value;
+  };
+
+  const convertFromSI = (value: number, field: string): number => {
+    if (unitSystem === "SI") return value;
+    
+    if (unitSystem === "Imperial") {
+      switch (field) {
+        case "weight": return value / 4.44822;
+        case "wingArea": return value / 0.092903;
+        case "wingLoading": return value / 47.8803;
+        default: return value;
+      }
+    }
+
+    if (unitSystem === "Custom") {
+      const factor = parseFloat(customFactors[field as keyof typeof customFactors]);
+      return value / (isNaN(factor) || factor === 0 ? 1.0 : factor);
+    }
+
+    return value;
+  };
+
+  // --- Interpretation ---
+
+  const interpretWingLoading = (wl_si: number) => { // Expects SI units (N/m²)
+    if (wl_si < 100) {
+      return { interpretation: "Very Low", category: "Ultralight / Glider", characteristics: ["Excellent low-speed performance", "High maneuverability at low speeds", "Short takeoff/landing", "Susceptible to turbulence"] };
+    } else if (wl_si < 300) {
+      return { interpretation: "Low", category: "General Aviation", characteristics: ["Good low-speed handling", "Reasonable stall speed", "Suitable for short fields", "Comfortable in light turbulence"] };
+    } else if (wl_si < 500) {
+      return { interpretation: "Medium", category: "Light Transport / Business Jet", characteristics: ["Balanced performance", "Better high-speed cruise", "Moderate runway requirements", "Smoother ride in turbulence"] };
+    } else if (wl_si < 700) {
+      return { interpretation: "High", category: "Commercial Transport", characteristics: ["Higher cruise speeds", "Longer takeoff/landing", "Stable in rough air", "Requires high-lift devices (flaps, slats)"] };
     } else {
-      return {
-        interpretation: "Very High Wing Loading",
-        category: "Military Fighter / Heavy Transport",
-        characteristics: ["Optimized for high-speed flight", "Requires high approach speeds", "Long runway requirements", "Excellent ride quality in turbulence", "Advanced aerodynamic features essential"]
-      };
+      return { interpretation: "Very High", category: "Military Fighter / Heavy Transport", characteristics: ["Optimized for high-speed flight", "High approach speeds", "Long runway requirements", "Excellent ride in turbulence"] };
     }
   };
+
+  // --- Calculation ---
 
   const calculateWingLoading = () => {
     try {
@@ -147,41 +204,69 @@ const WingLoadingCalculator = () => {
       const solveFor = emptyFields[0][0];
       const steps: CalculationStep[] = [];
       let resultValues: any = {};
+      let calculatedWingLoading_SI: number;
 
       steps.push({ equation: "W/S = W ÷ S", description: "Wing loading equals weight divided by wing area" });
 
       if (solveFor === "wingLoading") {
-        const w = validated.weight!, s = validated.wingArea!, wl = w / s;
+        const w = validated.weight!;
+        const s = validated.wingArea!;
+        const wl = w / s;
         steps.push({ equation: `W/S = ${w.toFixed(2)} ÷ ${s.toFixed(2)}`, description: "Substitute known values" });
         steps.push({ equation: `W/S = ${wl.toFixed(2)} N/m²`, description: "Calculate wing loading" });
         const interpretation = interpretWingLoading(wl);
         resultValues = { wingLoading: wl, ...interpretation };
+        calculatedWingLoading_SI = wl;
+
+        // Generate chart data
         const data = [];
         for (let area = s * 0.5; area <= s * 1.5; area += s * 0.1) {
-          data.push({ wingArea: convertFromSI(area, "wingArea"), wingLoading: convertFromSI(w / area, "wingLoading") });
+          data.push({ 
+            wingArea: convertFromSI(area, "wingArea"), 
+            wingLoading: convertFromSI(w / area, "wingLoading") 
+          });
         }
         setChartData(data);
+
       } else if (solveFor === "weight") {
-        const wl = validated.wingLoading!, s = validated.wingArea!, w = wl * s;
+        const wl = validated.wingLoading!;
+        const s = validated.wingArea!;
+        const w = wl * s;
         steps.push({ equation: "W = (W/S) × S", description: "Rearrange to solve for weight" });
         steps.push({ equation: `W = ${wl.toFixed(2)} × ${s.toFixed(2)}`, description: "Substitute known values" });
         steps.push({ equation: `W = ${w.toFixed(2)} N`, description: "Calculate aircraft weight" });
         const interpretation = interpretWingLoading(wl);
         resultValues = { weight: w, ...interpretation };
-      } else {
-        const wl = validated.wingLoading!, w = validated.weight!, s = w / wl;
+        calculatedWingLoading_SI = wl;
+        setChartData([]); // No chart when solving for weight
+
+      } else { // solveFor === "wingArea"
+        const wl = validated.wingLoading!;
+        const w = validated.weight!;
+        const s = w / wl; // Zod schema ensures wl is positive, no div by zero
         steps.push({ equation: "S = W ÷ (W/S)", description: "Rearrange to solve for wing area" });
         steps.push({ equation: `S = ${w.toFixed(2)} ÷ ${wl.toFixed(2)}`, description: "Substitute known values" });
         steps.push({ equation: `S = ${s.toFixed(2)} m²`, description: "Calculate wing area" });
         const interpretation = interpretWingLoading(wl);
         resultValues = { wingArea: s, ...interpretation };
+        calculatedWingLoading_SI = wl;
+        setChartData([]); // No chart when solving for area
       }
 
       setResult({ ...resultValues, steps, solvedFor });
+      
       const displayValue = convertFromSI(resultValues[solveFor] || resultValues.wingLoading, solveFor);
-      toast({ title: "Calculation Complete", description: `${solveFor}: ${displayValue.toFixed(2)} ${getUnit(solveFor)}` });
+      toast({ 
+        title: "Calculation Complete", 
+        description: `${solveFor.charAt(0).toUpperCase() + solveFor.slice(1)}: ${displayValue.toFixed(2)} ${getUnit(solveFor)}` 
+      });
+
     } catch (error) {
-      toast({ title: error instanceof z.ZodError ? "Invalid Input" : "Error", description: error instanceof z.ZodError ? error.errors[0]?.message : "Please enter valid numbers", variant: "destructive" });
+      if (error instanceof z.ZodError) {
+        toast({ title: "Invalid Input", description: error.errors[0]?.message, variant: "destructive" });
+      } else {
+        toast({ title: "Error", description: "Please enter valid numbers", variant: "destructive" });
+      }
     }
   };
 
@@ -190,6 +275,8 @@ const WingLoadingCalculator = () => {
     setResult(null);
     setChartData([]);
   };
+
+  // --- Render ---
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6">
@@ -214,6 +301,7 @@ const WingLoadingCalculator = () => {
               <SelectContent>
                 <SelectItem value="SI">SI (Metric)</SelectItem>
                 <SelectItem value="Imperial">Imperial</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -222,7 +310,7 @@ const WingLoadingCalculator = () => {
       </motion.div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="space-y-6">
           <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-all duration-300 rounded-2xl">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2"><Gauge className="w-5 h-5 text-cyan-400" />Input Parameters</CardTitle>
@@ -245,6 +333,84 @@ const WingLoadingCalculator = () => {
               </div>
             </CardContent>
           </Card>
+          
+          {/* --- Custom Unit Definition Card --- */}
+          {unitSystem === "Custom" && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2"><Settings2 className="w-5 h-5 text-cyan-400" />Custom Unit Definitions</CardTitle>
+                  <CardDescription className="text-gray-400">Define your custom units and their conversion factor to SI (N, m²)</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Weight */}
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                    <Label className="text-white font-semibold">Weight (W)</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Input 
+                        placeholder="Unit Name (e.g., kgf)" 
+                        value={customUnitNames.weight}
+                        onChange={(e) => setCustomUnitNames(p => ({...p, weight: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                      <Input 
+                        type="number"
+                        placeholder="Factor"
+                        value={customFactors.weight}
+                        onChange={(e) => setCustomFactors(p => ({...p, weight: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames.weight} = {customFactors.weight || "..."} N</p>
+                  </div>
+                  {/* Area */}
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                    <Label className="text-white font-semibold">Wing Area (S)</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Input 
+                        placeholder="Unit Name (e.g., cm²)" 
+                        value={customUnitNames.wingArea}
+                        onChange={(e) => setCustomUnitNames(p => ({...p, wingArea: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                      <Input 
+                        type="number"
+                        placeholder="Factor"
+                        value={customFactors.wingArea}
+                        onChange={(e) => setCustomFactors(p => ({...p, wingArea: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames.wingArea} = {customFactors.wingArea || "..."} m²</p>
+                  </div>
+                  {/* Wing Loading */}
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                    <Label className="text-white font-semibold">Wing Loading (W/S)</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Input 
+                        placeholder="Unit Name (e.g., kgf/m²)" 
+                        value={customUnitNames.wingLoading}
+                        onChange={(e) => setCustomUnitNames(p => ({...p, wingLoading: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                      <Input 
+                        type="number"
+                        placeholder="Factor"
+                        value={customFactors.wingLoading}
+                        onChange={(e) => setCustomFactors(p => ({...p, wingLoading: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames.wingLoading} = {customFactors.wingLoading || "..."} N/m²</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
         </motion.div>
 
         <div className="space-y-6">
@@ -255,13 +421,19 @@ const WingLoadingCalculator = () => {
                 {result ? (
                   <div className="space-y-4">
                     <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                      <p className="text-gray-400 text-sm mb-1">Solved: {result.solvedFor}</p>
+                      <p className="text-gray-400 text-sm mb-1">
+                        {result.solvedFor === "wingLoading" ? "Calculated Wing Loading" : `Solved: ${result.solvedFor}`}
+                      </p>
                       <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
-                        {result.wingLoading !== undefined ? `${convertFromSI(result.wingLoading, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}` : result.weight !== undefined ? `${convertFromSI(result.weight, "weight").toFixed(2)} ${getUnit("weight")}` : `${convertFromSI(result.wingArea!, "wingArea").toFixed(2)} ${getUnit("wingArea")}`}
+                        {result.wingLoading !== undefined && result.solvedFor === "wingLoading" 
+                          ? `${convertFromSI(result.wingLoading, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}` 
+                          : result.weight !== undefined 
+                          ? `${convertFromSI(result.weight, "weight").toFixed(2)} ${getUnit("weight")}` 
+                          : `${convertFromSI(result.wingArea!, "wingArea").toFixed(2)} ${getUnit("wingArea")}`}
                       </p>
                     </div>
                     <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                      <p className="text-cyan-400 font-semibold mb-1">{result.interpretation}</p>
+                      <p className="text-cyan-400 font-semibold mb-1">{result.interpretation} Wing Loading</p>
                       <p className="text-blue-400 text-sm mb-2">{result.category}</p>
                       <ul className="list-disc list-inside space-y-1 text-gray-300 text-sm">{result.characteristics.map((c, i) => <li key={i}>{c}</li>)}</ul>
                     </div>
@@ -279,16 +451,41 @@ const WingLoadingCalculator = () => {
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
+                    
+                    {/* --- Chart --- */}
                     {chartData.length > 0 && (
                       <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                        <h4 className="text-white font-semibold mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-cyan-400" />Wing Loading vs Area</h4>
+                        <h4 className="text-white font-semibold mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-cyan-400" />Wing Loading vs. Wing Area</h4>
                         <ResponsiveContainer width="100%" height={200}>
                           <LineChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="wingArea" stroke="#94a3b8" />
-                            <YAxis stroke="#94a3b8" />
-                            <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} />
-                            <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} />
+                            <XAxis 
+                              dataKey="wingArea" 
+                              stroke="#94a3b8"
+                              tickFormatter={(val) => val.toFixed(1)}
+                              label={{ 
+                                value: `Wing Area (${getUnit("wingArea")})`, 
+                                position: 'insideBottom', 
+                                offset: -5, 
+                                fill: '#94a3b8' 
+                              }}
+                            />
+                            <YAxis 
+                              stroke="#94a3b8" 
+                              tickFormatter={(val) => val.toFixed(1)}
+                              label={{ 
+                                value: `Wing Loading (${getUnit("wingLoading")})`, 
+                                angle: -90, 
+                                position: 'insideLeft', 
+                                fill: '#94a3b8' 
+                              }}
+                            />
+                            <RechartsTooltip 
+                              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40', borderRadius: '8px' }} 
+                              labelStyle={{ color: '#22d3ee' }}
+                              formatter={(value: number) => value.toFixed(2)}
+                            />
+                            <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} dot={false} name="Wing Loading" />
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
