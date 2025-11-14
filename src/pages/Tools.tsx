@@ -118,10 +118,10 @@ const Tools = () => {
                     <Button 
                       className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300"
                       asChild
-                      disabled={!["Thrust Calculator", "Wing Loading Calculator"].includes(tool.name)}
+                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer"].includes(tool.name)}
                     >
-                      <a href={["Thrust Calculator", "Wing Loading Calculator"].includes(tool.name) ? "/tools/launch" : "#"}>
-                        {["Thrust Calculator", "Wing Loading Calculator"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
+                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer"].includes(tool.name) ? "/tools/launch" : "#"}>
+                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
                       </a>
                     </Button>
                   </CardFooter>
