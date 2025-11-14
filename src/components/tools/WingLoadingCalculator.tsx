@@ -300,7 +300,7 @@ const AdvancedWingLoadingCalculator = () => {
       const interpretation = interpretWingLoading(final_wl);
       const feasibility = checkFeasibility({ ...validated, ...resultData });
       
-      setBasicResult({ ...resultData, steps, solvedFor, ...interpretation, feasibility });
+      setBasicResult({ ...resultData, steps, solveFor, ...interpretation, feasibility });
       setAdvancedResult(null); // Clear advanced results as basic inputs changed
 
     } catch (error) {
@@ -363,7 +363,7 @@ const AdvancedWingLoadingCalculator = () => {
       }
       
       const feasibility = checkFeasibility({ ...validated, ...resultData });
-      setAdvancedResult({ ...resultData, steps, solvedFor, feasibility });
+      setAdvancedResult({ ...resultData, steps, solveFor, feasibility });
       setBasicResult(null); // Clear basic results
       setChartData([]); // Clear chart
 
@@ -438,7 +438,7 @@ const AdvancedWingLoadingCalculator = () => {
           <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2"><Wind className="w-5 h-5 text-cyan-400" />Part 2: Performance Calculator</CardTitle>
-              <CardDescription className="text-gray-400">Solve for $V_{\text{stall}}$, $C_{L,max}$, $\rho$, or $W/S$. Fill 3 of 4 fields.</CardDescription>
+              <CardDescription className="text-gray-400">Solve for V_stall, C_L_max, ρ, or W/S. Fill 3 of 4 fields.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Select onValueChange={(v) => handlePresetLoad(v as PresetCondition)}>
@@ -459,11 +459,11 @@ const AdvancedWingLoadingCalculator = () => {
                 <Input id="airDensity" type="number" step="0.001" value={advInputs.airDensity} onChange={(e) => setAdvInputs(p => ({ ...p, airDensity: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 1.225" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="clMax" className="text-gray-300">Max Lift Coefficient ($C_{L,max}$) <span className="text-gray-500">(Unitless)</span></Label>
+                <Label htmlFor="clMax" className="text-gray-300">Max Lift Coefficient (C_L_max) <span className="text-gray-500">(Unitless)</span></Label>
                 <Input id="clMax" type="number" step="0.01" value={advInputs.clMax} onChange={(e) => setAdvInputs(p => ({ ...p, clMax: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 2.2" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stallSpeed" className="text-gray-300">Stall Speed ($V_{\text{stall}}$) <span className="text-gray-500">{getUnit("stallSpeed")}</span></Label>
+                <Label htmlFor="stallSpeed" className="text-gray-300">Stall Speed (V_stall) <span className="text-gray-500">{getUnit("stallSpeed")}</span></Label>
                 <Input id="stallSpeed" type="number" step="0.01" value={advInputs.stallSpeed} onChange={(e) => setAdvInputs(p => ({ ...p, stallSpeed: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank to solve" />
               </div>
               <Button type="button" onClick={calculateAdvanced} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"><Wind className="w-4 h-4 mr-2" />Calculate Performance</Button>
@@ -606,7 +606,7 @@ const AdvancedWingLoadingCalculator = () => {
                           label={{ value: `Wing Area (${getUnit("wingArea")})`, position: 'insideBottom', offset: -5, fill: '#94a3b8' }}/>
                         <YAxis stroke="#94a3b8" tickFormatter={(val) => val.toFixed(1)}
                           label={{ value: `Wing Loading (${getUnit("wingLoading")})`, angle: -90, position: 'insideLeft', fill: '#94a3b8' }}/>
-                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/><br>
+                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/>
                         <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} dot={false} name="W/S" />
                       </LineChart>
                     </ResponsiveContainer>
@@ -638,11 +638,11 @@ const AdvancedWingLoadingCalculator = () => {
                   </div>
                 </div>
                 <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">W/S = ½ · ρ · V² · $C_{L,max}$</p>
+                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">W/S = ½ · ρ · V² · C_L_max</p>
                   <div className="text-gray-400 text-sm space-y-1">
                     <p><span className="text-cyan-400">ρ</span> = Air Density</p>
                     <p><span className="text-cyan-400">V</span> = Stall Speed</p>
-                    <p><span className="text-cyan-400">$C_{L,max}$</span> = Max Lift Coefficient</p>
+                    <p><span className="text-cyan-400">C_L_max</span> = Max Lift Coefficient</p>
                   </div>
                 </div>
               </CardContent>
@@ -655,4 +655,4 @@ const AdvancedWingLoadingCalculator = () => {
   );
 };
 
-export default WingLoadingCalculator;
+export default AdvancedWingLoadingCalculator;

@@ -229,7 +229,7 @@ const AdvancedThrustCalculator = () => {
         setInputs(prev => ({ ...prev, isp: isp.toFixed(1) }));
       }
       
-      setPerformanceResult({ ...resultData, steps, solvedFor });
+      setPerformanceResult({ ...resultData, steps, solveFor });
       setThrustResult(null); // Clear thrust results
       setChartData([]);
 
@@ -337,7 +337,7 @@ const AdvancedThrustCalculator = () => {
         }
       }
 
-      setThrustResult({ ...resultData, steps, solvedFor });
+      setThrustResult({ ...resultData, steps, solveFor });
       setPerformanceResult(null); // Clear performance results
       
       // Generate Chart
@@ -381,7 +381,7 @@ const AdvancedThrustCalculator = () => {
           <Rocket className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
           <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">Advanced Rocket Thrust Calculator</h2>
         </div>
-        <p className="text-gray-300 text-lg max-w-3xl mx-auto">Calculate engine performance ($I_{sp}$) and solve for any variable in the thrust equation.</p>
+        <p className="text-gray-300 text-lg max-w-3xl mx-auto">Calculate engine performance (I_sp) and solve for any variable in the thrust equation.</p>
         <div className="flex justify-center gap-2 mt-4">
           <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
             <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue /></SelectTrigger>
@@ -404,11 +404,11 @@ const AdvancedThrustCalculator = () => {
           <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2"><Anchor className="w-5 h-5 text-cyan-400" />Part 1: Performance (Isp ↔ Ve)</CardTitle>
-              <CardDescription className="text-gray-400">Solve for $I_{sp}$ or $V_e$. Fill 1 of 2 fields. $V_e$ links to Part 2.</CardDescription>
+              <CardDescription className="text-gray-400">Solve for I_sp or V_e. Fill 1 of 2 fields. V_e links to Part 2.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="isp" className="text-gray-300">Specific Impulse ($I_{sp}$) <span className="text-gray-500">{getUnit("isp")}</span></Label>
+                <Label htmlFor="isp" className="text-gray-300">Specific Impulse (I_sp) <span className="text-gray-500">{getUnit("isp")}</span></Label>
                 <Input id="isp" type="number" step="0.1" value={inputs.isp} onChange={(e) => handleInputChange("isp", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 310" />
               </div>
               <div className="space-y-2">
@@ -607,20 +607,20 @@ const AdvancedThrustCalculator = () => {
               <CardHeader><CardTitle className="text-white">Equations</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">$V_e = I_{sp} \cdot g_0$</p>
+                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">V_e = I_sp · g_0</p>
                   <div className="text-gray-400 text-sm space-y-1">
-                    <p><span className="text-cyan-400">$V_e$</span> = Exhaust Velocity</p>
-                    <p><span className="text-cyan-400">$I_{sp}$</span> = Specific Impulse</p>
-                    <p><span className="text-cyan-400">$g_0$</span> = Std. Gravity ($ \approx 9.81$ m/s²)</p>
+                    <p><span className="text-cyan-400">V_e</span> = Exhaust Velocity</p>
+                    <p><span className="text-cyan-400">I_sp</span> = Specific Impulse</p>
+                    <p><span className="text-cyan-400">g_0</span> = Std. Gravity (≈ 9.81 m/s²)</p>
                   </div>
                 </div>
                 <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">$F = \dot{m}V_e + (P_e - P_a)A_e$</p>
+                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">F = ṁV_e + (P_e - P_a)A_e</p>
                   <div className="text-gray-400 text-sm space-y-1">
-                    <p><span className="text-cyan-400">$F$</span> = Total Thrust (N)</p>
-                    <p><span className="text-cyan-400">$\dot{m}$</span> = Mass Flow Rate (kg/s)</p>
-                    <p><span className="text-cyan-400">$P_e, P_a$</span> = Exit, Ambient Pressure (Pa)</p>
-                    <p><span className="text-cyan-400">$A_e$</span> = Nozzle Exit Area (m²)</p>
+                    <p><span className="text-cyan-400">F</span> = Total Thrust (N)</p>
+                    <p><span className="text-cyan-400">ṁ</span> = Mass Flow Rate (kg/s)</p>
+                    <p><span className="text-cyan-400">P_e, P_a</span> = Exit, Ambient Pressure (Pa)</p>
+                    <p><span className="text-cyan-400">A_e</span> = Nozzle Exit Area (m²)</p>
                   </div>
                 </div>
               </CardContent>
@@ -633,4 +633,4 @@ const AdvancedThrustCalculator = () => {
   );
 };
 
-export default ThrustCalculator;
+export default AdvancedThrustCalculator;
