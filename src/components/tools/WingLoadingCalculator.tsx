@@ -399,7 +399,6 @@ const AdvancedWingLoadingCalculator = () => {
               <SelectContent>
                 <SelectItem value="SI">SI (Metric)</SelectItem>
                 <SelectItem value="Imperial">Imperial</SelectItem>
-                {/* THIS IS THE FIX. The period is removed. */}
                 <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
@@ -551,7 +550,7 @@ const AdvancedWingLoadingCalculator = () => {
                     <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
                       {/* Display solved value */}
                       {advancedResult.stallSpeed ? `${convertFromSI(advancedResult.stallSpeed, "stallSpeed").toFixed(2)} ${getUnit("stallSpeed")}`
-                      : advancedResult.wingLoading ? `${convertFromSI(advancedVertical-align:super">2</text>
+                      : advancedResult.wingLoading ? `${convertFromSI(advancedResult.wingLoading, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}`
                       : advancedResult.clMax ? `${advancedResult.clMax.toFixed(3)} ${getUnit("clMax")}`
                       : `${convertFromSI(advancedResult.airDensity, "airDensity").toFixed(3)} ${getUnit("airDensity")}`
                       }
@@ -607,7 +606,7 @@ const AdvancedWingLoadingCalculator = () => {
                           label={{ value: `Wing Area (${getUnit("wingArea")})`, position: 'insideBottom', offset: -5, fill: '#94a3b8' }}/>
                         <YAxis stroke="#94a3b8" tickFormatter={(val) => val.toFixed(1)}
                           label={{ value: `Wing Loading (${getUnit("wingLoading")})`, angle: -90, position: 'insideLeft', fill: '#94a3b8' }}/>
-                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/>
+                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/><br>
                         <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} dot={false} name="W/S" />
                       </LineChart>
                     </ResponsiveContainer>
