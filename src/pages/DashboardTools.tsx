@@ -134,10 +134,10 @@ const DashboardTools = () => {
                           size="sm" 
                           className="bg-primary text-primary-foreground hover:bg-primary/90"
                           asChild
-                          disabled={tool.name !== "Thrust Calculator"}
+                          disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer"].includes(tool.name)}
                         >
-                          <a href={tool.name === "Thrust Calculator" ? "/tools/launch" : "#"}>
-                            {tool.name === "Thrust Calculator" ? "Launch Tool →" : "Coming Soon"}
+                          <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer"].includes(tool.name) ? "/tools/launch" : "#"}>
+                            {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
                           </a>
                         </Button>
                       </div>
@@ -185,10 +185,10 @@ const DashboardTools = () => {
                         variant="outline" 
                         className="border-border hover:bg-muted"
                         asChild
-                        disabled={tool.name !== "Thrust Calculator"}
+                        disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer"].includes(tool.name)}
                       >
-                        <a href={tool.name === "Thrust Calculator" ? "/tools/launch" : "#"}>
-                          {tool.name === "Thrust Calculator" ? "Launch Tool →" : "Coming Soon"}
+                        <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer"].includes(tool.name) ? "/tools/launch" : "#"}>
+                          {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
                         </a>
                       </Button>
                     </div>

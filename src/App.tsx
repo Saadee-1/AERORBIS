@@ -54,13 +54,22 @@ const AnimatedRoutes = () => {
 
 // ---- MAIN APP ----
 const App = () => {
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(() => {
+    // Check if intro has been shown before
+    const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+    return !hasSeenIntro;
+  });
 
-  // Automatically hide intro after 4s and show app
+  // Automatically hide intro after 4s and mark as seen
   useEffect(() => {
-    const timer = setTimeout(() => setShowIntro(false), 4000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (showIntro) {
+      const timer = setTimeout(() => {
+        setShowIntro(false);
+        localStorage.setItem('hasSeenIntro', 'true');
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [showIntro]);
 
   return (
     <QueryClientProvider client={queryClient}>
