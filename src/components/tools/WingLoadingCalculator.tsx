@@ -655,4 +655,4 @@ const AdvancedWingLoadingCalculator = () => {
   );
 };
 
-export default AdvancedWingLoadingCalculator;
+export default WingLoadingCalculator;
