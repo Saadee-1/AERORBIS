@@ -64,6 +64,8 @@ interface LiftDragInputs {
   airspeed: string;
   airDensity: string;
   wingArea: string;
+  wingSpan: string; // NEW
+  oswaldEfficiency: string; // NEW
 }
 
 interface LiftDragResult {
@@ -72,6 +74,8 @@ interface LiftDragResult {
   L_D_ratio: number;
   liftForce: number;
   dragForce: number;
+  aspectRatio: number; // NEW
+  k_factor: number; // NEW
   steps: string[];
 }
 
@@ -88,6 +92,8 @@ const LiftDragAnalyzer = () => {
       airspeed: "50",
       airDensity: "1.225",
       wingArea: "16",
+      wingSpan: "10", // NEW
+      oswaldEfficiency: "0.85" // NEW
     };
   });
 
@@ -109,11 +115,13 @@ const LiftDragAnalyzer = () => {
       if (param === "density") return "kg/m³";
       if (param === "area") return "m²";
       if (param === "force") return "N";
+      if (param === "span") return "m"; // NEW
     } else {
       if (param === "speed") return "ft/s";
       if (param === "density") return "slug/ft³";
       if (param === "area") return "ft²";
       if (param === "force") return "lbf";
+      if (param === "span") return "ft"; // NEW
     }
     return "";
   };
@@ -123,6 +131,7 @@ const LiftDragAnalyzer = () => {
     if (param === "speed") return value * 0.3048; // ft/s to m/s
     if (param === "density") return value * 515.379; // slug/ft³ to kg/m³
     if (param === "area") return value * 0.092903; // ft² to m²
+    if (param === "span") return value * 0.3048; // ft to m
     return value;
   };
 
@@ -139,13 +148,19 @@ const LiftDragAnalyzer = () => {
       const V = convertToSI(parseFloat(inputs.airspeed), "speed");
       const rho = convertToSI(parseFloat(inputs.airDensity), "density");
       const S = convertToSI(parseFloat(inputs.wingArea), "area");
+      const b = convertToSI(parseFloat(inputs.wingSpan), "span"); // NEW
+      const e = parseFloat(inputs.oswaldEfficiency); // NEW
 
-      if (isNaN(alpha) || isNaN(V) || isNaN(rho) || isNaN(S)) {
+      if (isNaN(alpha) || isNaN(V) || isNaN(rho) || isNaN(S) || isNaN(b) || isNaN(e)) {
         throw new Error("All fields must be valid numbers");
       }
 
-      if (V <= 0 || rho <= 0 || S <= 0) {
-        throw new Error("Airspeed, density, and wing area must be positive");
+      if (V <= 0 || rho <= 0 || S <= 0 || b <= 0) {
+        throw new Error("Airspeed, density, wing area, and span must be positive");
+      }
+      
+      if (e <= 0 || e > 1) {
+        throw new Error("Oswald Efficiency (e) must be between 0 and 1");
       }
 
       const airfoil = airfoils[inputs.airfoil];
@@ -153,14 +168,23 @@ const LiftDragAnalyzer = () => {
       // Check for stall
       if (Math.abs(alpha) > airfoil.alpha_stall) {
         setError(`Warning: Angle of attack exceeds stall angle (${airfoil.alpha_stall}°). Results may be unrealistic.`);
+      } else {
+        setError(""); // Clear error if now in safe range
       }
+
+      // --- ADVANCED PHYSICS ---
+      // 1. Calculate Aspect Ratio (AR)
+      const aspectRatio = Math.pow(b, 2) / S;
+      
+      // 2. Calculate Induced Drag Factor (k)
+      const k_factor = 1 / (Math.PI * aspectRatio * e);
+      // --- END ADVANCED PHYSICS ---
 
       // Calculate lift coefficient: CL = CL_0 + CL_alpha * alpha
       const CL = airfoil.CL_0 + airfoil.CL_alpha * alpha;
 
-      // Drag coefficient (simplified polar): CD = CD_0 + k * CL^2
-      const k = 0.05; // Induced drag factor
-      const CD = airfoil.CD_0 + k * Math.pow(CL, 2);
+      // Drag coefficient (ADVANCED): CD = CD_0 + k * CL^2
+      const CD = airfoil.CD_0 + k_factor * Math.pow(CL, 2);
 
       // Dynamic pressure: q = 0.5 * rho * V^2
       const q = 0.5 * rho * Math.pow(V, 2);
@@ -174,25 +198,31 @@ const LiftDragAnalyzer = () => {
 
       const steps = [
         `**Airfoil:** ${airfoil.name}`,
-        `**Given:** α = ${alpha}°, V = ${V.toFixed(2)} m/s, ρ = ${rho.toFixed(3)} kg/m³, S = ${S.toFixed(2)} m²`,
+        `**Given:** α = ${alpha}°, V = ${V.toFixed(2)} m/s, ρ = ${rho.toFixed(3)} kg/m³, S = ${S.toFixed(2)} m², b = ${b.toFixed(2)} m, e = ${e.toFixed(2)}`,
         ``,
-        `**Step 1:** Calculate lift coefficient`,
+        `**Step 1:** Calculate Aspect Ratio (AR)`,
+        `AR = b² / S = ${b.toFixed(2)}² / ${S.toFixed(2)} = ${aspectRatio.toFixed(2)}`,
+        ``,
+        `**Step 2:** Calculate Induced Drag Factor (k)`,
+        `k = 1 / (π × AR × e) = 1 / (π × ${aspectRatio.toFixed(2)} × ${e.toFixed(2)}) = ${k_factor.toFixed(4)}`,
+        ``,
+        `**Step 3:** Calculate Lift Coefficient (CL)`,
         `CL = CL₀ + CL_α × α = ${airfoil.CL_0.toFixed(3)} + ${airfoil.CL_alpha.toFixed(4)} × ${alpha} = ${CL.toFixed(4)}`,
         ``,
-        `**Step 2:** Calculate drag coefficient`,
-        `CD = CD₀ + k × CL² = ${airfoil.CD_0.toFixed(4)} + ${k} × ${CL.toFixed(4)}² = ${CD.toFixed(4)}`,
+        `**Step 4:** Calculate Drag Coefficient (CD)`,
+        `CD = CD₀ + k × CL² = ${airfoil.CD_0.toFixed(4)} + ${k_factor.toFixed(4)} × ${CL.toFixed(4)}² = ${CD.toFixed(4)}`,
         ``,
-        `**Step 3:** Calculate dynamic pressure`,
+        `**Step 5:** Calculate Dynamic Pressure (q)`,
         `q = 0.5 × ρ × V² = 0.5 × ${rho.toFixed(3)} × ${V.toFixed(2)}² = ${q.toFixed(2)} Pa`,
         ``,
-        `**Step 4:** Calculate forces`,
+        `**Step 6:** Calculate Forces`,
         `Lift = CL × q × S = ${CL.toFixed(4)} × ${q.toFixed(2)} × ${S.toFixed(2)} = ${liftForce.toFixed(2)} N`,
         `Drag = CD × q × S = ${CD.toFixed(4)} × ${q.toFixed(2)} × ${S.toFixed(2)} = ${dragForce.toFixed(2)} N`,
         ``,
-        `**Step 5:** Calculate L/D ratio`,
+        `**Step 7:** Calculate L/D Ratio`,
         `L/D = CL / CD = ${CL.toFixed(4)} / ${CD.toFixed(4)} = ${L_D_ratio.toFixed(2)}`,
         ``,
-        `**Interpretation:** ${L_D_ratio > 20 ? "Excellent glide performance" : L_D_ratio > 15 ? "Good efficiency" : L_D_ratio > 10 ? "Moderate efficiency" : "Poor efficiency, high drag"}`,
+        `**Interpretation:** ${L_D_ratio > 25 ? "Excellent glide performance (Glider-like)" : L_D_ratio > 15 ? "Good efficiency (Airliner)" : L_D_ratio > 8 ? "Moderate efficiency (Prop plane)" : "Poor efficiency (High drag/High power)"}`,
       ];
 
       setResult({
@@ -201,23 +231,22 @@ const LiftDragAnalyzer = () => {
         L_D_ratio,
         liftForce,
         dragForce,
+        aspectRatio,
+        k_factor,
         steps,
       });
 
       // Generate comparison data across angle of attack range
-      generateComparisonData();
+      generateComparisonData(aspectRatio, e);
     } catch (err) {
       setError((err as Error).message);
       setResult(null);
     }
   };
 
-  const generateComparisonData = () => {
+  const generateComparisonData = (AR: number, e: number) => {
     const data = [];
-    const V = convertToSI(parseFloat(inputs.airspeed), "speed");
-    const rho = convertToSI(parseFloat(inputs.airDensity), "density");
-    const S = convertToSI(parseFloat(inputs.wingArea), "area");
-    const q = 0.5 * rho * Math.pow(V, 2);
+    const k_factor = 1 / (Math.PI * AR * e); // Use the *calculated* k-factor
 
     for (let alpha = -5; alpha <= 20; alpha += 1) {
       const point: any = { alpha };
@@ -226,8 +255,11 @@ const LiftDragAnalyzer = () => {
         const airfoil = airfoils[key as keyof typeof airfoils];
         if (alpha <= airfoil.alpha_stall) {
           const CL = airfoil.CL_0 + airfoil.CL_alpha * alpha;
-          const CD = airfoil.CD_0 + 0.05 * Math.pow(CL, 2);
+          // Use the *same* k_factor for all airfoils to compare them on *your* wing
+          const CD = airfoil.CD_0 + k_factor * Math.pow(CL, 2); 
           point[key] = CD !== 0 ? CL / CD : 0;
+        } else {
+          point[key] = null; // Don't plot post-stall
         }
       });
 
@@ -301,51 +333,78 @@ const LiftDragAnalyzer = () => {
                 <p className="text-xs text-slate-400">{airfoils[inputs.airfoil].description}</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="angleOfAttack" className="text-cyan-300">Angle of Attack (degrees)</Label>
-                <Input
-                  id="angleOfAttack"
-                  type="number"
-                  value={inputs.angleOfAttack}
-                  onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
-                />
-                <p className="text-xs text-slate-400">Typical range: -5° to 15°</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="wingArea" className="text-cyan-300">Wing Area ({getUnit("area")})</Label>
+                  <Input
+                    id="wingArea"
+                    type="number"
+                    value={inputs.wingArea}
+                    onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })}
+                    className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="wingSpan" className="text-cyan-300">Wing Span ({getUnit("span")})</Label>
+                  <Input
+                    id="wingSpan"
+                    type="number"
+                    value={inputs.wingSpan}
+                    onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })}
+                    className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="airspeed" className="text-cyan-300">Airspeed ({getUnit("speed")})</Label>
-                <Input
-                  id="airspeed"
-                  type="number"
-                  value={inputs.airspeed}
-                  onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="angleOfAttack" className="text-cyan-300">Angle of Attack (°)</Label>
+                  <Input
+                    id="angleOfAttack"
+                    type="number"
+                    value={inputs.angleOfAttack}
+                    onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })}
+                    className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="oswaldEfficiency" className="text-cyan-300">Oswald Eff. (e)</Label>
+                  <Input
+                    id="oswaldEfficiency"
+                    type="number"
+                    step="0.01"
+                    value={inputs.oswaldEfficiency}
+                    onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })}
+                    className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-slate-400 -mt-2">Aspect Ratio (AR) is calculated from Area and Span. Oswald (e) is typically 0.7-0.9.</p>
+
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="airspeed" className="text-cyan-300">Airspeed ({getUnit("speed")})</Label>
+                  <Input
+                    id="airspeed"
+                    type="number"
+                    value={inputs.airspeed}
+                    onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })}
+                    className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="airDensity" className="text-cyan-300">Air Density ({getUnit("density")})</Label>
+                  <Input
+                    id="airDensity"
+                    type="number"
+                    value={inputs.airDensity}
+                    onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })}
+                    className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="airDensity" className="text-cyan-300">Air Density ({getUnit("density")})</Label>
-                <Input
-                  id="airDensity"
-                  type="number"
-                  value={inputs.airDensity}
-                  onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
-                />
-                <p className="text-xs text-slate-400">Sea level: 1.225 kg/m³</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="wingArea" className="text-cyan-300">Wing Area ({getUnit("area")})</Label>
-                <Input
-                  id="wingArea"
-                  type="number"
-                  value={inputs.wingArea}
-                  onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
-                />
-              </div>
 
               <Button
                 type="button"
@@ -353,37 +412,37 @@ const LiftDragAnalyzer = () => {
                 className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold"
               >
                 <Plane className="w-4 h-4 mr-2" />
-                Calculate Performance
+                Analyze Performance
               </Button>
             </div>
 
             {/* Results Panel */}
-            {result && (
-              <div className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
-                <h3 className="text-xl font-semibold text-cyan-400">Results</h3>
+            {result ? (
+              <motion.div 
+                initial={{ opacity: 0, x: 10 }} 
+                animate={{ opacity: 1, x: 0 }} 
+                className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20"
+              >
+                <h3 className="text-xl font-semibold text-cyan-400">Analysis Results</h3>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20">
-                    <p className="text-sm text-slate-400">Lift Coefficient</p>
-                    <p className="text-2xl font-bold text-cyan-400">{result.CL.toFixed(4)}</p>
-                  </div>
-                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20">
-                    <p className="text-sm text-slate-400">Drag Coefficient</p>
-                    <p className="text-2xl font-bold text-cyan-400">{result.CD.toFixed(4)}</p>
-                  </div>
-                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
                     <p className="text-sm text-slate-400">L/D Ratio</p>
-                    <p className="text-2xl font-bold text-green-400">{result.L_D_ratio.toFixed(2)}</p>
+                    <p className="text-3xl font-bold text-green-400">{result.L_D_ratio.toFixed(2)}</p>
                   </div>
-                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20">
+                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
+                    <p className="text-sm text-slate-400">Aspect Ratio</p>
+                    <p className="text-3xl font-bold text-white">{result.aspectRatio.toFixed(1)}</p>
+                  </div>
+                   <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
                     <p className="text-sm text-slate-400">Efficiency</p>
-                    <p className="text-xl font-bold text-green-400">
-                      {result.L_D_ratio > 20 ? "Excellent" : result.L_D_ratio > 15 ? "Good" : result.L_D_ratio > 10 ? "Moderate" : "Poor"}
+                    <p className="text-2xl font-bold text-green-400 pt-1">
+                      {result.L_D_ratio > 25 ? "Excellent" : result.L_D_ratio > 15 ? "Good" : result.L_D_ratio > 8 ? "Moderate" : "Poor"}
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="p-3 rounded bg-blue-500/10 border border-blue-400/30">
                     <p className="text-sm text-slate-400">Lift Force</p>
                     <p className="text-xl font-bold text-blue-400">
@@ -396,6 +455,14 @@ const LiftDragAnalyzer = () => {
                       {convertFromSI(result.dragForce, "force").toFixed(2)} {getUnit("force")}
                     </p>
                   </div>
+                  <div className="p-3 rounded bg-slate-700/50">
+                    <p className="text-sm text-slate-400">Lift Coefficient (CL)</p>
+                    <p className="text-xl font-bold text-white">{result.CL.toFixed(4)}</p>
+S                  </div>
+                  <div className="p-3 rounded bg-slate-700/50">
+                    <p className="text-sm text-slate-400">Drag Coefficient (CD)</p>
+                    <p className="text-xl font-bold text-white">{result.CD.toFixed(4)}</p>
+                  </div>
                 </div>
 
                 <Accordion type="single" collapsible className="w-full">
@@ -406,23 +473,36 @@ const LiftDragAnalyzer = () => {
                         View Calculation Steps
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="text-slate-300 space-y-1">
+                    <AccordionContent className="text-slate-300 space-y-1 font-mono text-xs pt-2">
                       {result.steps.map((step, i) => (
-                        <p key={i} className="text-sm">
-                          {step}
+                        <p key={i} className="leading-relaxed">
+                          {step.split('\n').map((line, j) => <span key={j} className="block">{line}</span>)}
                         </p>
                       ))}
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
-              </div>
+              </motion.div>
+            ) : (
+                 <div className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20 h-full flex flex-col items-center justify-center">
+                    <Plane className="w-24 h-24 text-cyan-400/10" />
+                    <h3 className="text-xl font-semibold text-cyan-400">Results will appear here</h3>
+                    <p className="text-slate-400 text-center">Fill in the configuration and click "Analyze Performance" to see the results.</p>
+                 </div>
             )}
           </div>
 
           {/* Comparison Chart */}
           {comparisonData.length > 0 && (
-            <div className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
-              <h3 className="text-xl font-semibold text-cyan-400 mb-4">Airfoil Performance Comparison</h3>
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20"
+            >
+              <h3 className="text-xl font-semibold text-cyan-400 mb-4">Airfoil Performance Comparison (L/D Ratio)</h3>
+              <p className="text-sm text-slate-400 -mt-2 mb-4">
+                Comparing all airfoils using your wing's calculated Aspect Ratio of {result?.aspectRatio.toFixed(2)}
+              </p>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={comparisonData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -438,16 +518,17 @@ const LiftDragAnalyzer = () => {
                   <Tooltip
                     contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
                     labelStyle={{ color: "#22d3ee" }}
+                    formatter={(value: number) => value.toFixed(2)}
                   />
                   <Legend />
-                  <Line type="monotone" dataKey="NACA0012" stroke="#22d3ee" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="NACA2412" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="NACA4415" stroke="#10b981" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="ClarkY" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Supercritical" stroke="#ef4444" strokeWidth={2} dot={false} />
+                  <Line connectNulls type="monotone" dataKey="NACA0012" name="NACA 0012" stroke="#22d3ee" strokeWidth={2} dot={false} />
+                  <Line connectNulls type="monotone" dataKey="NACA2412" name="NACA 2412" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                  <Line connectNulls type="monotone" dataKey="NACA4415" name="NACA 4415" stroke="#10b981" strokeWidth={2} dot={false} />
+                  <Line connectNulls type="monotone" dataKey="ClarkY" name="Clark Y" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                  <Line connectNulls type="monotone" dataKey="Supercritical" name="Supercritical" stroke="#ef4444" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </motion.div>
           )}
         </CardContent>
       </Card>
