@@ -174,7 +174,9 @@ const OrbitalVisualizer = () => {
       if (orbitPoints.length > 1) {
         angle = (angle + 0.002) % (2 * Math.PI); // Note: This is still constant speed, not Kepler's 2nd Law
         const index = Math.floor((angle / (2 * Math.PI)) * orbitPoints.length);
-        satellite.position.copy(orbitPoints[index]);
+        if (orbitPoints[index]) {
+          satellite.position.copy(orbitPoints[index]);
+        }
       }
 
       renderer.render(scene, camera);
@@ -370,6 +372,7 @@ const OrbitalVisualizer = () => {
       const r1 = orbitResult.periapsisRadius; // Use periapsis of initial orbit as start
       const v1 = orbitResult.periapsisVelocity; // Velocity at r1 in initial orbit
       
+      const eccentricity = parseFloat(inputs.eccentricity);
       if (eccentricity > 0.001) {
          setError("Hohmann transfer calculation assumes a circular starting orbit (or burn at periapsis). Results are approximate.");
       }
@@ -518,7 +521,8 @@ const OrbitalVisualizer = () => {
                 <Label htmlFor="gm" className="text-cyan-300">Grav. Parameter (GM) ({getUnit("gm")})</Label>
                 <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-slate-700/50" />
               </div>
-              <Button onClick={calculateOrbit} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">
+              {/* --- FIX: Added type="button" --- */}
+              <Button type="button" onClick={calculateOrbit} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">
                 <Orbit className="w-4 h-4 mr-2" />Calculate Orbit
               </Button>
             </div>
@@ -530,7 +534,8 @@ const OrbitalVisualizer = () => {
                 <Label htmlFor="targetAltitude" className="text-cyan-300">Target Circular Altitude ({getUnit("dist")})</Label>
                 <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-slate-700/50" placeholder="e.g., 800" />
               </div>
-              <Button onClick={calculateManeuver} className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold" disabled={!orbitResult}>
+              {/* --- FIX: Added type="button" --- */}
+              <Button type="button" onClick={calculateManeuver} className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold" disabled={!orbitResult}>
                 <Move className="w-4 h-4 mr-2" />Calculate Maneuver
               </Button>
               {maneuverResult && (
