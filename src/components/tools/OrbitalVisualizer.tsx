@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Rocket, Info, Orbit, Move, TrendingUp } from "lucide-react";
+import { Rocket, Info, Orbit, Move } from "lucide-react";
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 type UnitSystem = "SI" | "Imperial";
 
@@ -93,19 +93,6 @@ const OrbitalVisualizer = () => {
       targetAltitude: "800",
       description: "Sun-Synchronous Orbit for Earth observation"
     }
-  };
-
-  const loadPreset = (presetName: keyof typeof presets) => {
-    const preset = presets[presetName];
-    setInputs({
-      periapsisAltitude: preset.periapsisAltitude,
-      inclination: preset.inclination,
-      eccentricity: preset.eccentricity,
-      centralBodyRadius: preset.centralBodyRadius,
-      gm: preset.gm,
-      targetAltitude: preset.targetAltitude,
-    });
-    setError("");
   };
 
   const [orbitResult, setOrbitResult] = useState<any>(null);
@@ -272,7 +259,7 @@ const OrbitalVisualizer = () => {
     window.addEventListener('resize', handleResize);
     
     // Initial calculation
-    calculateOrbit();
+    calculateOrbit(inputs); // Pass initial inputs
 
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -283,6 +270,7 @@ const OrbitalVisualizer = () => {
       }
       threeRef.current = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array ensures this runs only once
 
   // --- Unit Conversion ---
@@ -304,17 +292,17 @@ const OrbitalVisualizer = () => {
   };
 
   // --- Calculation Functions ---
-  const calculateOrbit = () => {
+  const calculateOrbit = (currentInputs: OrbitalInputs) => {
     setError("");
     setManeuverResult(null);
     if (threeRef.current) threeRef.current.transferOrbitLine.geometry = new THREE.BufferGeometry(); // Clear transfer orbit
 
     try {
-      const periapsisAltitude = parseFloat(inputs.periapsisAltitude);
-      const inclination = parseFloat(inputs.inclination);
-      const eccentricity = parseFloat(inputs.eccentricity);
-      const centralBodyRadius = parseFloat(inputs.centralBodyRadius);
-      const GM = parseFloat(inputs.gm);
+      const periapsisAltitude = parseFloat(currentInputs.periapsisAltitude);
+      const inclination = parseFloat(currentInputs.inclination);
+      const eccentricity = parseFloat(currentInputs.eccentricity);
+      const centralBodyRadius = parseFloat(currentInputs.centralBodyRadius);
+      const GM = parseFloat(currentInputs.gm);
 
       if (isNaN(periapsisAltitude) || isNaN(inclination) || isNaN(eccentricity) || isNaN(centralBodyRadius) || isNaN(GM)) {
         throw new Error("Please fill in all fields with valid numbers");
@@ -335,23 +323,13 @@ const OrbitalVisualizer = () => {
       const inclinationRad = (inclination * Math.PI) / 180;
 
       // --- 2. CORE CALCULATIONS (FIXED) ---
-      // FIX 1: 'periapsisRadius' is the "r" at periapsis
+      // This is the correct, universal physics
       const periapsisRadius = radius_SI + periapsisAlt_SI;
-      
-      // FIX 2: Correct semi-major axis 'a' calculation
-      // a = (r_periapsis) / (1 - e)
       const semiMajorAxis = periapsisRadius / (1 - eccentricity);
-      
-      // Apoapsis
       const apoapsisRadius = semiMajorAxis * (1 + eccentricity);
       const apoapsisAltitude = apoapsisRadius - radius_SI;
-
-      // FIX 3: Use Vis-viva equation for velocity at periapsis
-      // v² = GM(2/r - 1/a)
       const periapsisVelocity = Math.sqrt(GM * ((2 / periapsisRadius) - (1 / semiMajorAxis)));
       const apoapsisVelocity = Math.sqrt(GM * ((2 / apoapsisRadius) - (1 / semiMajorAxis)));
-
-      // Kepler's Third Law
       const orbitalPeriod = 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / GM);
       const orbitalPeriodMinutes = orbitalPeriod / 60;
 
@@ -359,19 +337,17 @@ const OrbitalVisualizer = () => {
       if (threeRef.current) {
         const t = threeRef.current;
         
-        // Update planet size
         t.earth.scale.set(radius_SI, radius_SI, radius_SI);
-        const atmosScale = radius_SI + (radius_SI * 0.02); // Atmosphere 2% bigger
+        const atmosScale = radius_SI + (radius_SI * 0.02);
         t.atmosphere.scale.set(atmosScale, atmosScale, atmosScale);
         
-        // Update satellite size (make it 1.5% of planet radius)
         const satScale = radius_SI * 0.015;
         t.satellite.scale.set(satScale, satScale, satScale);
         
         const orbitPoints: THREE.Vector3[] = [];
         const segments = 200;
         
-        // FIX 4: Shift orbit by focal distance 'c' to put Earth at the focus
+        // This is Kepler's 1st Law: shift orbit by focal distance 'c'
         const focalDistance = semiMajorAxis * eccentricity;
         
         for (let i = 0; i <= segments; i++) {
@@ -414,7 +390,7 @@ const OrbitalVisualizer = () => {
     }
   };
 
-  // --- NEW: Calculate Hohmann Transfer ---
+  // --- Calculate Hohmann Transfer ---
   const calculateManeuver = () => {
     if (!orbitResult) {
       setError("Calculate the initial orbit (Part 1) first.");
@@ -486,7 +462,7 @@ const OrbitalVisualizer = () => {
         const transferGeometry = new THREE.BufferGeometry().setFromPoints(transferPoints);
         t.transferOrbitLine.geometry.dispose();
         t.transferOrbitLine.geometry = transferGeometry;
-        t.transferOrbitLine.computeLineDistances();
+        t.transferOrbitLine.computeLineDistances(); // Compute distances *after* setting points
       }
       
       setManeuverResult({ delta_v1, delta_v2, total_dv, transferTime });
@@ -502,6 +478,22 @@ const OrbitalVisualizer = () => {
     if (param === "vel") return `${convert(value, "vel", unitSystem).toFixed(3)} ${getUnit("vel")}`;
     if (param === "time") return `${value.toFixed(2)} ${getUnit("time")}`;
     return "";
+  };
+
+  // FIX 3: This function now updates state AND calls the calculation
+  const loadPreset = (presetName: keyof typeof presets) => {
+    const preset = presets[presetName];
+    const newInputs = {
+      periapsisAltitude: preset.periapsisAltitude,
+      inclination: preset.inclination,
+      eccentricity: preset.eccentricity,
+      centralBodyRadius: preset.centralBodyRadius,
+      gm: preset.gm,
+      targetAltitude: preset.targetAltitude,
+    };
+    setInputs(newInputs); // Update the input fields
+    calculateOrbit(newInputs); // Instantly calculate the new orbit
+    setError("");
   };
 
   return (
@@ -604,8 +596,7 @@ const OrbitalVisualizer = () => {
                 <Label htmlFor="gm" className="text-cyan-300">Grav. Parameter (GM) ({getUnit("gm")})</Label>
                 <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-slate-700/50" />
               </div>
-              {/* --- FIX: Added type="button" --- */}
-              <Button type="button" onClick={calculateOrbit} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">
+              <Button type="button" onClick={() => calculateOrbit(inputs)} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">
                 <Orbit className="w-4 h-4 mr-2" />Calculate Orbit
               </Button>
             </div>
@@ -617,7 +608,6 @@ const OrbitalVisualizer = () => {
                 <Label htmlFor="targetAltitude" className="text-cyan-300">Target Circular Altitude ({getUnit("dist")})</Label>
                 <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-slate-700/50" placeholder="e.g., 800" />
               </div>
-              {/* --- FIX: Added type="button" --- */}
               <Button type="button" onClick={calculateManeuver} className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold" disabled={!orbitResult}>
                 <Move className="w-4 h-4 mr-2" />Calculate Maneuver
               </Button>
