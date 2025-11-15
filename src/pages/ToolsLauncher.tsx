@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom"; // ✅ ADDED
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
@@ -12,7 +13,11 @@ import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
 import LiftDragAnalyzer from "@/components/tools/LiftDragAnalyzer";
 
 const ToolsLauncher = () => {
-  const [activeTab, setActiveTab] = useState("thrust");
+  // ✅ FIXED: Read the URL parameter to determine which tool to open
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const toolFromUrl = params.get("tool") || "thrust"; // Default to "thrust" if no parameter
+  const [activeTab, setActiveTab] = useState(toolFromUrl);
 
   return (
     <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
