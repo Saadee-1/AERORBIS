@@ -1,94 +1,94 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { useLocation } from "react-router-dom"; // ✅ ADDED
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
-import PageBreadcrumb from "@/components/PageBreadcrumb";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Rocket, Plane, Orbit, TrendingUp } from "lucide-react";
-import ThrustCalculator from "@/components/tools/ThrustCalculator";
-import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
-import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
-import LiftDragAnalyzer from "@/components/tools/LiftDragAnalyzer";
+import { useInView } from "framer-motion";
+import { useRef } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ CHANGED from Link to useNavigate
+import { Calculator, TrendingUp, Orbit, Plane } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useActiveSection } from "@/hooks/useActiveSection";
 
-const ToolsLauncher = () => {
-  // ✅ FIXED: Read the URL parameter to determine which tool to open
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const toolFromUrl = params.get("tool") || "thrust"; // Default to "thrust" if no parameter
-   console.log("Tool from URL:", toolFromUrl); // Add this line
-  const [activeTab, setActiveTab] = useState(toolFromUrl);
+const tools = [
+  {
+    icon: Calculator,
+    title: "Rocket Thrust Calculator",
+    description: "Calculate thrust, specific impulse, and performance metrics",
+    toolId: "thrust",
+  },
+  {
+    icon: TrendingUp,
+    title: "Lift-to-Drag Ratio Visualizer",
+    description: "Analyze aerodynamic efficiency with interactive charts",
+    toolId: "liftdrag",
+  },
+  {
+    icon: Orbit,
+    title: "Orbital Path Simulator",
+    description: "Simulate and visualize satellite trajectories",
+    toolId: "orbital",
+  },
+  {
+    icon: Plane,
+    title: "Wing Loading Calculator",
+    description: "Calculate wing loading and stall speed performance",
+    toolId: "wing",
+  },
+];
+
+const Tools = () => {
+  const ref = useRef(null);
+  const navigate = useNavigate(); // ✅ ADDED
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const activeSection = useActiveSection(["home", "about", "learn", "research", "tools", "community", "testimonials", "contact"]);
+  const isActive = activeSection === "tools";
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
-      <DeepSpaceDataBackground />
-      <Navbar />
-      <PageBreadcrumb />
-      
-      <section className="relative py-12 flex-grow">
-        <div className="container mx-auto px-4 lg:px-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-8"
-          >
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-4xl mx-auto grid-cols-2 lg:grid-cols-4 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
-                <TabsTrigger 
-                  value="thrust"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
-                >
-                  <Rocket className="w-4 h-4 mr-2" />
-                  Thrust Calculator
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="wing"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
-                >
-                  <Plane className="w-4 h-4 mr-2" />
-                  Wing Loading Calculator
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="orbital"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
-                >
-                  <Orbit className="w-4 h-4 mr-2" />
-                  Orbital Visualizer
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="liftdrag"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
-                >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  L/D Analyzer
-                </TabsTrigger>
-              </TabsList>
+    <section 
+      id="tools" 
+      className={`py-24 bg-gradient-to-b from-black via-slate-900 to-black relative overflow-hidden transition-all duration-500 ${
+        isActive ? "shadow-[inset_0_0_100px_rgba(34,211,238,0.4)] border-t-4 border-b-4 border-cyan-400/50" : ""
+      }`}
+    >
+      <div className="container mx-auto px-4 lg:px-8 relative z-10" ref={ref}>
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            Tools & Simulators
+          </h2>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            Powerful interactive tools to accelerate your learning and research
+          </p>
+        </motion.div>
 
-              <TabsContent value="thrust" className="mt-0">
-                <ThrustCalculator />
-              </TabsContent>
-
-              <TabsContent value="wing" className="mt-0">
-                <WingLoadingCalculator />
-              </TabsContent>
-
-              <TabsContent value="orbital" className="mt-0">
-                <OrbitalVisualizer />
-              </TabsContent>
-
-              <TabsContent value="liftdrag" className="mt-0">
-                <LiftDragAnalyzer />
-              </TabsContent>
-            </Tabs>
-          </motion.div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          {tools.map((tool, index) => (
+            <motion.div
+              key={tool.title}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              onClick={() => navigate(`/tools/launch?tool=${tool.toolId}`)} // ✅ CHANGED to onClick
+              className="cursor-pointer"
+            >
+              <Card className="h-full bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300 group text-center rounded-2xl">
+                <CardHeader>
+                  <div className="w-20 h-20 rounded-full bg-cyan-400/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-cyan-400/20 transition-all group-hover:scale-110">
+                    <tool.icon className="w-10 h-10 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+                  </div>
+                  <CardTitle className="text-xl text-white">{tool.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-300">{tool.description}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
-      </section>
-
-      <Footer />
-    </div>
+      </div>
+    </section>
   );
 };
 
-export default ToolsLauncher;
+export default Tools;
