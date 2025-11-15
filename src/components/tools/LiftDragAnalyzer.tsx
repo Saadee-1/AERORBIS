@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, Info, Plane } from "lucide-react";
+import { TrendingUp, Info, Plane, Pencil } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 type UnitSystem = "SI" | "Imperial";
+type AirfoilKey = keyof typeof airfoils | "custom";
 
 // Airfoil database with real-world coefficients
 const airfoils = {
@@ -58,14 +59,34 @@ const airfoils = {
   },
 };
 
+// Interface for the airfoil database
+interface Airfoil {
+  name: string;
+  description: string;
+  CL_alpha: number;
+  CL_0: number;
+  CD_0: number;
+  alpha_stall: number;
+}
+
+// Interface for custom airfoil inputs (all strings)
+interface CustomAirfoilInputs {
+  name: string;
+  description: string;
+  CL_alpha: string;
+  CL_0: string;
+  CD_0: string;
+  alpha_stall: string;
+}
+
 interface LiftDragInputs {
-  airfoil: keyof typeof airfoils;
+  airfoil: AirfoilKey;
   angleOfAttack: string;
   airspeed: string;
   airDensity: string;
   wingArea: string;
-  wingSpan: string; // NEW
-  oswaldEfficiency: string; // NEW
+  wingSpan: string;
+  oswaldEfficiency: string;
 }
 
 interface LiftDragResult {
@@ -74,9 +95,10 @@ interface LiftDragResult {
   L_D_ratio: number;
   liftForce: number;
   dragForce: number;
-  aspectRatio: number; // NEW
-  k_factor: number; // NEW
+  aspectRatio: number;
+  k_factor: number;
   steps: string[];
+  airfoilName: string;
 }
 
 const LiftDragAnalyzer = () => {
@@ -87,15 +109,31 @@ const LiftDragAnalyzer = () => {
   const [inputs, setInputs] = useState<LiftDragInputs>(() => {
     const saved = localStorage.getItem("liftDragInputs");
     return saved ? JSON.parse(saved) : {
-      airfoil: "NACA2412" as keyof typeof airfoils,
+      airfoil: "NACA2412" as AirfoilKey,
       angleOfAttack: "5",
       airspeed: "50",
       airDensity: "1.225",
       wingArea: "16",
-      wingSpan: "10", // NEW
-      oswaldEfficiency: "0.85" // NEW
+      wingSpan: "10",
+      oswaldEfficiency: "0.85"
     };
   });
+  
+  // NEW: State for custom airfoil inputs
+  const [customAirfoil, setCustomAirfoil] = useState<CustomAirfoilInputs>(() => {
+    const saved = localStorage.getItem("liftDragCustomAirfoil");
+    return saved ? JSON.parse(saved) : {
+      name: "Custom Airfoil",
+      description: "User-defined coefficients",
+      CL_0: "0.2",
+      CL_alpha: "0.1",
+      CD_0: "0.007",
+      alpha_stall: "15"
+    };
+  });
+  
+  // NEW: State for chart comparison
+  const [comparisonAirfoil, setComparisonAirfoil] = useState<keyof typeof airfoils>("NACA0012");
 
   const [result, setResult] = useState<LiftDragResult | null>(null);
   const [comparisonData, setComparisonData] = useState<any[]>([]);
@@ -109,19 +147,24 @@ const LiftDragAnalyzer = () => {
     localStorage.setItem("liftDragInputs", JSON.stringify(inputs));
   }, [inputs]);
 
+  // NEW: Save custom airfoil data
+  useEffect(() => {
+    localStorage.setItem("liftDragCustomAirfoil", JSON.stringify(customAirfoil));
+  }, [customAirfoil]);
+
   const getUnit = (param: string) => {
     if (unitSystem === "SI") {
       if (param === "speed") return "m/s";
       if (param === "density") return "kg/m³";
       if (param === "area") return "m²";
       if (param === "force") return "N";
-      if (param === "span") return "m"; // NEW
+      if (param === "span") return "m";
     } else {
       if (param === "speed") return "ft/s";
       if (param === "density") return "slug/ft³";
       if (param === "area") return "ft²";
       if (param === "force") return "lbf";
-      if (param === "span") return "ft"; // NEW
+      if (param === "span") return "ft";
     }
     return "";
   };
@@ -141,6 +184,22 @@ const LiftDragAnalyzer = () => {
     return value;
   };
 
+  // NEW: Helper to get parsed custom airfoil data
+  const getParsedCustomAirfoil = (): Airfoil => {
+    const parse = (val: string, defaultVal: number) => {
+      const num = parseFloat(val);
+      return isNaN(num) ? defaultVal : num;
+    };
+    return {
+      name: customAirfoil.name || "Custom Airfoil",
+      description: customAirfoil.description || "User-defined",
+      CL_0: parse(customAirfoil.CL_0, 0),
+      CL_alpha: parse(customAirfoil.CL_alpha, 0.1),
+      CD_0: parse(customAirfoil.CD_0, 0.007),
+      alpha_stall: parse(customAirfoil.alpha_stall, 15),
+    };
+  };
+
   const calculateLiftDrag = () => {
     setError("");
     try {
@@ -148,56 +207,41 @@ const LiftDragAnalyzer = () => {
       const V = convertToSI(parseFloat(inputs.airspeed), "speed");
       const rho = convertToSI(parseFloat(inputs.airDensity), "density");
       const S = convertToSI(parseFloat(inputs.wingArea), "area");
-      const b = convertToSI(parseFloat(inputs.wingSpan), "span"); // NEW
-      const e = parseFloat(inputs.oswaldEfficiency); // NEW
+      const b = convertToSI(parseFloat(inputs.wingSpan), "span");
+      const e = parseFloat(inputs.oswaldEfficiency);
 
       if (isNaN(alpha) || isNaN(V) || isNaN(rho) || isNaN(S) || isNaN(b) || isNaN(e)) {
         throw new Error("All fields must be valid numbers");
       }
-
       if (V <= 0 || rho <= 0 || S <= 0 || b <= 0) {
         throw new Error("Airspeed, density, wing area, and span must be positive");
       }
-      
       if (e <= 0 || e > 1) {
         throw new Error("Oswald Efficiency (e) must be between 0 and 1");
       }
 
-      const airfoil = airfoils[inputs.airfoil];
+      // NEW: Get the currently active airfoil (either from DB or custom state)
+      const activeAirfoil = inputs.airfoil === "custom" 
+        ? getParsedCustomAirfoil() 
+        : airfoils[inputs.airfoil];
 
-      // Check for stall
-      if (Math.abs(alpha) > airfoil.alpha_stall) {
-        setError(`Warning: Angle of attack exceeds stall angle (${airfoil.alpha_stall}°). Results may be unrealistic.`);
+      if (Math.abs(alpha) > activeAirfoil.alpha_stall) {
+        setError(`Warning: Angle of attack exceeds stall angle (${activeAirfoil.alpha_stall}°). Results may be unrealistic.`);
       } else {
-        setError(""); // Clear error if now in safe range
+        setError("");
       }
 
-      // --- ADVANCED PHYSICS ---
-      // 1. Calculate Aspect Ratio (AR)
       const aspectRatio = Math.pow(b, 2) / S;
-      
-      // 2. Calculate Induced Drag Factor (k)
       const k_factor = 1 / (Math.PI * aspectRatio * e);
-      // --- END ADVANCED PHYSICS ---
-
-      // Calculate lift coefficient: CL = CL_0 + CL_alpha * alpha
-      const CL = airfoil.CL_0 + airfoil.CL_alpha * alpha;
-
-      // Drag coefficient (ADVANCED): CD = CD_0 + k * CL^2
-      const CD = airfoil.CD_0 + k_factor * Math.pow(CL, 2);
-
-      // Dynamic pressure: q = 0.5 * rho * V^2
+      const CL = activeAirfoil.CL_0 + activeAirfoil.CL_alpha * alpha;
+      const CD = activeAirfoil.CD_0 + k_factor * Math.pow(CL, 2);
       const q = 0.5 * rho * Math.pow(V, 2);
-
-      // Lift and drag forces
       const liftForce = CL * q * S;
       const dragForce = CD * q * S;
-
-      // L/D ratio
       const L_D_ratio = CD !== 0 ? CL / CD : 0;
 
       const steps = [
-        `**Airfoil:** ${airfoil.name}`,
+        `**Airfoil:** ${activeAirfoil.name}`,
         `**Given:** α = ${alpha}°, V = ${V.toFixed(2)} m/s, ρ = ${rho.toFixed(3)} kg/m³, S = ${S.toFixed(2)} m², b = ${b.toFixed(2)} m, e = ${e.toFixed(2)}`,
         ``,
         `**Step 1:** Calculate Aspect Ratio (AR)`,
@@ -207,10 +251,10 @@ const LiftDragAnalyzer = () => {
         `k = 1 / (π × AR × e) = 1 / (π × ${aspectRatio.toFixed(2)} × ${e.toFixed(2)}) = ${k_factor.toFixed(4)}`,
         ``,
         `**Step 3:** Calculate Lift Coefficient (CL)`,
-        `CL = CL₀ + CL_α × α = ${airfoil.CL_0.toFixed(3)} + ${airfoil.CL_alpha.toFixed(4)} × ${alpha} = ${CL.toFixed(4)}`,
+        `CL = CL₀ + CL_α × α = ${activeAirfoil.CL_0.toFixed(3)} + ${activeAirfoil.CL_alpha.toFixed(4)} × ${alpha} = ${CL.toFixed(4)}`,
         ``,
         `**Step 4:** Calculate Drag Coefficient (CD)`,
-        `CD = CD₀ + k × CL² = ${airfoil.CD_0.toFixed(4)} + ${k_factor.toFixed(4)} × ${CL.toFixed(4)}² = ${CD.toFixed(4)}`,
+        `CD = CD₀ + k × CL² = ${activeAirfoil.CD_0.toFixed(4)} + ${k_factor.toFixed(4)} × ${CL.toFixed(4)}² = ${CD.toFixed(4)}`,
         ``,
         `**Step 5:** Calculate Dynamic Pressure (q)`,
         `q = 0.5 × ρ × V² = 0.5 × ${rho.toFixed(3)} × ${V.toFixed(2)}² = ${q.toFixed(2)} Pa`,
@@ -234,40 +278,54 @@ const LiftDragAnalyzer = () => {
         aspectRatio,
         k_factor,
         steps,
+        airfoilName: activeAirfoil.name
       });
 
-      // Generate comparison data across angle of attack range
-      generateComparisonData(aspectRatio, e);
+      // Generate comparison data
+      generateComparisonData(activeAirfoil, airfoils[comparisonAirfoil], k_factor);
     } catch (err) {
       setError((err as Error).message);
       setResult(null);
     }
   };
-
-  const generateComparisonData = (AR: number, e: number) => {
+  
+  // NEW: Refactored to compare any two airfoils
+  const generateComparisonData = (currentAirfoil: Airfoil, compareAirfoil: Airfoil, k_factor: number) => {
     const data = [];
-    const k_factor = 1 / (Math.PI * AR * e); // Use the *calculated* k-factor
 
     for (let alpha = -5; alpha <= 20; alpha += 1) {
       const point: any = { alpha };
 
-      Object.keys(airfoils).forEach((key) => {
-        const airfoil = airfoils[key as keyof typeof airfoils];
-        if (alpha <= airfoil.alpha_stall) {
-          const CL = airfoil.CL_0 + airfoil.CL_alpha * alpha;
-          // Use the *same* k_factor for all airfoils to compare them on *your* wing
-          const CD = airfoil.CD_0 + k_factor * Math.pow(CL, 2); 
-          point[key] = CD !== 0 ? CL / CD : 0;
-        } else {
-          point[key] = null; // Don't plot post-stall
-        }
-      });
+      // Calculate for current airfoil
+      if (alpha <= currentAirfoil.alpha_stall) {
+        const CL = currentAirfoil.CL_0 + currentAirfoil.CL_alpha * alpha;
+        const CD = currentAirfoil.CD_0 + k_factor * Math.pow(CL, 2);
+        point.current = CD !== 0 ? CL / CD : 0;
+      } else {
+        point.current = null;
+      }
 
+      // Calculate for comparison airfoil
+      if (alpha <= compareAirfoil.alpha_stall) {
+        const CL = compareAirfoil.CL_0 + compareAirfoil.CL_alpha * alpha;
+        const CD = compareAirfoil.CD_0 + k_factor * Math.pow(CL, 2);
+        point.comparison = CD !== 0 ? CL / CD : 0;
+      } else {
+        point.comparison = null;
+      }
+      
       data.push(point);
     }
-
     setComparisonData(data);
   };
+  
+  const handleCustomAirfoilChange = (field: keyof CustomAirfoilInputs, value: string) => {
+    setCustomAirfoil(prev => ({ ...prev, [field]: value }));
+  };
+  
+  const currentAirfoilDescription = inputs.airfoil === "custom"
+    ? customAirfoil.description
+    : airfoils[inputs.airfoil].description;
 
   return (
     <motion.div
@@ -285,10 +343,10 @@ const LiftDragAnalyzer = () => {
               </div>
               <div>
                 <CardTitle className="text-3xl text-cyan-400 font-bold">
-                  Lift-to-Drag Ratio Analyzer
+                  Advanced Lift-to-Drag Analyzer
                 </CardTitle>
                 <CardDescription className="text-slate-300 text-base">
-                  Calculate aerodynamic performance and compare airfoil efficiency.
+                  Analyze wing design and compare airfoil efficiency.
                 </CardDescription>
               </div>
             </div>
@@ -313,107 +371,120 @@ const LiftDragAnalyzer = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Input Panel */}
-            <div className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
-              <h3 className="text-xl font-semibold text-cyan-400">Flight Configuration</h3>
+            <div className="space-y-6">
+              <Card className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
+                <CardContent className="p-0 space-y-4 pt-4">
+                <h3 className="text-xl font-semibold text-cyan-400">Flight Configuration</h3>
 
-              <div className="space-y-2">
-                <Label htmlFor="airfoil" className="text-cyan-300">Airfoil Type</Label>
-                <Select value={inputs.airfoil} onValueChange={(v) => setInputs({ ...inputs, airfoil: v as keyof typeof airfoils })}>
-                  <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.keys(airfoils).map((key) => (
-                      <SelectItem key={key} value={key}>
-                        {airfoils[key as keyof typeof airfoils].name}
+                <div className="space-y-2">
+                  <Label htmlFor="airfoil" className="text-cyan-300">Airfoil Type</Label>
+                  <Select value={inputs.airfoil} onValueChange={(v) => setInputs({ ...inputs, airfoil: v as AirfoilKey })}>
+                    <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(airfoils).map((key) => (
+                        <SelectItem key={key} value={key}>
+                          {airfoils[key as keyof typeof airfoils].name}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="custom">
+                        <span className="text-cyan-400">-- Custom Airfoil --</span>
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-slate-400">{airfoils[inputs.airfoil].description}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="wingArea" className="text-cyan-300">Wing Area ({getUnit("area")})</Label>
-                  <Input
-                    id="wingArea"
-                    type="number"
-                    value={inputs.wingArea}
-                    onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })}
-                    className="bg-slate-700/50 border-cyan-400/30 text-white"
-                  />
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-400">{currentAirfoilDescription}</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="wingSpan" className="text-cyan-300">Wing Span ({getUnit("span")})</Label>
-                  <Input
-                    id="wingSpan"
-                    type="number"
-                    value={inputs.wingSpan}
-                    onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })}
-                    className="bg-slate-700/50 border-cyan-400/30 text-white"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="angleOfAttack" className="text-cyan-300">Angle of Attack (°)</Label>
-                  <Input
-                    id="angleOfAttack"
-                    type="number"
-                    value={inputs.angleOfAttack}
-                    onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })}
-                    className="bg-slate-700/50 border-cyan-400/30 text-white"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="wingArea" className="text-cyan-300">Wing Area ({getUnit("area")})</Label>
+                    <Input id="wingArea" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="wingSpan" className="text-cyan-300">Wing Span ({getUnit("span")})</Label>
+                    <Input id="wingSpan" type="number" value={inputs.wingSpan} onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="oswaldEfficiency" className="text-cyan-300">Oswald Eff. (e)</Label>
-                  <Input
-                    id="oswaldEfficiency"
-                    type="number"
-                    step="0.01"
-                    value={inputs.oswaldEfficiency}
-                    onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })}
-                    className="bg-slate-700/50 border-cyan-400/30 text-white"
-                  />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="angleOfAttack" className="text-cyan-300">Angle of Attack (°)</Label>
+                    <Input id="angleOfAttack" type="number" value={inputs.angleOfAttack} onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="oswaldEfficiency" className="text-cyan-300">Oswald Eff. (e)</Label>
+                    <Input id="oswaldEfficiency" type="number" step="0.01" value={inputs.oswaldEfficiency} onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                  </div>
                 </div>
-              </div>
-              <p className="text-xs text-slate-400 -mt-2">Aspect Ratio (AR) is calculated from Area and Span. Oswald (e) is typically 0.7-0.9.</p>
+                <p className="text-xs text-slate-400 -mt-2">Aspect Ratio (AR) is calculated from Area and Span. Oswald (e) is typically 0.7-0.9.</p>
 
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="airspeed" className="text-cyan-300">Airspeed ({getUnit("speed")})</Label>
-                  <Input
-                    id="airspeed"
-                    type="number"
-                    value={inputs.airspeed}
-                    onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })}
-                    className="bg-slate-700/50 border-cyan-400/30 text-white"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="airspeed" className="text-cyan-300">Airspeed ({getUnit("speed")})</Label>
+                    <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="airDensity" className="text-cyan-300">Air Density ({getUnit("density")})</Label>
+                    <Input id="airDensity" type="number" value={inputs.airDensity} onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="airDensity" className="text-cyan-300">Air Density ({getUnit("density")})</Label>
-                  <Input
-                    id="airDensity"
-                    type="number"
-                    value={inputs.airDensity}
-                    onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })}
-                    className="bg-slate-700/50 border-cyan-400/30 text-white"
-                  />
-                </div>
-              </div>
 
+                <Button
+                  type="button"
+                  onClick={calculateLiftDrag}
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold"
+                >
+                  <Plane className="w-4 h-4 mr-2" />
+                  Analyze Performance
+                </Button>
+                </CardContent>
+              </Card>
 
-              <Button
-                type="button"
-                onClick={calculateLiftDrag}
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold"
-              >
-                <Plane className="w-4 h-4 mr-2" />
-                Analyze Performance
-              </Button>
+              {/* NEW: Custom Airfoil Card */}
+              <AnimatePresence>
+                {inputs.airfoil === "custom" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
+                      <CardContent className="p-0 space-y-4 pt-4">
+                        <h3 className="text-xl font-semibold text-cyan-400 flex items-center gap-2">
+                          <Pencil className="w-5 h-5" />
+                          Custom Airfoil Coefficients
+                        </h3>
+                        <div className="space-y-2">
+                          <Label htmlFor="customName" className="text-cyan-300">Airfoil Name</Label>
+                          <Input id="customName" type="text" value={customAirfoil.name} onChange={(e) => handleCustomAirfoilChange("name", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="cl0" className="text-cyan-300">CL₀ (at 0° alpha)</Label>
+                            <Input id="cl0" type="number" value={customAirfoil.CL_0} onChange={(e) => handleCustomAirfoilChange("CL_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="clAlpha" className="text-cyan-300">CL_α (per degree)</Label>
+                            <Input id="clAlpha" type="number" value={customAirfoil.CL_alpha} onChange={(e) => handleCustomAirfoilChange("CL_alpha", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="cd0" className="text-cyan-300">CD₀ (Parasitic Drag)</Label>
+                            <Input id="cd0" type="number" value={customAirfoil.CD_0} onChange={(e) => handleCustomAirfoilChange("CD_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="alphaStall" className="text-cyan-300">Stall Angle (°)</Label>
+                            <Input id="alphaStall" type="number" value={customAirfoil.alpha_stall} onChange={(e) => handleCustomAirfoilChange("alpha_stall", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Results Panel */}
@@ -458,7 +529,7 @@ const LiftDragAnalyzer = () => {
                   <div className="p-3 rounded bg-slate-700/50">
                     <p className="text-sm text-slate-400">Lift Coefficient (CL)</p>
                     <p className="text-xl font-bold text-white">{result.CL.toFixed(4)}</p>
-S                  </div>
+                  </div>
                   <div className="p-3 rounded bg-slate-700/50">
                     <p className="text-sm text-slate-400">Drag Coefficient (CD)</p>
                     <p className="text-xl font-bold text-white">{result.CD.toFixed(4)}</p>
@@ -499,9 +570,29 @@ S                  </div>
               animate={{ opacity: 1, y: 0 }}
               className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20"
             >
-              <h3 className="text-xl font-semibold text-cyan-400 mb-4">Airfoil Performance Comparison (L/D Ratio)</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold text-cyan-400">
+                  Performance Comparison (L/D Ratio)
+                </h3>
+                {/* NEW: Comparison Select */}
+                <div className="flex items-center gap-2">
+                   <Label htmlFor="compareAirfoil" className="text-cyan-300">Compare with:</Label>
+                  <Select value={comparisonAirfoil} onValueChange={(v) => setComparisonAirfoil(v as keyof typeof airfoils)}>
+                    <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-400/30 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(airfoils).map((key) => (
+                        <SelectItem key={key} value={key}>
+                          {airfoils[key as keyof typeof airfoils].name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <p className="text-sm text-slate-400 -mt-2 mb-4">
-                Comparing all airfoils using your wing's calculated Aspect Ratio of {result?.aspectRatio.toFixed(2)}
+                Comparing airfoils using your wing's calculated Aspect Ratio of {result?.aspectRatio.toFixed(2)}
               </p>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={comparisonData}>
@@ -513,7 +604,7 @@ S                  </div>
                   />
                   <YAxis
                     stroke="#94a3b8"
-                    label={{ value: "L/D Ratio", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
+                    label={{ value: "L/D Ratio", angle: -90, position: "insideLeft", fill: "#94a3T8" }}
                   />
                   <Tooltip
                     contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
@@ -521,11 +612,25 @@ S                  </div>
                     formatter={(value: number) => value.toFixed(2)}
                   />
                   <Legend />
-                  <Line connectNulls type="monotone" dataKey="NACA0012" name="NACA 0012" stroke="#22d3ee" strokeWidth={2} dot={false} />
-                  <Line connectNulls type="monotone" dataKey="NACA2412" name="NACA 2412" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                  <Line connectNulls type="monotone" dataKey="NACA4415" name="NACA 4415" stroke="#10b981" strokeWidth={2} dot={false} />
-                  <Line connectNulls type="monotone" dataKey="ClarkY" name="Clark Y" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                  <Line connectNulls type="monotone" dataKey="Supercritical" name="Supercritical" stroke="#ef4444" strokeWidth={2} dot={false} />
+                  {/* NEW: Dynamic Lines */}
+                  <Line 
+                    connectNulls 
+                    type="monotone" 
+                    dataKey="current" 
+                    name={result?.airfoilName || "Current"} 
+                    stroke="#22d3ee" 
+                    strokeWidth={3} 
+                    dot={false} 
+                  />
+                  <Line 
+                    connectNulls 
+                    type="monotone" 
+                    dataKey="comparison" 
+                    name={airfoils[comparisonAirfoil].name} 
+                    stroke="#f59e0b" 
+                    strokeWidth={2} 
+                    dot={false} 
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </motion.div>
