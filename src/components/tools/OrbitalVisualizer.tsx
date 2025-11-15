@@ -11,7 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Rocket, Info, Orbit, Move, TrendingUp } from "lucide-react";
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 type UnitSystem = "SI" | "Imperial";
 
@@ -45,6 +45,68 @@ const OrbitalVisualizer = () => {
       targetAltitude: "800",
     };
   });
+
+  // --- Preset Orbital Configurations ---
+  const presets = {
+    ISS: {
+      periapsisAltitude: "408",
+      inclination: "51.6",
+      eccentricity: "0.0003",
+      centralBodyRadius: "6371",
+      gm: GM_EARTH.toString(),
+      targetAltitude: "500",
+      description: "International Space Station orbit"
+    },
+    Geostationary: {
+      periapsisAltitude: "35786",
+      inclination: "0",
+      eccentricity: "0",
+      centralBodyRadius: "6371",
+      gm: GM_EARTH.toString(),
+      targetAltitude: "36000",
+      description: "Geostationary orbit (24-hour period)"
+    },
+    GPS: {
+      periapsisAltitude: "20200",
+      inclination: "55",
+      eccentricity: "0.01",
+      centralBodyRadius: "6371",
+      gm: GM_EARTH.toString(),
+      targetAltitude: "20500",
+      description: "GPS constellation orbit"
+    },
+    Molniya: {
+      periapsisAltitude: "500",
+      inclination: "63.4",
+      eccentricity: "0.737",
+      centralBodyRadius: "6371",
+      gm: GM_EARTH.toString(),
+      targetAltitude: "40000",
+      description: "Highly elliptical Molniya orbit"
+    },
+    SSO: {
+      periapsisAltitude: "600",
+      inclination: "97.8",
+      eccentricity: "0.001",
+      centralBodyRadius: "6371",
+      gm: GM_EARTH.toString(),
+      targetAltitude: "800",
+      description: "Sun-Synchronous Orbit for Earth observation"
+    }
+  };
+
+  const loadPreset = (presetName: keyof typeof presets) => {
+    const preset = presets[presetName];
+    setInputs({
+      periapsisAltitude: preset.periapsisAltitude,
+      inclination: preset.inclination,
+      eccentricity: preset.eccentricity,
+      centralBodyRadius: preset.centralBodyRadius,
+      gm: preset.gm,
+      targetAltitude: preset.targetAltitude,
+    });
+    setError("");
+  };
 
   const [orbitResult, setOrbitResult] = useState<any>(null);
   const [maneuverResult, setManeuverResult] = useState<any>(null);
@@ -156,9 +218,8 @@ const OrbitalVisualizer = () => {
     // Orbit Lines
     const orbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: 2 }));
     scene.add(orbitLine);
-    const transferOrbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffaa00, dashed: true, dashSize: 200, gapSize: 100, linewidth: 2 }));
+    const transferOrbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineDashedMaterial({ color: 0xffaa00, dashSize: 200, gapSize: 100, linewidth: 2 }));
     scene.add(transferOrbitLine);
-    // transferOrbitLine.computeLineDistances(); // DELETED: This line caused the crash on init
 
     // Animation Loop
     let angle = 0;
@@ -493,6 +554,28 @@ const OrbitalVisualizer = () => {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+          
+          {/* Preset Configurations */}
+          <div className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
+            <h3 className="text-xl font-semibold text-cyan-400 mb-3">Quick Load Preset Orbits</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {(Object.keys(presets) as Array<keyof typeof presets>).map((presetKey) => (
+                <Button
+                  key={presetKey}
+                  type="button"
+                  onClick={() => loadPreset(presetKey)}
+                  variant="outline"
+                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 transition-all text-white"
+                >
+                  <Rocket className="w-4 h-4 mr-2" />
+                  {presetKey}
+                </Button>
+              ))}
+            </div>
+            <p className="text-sm text-slate-400 mt-2">
+              Click any preset to instantly load real-world satellite parameters
+            </p>
+          </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
