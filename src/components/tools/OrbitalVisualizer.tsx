@@ -158,7 +158,7 @@ const OrbitalVisualizer = () => {
     scene.add(orbitLine);
     const transferOrbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffaa00, dashed: true, dashSize: 200, gapSize: 100, linewidth: 2 }));
     scene.add(transferOrbitLine);
-    transferOrbitLine.computeLineDistances(); // Important for dashed lines
+    // transferOrbitLine.computeLineDistances(); // DELETED: This line caused the crash on init
 
     // Animation Loop
     let angle = 0;
