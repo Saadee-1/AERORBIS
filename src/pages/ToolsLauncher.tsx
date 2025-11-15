@@ -17,6 +17,7 @@ const ToolsLauncher = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const toolFromUrl = params.get("tool") || "thrust"; // Default to "thrust" if no parameter
+   console.log("Tool from URL:", toolFromUrl); // Add this line
   const [activeTab, setActiveTab] = useState(toolFromUrl);
 
   return (
