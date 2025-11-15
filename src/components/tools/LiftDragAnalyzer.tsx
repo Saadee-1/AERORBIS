@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, Info, Plane, Pencil } from "lucide-react";
+import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 type UnitSystem = "SI" | "Imperial";
 type AirfoilKey = keyof typeof airfoils | "custom";
+type ChartMode = "compareOne" | "compareAll"; // NEW: Chart mode state
 
 // Airfoil database with real-world coefficients
 const airfoils = {
@@ -119,7 +120,6 @@ const LiftDragAnalyzer = () => {
     };
   });
   
-  // NEW: State for custom airfoil inputs
   const [customAirfoil, setCustomAirfoil] = useState<CustomAirfoilInputs>(() => {
     const saved = localStorage.getItem("liftDragCustomAirfoil");
     return saved ? JSON.parse(saved) : {
@@ -132,8 +132,8 @@ const LiftDragAnalyzer = () => {
     };
   });
   
-  // NEW: State for chart comparison
   const [comparisonAirfoil, setComparisonAirfoil] = useState<keyof typeof airfoils>("NACA0012");
+  const [chartMode, setChartMode] = useState<ChartMode>('compareOne'); // NEW: Chart mode state
 
   const [result, setResult] = useState<LiftDragResult | null>(null);
   const [comparisonData, setComparisonData] = useState<any[]>([]);
@@ -147,7 +147,6 @@ const LiftDragAnalyzer = () => {
     localStorage.setItem("liftDragInputs", JSON.stringify(inputs));
   }, [inputs]);
 
-  // NEW: Save custom airfoil data
   useEffect(() => {
     localStorage.setItem("liftDragCustomAirfoil", JSON.stringify(customAirfoil));
   }, [customAirfoil]);
@@ -184,7 +183,6 @@ const LiftDragAnalyzer = () => {
     return value;
   };
 
-  // NEW: Helper to get parsed custom airfoil data
   const getParsedCustomAirfoil = (): Airfoil => {
     const parse = (val: string, defaultVal: number) => {
       const num = parseFloat(val);
@@ -198,6 +196,12 @@ const LiftDragAnalyzer = () => {
       CD_0: parse(customAirfoil.CD_0, 0.007),
       alpha_stall: parse(customAirfoil.alpha_stall, 15),
     };
+  };
+
+  const getActiveAirfoil = (): Airfoil => {
+    return inputs.airfoil === "custom" 
+      ? getParsedCustomAirfoil() 
+      : airfoils[inputs.airfoil];
   };
 
   const calculateLiftDrag = () => {
@@ -220,10 +224,7 @@ const LiftDragAnalyzer = () => {
         throw new Error("Oswald Efficiency (e) must be between 0 and 1");
       }
 
-      // NEW: Get the currently active airfoil (either from DB or custom state)
-      const activeAirfoil = inputs.airfoil === "custom" 
-        ? getParsedCustomAirfoil() 
-        : airfoils[inputs.airfoil];
+      const activeAirfoil = getActiveAirfoil();
 
       if (Math.abs(alpha) > activeAirfoil.alpha_stall) {
         setError(`Warning: Angle of attack exceeds stall angle (${activeAirfoil.alpha_stall}°). Results may be unrealistic.`);
@@ -270,54 +271,61 @@ const LiftDragAnalyzer = () => {
       ];
 
       setResult({
-        CL,
-        CD,
-        L_D_ratio,
-        liftForce,
-        dragForce,
-        aspectRatio,
-        k_factor,
-        steps,
+        CL, CD, L_D_ratio, liftForce, dragForce,
+        aspectRatio, k_factor, steps,
         airfoilName: activeAirfoil.name
       });
 
       // Generate comparison data
-      generateComparisonData(activeAirfoil, airfoils[comparisonAirfoil], k_factor);
+      generateComparisonData(activeAirfoil, k_factor);
     } catch (err) {
       setError((err as Error).message);
       setResult(null);
     }
   };
   
-  // NEW: Refactored to compare any two airfoils
-  const generateComparisonData = (currentAirfoil: Airfoil, compareAirfoil: Airfoil, k_factor: number) => {
+  // Refactored to generate data for all airfoils + current
+  const generateComparisonData = (currentAirfoil: Airfoil, k_factor: number) => {
     const data = [];
 
     for (let alpha = -5; alpha <= 20; alpha += 1) {
       const point: any = { alpha };
 
-      // Calculate for current airfoil
-      if (alpha <= currentAirfoil.alpha_stall) {
-        const CL = currentAirfoil.CL_0 + currentAirfoil.CL_alpha * alpha;
-        const CD = currentAirfoil.CD_0 + k_factor * Math.pow(CL, 2);
-        point.current = CD !== 0 ? CL / CD : 0;
-      } else {
-        point.current = null;
-      }
-
-      // Calculate for comparison airfoil
-      if (alpha <= compareAirfoil.alpha_stall) {
-        const CL = compareAirfoil.CL_0 + compareAirfoil.CL_alpha * alpha;
-        const CD = compareAirfoil.CD_0 + k_factor * Math.pow(CL, 2);
-        point.comparison = CD !== 0 ? CL / CD : 0;
-      } else {
-        point.comparison = null;
+      // Calculate for all database airfoils
+      Object.keys(airfoils).forEach((key) => {
+        const airfoil = airfoils[key as keyof typeof airfoils];
+        if (alpha <= airfoil.alpha_stall) {
+          const CL = airfoil.CL_0 + airfoil.CL_alpha * alpha;
+          const CD = airfoil.CD_0 + k_factor * Math.pow(CL, 2);
+          point[key] = CD !== 0 ? CL / CD : 0;
+        } else {
+          point[key] = null;
+        }
+      });
+      
+      // Calculate for current custom airfoil IF it's active
+      if (inputs.airfoil === "custom") {
+        if (alpha <= currentAirfoil.alpha_stall) {
+          const CL = currentAirfoil.CL_0 + currentAirfoil.CL_alpha * alpha;
+          const CD = currentAirfoil.CD_0 + k_factor * Math.pow(CL, 2);
+          point.custom = CD !== 0 ? CL / CD : 0;
+        } else {
+          point.custom = null;
+        }
       }
       
       data.push(point);
     }
     setComparisonData(data);
   };
+  
+  // NEW: Re-run chart generation if settings change
+  useEffect(() => {
+    if (result) {
+      generateComparisonData(getActiveAirfoil(), result.k_factor);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comparisonAirfoil, chartMode, inputs.airfoil, customAirfoil]);
   
   const handleCustomAirfoilChange = (field: keyof CustomAirfoilInputs, value: string) => {
     setCustomAirfoil(prev => ({ ...prev, [field]: value }));
@@ -326,6 +334,9 @@ const LiftDragAnalyzer = () => {
   const currentAirfoilDescription = inputs.airfoil === "custom"
     ? customAirfoil.description
     : airfoils[inputs.airfoil].description;
+    
+  const currentAirfoilName = result?.airfoilName || "Current";
+  const comparisonAirfoilName = airfoils[comparisonAirfoil].name;
 
   return (
     <motion.div
@@ -422,7 +433,7 @@ const LiftDragAnalyzer = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="airspeed" className="text-cyan-300">Airspeed ({getUnit("speed")})</Label>
-                    <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                    <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.GValue })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="airDensity" className="text-cyan-300">Air Density ({getUnit("density")})</Label>
@@ -570,29 +581,49 @@ const LiftDragAnalyzer = () => {
               animate={{ opacity: 1, y: 0 }}
               className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20"
             >
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
                 <h3 className="text-xl font-semibold text-cyan-400">
                   Performance Comparison (L/D Ratio)
                 </h3>
-                {/* NEW: Comparison Select */}
+                {/* NEW: Comparison Controls */}
                 <div className="flex items-center gap-2">
-                   <Label htmlFor="compareAirfoil" className="text-cyan-300">Compare with:</Label>
-                  <Select value={comparisonAirfoil} onValueChange={(v) => setComparisonAirfoil(v as keyof typeof airfoils)}>
-                    <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-400/30 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.keys(airfoils).map((key) => (
-                        <SelectItem key={key} value={key}>
-                          {airfoils[key as keyof typeof airfoils].name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Button
+                    type="button"
+                    onClick={() => setChartMode(prev => prev === 'compareOne' ? 'compareAll' : 'compareOne')}
+                    variant="outline"
+                    className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 text-white"
+                  >
+                    <BarChartHorizontal className="w-4 h-4 mr-2" />
+                    {chartMode === 'compareOne' ? 'Compare All' : 'Compare 1-v-1'}
+                  </Button>
+                  <AnimatePresence>
+                    {chartMode === 'compareOne' && (
+                      <motion.div
+                        initial={{ width: 0, opacity: 0 }}
+                        animate={{ width: "auto", opacity: 1 }}
+                        exit={{ width: 0, opacity: 0 }}
+                        className="flex items-center gap-2 overflow-hidden"
+                      >
+                        <Label htmlFor="compareAirfoil" className="text-cyan-300">Compare with:</Label>
+                        <Select value={comparisonAirfoil} onValueChange={(v) => setComparisonAirfoil(v as keyof typeof airfoils)}>
+                          <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-400/30 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.keys(airfoils).map((key) => (
+                              <SelectItem key={key} value={key} disabled={inputs.airfoil === key}>
+                                {airfoils[key as keyof typeof airfoils].name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
               <p className="text-sm text-slate-400 -mt-2 mb-4">
-                Comparing airfoils using your wing's calculated Aspect Ratio of {result?.aspectRatio.toFixed(2)}
+                Comparing all airfoils using your wing's calculated Aspect Ratio of {result?.aspectRatio.toFixed(2)}
               </p>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={comparisonData}>
@@ -604,7 +635,7 @@ const LiftDragAnalyzer = () => {
                   />
                   <YAxis
                     stroke="#94a3b8"
-                    label={{ value: "L/D Ratio", angle: -90, position: "insideLeft", fill: "#94a3T8" }}
+                    label={{ value: "L/D Ratio", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
                   />
                   <Tooltip
                     contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
@@ -612,25 +643,45 @@ const LiftDragAnalyzer = () => {
                     formatter={(value: number) => value.toFixed(2)}
                   />
                   <Legend />
-                  {/* NEW: Dynamic Lines */}
-                  <Line 
-                    connectNulls 
-                    type="monotone" 
-                    dataKey="current" 
-                    name={result?.airfoilName || "Current"} 
-                    stroke="#22d3ee" 
-                    strokeWidth={3} 
-                    dot={false} 
-                  />
-                  <Line 
-                    connectNulls 
-                    type="monotone" 
-                    dataKey="comparison" 
-                    name={airfoils[comparisonAirfoil].name} 
-                    stroke="#f59e0b" 
-                    strokeWidth={2} 
-                    dot={false} 
-                  />
+                  
+                  {/* NEW: Dynamic Line Rendering */}
+                  {chartMode === 'compareAll' ? (
+                    <>
+                      {/* Show all database airfoils */}
+                      <Line connectNulls type="monotone" dataKey="NACA0012" name="NACA 0012" stroke="#22d3ee" strokeWidth={2} dot={false} />
+                      <Line connectNulls type="monotone" dataKey="NACA2412" name="NACA 2412" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                      <Line connectNulls type="monotone" dataKey="NACA4415" name="NACA 4415" stroke="#10b981" strokeWidth={2} dot={false} />
+                      <Line connectNulls type="monotone" dataKey="ClarkY" name="Clark Y" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                      <Line connectNulls type="monotone" dataKey="Supercritical" name="Supercritical" stroke="#ef4444" strokeWidth={2} dot={false} />
+                      {/* Also show custom if it's the selected one */}
+                      {inputs.airfoil === 'custom' && (
+                         <Line connectNulls type="monotone" dataKey="custom" name={result?.airfoilName || "Custom"} stroke="#e879f9" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* Show 1-v-1 comparison */}
+                      <Line 
+                        connectNulls 
+                        type="monotone" 
+                        dataKey={inputs.airfoil === 'custom' ? 'custom' : inputs.airfoil} 
+                        name={result?.airfoilName || "Current"} 
+                        stroke="#22d3ee" 
+                        strokeWidth={3} 
+                        dot={false} 
+                      />
+                      <Line 
+                        connectNulls 
+                        type="monotone" 
+                        dataKey={comparisonAirfoil} 
+                        name={airfoils[comparisonAirfoil].name} 
+                        stroke="#f59e0b" 
+                        strokeWidth={2} 
+                        strokeDasharray="5 5"
+                        dot={false} 
+                      />
+                    </>
+                  )}
                 </LineChart>
               </ResponsiveContainer>
             </motion.div>
