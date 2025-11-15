@@ -34,7 +34,7 @@ const ProfileMenu = () => {
       <button onClick={() => setIsOpen(!isOpen)} style={{
       background: `conic-gradient(from 0deg, hsl(var(--primary)) ${user.progress}%, transparent ${user.progress}%)`
     }} className="relative w-10 h-10 rounded-full border-2 border-primary flex items-center justify-center transition-colors text-justify font-sans font-light text-base bg-transparent text-transparent">
-        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent">
+        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-950">
           {user.avatar ? <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" /> : <User className="w-5 h-5 text-primary" />}
         </div>
       </button>
