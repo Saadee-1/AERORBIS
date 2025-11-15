@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,17 +9,24 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Rocket, Info } from "lucide-react";
+import { Rocket, Info, Orbit, Move, TrendingUp } from "lucide-react";
 import * as THREE from "three";
-import { evaluate } from "mathjs";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-type UnitSystem = "SI" | "Imperial" | "Custom";
+type UnitSystem = "SI" | "Imperial";
+
+// --- Constants ---
+const GM_EARTH = 398600.4418; // Earth's gravitational parameter (km³/s²)
+const KM_TO_MI = 0.621371;
+const MI_TO_KM = 1.60934;
 
 interface OrbitalInputs {
-  altitude: string;
+  periapsisAltitude: string;
   inclination: string;
   eccentricity: string;
   centralBodyRadius: string;
+  gm: string;
+  targetAltitude: string;
 }
 
 const OrbitalVisualizer = () => {
@@ -28,25 +37,37 @@ const OrbitalVisualizer = () => {
   const [inputs, setInputs] = useState<OrbitalInputs>(() => {
     const saved = localStorage.getItem("orbitalInputs");
     return saved ? JSON.parse(saved) : {
-      altitude: "400",
+      periapsisAltitude: "400",
       inclination: "51.6",
-      eccentricity: "0.0005",
-      centralBodyRadius: "6371"
+      eccentricity: "0.05",
+      centralBodyRadius: "6371",
+      gm: GM_EARTH.toString(),
+      targetAltitude: "800",
     };
   });
 
-  const [results, setResults] = useState<any>(null);
+  const [orbitResult, setOrbitResult] = useState<any>(null);
+  const [maneuverResult, setManeuverResult] = useState<any>(null);
   const [error, setError] = useState<string>("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const sceneRef = useRef<{
+
+  // Store all Three.js objects in a ref to persist them
+  const threeRef = useRef<{
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
-    orbit: THREE.Line;
+    controls: OrbitControls;
+    earth: THREE.Mesh;
+    atmosphere: THREE.Mesh;
+    orbitLine: THREE.Line;
+    transferOrbitLine: THREE.Line;
     satellite: THREE.Mesh;
     animationId: number;
+    angle: number;
+    orbitPoints: THREE.Vector3[];
   } | null>(null);
 
+  // --- LocalStorage Effects ---
   useEffect(() => {
     localStorage.setItem("orbitalUnitSystem", unitSystem);
   }, [unitSystem]);
@@ -55,258 +76,368 @@ const OrbitalVisualizer = () => {
     localStorage.setItem("orbitalInputs", JSON.stringify(inputs));
   }, [inputs]);
 
-  // Initialize Three.js scene
+  // --- Three.js Initialization ---
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || threeRef.current) return; // Only init once
 
+    const canvas = canvasRef.current;
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+    scene.background = new THREE.Color(0x020617); // Dark blue space
 
-    const camera = new THREE.PerspectiveCamera(
-      50,
-      canvasRef.current.clientWidth / canvasRef.current.clientHeight,
-      0.1,
-      100000
-    );
+    const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 100000);
     camera.position.set(0, 15000, 20000);
-    camera.lookAt(0, 0, 0);
-
-    const renderer = new THREE.WebGLRenderer({ 
-      canvas: canvasRef.current,
-      antialias: true,
-      alpha: true
-    });
-    renderer.setSize(canvasRef.current.clientWidth, canvasRef.current.clientHeight);
+    
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
 
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 1000;
+    controls.maxDistance = 50000;
+
     // Add stars
-    const starsGeometry = new THREE.BufferGeometry();
-    const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 2 });
     const starsVertices = [];
-    for (let i = 0; i < 1000; i++) {
-      const x = (Math.random() - 0.5) * 100000;
-      const y = (Math.random() - 0.5) * 100000;
-      const z = (Math.random() - 0.5) * 100000;
-      starsVertices.push(x, y, z);
+    for (let i = 0; i < 2000; i++) {
+      starsVertices.push(THREE.MathUtils.randFloatSpread(100000));
+      starsVertices.push(THREE.MathUtils.randFloatSpread(100000));
+      starsVertices.push(THREE.MathUtils.randFloatSpread(100000));
     }
+    const starsGeometry = new THREE.BufferGeometry();
     starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+    const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 5, sizeAttenuation: true });
     const stars = new THREE.Points(starsGeometry, starsMaterial);
     scene.add(stars);
 
-    // Add Earth
-    const earthGeometry = new THREE.SphereGeometry(6371, 64, 64);
-    const earthMaterial = new THREE.MeshPhongMaterial({
-      color: 0x2233ff,
-      emissive: 0x112244,
-      shininess: 25
-    });
+    // Add Central Body (Earth)
+    const earthGeometry = new THREE.SphereGeometry(1, 64, 64); // Start with radius 1
+    const earthMaterial = new THREE.MeshPhongMaterial({ color: 0x2288ff, emissive: 0x112244, shininess: 30 });
     const earth = new THREE.Mesh(earthGeometry, earthMaterial);
     scene.add(earth);
 
-    // Add atmosphere glow
-    const atmosphereGeometry = new THREE.SphereGeometry(6500, 64, 64);
-    const atmosphereMaterial = new THREE.MeshBasicMaterial({
-      color: 0x00ffff,
-      transparent: true,
-      opacity: 0.15,
-      side: THREE.BackSide
+    // Add Atmosphere
+    const atmosphereGeometry = new THREE.SphereGeometry(1, 64, 64);
+    const atmosphereMaterial = new THREE.ShaderMaterial({
+      uniforms: { "c": { value: 0.1 }, "p": { value: 6.0 } },
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize( normalMatrix * normal );
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+          float intensity = pow( 0.7 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 6.0 );
+          gl_FragColor = vec4( 0.0, 0.5, 1.0, 1.0 ) * intensity;
+        }
+      `,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true
     });
     const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
     scene.add(atmosphere);
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0x404040, 2);
-    scene.add(ambientLight);
-
+    // Add Lights
+    scene.add(new THREE.AmbientLight(0x404040, 2));
     const sunLight = new THREE.DirectionalLight(0xffffff, 3);
-    sunLight.position.set(50000, 0, 0);
+    sunLight.position.set(1, 0, 0.5);
     scene.add(sunLight);
 
-    // Create satellite
-    const satelliteGeometry = new THREE.SphereGeometry(100, 16, 16);
-    const satelliteMaterial = new THREE.MeshPhongMaterial({
-      color: 0xff0000,
-      emissive: 0xff0000,
-      emissiveIntensity: 0.5
-    });
+    // Satellite
+    const satelliteGeometry = new THREE.SphereGeometry(1, 16, 16); // Start small
+    const satelliteMaterial = new THREE.MeshPhongMaterial({ color: 0xff4444, emissive: 0xff0000 });
     const satellite = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
     scene.add(satellite);
 
-    // Create orbit line placeholder
-    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff });
-    const orbitGeometry = new THREE.BufferGeometry();
-    const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
-    scene.add(orbit);
+    // Orbit Lines
+    const orbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: 2 }));
+    scene.add(orbitLine);
+    const transferOrbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffaa00, dashed: true, dashSize: 200, gapSize: 100, linewidth: 2 }));
+    scene.add(transferOrbitLine);
+    transferOrbitLine.computeLineDistances(); // Important for dashed lines
 
-    let animationId: number;
+    // Animation Loop
     let angle = 0;
+    let orbitPoints: THREE.Vector3[] = [];
 
     const animate = () => {
-      animationId = requestAnimationFrame(animate);
+      const animationId = requestAnimationFrame(animate);
       
-      // Rotate Earth
-      earth.rotation.y += 0.001;
-      atmosphere.rotation.y += 0.001;
-      
-      // Animate satellite along orbit
-      if (sceneRef.current?.orbit) {
-        angle += 0.005;
-        const positions = sceneRef.current.orbit.geometry.attributes.position.array;
-        if (positions.length > 0) {
-          const index = Math.floor((angle % (2 * Math.PI)) / (2 * Math.PI) * (positions.length / 3)) * 3;
-          satellite.position.set(
-            positions[index] || 0,
-            positions[index + 1] || 0,
-            positions[index + 2] || 0
-          );
-        }
+      earth.rotation.y += 0.0005;
+      controls.update();
+
+      // Animate satellite along the calculated path
+      if (orbitPoints.length > 1) {
+        angle = (angle + 0.002) % (2 * Math.PI); // Note: This is still constant speed, not Kepler's 2nd Law
+        const index = Math.floor((angle / (2 * Math.PI)) * orbitPoints.length);
+        satellite.position.copy(orbitPoints[index]);
       }
 
       renderer.render(scene, camera);
+
+      // Store mutable values back into ref
+      if (threeRef.current) {
+        threeRef.current.animationId = animationId;
+        threeRef.current.angle = angle;
+      }
     };
+    
+    // Store all objects in the ref
+    threeRef.current = { 
+      scene, camera, renderer, controls, 
+      earth, atmosphere, 
+      orbitLine, transferOrbitLine, 
+      satellite, 
+      animationId: 0, angle, orbitPoints
+    };
+    
     animate();
 
-    sceneRef.current = { scene, camera, renderer, orbit, satellite, animationId };
-
-    // Handle resize
+    // Handle Resize
     const handleResize = () => {
-      if (!canvasRef.current) return;
-      camera.aspect = canvasRef.current.clientWidth / canvasRef.current.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(canvasRef.current.clientWidth, canvasRef.current.clientHeight);
+      const t = threeRef.current;
+      if (!canvasRef.current || !t) return;
+      const { clientWidth, clientHeight } = canvasRef.current;
+      t.camera.aspect = clientWidth / clientHeight;
+      t.camera.updateProjectionMatrix();
+      t.renderer.setSize(clientWidth, clientHeight);
     };
     window.addEventListener('resize', handleResize);
+    
+    // Initial calculation
+    calculateOrbit();
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationId);
-      renderer.dispose();
+      if (threeRef.current) {
+        cancelAnimationFrame(threeRef.current.animationId);
+        threeRef.current.renderer.dispose();
+        threeRef.current.controls.dispose();
+      }
+      threeRef.current = null;
     };
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once
 
-  const convertToSI = (value: number, param: keyof OrbitalInputs): number => {
-    if (unitSystem === "SI") return value;
-    if (param === "altitude" || param === "centralBodyRadius") {
-      return unitSystem === "Imperial" ? value * 1.60934 : value;
-    }
-    return value;
+  // --- Unit Conversion ---
+  const convert = (value: number, param: string, to: "SI" | "Imperial") => {
+    if (unitSystem === to) return value;
+    const key = (param === "periapsisAltitude" || param === "centralBodyRadius" || param === "targetAltitude") ? "dist" : "other";
+    if (key !== "dist") return value;
+
+    if (to === "SI") return value * MI_TO_KM; // Imperial to SI
+    return value * KM_TO_MI; // SI to Imperial
   };
 
-  const getUnit = (param: keyof OrbitalInputs): string => {
+  const getUnit = (param: "dist" | "incl" | "ecc" | "gm" | "vel" | "time"): string => {
     const units = {
-      SI: { altitude: "km", inclination: "°", eccentricity: "", centralBodyRadius: "km" },
-      Imperial: { altitude: "mi", inclination: "°", eccentricity: "", centralBodyRadius: "mi" },
-      Custom: { altitude: "km", inclination: "°", eccentricity: "", centralBodyRadius: "km" }
+      SI: { dist: "km", incl: "°", ecc: "", gm: "km³/s²", vel: "km/s", time: "min" },
+      Imperial: { dist: "mi", incl: "°", ecc: "", gm: "km³/s²", vel: "mi/s", time: "min" }
     };
     return units[unitSystem][param];
   };
 
+  // --- Calculation Functions ---
   const calculateOrbit = () => {
     setError("");
+    setManeuverResult(null);
+    if (threeRef.current) threeRef.current.transferOrbitLine.geometry = new THREE.BufferGeometry(); // Clear transfer orbit
+
     try {
-      const altitude = parseFloat(inputs.altitude);
+      const periapsisAltitude = parseFloat(inputs.periapsisAltitude);
       const inclination = parseFloat(inputs.inclination);
       const eccentricity = parseFloat(inputs.eccentricity);
       const centralBodyRadius = parseFloat(inputs.centralBodyRadius);
+      const GM = parseFloat(inputs.gm);
 
-      if (isNaN(altitude) || isNaN(inclination) || isNaN(eccentricity) || isNaN(centralBodyRadius)) {
-        setError("Please fill in all fields with valid numbers");
-        return;
+      if (isNaN(periapsisAltitude) || isNaN(inclination) || isNaN(eccentricity) || isNaN(centralBodyRadius) || isNaN(GM)) {
+        throw new Error("Please fill in all fields with valid numbers");
       }
-
-      if (altitude < 0 || centralBodyRadius < 0) {
-        setError("Altitude and radius must be positive");
-        return;
+      if (periapsisAltitude <= 0 || centralBodyRadius <= 0 || GM <= 0) {
+        throw new Error("Altitude, Radius, and GM must be positive");
       }
-
       if (eccentricity < 0 || eccentricity >= 1) {
-        setError("Eccentricity must be between 0 and 1 for elliptical orbits");
-        return;
+        throw new Error("Eccentricity must be between 0 and 1 for elliptical orbits");
+      }
+      if (inclination < -180 || inclination > 180) {
+        throw new Error("Inclination must be between -180° and 180°");
       }
 
-      if (inclination < 0 || inclination > 180) {
-        setError("Inclination must be between 0° and 180°");
-        return;
-      }
-
-      const altitudeSI = convertToSI(altitude, "altitude");
-      const radiusSI = convertToSI(centralBodyRadius, "centralBodyRadius");
+      // --- 1. CONVERT TO SI (km) ---
+      const periapsisAlt_SI = (unitSystem === 'Imperial') ? convert(periapsisAltitude, "periapsisAltitude", "SI") : periapsisAltitude;
+      const radius_SI = (unitSystem === 'Imperial') ? convert(centralBodyRadius, "centralBodyRadius", "SI") : centralBodyRadius;
       const inclinationRad = (inclination * Math.PI) / 180;
 
-      // Orbital calculations
-      const semiMajorAxis = radiusSI + altitudeSI;
-      const GM = 398600.4418; // Earth's gravitational parameter (km³/s²)
+      // --- 2. CORE CALCULATIONS (FIXED) ---
+      // FIX 1: 'periapsisRadius' is the "r" at periapsis
+      const periapsisRadius = radius_SI + periapsisAlt_SI;
       
-      // Kepler's Third Law: T² = (4π²/GM) * a³
+      // FIX 2: Correct semi-major axis 'a' calculation
+      // a = (r_periapsis) / (1 - e)
+      const semiMajorAxis = periapsisRadius / (1 - eccentricity);
+      
+      // Apoapsis
+      const apoapsisRadius = semiMajorAxis * (1 + eccentricity);
+      const apoapsisAltitude = apoapsisRadius - radius_SI;
+
+      // FIX 3: Use Vis-viva equation for velocity at periapsis
+      // v² = GM(2/r - 1/a)
+      const periapsisVelocity = Math.sqrt(GM * ((2 / periapsisRadius) - (1 / semiMajorAxis)));
+      const apoapsisVelocity = Math.sqrt(GM * ((2 / apoapsisRadius) - (1 / semiMajorAxis)));
+
+      // Kepler's Third Law
       const orbitalPeriod = 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / GM);
       const orbitalPeriodMinutes = orbitalPeriod / 60;
 
-      // Orbital velocity: v = sqrt(GM/r)
-      const orbitalVelocity = Math.sqrt(GM / semiMajorAxis);
-
-      // Periapsis and Apoapsis
-      const periapsis = semiMajorAxis * (1 - eccentricity);
-      const apoapsis = semiMajorAxis * (1 + eccentricity);
-
-      // Generate orbit points for 3D visualization
-      if (sceneRef.current) {
-        const orbitPoints = [];
+      // --- 3. 3D VISUALIZATION (FIXED) ---
+      if (threeRef.current) {
+        const t = threeRef.current;
+        
+        // Update planet size
+        t.earth.scale.set(radius_SI, radius_SI, radius_SI);
+        const atmosScale = radius_SI + (radius_SI * 0.02); // Atmosphere 2% bigger
+        t.atmosphere.scale.set(atmosScale, atmosScale, atmosScale);
+        
+        // Update satellite size (make it 1.5% of planet radius)
+        const satScale = radius_SI * 0.015;
+        t.satellite.scale.set(satScale, satScale, satScale);
+        
+        const orbitPoints: THREE.Vector3[] = [];
         const segments = 200;
+        
+        // FIX 4: Shift orbit by focal distance 'c' to put Earth at the focus
+        const focalDistance = semiMajorAxis * eccentricity;
         
         for (let i = 0; i <= segments; i++) {
           const theta = (i / segments) * 2 * Math.PI;
           const r = (semiMajorAxis * (1 - eccentricity * eccentricity)) / (1 + eccentricity * Math.cos(theta));
           
-          const x = r * Math.cos(theta);
-          const y = r * Math.sin(theta) * Math.sin(inclinationRad);
-          const z = r * Math.sin(theta) * Math.cos(inclinationRad);
+          // 1. Create orbit in X-Y plane, shifted by focal distance
+          const x = (r * Math.cos(theta)) - focalDistance;
+          const y = r * Math.sin(theta);
           
-          orbitPoints.push(x, y, z);
+          // 2. Rotate around X-axis for inclination
+          const x_final = x;
+          const y_final = y * Math.cos(inclinationRad);
+          const z_final = y * Math.sin(inclinationRad);
+          
+          orbitPoints.push(new THREE.Vector3(x_final, y_final, z_final));
         }
 
-        const orbitGeometry = new THREE.BufferGeometry();
-        orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitPoints, 3));
-        sceneRef.current.orbit.geometry.dispose();
-        sceneRef.current.orbit.geometry = orbitGeometry;
+        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints);
+        t.orbitLine.geometry.dispose();
+        t.orbitLine.geometry = orbitGeometry;
+        t.orbitPoints = orbitPoints; // Save for animation
       }
 
-      const calculationSteps = [
-        `**Step 1:** Convert inputs to SI units`,
-        `- Altitude: ${altitudeSI.toFixed(2)} km`,
-        `- Central body radius: ${radiusSI.toFixed(2)} km`,
-        `- Inclination: ${inclination}° = ${inclinationRad.toFixed(4)} radians`,
-        ``,
-        `**Step 2:** Calculate semi-major axis`,
-        `- a = R + h = ${radiusSI.toFixed(2)} + ${altitudeSI.toFixed(2)} = ${semiMajorAxis.toFixed(2)} km`,
-        ``,
-        `**Step 3:** Apply Kepler's Third Law to find orbital period`,
-        `- T = 2π√(a³/GM)`,
-        `- T = 2π√(${semiMajorAxis.toFixed(2)}³ / 398600.4418)`,
-        `- T = ${orbitalPeriod.toFixed(2)} seconds = ${orbitalPeriodMinutes.toFixed(2)} minutes`,
-        ``,
-        `**Step 4:** Calculate orbital velocity`,
-        `- v = √(GM/a) = √(398600.4418 / ${semiMajorAxis.toFixed(2)})`,
-        `- v = ${orbitalVelocity.toFixed(3)} km/s`,
-        ``,
-        `**Step 5:** Determine periapsis and apoapsis`,
-        `- Periapsis = a(1-e) = ${semiMajorAxis.toFixed(2)}(1-${eccentricity}) = ${periapsis.toFixed(2)} km`,
-        `- Apoapsis = a(1+e) = ${semiMajorAxis.toFixed(2)}(1+${eccentricity}) = ${apoapsis.toFixed(2)} km`
-      ];
-
-      setResults({
-        semiMajorAxis: semiMajorAxis.toFixed(2),
-        orbitalPeriod: orbitalPeriodMinutes.toFixed(2),
-        orbitalVelocity: orbitalVelocity.toFixed(3),
-        periapsis: periapsis.toFixed(2),
-        apoapsis: apoapsis.toFixed(2),
-        inclination: inclination.toFixed(2),
+      // --- 4. SET RESULTS ---
+      setOrbitResult({
+        semiMajorAxis: semiMajorAxis,
+        orbitalPeriod: orbitalPeriodMinutes,
+        periapsisRadius: periapsisRadius,
+        apoapsisRadius: apoapsisRadius,
+        apoapsisAltitude: apoapsisAltitude,
+        periapsisVelocity: periapsisVelocity,
+        apoapsisVelocity: apoapsisVelocity,
+        inclination: inclination,
         eccentricity: eccentricity,
-        steps: calculationSteps
       });
 
     } catch (err) {
-      setError("Calculation error: " + String(err));
+      setError((err as Error).message);
     }
+  };
+
+  // --- NEW: Calculate Hohmann Transfer ---
+  const calculateManeuver = () => {
+    if (!orbitResult) {
+      setError("Calculate the initial orbit (Part 1) first.");
+      return;
+    }
+    setError("");
+
+    try {
+      const GM = parseFloat(inputs.gm);
+      const targetAlt = parseFloat(inputs.targetAltitude);
+      if (isNaN(targetAlt)) throw new Error("Target Altitude must be a number.");
+      
+      const targetAlt_SI = (unitSystem === 'Imperial') ? convert(targetAlt, "targetAltitude", "SI") : targetAlt;
+      const radius_SI = (unitSystem === 'Imperial') ? convert(parseFloat(inputs.centralBodyRadius), "centralBodyRadius", "SI") : parseFloat(inputs.centralBodyRadius);
+      
+      const r1 = orbitResult.periapsisRadius; // Use periapsis of initial orbit as start
+      const v1 = orbitResult.periapsisVelocity; // Velocity at r1 in initial orbit
+      
+      if (eccentricity > 0.001) {
+         setError("Hohmann transfer calculation assumes a circular starting orbit (or burn at periapsis). Results are approximate.");
+      }
+
+      const r2 = radius_SI + targetAlt_SI;
+      if (r2 <= r1) {
+        throw new Error("Target altitude must be higher than current periapsis.");
+      }
+
+      // 1. Final circular orbit velocity
+      const v2 = Math.sqrt(GM / r2);
+
+      // 2. Transfer orbit parameters
+      const a_transfer = (r1 + r2) / 2;
+      
+      // 3. Velocities *in the transfer orbit*
+      const v_transfer_1 = Math.sqrt(GM * (2/r1 - 1/a_transfer)); // Vel at transfer periapsis
+      const v_transfer_2 = Math.sqrt(GM * (2/r2 - 1/a_transfer)); // Vel at transfer apoapsis
+
+      // 4. Calculate burns
+      const delta_v1 = v_transfer_1 - v1;
+      const delta_v2 = v2 - v_transfer_2;
+      const total_dv = delta_v1 + delta_v2;
+      const transferTime = Math.PI * Math.sqrt(Math.pow(a_transfer, 3) / GM) / 60; // in minutes
+
+      // --- Draw Transfer Orbit ---
+      if (threeRef.current) {
+        const t = threeRef.current;
+        const e_transfer = (r2 - r1) / (r2 + r1);
+        const focalDistance = a_transfer * e_transfer;
+        const inclinationRad = (parseFloat(inputs.inclination) * Math.PI) / 180;
+        
+        const transferPoints: THREE.Vector3[] = [];
+        const segments = 100; // Half an ellipse
+        
+        for (let i = 0; i <= segments; i++) {
+          const theta = (i / segments) * Math.PI; // Only 0 to Pi
+          const r = (a_transfer * (1 - e_transfer * e_transfer)) / (1 + e_transfer * Math.cos(theta));
+          
+          const x = (r * Math.cos(theta)) - focalDistance;
+          const y = r * Math.sin(theta);
+          
+          transferPoints.push(new THREE.Vector3(
+            x,
+            y * Math.cos(inclinationRad),
+            y * Math.sin(inclinationRad)
+          ));
+        }
+        
+        const transferGeometry = new THREE.BufferGeometry().setFromPoints(transferPoints);
+        t.transferOrbitLine.geometry.dispose();
+        t.transferOrbitLine.geometry = transferGeometry;
+        t.transferOrbitLine.computeLineDistances();
+      }
+      
+      setManeuverResult({ delta_v1, delta_v2, total_dv, transferTime });
+
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  // --- Helper to format for results display ---
+  const format = (param: string, value: number) => {
+    if (param === "dist") return `${value.toFixed(2)} ${getUnit("dist")}`;
+    if (param === "vel") return `${convert(value, "vel", unitSystem).toFixed(3)} ${getUnit("vel")}`;
+    if (param === "time") return `${value.toFixed(2)} ${getUnit("time")}`;
+    return "";
   };
 
   return (
@@ -316,30 +447,29 @@ const OrbitalVisualizer = () => {
       transition={{ duration: 0.6 }}
       className="w-full max-w-7xl mx-auto"
     >
-      <Card className="bg-slate-800/50 backdrop-blur-lg border-cyan-400/20 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+      <Card className="bg-slate-900/80 backdrop-blur-lg border-cyan-400/20 shadow-[0_0_40px_rgba(34,211,238,0.15)]">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                <Rocket className="w-6 h-6 text-cyan-400" />
+                <Orbit className="w-8 h-8 text-cyan-400" />
               </div>
               <div>
-                <CardTitle className="text-2xl text-cyan-400 font-bold">
-                  Orbital Path Visualizer
+                <CardTitle className="text-3xl text-cyan-400 font-bold">
+                  Advanced Orbital Visualizer
                 </CardTitle>
-                <CardDescription className="text-slate-300">
-                  3D orbital mechanics with Kepler's laws
+                <CardDescription className="text-slate-300 text-base">
+                  Calculate and visualize orbital mechanics and maneuvers.
                 </CardDescription>
               </div>
             </div>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30">
+              <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="SI">SI (km)</SelectItem>
-                <SelectItem value="Imperial">Imperial (mi)</SelectItem>
-                <SelectItem value="Custom">Custom</SelectItem>
+                <SelectItem value="SI">SI (km, s)</SelectItem>
+                <SelectItem value="Imperial">Imperial (mi, s)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -347,160 +477,118 @@ const OrbitalVisualizer = () => {
 
         <CardContent className="space-y-6">
           {/* 3D Visualization */}
-          <div className="rounded-xl overflow-hidden border border-cyan-400/30 bg-black">
+          <div className="rounded-xl overflow-hidden border border-cyan-400/30 bg-black h-[450px]">
             <canvas
               ref={canvasRef}
-              className="w-full h-[400px]"
+              className="w-full h-full"
               style={{ display: "block" }}
             />
           </div>
-
-          {/* Input Form */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="altitude" className="text-cyan-300">
-                Altitude ({getUnit("altitude")})
-              </Label>
-              <Input
-                id="altitude"
-                type="number"
-                step="0.1"
-                value={inputs.altitude}
-                onChange={(e) => setInputs({ ...inputs, altitude: e.target.value })}
-                className="bg-slate-700/50 border-cyan-400/30 text-white focus:border-cyan-400"
-                placeholder="e.g., 400"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="centralBodyRadius" className="text-cyan-300">
-                Central Body Radius ({getUnit("centralBodyRadius")})
-              </Label>
-              <Input
-                id="centralBodyRadius"
-                type="number"
-                step="0.1"
-                value={inputs.centralBodyRadius}
-                onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })}
-                className="bg-slate-700/50 border-cyan-400/30 text-white focus:border-cyan-400"
-                placeholder="e.g., 6371 (Earth)"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="inclination" className="text-cyan-300">
-                Inclination ({getUnit("inclination")})
-              </Label>
-              <Input
-                id="inclination"
-                type="number"
-                step="0.1"
-                value={inputs.inclination}
-                onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })}
-                className="bg-slate-700/50 border-cyan-400/30 text-white focus:border-cyan-400"
-                placeholder="e.g., 51.6 (ISS)"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="eccentricity" className="text-cyan-300">
-                Eccentricity (0-1)
-              </Label>
-              <Input
-                id="eccentricity"
-                type="number"
-                step="0.0001"
-                value={inputs.eccentricity}
-                onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })}
-                className="bg-slate-700/50 border-cyan-400/30 text-white focus:border-cyan-400"
-                placeholder="e.g., 0.0005"
-              />
-            </div>
-          </div>
-
+          
           {error && (
-            <Alert variant="destructive" className="border-red-500/50 bg-red-500/10">
+            <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-300">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
-          <Button
-            onClick={calculateOrbit}
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold shadow-[0_0_30px_rgba(34,211,238,0.5)] hover:shadow-[0_0_40px_rgba(34,211,238,0.8)] transition-all duration-300"
-          >
-            <Rocket className="w-4 h-4 mr-2" />
-            Calculate Orbit
-          </Button>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* --- Part 1: Orbit Definition --- */}
+            <div className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
+              <h3 className="text-xl font-semibold text-cyan-400">Part 1: Define Initial Orbit</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="periapsisAltitude" className="text-cyan-300">Periapsis Altitude ({getUnit("dist")})</Label>
+                  <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-slate-700/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eccentricity" className="text-cyan-300">Eccentricity (0-1)</Label>
+                  <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-slate-700/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="inclination" className="text-cyan-300">Inclination ({getUnit("incl")})</Label>
+                  <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-slate-700/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="centralBodyRadius" className="text-cyan-300">Body Radius ({getUnit("dist")})</Label>
+                  <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-slate-700/50" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gm" className="text-cyan-300">Grav. Parameter (GM) ({getUnit("gm")})</Label>
+                <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-slate-700/50" />
+              </div>
+              <Button onClick={calculateOrbit} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">
+                <Orbit className="w-4 h-4 mr-2" />Calculate Orbit
+              </Button>
+            </div>
+            
+            {/* --- Part 2: Maneuver Calculator --- */}
+            <div className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
+              <h3 className="text-xl font-semibold text-cyan-400">Part 2: Hohmann Transfer</h3>
+              <div className="space-y-2">
+                <Label htmlFor="targetAltitude" className="text-cyan-300">Target Circular Altitude ({getUnit("dist")})</Label>
+                <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-slate-700/50" placeholder="e.g., 800" />
+              </div>
+              <Button onClick={calculateManeuver} className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold" disabled={!orbitResult}>
+                <Move className="w-4 h-4 mr-2" />Calculate Maneuver
+              </Button>
+              {maneuverResult && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2 pt-2">
+                  <div className="p-3 rounded-lg bg-slate-700/50">
+                    <div className="text-sm text-cyan-300">First Burn ($\Delta v_1$)</div>
+                    <div className="text-xl font-bold text-white">{format("vel", maneuverResult.delta_v1)}</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-700/50">
+                    <div className="text-sm text-cyan-300">Second Burn ($\Delta v_2$)</div>
+                    <div className="text-xl font-bold text-white">{format("vel", maneuverResult.delta_v2)}</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
+                    <div className="text-sm text-cyan-300">Total Maneuver $\Delta v$</div>
+                    <div className="text-2xl font-bold text-cyan-400">{format("vel", maneuverResult.total_dv)}</div>
+                    <div className="text-sm text-slate-400 mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+            
+          </div>
 
           {/* Results */}
-          {results && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                  <div className="text-sm text-cyan-300">Semi-Major Axis</div>
-                  <div className="text-2xl font-bold text-white">{results.semiMajorAxis} km</div>
-                </div>
+          {orbitResult && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
                   <div className="text-sm text-cyan-300">Orbital Period</div>
-                  <div className="text-2xl font-bold text-white">{results.orbitalPeriod} min</div>
+                  <div className="text-2xl font-bold text-white">{format("time", orbitResult.orbitalPeriod)}</div>
                 </div>
                 <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                  <div className="text-sm text-cyan-300">Velocity</div>
-                  <div className="text-2xl font-bold text-white">{results.orbitalVelocity} km/s</div>
+                  <div className="text-sm text-cyan-300">Semi-Major Axis</div>
+                  <div className="text-2xl font-bold text-white">{format("dist", orbitResult.semiMajorAxis)}</div>
                 </div>
                 <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                  <div className="text-sm text-cyan-300">Periapsis</div>
-                  <div className="text-2xl font-bold text-white">{results.periapsis} km</div>
+                  <div className="text-sm text-cyan-300">Apoapsis Altitude</div>
+                  <div className="text-2xl font-bold text-white">{format("dist", orbitResult.apoapsisAltitude)}</div>
                 </div>
                 <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                  <div className="text-sm text-cyan-300">Apoapsis</div>
-                  <div className="text-2xl font-bold text-white">{results.apoapsis} km</div>
-                </div>
-                <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                  <div className="text-sm text-cyan-300">Inclination</div>
-                  <div className="text-2xl font-bold text-white">{results.inclination}°</div>
+                  <div className="text-sm text-cyan-300">Periapsis Velocity</div>
+                  <div className="text-2xl font-bold text-white">{format("vel", orbitResult.periapsisVelocity)}</div>
                 </div>
               </div>
 
-              {/* Kepler's Laws Explanation */}
-              <Accordion type="single" collapsible className="bg-slate-700/30 rounded-lg border border-cyan-400/20">
+              <Accordion type="single" collapsible className="bg-slate-800/50 rounded-lg border border-cyan-400/20">
                 <AccordionItem value="explanation" className="border-none">
                   <AccordionTrigger className="px-4 text-cyan-300 hover:text-cyan-400">
-                    <div className="flex items-center gap-2">
-                      <Info className="w-4 h-4" />
-                      Kepler's Laws & Step-by-Step Calculation
-                    </div>
+                    <div className="flex items-center gap-2"><Info className="w-4 h-4" />Orbit Interpretation</div>
                   </AccordionTrigger>
                   <AccordionContent className="px-4 pb-4 text-slate-300 space-y-4">
-                    <div className="space-y-2">
-                      <h4 className="font-bold text-cyan-400">Kepler's Three Laws:</h4>
-                      <div className="pl-4 space-y-2">
-                        <p><strong>1. Law of Orbits:</strong> All planets move in elliptical orbits with the Sun at one focus.</p>
-                        <p><strong>2. Law of Areas:</strong> A line joining a planet and the Sun sweeps out equal areas in equal time intervals.</p>
-                        <p><strong>3. Law of Periods:</strong> The square of the orbital period is proportional to the cube of the semi-major axis (T² ∝ a³).</p>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-cyan-400/20 pt-4">
-                      <h4 className="font-bold text-cyan-400 mb-2">Calculation Steps:</h4>
-                      <div className="space-y-1 text-sm font-mono">
-                        {results.steps.map((step: string, i: number) => (
-                          <p key={i} className="leading-relaxed">{step}</p>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="border-t border-cyan-400/20 pt-4">
-                      <h4 className="font-bold text-cyan-400">Interpretation:</h4>
-                      <p className="text-sm">
-                        This orbit has an eccentricity of {results.eccentricity}, making it {results.eccentricity < 0.01 ? 'nearly circular' : 'elliptical'}. 
-                        The satellite completes one full orbit every {results.orbitalPeriod} minutes at an average velocity of {results.orbitalVelocity} km/s. 
-                        The inclination of {results.inclination}° determines the orbital plane's tilt relative to the equator.
-                      </p>
+                    <p className="text-base">
+                      This orbit has an eccentricity of {orbitResult.eccentricity}, making it {orbitResult.eccentricity < 0.01 ? 'nearly circular' : 'noticeably elliptical'}. 
+                      It completes one orbit every {format("time", orbitResult.orbitalPeriod)}.
+                    </p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <p><strong>Periapsis (Lowest Point):</strong><br /> {format("dist", orbitResult.periapsisRadius)} from center<br /> {format("vel", orbitResult.periapsisVelocity)} (Fastest)</p>
+                      <p><strong>Apoapsis (Highest Point):</strong><br /> {format("dist", orbitResult.apoapsisRadius)} from center<br /> {format("vel", orbitResult.apoapsisVelocity)} (Slowest)</p>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
