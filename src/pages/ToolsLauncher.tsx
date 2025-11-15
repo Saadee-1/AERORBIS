@@ -1,34 +1,18 @@
-"use client";
-
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useLocation } from "react-router-dom"; // <-- Make sure this is imported
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Rocket, Plane, Orbit, TrendingUp } from "lucide-react";
-
-// FIX 1: Import the *correct* advanced calculators from /components
-import AdvancedThrustCalculator from "@/components/AdvancedThrustCalc";
-import AdvancedWingLoadingCalculator from "@/components/AdvancedWingCalc";
-import AdvancedOrbitalVisualizer from "@/components/AdvancedOrbitalVis";
-import LiftDragAnalyzer from "@/components/LiftDragAnalyzer";
-
-// A simple component to read the URL query
-const getToolFromQuery = () => {
-  // This hook can only be called inside a component,
-  // so we wrap it.
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  return params.get("tool") || "thrust"; // Default to 'thrust'
-};
+import ThrustCalculator from "@/components/tools/ThrustCalculator";
+import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
+import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
+import LiftDragAnalyzer from "@/components/tools/LiftDragAnalyzer";
 
 const ToolsLauncher = () => {
-  // FIX 2: Set the initial tab state from the URL query
-  const defaultTab = getToolFromQuery();
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState("thrust");
 
   return (
     <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
@@ -76,17 +60,16 @@ const ToolsLauncher = () => {
                 </TabsTrigger>
               </TabsList>
 
-              {/* FIX 3: Render the *correct* components */}
               <TabsContent value="thrust" className="mt-0">
-                <AdvancedThrustCalculator />
+                <ThrustCalculator />
               </TabsContent>
 
               <TabsContent value="wing" className="mt-0">
-                <AdvancedWingLoadingCalculator />
+                <WingLoadingCalculator />
               </TabsContent>
 
               <TabsContent value="orbital" className="mt-0">
-                <AdvancedOrbitalVisualizer />
+                <OrbitalVisualizer />
               </TabsContent>
 
               <TabsContent value="liftdrag" className="mt-0">
