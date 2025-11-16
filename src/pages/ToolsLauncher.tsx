@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3 } from "lucide-react";
 import ThrustCalculator from "@/components/tools/ThrustCalculator";
 import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
 import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
@@ -15,8 +17,43 @@ import MaterialsDatabase from "@/components/tools/MaterialsDatabase";
 import DeltaVPlanner from "@/components/tools/deltav/DeltaVPlanner";
 import AntennaPatternAnalyzer from "@/components/tools/AntennaPatternAnalyzer";
 
+// Mapping from tool names to tab IDs
+const TOOL_NAME_TO_TAB: { [key: string]: string } = {
+  "Thrust Calculator": "thrust",
+  "Wing Loading Calculator": "wing",
+  "Orbital Path Visualizer": "orbital",
+  "Lift-to-Drag Ratio Analyzer": "liftdrag",
+  "Reynolds Number Calculator": "reynolds",
+  "Material Density Database": "materials",
+  "Delta-V Budget Planner": "deltav",
+  "Antenna Pattern Analyzer": "antenna",
+};
+
 const ToolsLauncher = () => {
-  const [activeTab, setActiveTab] = useState("thrust");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const toolParam = searchParams.get("tool");
+  const initialTab = toolParam && TOOL_NAME_TO_TAB[toolParam] ? TOOL_NAME_TO_TAB[toolParam] : (toolParam || "thrust");
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [hideTabs, setHideTabs] = useState(!!toolParam);
+
+  // Update active tab when URL changes
+  useEffect(() => {
+    if (toolParam && TOOL_NAME_TO_TAB[toolParam]) {
+      const tabId = TOOL_NAME_TO_TAB[toolParam];
+      setActiveTab(tabId);
+      setHideTabs(true);
+    } else if (toolParam) {
+      // Direct tab ID in URL
+      setActiveTab(toolParam);
+      setHideTabs(true);
+    }
+  }, [toolParam]);
+
+  const showAllTools = () => {
+    navigate("/tools/launch");
+    setHideTabs(false);
+  };
 
   return (
     <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
@@ -26,14 +63,31 @@ const ToolsLauncher = () => {
       
       <section className="relative py-12 flex-grow">
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
+          {hideTabs && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 flex justify-end"
+            >
+              <Button
+                variant="outline"
+                onClick={showAllTools}
+                className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+              >
+                <Grid3x3 className="w-4 h-4 mr-2" />
+                Show All Tools
+              </Button>
+            </motion.div>
+          )}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="mb-8"
           >
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
+            <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
+              {!hideTabs && (
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
                 <TabsTrigger 
                   value="thrust"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
@@ -90,7 +144,8 @@ const ToolsLauncher = () => {
                   <Radio className="w-4 h-4 mr-2" />
                   Antenna
                 </TabsTrigger>
-              </TabsList>
+                </TabsList>
+              )}
 
               <TabsContent value="thrust" className="mt-0">
                 <ThrustCalculator />

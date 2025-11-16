@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Minimize2, Trash2, Send, Sparkles, History, Plus, Globe } from 'lucide-react';
+import { MessageSquare, X, Minimize2, Trash2, Send, Sparkles, History, Plus, Globe, Calculator } from 'lucide-react';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +25,7 @@ const LANGUAGES = [
 ];
 
 const AIAssistant: React.FC = () => {
-  const { messages, isOpen, isLoading, mode, language, chatHistory, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat } = useAIAssistant();
+  const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat } = useAIAssistant();
   const [inputValue, setInputValue] = useState('');
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -141,7 +141,9 @@ const AIAssistant: React.FC = () => {
                                bg-clip-text text-transparent">
                     AeroVerse AI
                   </h3>
-                  <p className="text-[10px] text-gray-400">Your aerospace guide</p>
+                  <p className="text-[10px] text-gray-400">
+                    {toolContext ? `Analyzing: ${toolContext.tool}` : 'Your aerospace guide'}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -270,9 +272,22 @@ const AIAssistant: React.FC = () => {
                     <Sparkles className="w-12 h-12 text-cyan-400 mx-auto drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
                     <p className="text-gray-400 text-sm">
                       {mode === 'chat' 
-                        ? 'Ask me anything about aerospace!' 
+                        ? (toolContext 
+                          ? `I'm analyzing your ${toolContext.tool} results. Ask me anything!`
+                          : 'Ask me anything about aerospace!')
                         : 'Paste text to get a summary'}
                     </p>
+                    {toolContext && mode === 'chat' && (
+                      <div className="mt-4 p-3 bg-cyan-400/10 border border-cyan-400/30 rounded-lg text-left">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Calculator className="w-4 h-4 text-cyan-400" />
+                          <span className="text-xs font-semibold text-cyan-400">Tool Context Active</span>
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          I can explain your results, perform follow-up calculations, and provide engineering insights.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

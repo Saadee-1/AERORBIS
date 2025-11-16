@@ -14,6 +14,12 @@ export interface ChatSession {
   timestamp: number;
 }
 
+export interface ToolContext {
+  tool: "WingLoading" | "LiftDrag" | "OrbitalPath" | "DeltaV" | "Reynolds" | "MaterialsDB" | "Thrust" | "Antenna" | string;
+  inputs: Record<string, any>;
+  results: Record<string, any>;
+}
+
 interface AIAssistantContextType {
   messages: Message[];
   isOpen: boolean;
@@ -21,9 +27,11 @@ interface AIAssistantContextType {
   mode: 'chat' | 'summarize';
   language: string;
   chatHistory: ChatSession[];
+  toolContext: ToolContext | null;
   setIsOpen: (isOpen: boolean) => void;
   setMode: (mode: 'chat' | 'summarize') => void;
   setLanguage: (language: string) => void;
+  setToolContext: (context: ToolContext | null) => void;
   sendMessage: (content: string) => Promise<void>;
   clearChat: () => void;
   loadChatSession: (sessionId: string) => void;
@@ -52,6 +60,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
   });
   const [chatHistory, setChatHistory] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string>(() => Date.now().toString());
+  const [toolContext, setToolContext] = useState<ToolContext | null>(null);
 
   // Save language preference
   useEffect(() => {
@@ -128,7 +137,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages, mode, language }),
+        body: JSON.stringify({ messages: apiMessages, mode, language, toolContext }),
       });
 
       const data = await response.json();
@@ -186,9 +195,11 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         mode,
         language,
         chatHistory,
+        toolContext,
         setIsOpen,
         setMode,
         setLanguage,
+        setToolContext,
         sendMessage,
         clearChat,
         loadChatSession,

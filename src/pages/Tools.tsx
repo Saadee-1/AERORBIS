@@ -8,6 +8,22 @@ import { Button } from "@/components/ui/button";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 
+// Helper function to get tool URL
+const getToolUrl = (toolName: string): string => {
+  const toolMap: { [key: string]: string } = {
+    "Thrust Calculator": "thrust",
+    "Wing Loading Calculator": "wing",
+    "Orbital Path Visualizer": "orbital",
+    "Lift-to-Drag Ratio Analyzer": "liftdrag",
+    "Reynolds Number Calculator": "reynolds",
+    "Material Density Database": "materials",
+    "Delta-V Budget Planner": "deltav",
+    "Antenna Pattern Analyzer": "antenna",
+  };
+  const toolId = toolMap[toolName];
+  return toolId ? `/tools/launch?tool=${toolId}` : "/tools/launch";
+};
+
 const Tools = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -120,7 +136,7 @@ const Tools = () => {
                       asChild
                       disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name)}
                     >
-                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name) ? "/tools/launch" : "#"}>
+                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
                         {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
                       </a>
                     </Button>
