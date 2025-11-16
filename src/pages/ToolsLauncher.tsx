@@ -5,11 +5,12 @@ import Footer from "@/components/Footer";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Rocket, Plane, Orbit, TrendingUp } from "lucide-react";
+import { Rocket, Plane, Orbit, TrendingUp, Wind } from "lucide-react";
 import ThrustCalculator from "@/components/tools/ThrustCalculator";
 import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
 import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
 import LiftDragAnalyzer from "@/components/tools/LiftDragAnalyzer";
+import ReynoldsNumberCalculator from "@/components/tools/ReynoldsNumberCalculator";
 
 const ToolsLauncher = () => {
   const [activeTab, setActiveTab] = useState("thrust");
@@ -29,7 +30,7 @@ const ToolsLauncher = () => {
             className="mb-8"
           >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-4xl mx-auto grid-cols-2 lg:grid-cols-4 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
+              <TabsList className="grid w-full max-w-5xl mx-auto grid-cols-2 lg:grid-cols-5 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
                 <TabsTrigger 
                   value="thrust"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
@@ -58,6 +59,13 @@ const ToolsLauncher = () => {
                   <TrendingUp className="w-4 h-4 mr-2" />
                   L/D Analyzer
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="reynolds"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                >
+                  <Wind className="w-4 h-4 mr-2" />
+                  Reynolds Number
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="thrust" className="mt-0">
@@ -74,6 +82,10 @@ const ToolsLauncher = () => {
 
               <TabsContent value="liftdrag" className="mt-0">
                 <LiftDragAnalyzer />
+              </TabsContent>
+
+              <TabsContent value="reynolds" className="mt-0">
+                <ReynoldsNumberCalculator />
               </TabsContent>
             </Tabs>
           </motion.div>
