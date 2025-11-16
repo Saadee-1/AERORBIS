@@ -52,10 +52,10 @@ const DashboardTools = () => {
       id: 5,
       name: "Material Density Database",
       icon: Database,
-      description: "Search aerospace materials and their properties",
+      description: "Searchable database of aerospace materials with density properties. Compare materials and add custom entries.",
       category: "Materials",
-      usageCount: 8,
-      favorite: false,
+      usageCount: 42,
+      favorite: true,
     },
     {
       id: 6,
@@ -143,10 +143,10 @@ const DashboardTools = () => {
                           size="sm" 
                           className="bg-primary text-primary-foreground hover:bg-primary/90"
                           asChild
-                          disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator"].includes(tool.name)}
+                          disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name)}
                         >
-                          <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator"].includes(tool.name) ? "/tools/launch" : "#"}>
-                            {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
+                          <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "/tools/launch" : "#"}>
+                            {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
                           </a>
                         </Button>
                       </div>
@@ -194,10 +194,10 @@ const DashboardTools = () => {
                         variant="outline" 
                         className="border-border hover:bg-muted"
                         asChild
-                        disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator"].includes(tool.name)}
+                        disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name)}
                       >
-                        <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator"].includes(tool.name) ? "/tools/launch" : "#"}>
-                          {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
+                        <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "/tools/launch" : "#"}>
+                          {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
                         </a>
                       </Button>
                     </div>

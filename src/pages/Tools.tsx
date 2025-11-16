@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite } from "lucide-react";
+import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,9 +32,9 @@ const Tools = () => {
       category: "Orbital Mechanics",
     },
     {
-      icon: Box,
+      icon: Database,
       name: "Material Density Database",
-      description: "Access comprehensive material properties including density, strength, and thermal characteristics.",
+      description: "Searchable database of aerospace materials with density properties. Compare materials and add custom entries.",
       category: "Materials",
     },
     {
@@ -118,10 +118,10 @@ const Tools = () => {
                     <Button 
                       className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300"
                       asChild
-                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator"].includes(tool.name)}
+                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name)}
                     >
-                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator"].includes(tool.name) ? "/tools/launch" : "#"}>
-                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
+                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "/tools/launch" : "#"}>
+                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
                       </a>
                     </Button>
                   </CardFooter>

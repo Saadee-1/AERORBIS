@@ -1,0 +1,99 @@
+"use client";
+
+import { Material, UnitSystem } from "./types";
+import { convertDensityToImperial, formatDensity } from "./unitConversion";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
+import { Database, Ruler, Info } from "lucide-react";
+
+interface MaterialDetailsDrawerProps {
+  material: Material | null;
+  unitSystem: UnitSystem;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const MaterialDetailsDrawer = ({
+  material,
+  unitSystem,
+  isOpen,
+  onClose,
+}: MaterialDetailsDrawerProps) => {
+  if (!material) return null;
+
+  const densityImperial = convertDensityToImperial(material.density);
+
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent className="bg-slate-900 border-l border-cyan-400/20 text-white overflow-y-auto">
+        <SheetHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <Database className="w-8 h-8 text-cyan-400" />
+            <SheetTitle className="text-2xl text-white">{material.name}</SheetTitle>
+          </div>
+          <SheetDescription className="text-gray-400">
+            Detailed material properties and specifications
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="mt-6 space-y-6">
+          {/* Category Badge */}
+          <div>
+            <p className="text-sm text-gray-400 mb-2">Category</p>
+            <Badge className="bg-cyan-400/20 text-cyan-400 border-cyan-400/30 text-lg px-4 py-2">
+              {material.category}
+            </Badge>
+          </div>
+
+          {/* Density Information */}
+          <div className="p-4 bg-slate-800/50 rounded-lg border border-cyan-400/20">
+            <div className="flex items-center gap-2 mb-4">
+              <Ruler className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-lg font-semibold text-white">Density</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">SI Units:</span>
+                <span className="text-cyan-400 font-bold text-lg">
+                  {material.density.toLocaleString('en-US', { maximumFractionDigits: 0 })} kg/m³
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Imperial Units:</span>
+                <span className="text-cyan-400 font-bold text-lg">
+                  {densityImperial.toLocaleString('en-US', { maximumFractionDigits: 2 })} lb/ft³
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="p-4 bg-slate-800/50 rounded-lg border border-cyan-400/20">
+            <div className="flex items-center gap-2 mb-3">
+              <Info className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-lg font-semibold text-white">Description</h3>
+            </div>
+            <p className="text-gray-300 leading-relaxed">{material.description}</p>
+          </div>
+
+          {/* Comparison Info */}
+          <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
+            <p className="text-sm text-gray-300">
+              <span className="text-cyan-400 font-semibold">Note:</span> Density values are stored
+              internally in SI units (kg/m³). All conversions are calculated dynamically.
+            </p>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+export default MaterialDetailsDrawer;
+
