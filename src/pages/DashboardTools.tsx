@@ -75,6 +75,15 @@ const DashboardTools = () => {
       usageCount: 27,
       favorite: true,
     },
+    {
+      id: 8,
+      name: "Delta-V Budget Planner",
+      icon: Zap,
+      description: "Mission Δv & Staging Designer - Calculate required Δv, stage sizing, and mission feasibility",
+      category: "Space Systems",
+      usageCount: 35,
+      favorite: true,
+    },
   ];
 
   const filteredTools = tools.filter(tool =>
@@ -143,10 +152,10 @@ const DashboardTools = () => {
                           size="sm" 
                           className="bg-primary text-primary-foreground hover:bg-primary/90"
                           asChild
-                          disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name)}
+                          disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name)}
                         >
-                          <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "/tools/launch" : "#"}>
-                            {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
+                          <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name) ? "/tools/launch" : "#"}>
+                            {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
                           </a>
                         </Button>
                       </div>
@@ -194,10 +203,10 @@ const DashboardTools = () => {
                         variant="outline" 
                         className="border-border hover:bg-muted"
                         asChild
-                        disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name)}
+                        disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name)}
                       >
-                        <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "/tools/launch" : "#"}>
-                          {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
+                        <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name) ? "/tools/launch" : "#"}>
+                          {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
                         </a>
                       </Button>
                     </div>
