@@ -31,6 +31,7 @@ const AnimatedRoutes = () => {
   const location = useLocation();
   useAudioSection();
 
+  return (
    return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
