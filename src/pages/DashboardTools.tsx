@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Satellite, Wind, Gauge, Database, Zap, Star, Search } from "lucide-react";
+import { Calculator, Satellite, Wind, Gauge, Database, Zap, Star, Search, Radio } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -84,6 +84,15 @@ const DashboardTools = () => {
       usageCount: 35,
       favorite: true,
     },
+    {
+      id: 9,
+      name: "Antenna Pattern Analyzer",
+      icon: Radio,
+      description: "Analyze antenna radiation patterns, calculate gain, directivity, HPBW, and EIRP",
+      category: "Avionics",
+      usageCount: 28,
+      favorite: true,
+    },
   ];
 
   const filteredTools = tools.filter(tool =>
@@ -152,10 +161,10 @@ const DashboardTools = () => {
                           size="sm" 
                           className="bg-primary text-primary-foreground hover:bg-primary/90"
                           asChild
-                          disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name)}
+                          disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name)}
                         >
-                          <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name) ? "/tools/launch" : "#"}>
-                            {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
+                          <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name) ? "/tools/launch" : "#"}>
+                            {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
                           </a>
                         </Button>
                       </div>
@@ -203,10 +212,10 @@ const DashboardTools = () => {
                         variant="outline" 
                         className="border-border hover:bg-muted"
                         asChild
-                        disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name)}
+                        disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name)}
                       >
-                        <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name) ? "/tools/launch" : "#"}>
-                          {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
+                        <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name) ? "/tools/launch" : "#"}>
+                          {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name) ? "Launch Tool →" : "Coming Soon"}
                         </a>
                       </Button>
                     </div>
