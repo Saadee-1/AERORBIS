@@ -29,6 +29,7 @@ interface AIAssistantContextType {
   chatHistory: ChatSession[];
   toolContext: ToolContext | null;
   notificationMessage: string | null;
+  currentSessionId: string;
   setIsOpen: (isOpen: boolean) => void;
   setMode: (mode: 'chat' | 'summarize') => void;
   setLanguage: (language: string) => void;
@@ -214,6 +215,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         chatHistory,
         toolContext,
         notificationMessage,
+        currentSessionId,
         setIsOpen,
         setMode,
         setLanguage,

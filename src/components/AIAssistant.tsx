@@ -25,7 +25,7 @@ const LANGUAGES = [
 ];
 
 const AIAssistant: React.FC = () => {
-  const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, notificationMessage, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat, clearNotification } = useAIAssistant();
+  const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, notificationMessage, currentSessionId, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat, clearNotification } = useAIAssistant();
   const [inputValue, setInputValue] = useState('');
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
