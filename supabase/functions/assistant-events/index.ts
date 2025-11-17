@@ -68,7 +68,10 @@ serve(async (req) => {
 });
 
 // Store calculation context (using in-memory for now, can migrate to Supabase DB)
-const calculationContexts = new Map<string, CalculationEvent & { explanation?: string; explanationId?: string }>();
+const calculationContexts = new Map<string, CalculationEvent & { explanation?: string; explanationId?: string; cachedExplanations?: Map<string, string> }>();
+
+// Memoization cache for explanations (key: requestId + explanationLevel)
+const explanationCache = new Map<string, string>();
 
 async function handleCalculationEvent(req: Request): Promise<Response> {
   const event: CalculationEvent = await req.json();
@@ -226,10 +229,25 @@ async function handleExplainRequest(req: Request): Promise<Response> {
     });
   }
 
+  // Check memoization cache
+  const cacheKey = `${requestId}:${explanationLevel}`;
+  if (explanationCache.has(cacheKey)) {
+    return new Response(JSON.stringify({
+      explanation: explanationCache.get(cacheKey),
+      requestId,
+      explanationLevel,
+      cached: true,
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   if (!LOVABLE_API_KEY) {
+    const fallbackExplanation = context.explanation || generateFallbackSummary(context);
+    explanationCache.set(cacheKey, fallbackExplanation);
     return new Response(JSON.stringify({
-      explanation: context.explanation || generateFallbackSummary(context),
+      explanation: fallbackExplanation,
       requestId,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -272,10 +290,13 @@ Provide:
     if (aiResponse.ok) {
       const aiData = await aiResponse.json();
       const explanation = aiData.choices?.[0]?.message?.content;
+      // Cache the explanation
+      explanationCache.set(cacheKey, explanation);
       return new Response(JSON.stringify({
         explanation,
         requestId,
         explanationLevel,
+        cached: false,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

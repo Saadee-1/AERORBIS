@@ -85,8 +85,14 @@ export const useToolContext = () => {
 
       if (response.ok) {
         const result: CalculationEventResponse = await response.json();
-        // Store requestId for later reference
-        localStorage.setItem(`calc-${requestId}`, JSON.stringify({ ...event, ...result }));
+        // Store requestId for later reference (with expiration - 30 days)
+        const storageData = {
+          ...event,
+          ...result,
+          storedAt: Date.now(),
+          expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+        };
+        localStorage.setItem(`calc-${requestId}`, JSON.stringify(storageData));
         return result;
       } else {
         console.error('Failed to send calculation event:', await response.text());
@@ -95,6 +101,47 @@ export const useToolContext = () => {
     } catch (error) {
       console.error('Error sending calculation event:', error);
       return null;
+    }
+  }, []);
+
+  // Send calculation update event (for streaming/partial updates)
+  const sendCalculationUpdate = useCallback(async (
+    requestId: string,
+    payload: {
+      progress?: number;
+      intermediateResults?: Record<string, any>;
+      sequenceId: number;
+      isFinal?: boolean;
+    }
+  ): Promise<boolean> => {
+    try {
+      const userId = 'user-' + (localStorage.getItem('userId') || 'anonymous');
+      
+      const event = {
+        eventType: 'calculation.update' as const,
+        requestId,
+        userId,
+        timestamp: new Date().toISOString(),
+        ...payload,
+      };
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        return false;
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/events/calc-update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Error sending calculation update:', error);
+      return false;
     }
   }, []);
 
@@ -129,6 +176,7 @@ export const useToolContext = () => {
     clearToolContext,
     updateToolContextAndOpen,
     sendCalculationEvent,
+    sendCalculationUpdate,
   };
 };
 

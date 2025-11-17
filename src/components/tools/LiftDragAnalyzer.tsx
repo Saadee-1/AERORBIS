@@ -740,11 +740,13 @@ const LiftDragAnalyzer = () => {
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-cyan-400">Analysis Results</h3>
-                  <PDFExportButton 
-                    requestId={lastRequestId} 
-                    toolName="Lift/Drag Analyzer"
-                    disabled={!lastRequestId}
-                  />
+                  {lastRequestId && (
+                    <PDFExportButton 
+                      requestId={lastRequestId} 
+                      toolName="Lift/Drag Analyzer"
+                      disabled={!lastRequestId}
+                    />
+                  )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">

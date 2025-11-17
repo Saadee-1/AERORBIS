@@ -701,11 +701,13 @@ const AdvancedThrustCalculator = () => {
                   <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm font-semibold text-cyan-400">Part 2 Result (Thrust)</p>
-                      <PDFExportButton 
-                        requestId={lastRequestId} 
-                        toolName="Thrust Calculator"
-                        disabled={!lastRequestId}
-                      />
+                      {lastRequestId && (
+                        <PDFExportButton 
+                          requestId={lastRequestId} 
+                          toolName="Thrust Calculator"
+                          disabled={!lastRequestId}
+                        />
+                      )}
                     </div>
                     <p className="text-gray-400 text-sm mb-1">Solved: {thrustResult.solvedFor}</p>
                     <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">

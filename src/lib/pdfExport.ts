@@ -50,6 +50,7 @@ export async function exportToPDF(
           format: 'A4',
           language: 'en',
           showLaTeX: true,
+          author: localStorage.getItem('userName') || 'User',
           ...options,
         },
       }),
@@ -62,6 +63,49 @@ export async function exportToPDF(
     return await response.json();
   } catch (error) {
     console.error('PDF export error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Export batch PDF (multiple calculations)
+ */
+export async function exportBatchPDF(
+  requestIds: string[],
+  options: PDFExportOptions = {}
+): Promise<PDFExportResponse> {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+      throw new Error('Supabase URL not configured');
+    }
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/export/batch`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        requestIds,
+        options: {
+          includeAssistantExplanation: true,
+          explanationLevel: 'detailed',
+          includeCharts: true,
+          format: 'A4',
+          language: 'en',
+          author: localStorage.getItem('userName') || 'User',
+          ...options,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Batch PDF export failed: ${await response.text()}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Batch PDF export error:', error);
     throw error;
   }
 }

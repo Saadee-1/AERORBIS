@@ -51,6 +51,14 @@ const LANGUAGE_KEY = 'aeroverse_ai_language';
 const MAX_STORED_MESSAGES = 50;
 const MAX_HISTORY_SESSIONS = 20;
 
+// Extract requestId from message content
+function extractRequestId(content: string): string | undefined {
+  const match = content.match(/Request ID:\s*([a-zA-Z0-9-]+)/i) || 
+                content.match(/requestId[:\s]+([a-zA-Z0-9-]+)/i) ||
+                content.match(/(calc-[a-zA-Z0-9-]+)/i);
+  return match ? match[1] : undefined;
+}
+
 export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -143,7 +151,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages, mode, language, toolContext }),
+        body: JSON.stringify({ messages: apiMessages, mode, language, toolContext, requestId: extractRequestId(content) }),
       });
 
       const data = await response.json();

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { AskAIButton } from './AskAIButton';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -81,15 +82,21 @@ export function PDFExportButton({ requestId, toolName, disabled }: PDFExportButt
 
   return (
     <>
-      <Button
-        variant="outline"
-        onClick={() => setIsDialogOpen(true)}
-        disabled={disabled || !requestId}
-        className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-      >
-        <Download className="w-4 h-4 mr-2" />
-        Export PDF
-      </Button>
+      <div className="flex gap-2">
+        <AskAIButton 
+          requestId={requestId}
+          disabled={disabled}
+        />
+        <Button
+          variant="outline"
+          onClick={() => setIsDialogOpen(true)}
+          disabled={disabled || !requestId}
+          className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Export PDF
+        </Button>
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-md">
