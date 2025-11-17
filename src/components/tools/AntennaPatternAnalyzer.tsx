@@ -1165,6 +1165,15 @@ const AntennaPatternAnalyzer = () => {
                     name="E-plane"
                     dot={false}
                   />
+                  <Line
+                    type="monotone"
+                    data={chartData.hPlane}
+                    dataKey="gain"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    name="H-plane"
+                    dot={false}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
