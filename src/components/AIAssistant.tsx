@@ -31,52 +31,48 @@ const LANGUAGES = [
   { code: 'ur', name: 'اردو' },
 ];
 
-// Simple Astronaut Icon - Clean Vector Art with Waving Animation
-const AstronautIcon = ({ className }: { className?: string }) => {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <style>{`
-        @keyframes wave {
-          0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(20deg); }
-        }
-        .wave-arm {
-          transform-origin: 17px 12px;
-          animation: wave 1s ease-in-out infinite;
-        }
-      `}</style>
-      
-      {/* Simple Helmet */}
-      <circle cx="12" cy="7" r="4.5" fill="white" stroke="currentColor" strokeWidth="1.5" />
-      
-      {/* Visor */}
-      <ellipse cx="12" cy="7" rx="3" ry="2.5" fill="#4a148c" />
-      
-      {/* Simple Body */}
-      <rect x="9" y="11" width="6" height="5" rx="1" fill="white" stroke="currentColor" strokeWidth="1.5" />
-      
-      {/* Left Arm */}
-      <line x1="7" y1="12" x2="5" y2="15" stroke="white" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="5" cy="15" r="1.5" fill="white" />
-      
-      {/* Right Arm - Waving (fixed transform origin) */}
-      <g className="wave-arm" style={{ transformOrigin: '17px 12px' }}>
-        <line x1="17" y1="12" x2="19" y2="8" stroke="white" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="19" cy="8" r="1.5" fill="white" />
-      </g>
-      
-      {/* Legs */}
-      <line x1="10.5" y1="16" x2="10.5" y2="20" stroke="white" strokeWidth="2" strokeLinecap="round" />
-      <line x1="13.5" y1="16" x2="13.5" y2="20" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-};
+// Realistic Astronaut Icon Component
+const AstronautIcon = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    {/* Helmet - Main circle */}
+    <circle cx="12" cy="9" r="5.5" fill="currentColor" fillOpacity="0.1" />
+    <circle cx="12" cy="9" r="5.5" />
+    
+    {/* Visor - Curved reflective surface */}
+    <path d="M8 9c0-1.5 1.5-2.5 4-2.5s4 1 4 2.5" strokeWidth="1.5" />
+    <ellipse cx="12" cy="9" rx="3" ry="2" fill="currentColor" fillOpacity="0.2" />
+    
+    {/* Helmet details - Antenna/communication device */}
+    <circle cx="12" cy="3.5" r="0.8" fill="currentColor" />
+    <path d="M12 3.5v1.5" />
+    
+    {/* Body - Suit torso */}
+    <path d="M10 14.5h4" strokeWidth="2" />
+    <rect x="9" y="14.5" width="6" height="3" rx="1" fill="currentColor" fillOpacity="0.1" />
+    <rect x="9" y="14.5" width="6" height="3" rx="1" />
+    
+    {/* Arms - Bent position */}
+    <path d="M6 12.5c-1-1-2-0.5-2.5 0.5" />
+    <path d="M18 12.5c1-1 2-0.5 2.5 0.5" />
+    
+    {/* Legs - Space suit legs */}
+    <path d="M10 17.5v3.5" strokeWidth="2" />
+    <path d="M14 17.5v3.5" strokeWidth="2" />
+    <path d="M9 21l1 1.5" />
+    <path d="M15 21l-1 1.5" />
+    
+    {/* Chest pack/controls */}
+    <rect x="10.5" y="15" width="3" height="2" rx="0.5" fill="currentColor" fillOpacity="0.3" />
+  </svg>
+);
 
 const AIAssistant: React.FC = () => {
   const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, notificationMessage, currentSessionId, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat, deleteChatSession, clearNotification } = useAIAssistant();
@@ -177,29 +173,26 @@ const AIAssistant: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Floating Chat Bubble - Always visible when chat is closed */}
-      {!isOpen && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0, opacity: 0 }}
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-8 right-8 z-[9999] w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
-                   shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
-                   flex items-center justify-center transition-all duration-300 hover:scale-110 group relative
-                   border-2 border-white/50"
-          style={{
-            animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-          }}
-          aria-label="Open Aerobot AI Assistant"
-        >
-          {/* Icon Container - Direct SVG rendering */}
-          <div className="w-14 h-14 flex items-center justify-center relative z-10">
-            <AstronautIcon className="w-full h-full" />
-          </div>
-          <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all pointer-events-none" />
-        </motion.button>
-      )}
+      {/* Floating Chat Bubble */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-8 right-8 z-50 w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
+                     shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
+                     flex items-center justify-center transition-all duration-300 hover:scale-110 group"
+            style={{
+              animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            }}
+          >
+            <AstronautIcon className="w-10 h-10 text-white group-hover:scale-110 transition-transform" />
+            <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Chat Window */}
       <AnimatePresence>
@@ -209,18 +202,16 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 right-4 z-[9998] w-[360px] max-w-[calc(100vw-2rem)] h-[calc(100vh-5rem)] max-h-[620px] min-h-[480px] flex flex-col
+            className="fixed bottom-4 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[680px] min-h-[500px] flex flex-col
                      bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
-                     border-t border-l border-r border-cyan-400/40 rounded-t-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
+                     border border-cyan-400/40 rounded-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
           >
-            {/* Minimal Header - Always Visible at Top */}
-            <div className="flex items-center justify-between p-2.5 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky top-0 z-10">
+            {/* Minimal Header - Always Visible */}
+            <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
-                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0 p-1.5 relative">
-                  <div className="w-full h-full">
-                    <AstronautIcon className="w-full h-full" />
-                  </div>
+                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0">
+                  <AstronautIcon className="w-5 h-5 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
