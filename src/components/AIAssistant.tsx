@@ -31,30 +31,46 @@ const LANGUAGES = [
   { code: 'ur', name: 'اردو' },
 ];
 
-// Astronaut Icon Component
+// Realistic Astronaut Icon Component
 const AstronautIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
   >
-    {/* Helmet */}
-    <circle cx="12" cy="10" r="6" />
-    {/* Visor */}
-    <path d="M12 7c-1.5 0-3 .5-3 2v1c0 1.5 1.5 2 3 2s3-.5 3-2V9c0-1.5-1.5-2-3-2z" />
-    {/* Body */}
-    <path d="M12 16v4" />
-    <path d="M8 18h8" />
-    {/* Arms */}
-    <path d="M6 12l-2 2" />
-    <path d="M18 12l2 2" />
-    {/* Legs */}
-    <path d="M10 20l-1 2" />
-    <path d="M14 20l1 2" />
+    {/* Helmet - Main circle */}
+    <circle cx="12" cy="9" r="5.5" fill="currentColor" fillOpacity="0.1" />
+    <circle cx="12" cy="9" r="5.5" />
+    
+    {/* Visor - Curved reflective surface */}
+    <path d="M8 9c0-1.5 1.5-2.5 4-2.5s4 1 4 2.5" strokeWidth="1.5" />
+    <ellipse cx="12" cy="9" rx="3" ry="2" fill="currentColor" fillOpacity="0.2" />
+    
+    {/* Helmet details - Antenna/communication device */}
+    <circle cx="12" cy="3.5" r="0.8" fill="currentColor" />
+    <path d="M12 3.5v1.5" />
+    
+    {/* Body - Suit torso */}
+    <path d="M10 14.5h4" strokeWidth="2" />
+    <rect x="9" y="14.5" width="6" height="3" rx="1" fill="currentColor" fillOpacity="0.1" />
+    <rect x="9" y="14.5" width="6" height="3" rx="1" />
+    
+    {/* Arms - Bent position */}
+    <path d="M6 12.5c-1-1-2-0.5-2.5 0.5" />
+    <path d="M18 12.5c1-1 2-0.5 2.5 0.5" />
+    
+    {/* Legs - Space suit legs */}
+    <path d="M10 17.5v3.5" strokeWidth="2" />
+    <path d="M14 17.5v3.5" strokeWidth="2" />
+    <path d="M9 21l1 1.5" />
+    <path d="M15 21l-1 1.5" />
+    
+    {/* Chest pack/controls */}
+    <rect x="10.5" y="15" width="3" height="2" rx="0.5" fill="currentColor" fillOpacity="0.3" />
   </svg>
 );
 
@@ -186,36 +202,37 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-8 right-8 z-50 w-96 h-[600px] flex flex-col
+            className="fixed bottom-4 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[680px] min-h-[500px] flex flex-col
                      bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
                      border border-cyan-400/40 rounded-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
           >
-            {/* Minimal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
-                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)]">
-                  <AstronautIcon className="w-6 h-6 text-white" />
+            {/* Minimal Header - Always Visible */}
+            <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
+                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0">
+                  <AstronautIcon className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-base font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
-                               bg-clip-text text-transparent">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
+                               bg-clip-text text-transparent truncate">
                     Aerobot
                   </h3>
-                  <p className="text-[10px] text-gray-400">
-                    {toolContext ? `Analyzing ${toolContext.tool}` : 'Aerospace AI Assistant'}
+                  <p className="text-[9px] text-gray-400 truncate">
+                    {toolContext ? `Analyzing ${toolContext.tool}` : 'Aerospace AI'}
                   </p>
                 </div>
               </div>
               
-              {/* Minimal Controls */}
-              <div className="flex items-center gap-1">
+              {/* Minimal Controls - Always Visible */}
+              <div className="flex items-center gap-1 flex-shrink-0">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                      className="h-7 w-7 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                      title="Menu"
                     >
                       <Menu className="w-4 h-4" />
                     </Button>
@@ -304,7 +321,7 @@ const AIAssistant: React.FC = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsOpen(false)}
-                  className="h-8 w-8 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  className="h-7 w-7 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
                   title="Close"
                 >
                   <X className="w-4 h-4" />
@@ -317,14 +334,14 @@ const AIAssistant: React.FC = () => {
               {showHistory && chatHistory.length > 0 && (
                 <motion.div
                   initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 280, opacity: 1 }}
+                  animate={{ width: 260, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
-                  className="border-r border-cyan-400/20 bg-slate-900/50 overflow-hidden"
+                  className="border-r border-cyan-400/20 bg-slate-900/50 overflow-hidden flex-shrink-0"
                 >
-                  <div className="p-3 border-b border-cyan-400/10">
+                  <div className="p-2 border-b border-cyan-400/10 flex-shrink-0">
                     <p className="text-xs font-semibold text-cyan-400">Recent Chats</p>
                   </div>
-                  <ScrollArea className="h-full">
+                  <ScrollArea className="flex-1 min-h-0">
                     <div className="p-2 space-y-2">
                       {chatHistory.map((session) => (
                         <button
@@ -373,9 +390,9 @@ const AIAssistant: React.FC = () => {
               )}
             </AnimatePresence>
 
-            {/* Messages Area - Maximum Space */}
+            {/* Messages Area - Maximum Space with proper flex */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 
-                          scrollbar-track-transparent min-h-0">
+                          scrollbar-track-transparent min-h-0 flex flex-col">
               {messages.length === 0 && (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center space-y-3">
@@ -471,8 +488,8 @@ const AIAssistant: React.FC = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="p-4 border-t border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80">
+            {/* Input Area - Always Visible */}
+            <div className="p-3 border-t border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
               <div className="flex gap-2">
                 <Input
                   ref={inputRef}
