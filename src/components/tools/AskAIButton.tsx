@@ -1,9 +1,9 @@
 "use client";
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Loader2 } from 'lucide-react';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
-import { getExplanation } from '@/lib/pdfExport';
 import { useToast } from '@/hooks/use-toast';
 
 interface AskAIButtonProps {
@@ -35,14 +35,11 @@ export function AskAIButton({
 
     setIsLoading(true);
     try {
-      // Get explanation from assistant
-      const explanation = await getExplanation(requestId, explanationLevel);
-      
-      // Open AI assistant and send explanation request
+      // Open AI assistant first
       setIsOpen(true);
       
       // Send a message with the explanation request
-      // The assistant will use the requestId to fetch context
+      // The assistant will use the requestId to fetch context automatically
       await sendMessage(`Please explain this calculation in detail. Request ID: ${requestId}`);
       
       toast({
@@ -50,10 +47,10 @@ export function AskAIButton({
         description: 'AI Assistant opened with calculation context.',
       });
     } catch (error) {
-      console.error('Error getting explanation:', error);
+      console.error('Error opening AI assistant:', error);
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to get explanation',
+        description: error instanceof Error ? error.message : 'Failed to open AI assistant',
         variant: 'destructive',
       });
     } finally {

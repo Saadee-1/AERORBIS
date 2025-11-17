@@ -338,7 +338,25 @@ async function handlePDFExport(req: Request): Promise<Response> {
 }
 
 function generatePDFHTML(context: CalculationEvent, options: any): string {
-  const { includeAssistantExplanation = true, explanationLevel = 'detailed', includeCharts = true } = options;
+  const { includeAssistantExplanation = true, explanationLevel = 'detailed', includeCharts = true, author = 'User' } = options;
+  const stored = calculationContexts.get(context.requestId);
+  const explanation = stored?.explanation || '';
+  
+  // Generate calculation record JSON (for reproducibility)
+  const calculationRecord = {
+    requestId: context.requestId,
+    toolId: context.toolId,
+    toolName: context.toolName,
+    timestamp: context.timestamp,
+    userId: context.userId,
+    inputs: context.inputs,
+    results: context.results,
+    steps: context.steps,
+    metadata: context.metadata,
+    exportTimestamp: new Date().toISOString(),
+    exportOptions: options,
+    assistantVersion: '1.0.0',
+  };
   
   return `<!DOCTYPE html>
 <html>
@@ -346,52 +364,149 @@ function generatePDFHTML(context: CalculationEvent, options: any): string {
   <meta charset="UTF-8">
   <title>${context.toolName} - Calculation Report</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-    h1 { color: #22d3ee; }
-    h2 { color: #3b82f6; margin-top: 30px; }
-    table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-    th { background-color: #1e293b; color: white; }
-    .step { margin: 15px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #22d3ee; }
+    @page { margin: 2cm; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 40px; line-height: 1.6; color: #1e293b; }
+    .cover { text-align: center; page-break-after: always; padding: 60px 0; }
+    h1 { color: #22d3ee; font-size: 2.5em; margin-bottom: 10px; }
+    h2 { color: #3b82f6; margin-top: 30px; page-break-after: avoid; }
+    h3 { color: #60a5fa; margin-top: 20px; }
+    table { border-collapse: collapse; width: 100%; margin: 20px 0; page-break-inside: avoid; }
+    th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: left; }
+    th { background-color: #1e293b; color: white; font-weight: 600; }
+    .step { margin: 15px 0; padding: 15px; background: #f1f5f9; border-left: 4px solid #22d3ee; page-break-inside: avoid; }
     .result { font-size: 1.2em; font-weight: bold; color: #22d3ee; }
-    .metadata { font-size: 0.9em; color: #666; }
+    .metadata { font-size: 0.9em; color: #64748b; background: #f8fafc; padding: 15px; border-radius: 8px; }
+    .formula { font-family: 'Courier New', monospace; background: #f1f5f9; padding: 8px; border-radius: 4px; margin: 10px 0; }
+    .toc { page-break-after: always; }
+    .toc-item { margin: 8px 0; }
+    .toc-item a { color: #3b82f6; text-decoration: none; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; font-size: 0.85em; color: #64748b; }
+    .json-record { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.75em; overflow-x: auto; page-break-inside: avoid; }
+    .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 15px 0; }
   </style>
 </head>
 <body>
-  <h1>${context.toolName} - Calculation Report</h1>
-  <p><strong>Request ID:</strong> ${context.requestId}</p>
-  <p><strong>Timestamp:</strong> ${context.timestamp}</p>
-  
-  <h2>Inputs</h2>
+  <!-- Cover Page -->
+  <div class="cover">
+    <h1>${context.toolName}</h1>
+    <h2>Calculation Report</h2>
+    <p style="margin-top: 40px; color: #64748b;">
+      <strong>Request ID:</strong> ${context.requestId}<br>
+      <strong>Generated:</strong> ${new Date(context.timestamp).toLocaleString()}<br>
+      <strong>Author:</strong> ${author}<br>
+      <strong>Tool Version:</strong> 1.0.0
+    </p>
+  </div>
+
+  <!-- Table of Contents -->
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <div class="toc-item"><a href="#inputs">1. Inputs</a></div>
+    <div class="toc-item"><a href="#results">2. Results Summary</a></div>
+    ${context.steps && context.steps.length > 0 ? '<div class="toc-item"><a href="#steps">3. Step-by-Step Calculation</a></div>' : ''}
+    ${includeAssistantExplanation && explanation ? '<div class="toc-item"><a href="#explanation">4. AI Assistant Explanation</a></div>' : ''}
+    ${context.metadata ? '<div class="toc-item"><a href="#metadata">5. Metadata & Assumptions</a></div>' : ''}
+    <div class="toc-item"><a href="#record">6. Calculation Record (JSON)</a></div>
+  </div>
+
+  <!-- Inputs -->
+  <h2 id="inputs">1. Inputs</h2>
   <table>
-    <tr><th>Parameter</th><th>Value</th></tr>
-    ${Object.entries(context.inputs).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+    <tr><th>Parameter</th><th>Value</th><th>Units</th></tr>
+    ${Object.entries(context.inputs).map(([k, v]) => {
+      const unit = context.metadata?.units || '';
+      return `<tr><td><strong>${k}</strong></td><td>${v}</td><td>${unit}</td></tr>`;
+    }).join('')}
   </table>
   
-  <h2>Results</h2>
+  <!-- Results -->
+  <h2 id="results">2. Results Summary</h2>
   <table>
-    <tr><th>Result</th><th>Value</th></tr>
-    ${Object.entries(context.results).map(([k, v]) => `<tr><td>${k}</td><td class="result">${v}</td></tr>`).join('')}
+    <tr><th>Result</th><th>Value</th><th>Units</th></tr>
+    ${Object.entries(context.results).map(([k, v]) => {
+      const unit = context.metadata?.units || '';
+      return `<tr><td><strong>${k}</strong></td><td class="result">${v}</td><td>${unit}</td></tr>`;
+    }).join('')}
   </table>
   
   ${context.steps && context.steps.length > 0 ? `
-  <h2>Step-by-Step Calculation</h2>
-  ${context.steps.map((step, i) => `<div class="step"><strong>Step ${i + 1}:</strong> ${step}</div>`).join('')}
+  <!-- Steps -->
+  <h2 id="steps">3. Step-by-Step Calculation</h2>
+  ${context.steps.map((step, i) => {
+    // Extract formula and numeric substitution
+    const parts = step.split(':');
+    const formula = parts.length > 1 ? parts[0] : '';
+    const substitution = parts.length > 1 ? parts.slice(1).join(':') : step;
+    return `
+      <div class="step">
+        <strong>Step ${i + 1}:</strong>
+        ${formula ? `<div class="formula">${formula}</div>` : ''}
+        <div>${substitution}</div>
+      </div>
+    `;
+  }).join('')}
   ` : ''}
   
-  ${includeAssistantExplanation && context.explanation ? `
-  <h2>AI Assistant Explanation</h2>
-  <p>${context.explanation}</p>
+  ${includeAssistantExplanation && explanation ? `
+  <!-- AI Explanation -->
+  <h2 id="explanation">4. AI Assistant Explanation</h2>
+  <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border-left: 4px solid #22d3ee;">
+    <p style="white-space: pre-wrap;">${explanation}</p>
+    <p style="margin-top: 15px; font-size: 0.9em; color: #64748b;">
+      <strong>Explanation Level:</strong> ${explanationLevel}<br>
+      <strong>Confidence:</strong> ${context.metadata?.confidence || 'N/A'}
+    </p>
+  </div>
   ` : ''}
   
   ${context.metadata ? `
-  <h2>Metadata</h2>
+  <!-- Metadata -->
+  <h2 id="metadata">5. Metadata & Assumptions</h2>
   <div class="metadata">
-    ${Object.entries(context.metadata).map(([k, v]) => `<p><strong>${k}:</strong> ${v}</p>`).join('')}
+    ${Object.entries(context.metadata).map(([k, v]) => {
+      if (Array.isArray(v)) {
+        return `<p><strong>${k}:</strong> ${v.join(', ')}</p>`;
+      }
+      return `<p><strong>${k}:</strong> ${v}</p>`;
+    }).join('')}
+    ${context.metadata.approxLevel ? `<p><strong>Approximation Level:</strong> ${context.metadata.approxLevel} - ${getApproxLevelDescription(context.metadata.approxLevel)}</p>` : ''}
   </div>
   ` : ''}
+  
+  ${context.metadata?.warnings && context.metadata.warnings.length > 0 ? `
+  <div class="warning">
+    <strong>⚠️ Warnings:</strong>
+    <ul style="margin: 10px 0 0 20px;">
+      ${context.metadata.warnings.map((w: string) => `<li>${w}</li>`).join('')}
+    </ul>
+  </div>
+  ` : ''}
+  
+  <!-- Calculation Record -->
+  <h2 id="record">6. Calculation Record (JSON)</h2>
+  <p style="color: #64748b; font-size: 0.9em;">This machine-readable record allows re-importing or re-running the calculation.</p>
+  <div class="json-record">
+    <pre>${JSON.stringify(calculationRecord, null, 2)}</pre>
+  </div>
+  
+  <!-- Footer -->
+  <div class="footer">
+    <p><strong>Report Generated:</strong> ${new Date().toISOString()}</p>
+    <p><strong>Tool:</strong> ${context.toolName} | <strong>Version:</strong> 1.0.0</p>
+    <p style="margin-top: 10px; font-size: 0.8em;">This report was generated automatically by AeroVerse Calculation Tools.</p>
+  </div>
 </body>
 </html>`;
+}
+
+function getApproxLevelDescription(level: string): string {
+  const descriptions: Record<string, string> = {
+    'analytic': 'Exact analytical formulas used (highest accuracy)',
+    'array-analytic': 'Analytical array factor with element models',
+    'hybrid': 'Mix of analytical and empirical models',
+    'empirical': 'Data-driven approximations (verify with measurements)',
+  };
+  return descriptions[level] || 'Unknown approximation level';
 }
 
 async function handleGetContext(req: Request): Promise<Response> {
