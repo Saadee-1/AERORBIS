@@ -31,52 +31,66 @@ const LANGUAGES = [
   { code: 'ur', name: 'اردو' },
 ];
 
-// Simple Astronaut Icon - Clean Vector Art with Waving Animation
-const AstronautIcon = ({ className }: { className?: string }) => {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <style>{`
-        @keyframes wave {
-          0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(20deg); }
-        }
-        .wave-arm {
-          transform-origin: 17px 12px;
-          animation: wave 1s ease-in-out infinite;
-        }
-      `}</style>
-      
-      {/* Simple Helmet */}
-      <circle cx="12" cy="7" r="4.5" fill="white" stroke="currentColor" strokeWidth="1.5" />
-      
-      {/* Visor */}
-      <ellipse cx="12" cy="7" rx="3" ry="2.5" fill="#4a148c" />
-      
-      {/* Simple Body */}
-      <rect x="9" y="11" width="6" height="5" rx="1" fill="white" stroke="currentColor" strokeWidth="1.5" />
-      
-      {/* Left Arm */}
-      <line x1="7" y1="12" x2="5" y2="15" stroke="white" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="5" cy="15" r="1.5" fill="white" />
-      
-      {/* Right Arm - Waving (fixed transform origin) */}
-      <g className="wave-arm" style={{ transformOrigin: '17px 12px' }}>
-        <line x1="17" y1="12" x2="19" y2="8" stroke="white" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="19" cy="8" r="1.5" fill="white" />
-      </g>
-      
-      {/* Legs */}
-      <line x1="10.5" y1="16" x2="10.5" y2="20" stroke="white" strokeWidth="2" strokeLinecap="round" />
-      <line x1="13.5" y1="16" x2="13.5" y2="20" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-};
+// Cute Cartoon Astronaut Icon (matching the provided image)
+const AstronautIcon = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    {/* Large round helmet */}
+    <circle cx="12" cy="8" r="5.5" fill="white" strokeWidth="2.5" />
+    
+    {/* Helmet trim band across top */}
+    <path d="M7 5.5h10" strokeWidth="2" />
+    
+    {/* Ear-like protrusions on sides */}
+    <circle cx="6.5" cy="8" r="1.2" fill="white" strokeWidth="2" />
+    <circle cx="17.5" cy="8" r="1.2" fill="white" strokeWidth="2" />
+    
+    {/* Dark visor covering face */}
+    <ellipse cx="12" cy="8" rx="4" ry="3.5" fill="#4a148c" strokeWidth="0" />
+    {/* Visor highlights */}
+    <circle cx="10" cy="7.5" r="0.8" fill="white" opacity="0.8" />
+    <circle cx="13.5" cy="8" r="0.6" fill="white" opacity="0.6" />
+    
+    {/* Body - Bulky rounded suit */}
+    <path d="M8 13.5 Q8 12 12 12 Q16 12 16 13.5 L16 18 Q16 19 12 19 Q8 19 8 18 Z" 
+          fill="white" strokeWidth="2.5" />
+    
+    {/* Chest panel with L shape */}
+    <rect x="10" y="14" width="4" height="3" rx="0.5" fill="white" strokeWidth="2" />
+    {/* L shape design on chest */}
+    <path d="M10.5 14.5h2v1.5h-2z M10.5 16h3" strokeWidth="1.5" fill="none" />
+    {/* Blue button/indicator */}
+    <circle cx="13" cy="15.5" r="0.6" fill="#3b82f6" strokeWidth="0" />
+    
+    {/* Belt/strap around waist */}
+    <path d="M8 17.5h8" strokeWidth="2.5" />
+    
+    {/* Left arm - hand on hip */}
+    <path d="M6 12 Q5 13 5 14.5 Q5 16 6.5 16.5" 
+          fill="white" strokeWidth="2.5" strokeLinecap="round" />
+    <circle cx="6" cy="16.5" r="1.5" fill="white" strokeWidth="2" />
+    
+    {/* Right arm - raised with thumbs up */}
+    <path d="M18 12 Q19 11 19.5 10 Q20 9 19 8.5 Q18 8 17 9 Q16.5 10 17 11 Q17.5 12 18 12" 
+          fill="white" strokeWidth="2.5" strokeLinecap="round" />
+    {/* Thumbs up hand */}
+    <circle cx="19" cy="9.5" r="1.2" fill="white" strokeWidth="2" />
+    <path d="M19.5 8.5v1.5" strokeWidth="2" strokeLinecap="round" />
+    
+    {/* Legs - rounded puffy boots */}
+    <path d="M10 18.5 L10 21 Q10 22 11 22 L11.5 22 Q12.5 22 12.5 21 L12.5 18.5" 
+          fill="white" strokeWidth="2.5" />
+    <path d="M11.5 18.5 L11.5 21 Q11.5 22 12.5 22 L13 22 Q14 22 14 21 L14 18.5" 
+          fill="white" strokeWidth="2.5" />
+  </svg>
+);
 
 const AIAssistant: React.FC = () => {
   const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, notificationMessage, currentSessionId, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat, deleteChatSession, clearNotification } = useAIAssistant();
@@ -177,29 +191,26 @@ const AIAssistant: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Floating Chat Bubble - Always visible when chat is closed */}
-      {!isOpen && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0, opacity: 0 }}
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-8 right-8 z-[9999] w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
-                   shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
-                   flex items-center justify-center transition-all duration-300 hover:scale-110 group relative
-                   border-2 border-white/50"
-          style={{
-            animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-          }}
-          aria-label="Open Aerobot AI Assistant"
-        >
-          {/* Icon Container - Direct SVG rendering */}
-          <div className="w-14 h-14 flex items-center justify-center relative z-10">
-            <AstronautIcon className="w-full h-full" />
-          </div>
-          <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all pointer-events-none" />
-        </motion.button>
-      )}
+      {/* Floating Chat Bubble */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-8 right-8 z-50 w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
+                     shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
+                     flex items-center justify-center transition-all duration-300 hover:scale-110 group"
+            style={{
+              animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            }}
+          >
+            <AstronautIcon className="w-10 h-10 text-white group-hover:scale-110 transition-transform" />
+            <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Chat Window */}
       <AnimatePresence>
@@ -209,18 +220,16 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 right-4 z-[9998] w-[360px] max-w-[calc(100vw-2rem)] h-[calc(100vh-5rem)] max-h-[620px] min-h-[480px] flex flex-col
+            className="fixed bottom-0 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[calc(100vh-4rem)] max-h-[700px] min-h-[520px] flex flex-col
                      bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
                      border-t border-l border-r border-cyan-400/40 rounded-t-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
           >
             {/* Minimal Header - Always Visible at Top */}
-            <div className="flex items-center justify-between p-2.5 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky top-0 z-10">
+            <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky top-0 z-10">
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
-                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0 p-1.5 relative">
-                  <div className="w-full h-full">
-                    <AstronautIcon className="w-full h-full" />
-                  </div>
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
+                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0 p-1.5">
+                  <AstronautIcon className="w-full h-full text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
