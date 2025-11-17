@@ -16,10 +16,37 @@ import { motion } from "framer-motion";
 interface MaterialTableProps {
   materials: Material[];
   unitSystem: UnitSystem;
+  customUnitName?: string;
+  customFactor?: string;
   onMaterialClick: (material: Material) => void;
 }
 
-const MaterialTable = ({ materials, unitSystem, onMaterialClick }: MaterialTableProps) => {
+const MaterialTable = ({ materials, unitSystem, customUnitName, customFactor, onMaterialClick }: MaterialTableProps) => {
+  const convertDensityToCustom = (densitySI: number): number => {
+    if (unitSystem !== "Custom" || !customFactor) return densitySI;
+    const factor = parseFloat(customFactor);
+    if (!isNaN(factor) && factor > 0) {
+      return densitySI / factor;
+    }
+    return densitySI;
+  };
+
+  const getDensityUnit = (): string => {
+    if (unitSystem === "SI") return "kg/m³";
+    if (unitSystem === "Imperial") return "lb/ft³";
+    return customUnitName || "Unit";
+  };
+
+  const formatDensity = (material: Material): string => {
+    if (unitSystem === "SI") {
+      return `${material.density.toLocaleString('en-US', { maximumFractionDigits: 0 })} kg/m³`;
+    } else if (unitSystem === "Imperial") {
+      return `${convertDensityToImperial(material.density).toLocaleString('en-US', { maximumFractionDigits: 2 })} lb/ft³`;
+    } else {
+      const customDensity = convertDensityToCustom(material.density);
+      return `${customDensity.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${getDensityUnit()}`;
+    }
+  };
   return (
     <div className="rounded-lg border border-cyan-400/20 overflow-hidden">
       <div className="overflow-x-auto">
@@ -29,7 +56,7 @@ const MaterialTable = ({ materials, unitSystem, onMaterialClick }: MaterialTable
               <TableHead className="text-cyan-400 font-semibold">Material Name</TableHead>
               <TableHead className="text-cyan-400 font-semibold">Category</TableHead>
               <TableHead className="text-cyan-400 font-semibold text-right">
-                Density ({unitSystem === "SI" ? "kg/m³" : "lb/ft³"})
+                Density ({getDensityUnit()})
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -57,9 +84,7 @@ const MaterialTable = ({ materials, unitSystem, onMaterialClick }: MaterialTable
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right text-cyan-400 font-semibold">
-                    {unitSystem === "SI"
-                      ? `${material.density.toLocaleString('en-US', { maximumFractionDigits: 0 })} kg/m³`
-                      : `${convertDensityToImperial(material.density).toLocaleString('en-US', { maximumFractionDigits: 2 })} lb/ft³`}
+                    {formatDensity(material)}
                   </TableCell>
                 </motion.tr>
               ))

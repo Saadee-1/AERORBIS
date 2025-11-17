@@ -9,6 +9,7 @@ import AddMaterialDialog from "./AddMaterialDialog";
 import DensityChart from "./DensityChart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -17,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Database, Search, Filter, Plus, Ruler } from "lucide-react";
+import { Database, Search, Filter, Plus, Ruler, Settings2 } from "lucide-react";
 import { useToolContext } from "@/hooks/useToolContext";
 
 // Full Aerospace Materials Database
@@ -80,6 +81,8 @@ const MaterialsDatabase = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
+  const [customUnitName, setCustomUnitName] = useState("Unit-ρ");
+  const [customFactor, setCustomFactor] = useState("1.0");
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -100,6 +103,14 @@ const MaterialsDatabase = () => {
     if (storedUnitSystem) {
       setUnitSystem(storedUnitSystem as UnitSystem);
     }
+    const storedCustomUnitName = localStorage.getItem("materialsDatabase_customUnitName");
+    if (storedCustomUnitName) {
+      setCustomUnitName(storedCustomUnitName);
+    }
+    const storedCustomFactor = localStorage.getItem("materialsDatabase_customFactor");
+    if (storedCustomFactor) {
+      setCustomFactor(storedCustomFactor);
+    }
   }, []);
 
   // Save custom materials to localStorage
@@ -116,6 +127,13 @@ const MaterialsDatabase = () => {
   useEffect(() => {
     localStorage.setItem("materialsDatabase_unitSystem", unitSystem);
   }, [unitSystem]);
+
+  useEffect(() => {
+    if (unitSystem === "Custom") {
+      localStorage.setItem("materialsDatabase_customUnitName", customUnitName);
+      localStorage.setItem("materialsDatabase_customFactor", customFactor);
+    }
+  }, [unitSystem, customUnitName, customFactor]);
 
   // Filter materials based on search and category
   const filteredMaterials = useMemo(() => {
@@ -134,6 +152,14 @@ const MaterialsDatabase = () => {
     return Array.from(cats).sort();
   }, [materials]);
 
+  const convertDensityToCustom = (densitySI: number): number => {
+    const factor = parseFloat(customFactor);
+    if (!isNaN(factor) && factor > 0) {
+      return densitySI / factor;
+    }
+    return densitySI;
+  };
+
   const handleMaterialClick = (material: Material) => {
     setSelectedMaterial(material);
     setIsDrawerOpen(true);
@@ -141,6 +167,7 @@ const MaterialsDatabase = () => {
     // Update AI assistant context
     const densitySI = material.density;
     const densityImperial = densitySI * 0.062428;
+    const densityCustom = unitSystem === "Custom" ? convertDensityToCustom(densitySI) : 0;
     updateToolContext({
       tool: "Materials Density Database",
       inputs: {
@@ -151,6 +178,7 @@ const MaterialsDatabase = () => {
       results: {
         densitySI: `${densitySI} kg/m³`,
         densityImperial: `${densityImperial.toFixed(2)} lb/ft³`,
+        densityCustom: unitSystem === "Custom" ? `${densityCustom.toFixed(2)} ${customUnitName}` : undefined,
         description: material.description
       }
     });
@@ -194,6 +222,7 @@ const MaterialsDatabase = () => {
             <SelectContent>
               <SelectItem value="SI">SI (kg/m³)</SelectItem>
               <SelectItem value="Imperial">Imperial (lb/ft³)</SelectItem>
+              <SelectItem value="Custom">Custom</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -307,6 +336,8 @@ const MaterialsDatabase = () => {
               <MaterialTable
                 materials={filteredMaterials}
                 unitSystem={unitSystem}
+                customUnitName={customUnitName}
+                customFactor={customFactor}
                 onMaterialClick={handleMaterialClick}
               />
             </CardContent>

@@ -5,5 +5,5 @@ export interface Material {
   description: string;
 }
 
-export type UnitSystem = "SI" | "Imperial";
+export type UnitSystem = "SI" | "Imperial" | "Custom";
 

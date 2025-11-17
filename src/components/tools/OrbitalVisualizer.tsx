@@ -21,13 +21,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2 } from "lucide-react";
+import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2 } from "lucide-react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { useToolContext } from "@/hooks/useToolContext";
 import { useToast } from "@/hooks/use-toast";
 
-type UnitSystem = "SI" | "Imperial";
+type UnitSystem = "SI" | "Imperial" | "Custom";
 
 // --- Constants ---
 // Physics: Earth's gravitational parameter μ = GM (km³/s²)
@@ -66,6 +66,17 @@ const STORAGE_KEY_CUSTOM_ORBITS = "orbitalVisualizer_customOrbits";
 const OrbitalVisualizer = () => {
   const { updateToolContext } = useToolContext();
   const { toast } = useToast();
+  const [customUnitNames, setCustomUnitNames] = useState({
+    dist: "Unit-D",
+    vel: "Unit-V",
+    time: "Unit-T",
+  });
+  const [customFactors, setCustomFactors] = useState({
+    dist: "1.0",
+    vel: "1.0",
+    time: "1.0",
+  });
+
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
     return (localStorage.getItem("orbitalUnitSystem") as UnitSystem) || "SI";
   });
@@ -165,21 +176,76 @@ const OrbitalVisualizer = () => {
   }, [unitSystem]);
 
   useEffect(() => {
+    const stored = localStorage.getItem("orbitalCustomUnitNames");
+    if (stored) {
+      try {
+        setCustomUnitNames(JSON.parse(stored));
+      } catch (e) {
+        console.warn("Failed to load custom unit names");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("orbitalCustomFactors");
+    if (stored) {
+      try {
+        setCustomFactors(JSON.parse(stored));
+      } catch (e) {
+        console.warn("Failed to load custom factors");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (unitSystem === "Custom") {
+      localStorage.setItem("orbitalCustomUnitNames", JSON.stringify(customUnitNames));
+      localStorage.setItem("orbitalCustomFactors", JSON.stringify(customFactors));
+    }
+  }, [unitSystem, customUnitNames, customFactors]);
+
+  useEffect(() => {
     localStorage.setItem("orbitalInputs", JSON.stringify(inputs));
   }, [inputs]);
 
   // --- Unit Conversion (FIXED) ---
-  const convert = (value: number, param: string, to: "SI" | "Imperial") => {
+  const convert = (value: number, param: string, to: "SI" | "Imperial" | "Custom") => {
     if (unitSystem === to) return value;
     const key = (param === "periapsisAltitude" || param === "centralBodyRadius" || param === "targetAltitude") ? "dist" : "other";
     if (key !== "dist") return value;
 
-    // FIXED: Use correct conversion constants
-    if (to === "SI") return value * MI_TO_KM; // Imperial to SI: miles to km
-    return value * KM_TO_MI; // SI to Imperial: km to miles
+    // Convert to SI first
+    let valueInSI = value;
+    if (unitSystem === "Imperial") {
+      valueInSI = value * MI_TO_KM; // miles to km
+    } else if (unitSystem === "Custom") {
+      const factor = parseFloat(customFactors.dist);
+      if (!isNaN(factor) && factor > 0) {
+        valueInSI = value * factor;
+      }
+    }
+
+    // Convert from SI to target
+    if (to === "SI") return valueInSI;
+    if (to === "Imperial") return valueInSI * KM_TO_MI; // km to miles
+    if (to === "Custom") {
+      const factor = parseFloat(customFactors.dist);
+      if (!isNaN(factor) && factor > 0) {
+        return valueInSI / factor;
+      }
+    }
+    return value;
   };
 
   const getUnit = (param: "dist" | "incl" | "ecc" | "gm" | "vel" | "time"): string => {
+    if (unitSystem === "Custom") {
+      if (param === "dist") return customUnitNames.dist || "Unit";
+      if (param === "vel") return `${customUnitNames.vel || "Unit"}/s`;
+      if (param === "time") return customUnitNames.time || "Unit";
+      if (param === "incl") return "°";
+      if (param === "ecc") return "";
+      if (param === "gm") return "km³/s²";
+    }
     const units = {
       SI: { dist: "km", incl: "°", ecc: "", gm: "km³/s²", vel: "km/s", time: "min" },
       Imperial: { dist: "mi", incl: "°", ecc: "", gm: "km³/s²", vel: "mi/s", time: "min" }
@@ -681,7 +747,15 @@ const OrbitalVisualizer = () => {
     if (param === "dist") return `${value.toFixed(2)} ${getUnit("dist")}`;
     if (param === "vel") {
       // FIXED: Convert velocity units correctly
-      const converted = unitSystem === "Imperial" ? value * KM_TO_MI : value;
+      let converted = value;
+      if (unitSystem === "Imperial") {
+        converted = value * KM_TO_MI; // km/s to mi/s
+      } else if (unitSystem === "Custom") {
+        const factor = parseFloat(customFactors.vel);
+        if (!isNaN(factor) && factor > 0) {
+          converted = value / factor; // Convert from SI (km/s) to custom
+        }
+      }
       return `${converted.toFixed(3)} ${getUnit("vel")}`;
     }
     if (param === "time") return `${value.toFixed(2)} ${getUnit("time")}`;
@@ -762,6 +836,7 @@ const OrbitalVisualizer = () => {
               <SelectContent>
                 <SelectItem value="SI">SI (km, s)</SelectItem>
                 <SelectItem value="Imperial">Imperial (mi, s)</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -825,6 +900,53 @@ const OrbitalVisualizer = () => {
               </Button>
             </div>
           </div>
+
+          {/* Custom Units Card */}
+          {unitSystem === "Custom" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Settings2 className="w-5 h-5 text-cyan-400" />
+                    Custom Unit Definitions
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Define conversion factors to SI (km, km/s, min)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    {id: 'dist', label: 'Distance (Altitude/Radius)', unit: 'km'},
+                    {id: 'vel', label: 'Velocity', unit: 'km/s'},
+                    {id: 'time', label: 'Time', unit: 'min'},
+                  ].map(field => (
+                    <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                      <Label className="text-white font-semibold">{field.label}</Label>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        <Input 
+                          placeholder="Unit Name" 
+                          value={customUnitNames[field.id as keyof typeof customUnitNames]}
+                          onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
+                          className="bg-slate-800 border-cyan-400/30 text-white"
+                        />
+                        <Input 
+                          type="number"
+                          step="0.0001"
+                          placeholder="SI Factor"
+                          value={customFactors[field.id as keyof typeof customFactors]}
+                          onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
+                          className="bg-slate-800 border-cyan-400/30 text-white"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1.5">
+                        1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
+                      </p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
