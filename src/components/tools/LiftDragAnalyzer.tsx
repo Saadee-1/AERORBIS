@@ -20,11 +20,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal } from "lucide-react";
+import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal, Settings2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useToolContext } from "@/hooks/useToolContext";
 
-type UnitSystem = "SI" | "Imperial";
+type UnitSystem = "SI" | "Imperial" | "Custom";
 type AirfoilKey = keyof typeof airfoils | "custom";
 type ChartMode = "compareOne" | "compareAll";
 
@@ -119,6 +119,20 @@ const LiftDragAnalyzer = () => {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
     return (localStorage.getItem("liftDragUnitSystem") as UnitSystem) || "SI";
   });
+  const [customUnitNames, setCustomUnitNames] = useState({
+    speed: "Unit-V",
+    density: "Unit-ρ",
+    area: "Unit-S",
+    force: "Unit-F",
+    span: "Unit-b",
+  });
+  const [customFactors, setCustomFactors] = useState({
+    speed: "1.0",
+    density: "1.0",
+    area: "1.0",
+    force: "1.0",
+    span: "1.0",
+  });
 
   const [inputs, setInputs] = useState<LiftDragInputs>(() => {
     const saved = localStorage.getItem("liftDragInputs");
@@ -156,6 +170,35 @@ const LiftDragAnalyzer = () => {
   }, [unitSystem]);
 
   useEffect(() => {
+    const stored = localStorage.getItem("liftDragCustomUnitNames");
+    if (stored) {
+      try {
+        setCustomUnitNames(JSON.parse(stored));
+      } catch (e) {
+        console.warn("Failed to load custom unit names");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("liftDragCustomFactors");
+    if (stored) {
+      try {
+        setCustomFactors(JSON.parse(stored));
+      } catch (e) {
+        console.warn("Failed to load custom factors");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (unitSystem === "Custom") {
+      localStorage.setItem("liftDragCustomUnitNames", JSON.stringify(customUnitNames));
+      localStorage.setItem("liftDragCustomFactors", JSON.stringify(customFactors));
+    }
+  }, [unitSystem, customUnitNames, customFactors]);
+
+  useEffect(() => {
     localStorage.setItem("liftDragInputs", JSON.stringify(inputs));
   }, [inputs]);
 
@@ -170,32 +213,52 @@ const LiftDragAnalyzer = () => {
       if (param === "area") return "m²";
       if (param === "force") return "N";
       if (param === "span") return "m";
-    } else {
+    } else if (unitSystem === "Imperial") {
       if (param === "speed") return "ft/s";
       if (param === "density") return "slug/ft³";
       if (param === "area") return "ft²";
       if (param === "force") return "lbf";
       if (param === "span") return "ft";
+    } else if (unitSystem === "Custom") {
+      return customUnitNames[param as keyof typeof customUnitNames] || "Unit";
     }
     return "";
   };
 
   const convertToSI = (value: number, param: string) => {
     if (unitSystem === "SI") return value;
-    if (param === "speed") return value * 0.3048; // ft/s to m/s
-    if (param === "density") return value * 515.379; // slug/ft³ to kg/m³
-    if (param === "area") return value * 0.092903; // ft² to m²
-    if (param === "span") return value * 0.3048; // ft to m
+    if (unitSystem === "Imperial") {
+      if (param === "speed") return value * 0.3048; // ft/s to m/s
+      if (param === "density") return value * 515.379; // slug/ft³ to kg/m³
+      if (param === "area") return value * 0.092903; // ft² to m²
+      if (param === "span") return value * 0.3048; // ft to m
+    }
+    if (unitSystem === "Custom") {
+      const factorKey = param as keyof typeof customFactors;
+      const factor = parseFloat(customFactors[factorKey]);
+      if (!isNaN(factor) && factor > 0) {
+        return value * factor;
+      }
+    }
     return value;
   };
 
   const convertFromSI = (value: number, param: string) => {
     if (unitSystem === "SI") return value;
-    if (param === "force") return value * 0.224809; // N to lbf
-    if (param === "speed") return value / 0.3048; // m/s to ft/s
-    if (param === "density") return value / 515.379; // kg/m³ to slug/ft³
-    if (param === "area") return value / 0.092903; // m² to ft²
-    if (param === "span") return value / 0.3048; // m to ft
+    if (unitSystem === "Imperial") {
+      if (param === "force") return value * 0.224809; // N to lbf
+      if (param === "speed") return value / 0.3048; // m/s to ft/s
+      if (param === "density") return value / 515.379; // kg/m³ to slug/ft³
+      if (param === "area") return value / 0.092903; // m² to ft²
+      if (param === "span") return value / 0.3048; // m to ft
+    }
+    if (unitSystem === "Custom") {
+      const factorKey = param as keyof typeof customFactors;
+      const factor = parseFloat(customFactors[factorKey]);
+      if (!isNaN(factor) && factor > 0) {
+        return value / factor;
+      }
+    }
     return value;
   };
 
@@ -435,6 +498,7 @@ const LiftDragAnalyzer = () => {
               <SelectContent>
                 <SelectItem value="SI">SI (m, kg)</SelectItem>
                 <SelectItem value="Imperial">Imperial (ft, slug)</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -565,6 +629,55 @@ const LiftDragAnalyzer = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Custom Units Card */}
+              {unitSystem === "Custom" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+                    <CardHeader>
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <Settings2 className="w-5 h-5 text-cyan-400" />
+                        Custom Unit Definitions
+                      </CardTitle>
+                      <CardDescription className="text-gray-400">
+                        Define conversion factors to SI (kg, m, s, N)
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {[
+                        {id: 'speed', label: 'Airspeed (V)', unit: 'm/s'},
+                        {id: 'density', label: 'Air Density (ρ)', unit: 'kg/m³'},
+                        {id: 'area', label: 'Wing Area (S)', unit: 'm²'},
+                        {id: 'force', label: 'Force (L/D)', unit: 'N'},
+                        {id: 'span', label: 'Wing Span (b)', unit: 'm'},
+                      ].map(field => (
+                        <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                          <Label className="text-white font-semibold">{field.label}</Label>
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            <Input 
+                              placeholder="Unit Name" 
+                              value={customUnitNames[field.id as keyof typeof customUnitNames]}
+                              onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
+                              className="bg-slate-800 border-cyan-400/30 text-white"
+                            />
+                            <Input 
+                              type="number"
+                              step="0.0001"
+                              placeholder="SI Factor"
+                              value={customFactors[field.id as keyof typeof customFactors]}
+                              onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
+                              className="bg-slate-800 border-cyan-400/30 text-white"
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1.5">
+                            1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
+                          </p>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
             </div>
 
             {/* Results Panel */}
