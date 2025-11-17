@@ -534,8 +534,147 @@ async function handleGetContext(req: Request): Promise<Response> {
     results: context.results,
     steps: context.steps,
     metadata: context.metadata,
+    timestamp: context.timestamp,
+    toolName: context.toolName,
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+// Handle calculation.update events (for streaming/partial updates)
+async function handleCalculationUpdate(req: Request): Promise<Response> {
+  const event: CalculationEvent = await req.json();
+
+  if (!event.requestId || !event.sequenceId) {
+    return new Response(JSON.stringify({ error: 'Missing required fields (requestId, sequenceId)' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Update existing context or create new one
+  const existing = calculationContexts.get(event.requestId);
+  if (existing) {
+    // Merge intermediate results
+    if (event.intermediateResults) {
+      existing.results = { ...existing.results, ...event.intermediateResults };
+    }
+    // Update progress if provided
+    if (event.progress !== undefined) {
+      (existing as any).progress = event.progress;
+    }
+    calculationContexts.set(event.requestId, existing);
+  } else {
+    // Create new context for first update
+    calculationContexts.set(event.requestId, {
+      ...event,
+      explanationId: `exp-${event.requestId}`,
+    });
+  }
+
+  return new Response(JSON.stringify({
+    ack: true,
+    requestId: event.requestId,
+    sequenceId: event.sequenceId,
+    isFinal: event.isFinal || false,
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+// Handle batch PDF export (multiple requestIds)
+async function handleBatchExport(req: Request): Promise<Response> {
+  const { requestIds, options = {} } = await req.json();
+  
+  if (!Array.isArray(requestIds) || requestIds.length === 0) {
+    return new Response(JSON.stringify({ error: 'Invalid requestIds array' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Fetch all contexts
+  const contexts = requestIds
+    .map((id: string) => calculationContexts.get(id))
+    .filter((ctx) => ctx !== undefined);
+
+  if (contexts.length === 0) {
+    return new Response(JSON.stringify({ error: 'No valid contexts found' }), {
+      status: 404,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Generate combined HTML
+  const html = generateBatchPDFHTML(contexts, options);
+  
+  return new Response(JSON.stringify({
+    status: 'ready',
+    html,
+    requestIds,
+    pdfUrl: null,
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+function generateBatchPDFHTML(contexts: any[], options: any): string {
+  const { includeAssistantExplanation = true, explanationLevel = 'detailed' } = options;
+  
+  const contextsHTML = contexts.map((context, idx) => `
+    <div style="page-break-after: always;">
+      <h2>${context.toolName} - Calculation ${idx + 1}</h2>
+      <p><strong>Request ID:</strong> ${context.requestId}</p>
+      <p><strong>Timestamp:</strong> ${context.timestamp}</p>
+      
+      <h3>Inputs</h3>
+      <table>
+        <tr><th>Parameter</th><th>Value</th></tr>
+        ${Object.entries(context.inputs).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+      </table>
+      
+      <h3>Results</h3>
+      <table>
+        <tr><th>Result</th><th>Value</th></tr>
+        ${Object.entries(context.results).map(([k, v]) => `<tr><td>${k}</td><td class="result">${v}</td></tr>`).join('')}
+      </table>
+      
+      ${context.steps && context.steps.length > 0 ? `
+      <h3>Step-by-Step Calculation</h3>
+      ${context.steps.map((step: string, i: number) => `<div class="step"><strong>Step ${i + 1}:</strong> ${step}</div>`).join('')}
+      ` : ''}
+    </div>
+  `).join('');
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Combined Calculation Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+    h1 { color: #22d3ee; }
+    h2 { color: #3b82f6; margin-top: 30px; }
+    h3 { color: #60a5fa; margin-top: 20px; }
+    table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background-color: #1e293b; color: white; }
+    .step { margin: 15px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #22d3ee; }
+    .result { font-size: 1.2em; font-weight: bold; color: #22d3ee; }
+  </style>
+</head>
+<body>
+  <h1>Combined Calculation Report</h1>
+  <p>Generated: ${new Date().toISOString()}</p>
+  <p>Total Calculations: ${contexts.length}</p>
+  
+  ${contextsHTML}
+  
+  <div style="page-break-before: always; margin-top: 40px;">
+    <h2>Comparison Summary</h2>
+    <p>This report contains ${contexts.length} calculations. Compare results across different parameter sets.</p>
+  </div>
+</body>
+</html>`;
 }
 
