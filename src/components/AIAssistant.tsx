@@ -88,6 +88,41 @@ const AIAssistant: React.FC = () => {
 
   return (
     <>
+      {/* Notification Toast */}
+      <AnimatePresence>
+        {notificationMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-24 right-8 z-50 max-w-sm"
+          >
+            <div
+              onClick={() => {
+                setIsOpen(true);
+                clearNotification();
+              }}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-4 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.6)] 
+                       border border-cyan-400/50 cursor-pointer hover:shadow-[0_0_50px_rgba(34,211,238,0.8)] transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <Calculator className="w-5 h-5 flex-shrink-0" />
+                <p className="text-sm font-semibold flex-1">{notificationMessage}</p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearNotification();
+                  }}
+                  className="text-white/80 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Floating Chat Bubble */}
       <AnimatePresence>
         {!isOpen && (
