@@ -27,6 +27,7 @@ import { Calculator, Rocket, Info, TrendingUp, Settings2, Anchor } from "lucide-
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
+import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { 
   Select, 
   SelectContent, 
@@ -99,7 +100,8 @@ const performanceSchema = z.object({
 // --- Main Component ---
 const AdvancedThrustCalculator = () => {
   const { toast } = useToast();
-  const { updateToolContext } = useToolContext();
+  const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
 
   // --- State ---
@@ -434,6 +436,41 @@ const AdvancedThrustCalculator = () => {
       setThrustResult({ ...resultData, steps, solvedFor: solveFor });
       setPerformanceResult(null); // Clear performance results
       
+      // Prepare calculation steps for event
+      const calculationSteps = steps.map(step => 
+        `${step.description}: ${step.equation}`
+      );
+      
+      // Send calculation event to assistant
+      const eventResponse = await sendCalculationEvent({
+        toolId: "thrust-calculator",
+        toolName: "Thrust Calculator",
+        inputs: {
+          massFlowRate: validated.massFlowRate,
+          exhaustVelocity: validated.exhaustVelocity,
+          exitArea: validated.exitArea,
+          exitPressure: validated.exitPressure,
+          ambientPressure: validated.ambientPressure,
+          thrust: validated.thrust,
+          solvedFor: solveFor,
+          unitSystem
+        },
+        results: {
+          ...resultData,
+          solvedFor: solveFor
+        },
+        steps: calculationSteps,
+        metadata: {
+          units: unitSystem,
+          approxLevel: "analytic",
+          confidence: "high"
+        }
+      });
+
+      if (eventResponse) {
+        setLastRequestId(eventResponse.requestId);
+      }
+      
       // Update AI Assistant context
       updateToolContext({
         tool: "Thrust",
@@ -662,7 +699,14 @@ const AdvancedThrustCalculator = () => {
                 {/* Thrust Result */}
                 {thrustResult && (
                   <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                    <p className="text-sm font-semibold text-cyan-400 mb-2">Part 2 Result (Thrust)</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold text-cyan-400">Part 2 Result (Thrust)</p>
+                      <PDFExportButton 
+                        requestId={lastRequestId} 
+                        toolName="Thrust Calculator"
+                        disabled={!lastRequestId}
+                      />
+                    </div>
                     <p className="text-gray-400 text-sm mb-1">Solved: {thrustResult.solvedFor}</p>
                     <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
                       {
