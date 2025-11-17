@@ -32,71 +32,72 @@ const LANGUAGES = [
 ];
 
 // Simplified Astronaut Icon - Waving "Hi" with Animation (Reliable Rendering with Inline Styles)
-const AstronautIcon = ({ className }: { className?: string }) => (
-  <>
-    <style>{`
-      @keyframes astronaut-wave {
-        0%, 100% { transform: rotate(0deg); }
-        25% { transform: rotate(-20deg); }
-        75% { transform: rotate(20deg); }
-      }
-      .astronaut-waving-arm {
-        transform-origin: 18px 9px;
-        animation: astronaut-wave 1s ease-in-out infinite;
-      }
-    `}</style>
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Helmet */}
-      <circle cx="12" cy="8" r="5.5" fill="#ffffff" stroke="#ffffff" strokeWidth="1.5" />
-      <path d="M7 5.5h10" stroke="#ffffff" strokeWidth="2" />
-      <circle cx="6.5" cy="8" r="1.2" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
-      <circle cx="17.5" cy="8" r="1.2" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
-      
-      {/* Visor */}
-      <ellipse cx="12" cy="8" rx="4" ry="3.5" fill="#4a148c" />
-      <circle cx="10" cy="7.5" r="0.8" fill="#ffffff" opacity="0.8" />
-      <circle cx="13.5" cy="8" r="0.6" fill="#ffffff" opacity="0.6" />
-      
-      {/* Body */}
-      <path d="M8 13.5 Q8 12 12 12 Q16 12 16 13.5 L16 18 Q16 19 12 19 Q8 19 8 18 Z" 
-            fill="#ffffff" stroke="#ffffff" strokeWidth="1.5" />
-      
-      {/* Chest Panel */}
-      <rect x="10" y="14" width="4" height="3" rx="0.5" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
-      <path d="M10.5 14.5h2v1.5h-2z M10.5 16h3" stroke="#ffffff" strokeWidth="1.5" fill="none" />
-      <circle cx="13" cy="15.5" r="0.6" fill="#3b82f6" />
-      
-      {/* Belt */}
-      <path d="M8 17.5h8" stroke="#ffffff" strokeWidth="2.5" />
-      
-      {/* Left Arm */}
-      <path d="M6 12 Q5 13 5 14.5 Q5 16 6.5 16.5" 
-            fill="#ffffff" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
-      <circle cx="6" cy="16.5" r="1.5" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
-      
-      {/* Right Arm - Waving */}
-      <g className="astronaut-waving-arm">
-        <path d="M18 12 Q19 10.5 19.5 9 Q20 7.5 19.5 6.5 Q19 5.5 18 6 Q17 6.5 16.5 7.5 Q16 8.5 16.5 9.5 Q17 10.5 18 12" 
-              fill="#ffffff" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx="19.5" cy="7" r="1.3" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
-        <path d="M19 6.2 L19.2 5.5 M19.5 6 L19.8 5.3 M20 6.2 L20.2 5.5" 
-              stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
-      </g>
-      
-      {/* Legs */}
-      <path d="M10 18.5 L10 21 Q10 22 11 22 L11.5 22 Q12.5 22 12.5 21 L12.5 18.5" 
-            fill="#ffffff" stroke="#ffffff" strokeWidth="2.5" />
-      <path d="M11.5 18.5 L11.5 21 Q11.5 22 12.5 22 L13 22 Q14 22 14 21 L14 18.5" 
-            fill="#ffffff" stroke="#ffffff" strokeWidth="2.5" />
-    </svg>
-  </>
-);
+const AstronautIcon = ({ className }: { className?: string }) => {
+  return (
+    <div className={className} style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <style>{`
+        @keyframes astronaut-wave {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(-20deg); }
+          75% { transform: rotate(20deg); }
+        }
+        .astronaut-waving-arm {
+          transform-origin: 18px 9px;
+          animation: astronaut-wave 1s ease-in-out infinite;
+        }
+      `}</style>
+      <svg
+        viewBox="0 0 24 24"
+        style={{ width: '100%', height: '100%', display: 'block' }}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Helmet */}
+        <circle cx="12" cy="8" r="5.5" fill="#ffffff" stroke="#000000" strokeWidth="0.5" />
+        <path d="M7 5.5h10" stroke="#000000" strokeWidth="1.5" />
+        <circle cx="6.5" cy="8" r="1.2" fill="#ffffff" stroke="#000000" strokeWidth="1" />
+        <circle cx="17.5" cy="8" r="1.2" fill="#ffffff" stroke="#000000" strokeWidth="1" />
+        
+        {/* Visor */}
+        <ellipse cx="12" cy="8" rx="4" ry="3.5" fill="#4a148c" stroke="#000000" strokeWidth="0.5" />
+        <circle cx="10" cy="7.5" r="0.8" fill="#ffffff" opacity="0.8" />
+        <circle cx="13.5" cy="8" r="0.6" fill="#ffffff" opacity="0.6" />
+        
+        {/* Body */}
+        <path d="M8 13.5 Q8 12 12 12 Q16 12 16 13.5 L16 18 Q16 19 12 19 Q8 19 8 18 Z" 
+              fill="#ffffff" stroke="#000000" strokeWidth="1" />
+        
+        {/* Chest Panel */}
+        <rect x="10" y="14" width="4" height="3" rx="0.5" fill="#ffffff" stroke="#000000" strokeWidth="1" />
+        <path d="M10.5 14.5h2v1.5h-2z M10.5 16h3" stroke="#000000" strokeWidth="1" fill="none" />
+        <circle cx="13" cy="15.5" r="0.6" fill="#3b82f6" stroke="#000000" strokeWidth="0.3" />
+        
+        {/* Belt */}
+        <path d="M8 17.5h8" stroke="#000000" strokeWidth="2" />
+        
+        {/* Left Arm */}
+        <path d="M6 12 Q5 13 5 14.5 Q5 16 6.5 16.5" 
+              fill="#ffffff" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="6" cy="16.5" r="1.5" fill="#ffffff" stroke="#000000" strokeWidth="1" />
+        
+        {/* Right Arm - Waving */}
+        <g className="astronaut-waving-arm">
+          <path d="M18 12 Q19 10.5 19.5 9 Q20 7.5 19.5 6.5 Q19 5.5 18 6 Q17 6.5 16.5 7.5 Q16 8.5 16.5 9.5 Q17 10.5 18 12" 
+                fill="#ffffff" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="19.5" cy="7" r="1.3" fill="#ffffff" stroke="#000000" strokeWidth="1" />
+          <path d="M19 6.2 L19.2 5.5 M19.5 6 L19.8 5.3 M20 6.2 L20.2 5.5" 
+                stroke="#000000" strokeWidth="1" strokeLinecap="round" />
+        </g>
+        
+        {/* Legs */}
+        <path d="M10 18.5 L10 21 Q10 22 11 22 L11.5 22 Q12.5 22 12.5 21 L12.5 18.5" 
+              fill="#ffffff" stroke="#000000" strokeWidth="1.5" />
+        <path d="M11.5 18.5 L11.5 21 Q11.5 22 12.5 22 L13 22 Q14 22 14 21 L14 18.5" 
+              fill="#ffffff" stroke="#000000" strokeWidth="1.5" />
+      </svg>
+    </div>
+  );
+};
 
 const AIAssistant: React.FC = () => {
   const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, notificationMessage, currentSessionId, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat, deleteChatSession, clearNotification } = useAIAssistant();
@@ -197,29 +198,28 @@ const AIAssistant: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Floating Chat Bubble */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-8 right-8 z-[9999] w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
-                     shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
-                     flex items-center justify-center transition-all duration-300 hover:scale-110 group relative"
-            style={{
-              animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            }}
-            aria-label="Open Aerobot AI Assistant"
-          >
-            <div className="w-10 h-10 flex items-center justify-center">
-              <AstronautIcon className="w-full h-full" />
-            </div>
-            <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* Floating Chat Bubble - Always visible when chat is closed */}
+      {!isOpen && (
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-8 right-8 z-[9999] w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
+                   shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
+                   flex items-center justify-center transition-all duration-300 hover:scale-110 group relative
+                   border-2 border-white/30"
+          style={{
+            animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }}
+          aria-label="Open Aerobot AI Assistant"
+        >
+          <div className="w-12 h-12 flex items-center justify-center relative z-10">
+            <AstronautIcon className="w-full h-full" />
+          </div>
+          <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all" />
+        </motion.button>
+      )}
 
       {/* Chat Window */}
       <AnimatePresence>
