@@ -269,6 +269,47 @@ const MaterialsDatabase = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Custom Units Card */}
+        {unitSystem === "Custom" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Settings2 className="w-5 h-5 text-cyan-400" />
+                  Custom Unit Definitions
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Define conversion factor to SI (kg/m³)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <Label className="text-white font-semibold">Density (ρ)</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <Input 
+                      placeholder="Unit Name" 
+                      value={customUnitName}
+                      onChange={(e) => setCustomUnitName(e.target.value)}
+                      className="bg-slate-800 border-cyan-400/30 text-white"
+                    />
+                    <Input 
+                      type="number"
+                      step="0.0001"
+                      placeholder="SI Factor"
+                      value={customFactor}
+                      onChange={(e) => setCustomFactor(e.target.value)}
+                      className="bg-slate-800 border-cyan-400/30 text-white"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    1 {customUnitName || "Unit"} = {customFactor || "..."} kg/m³
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Add Material Button */}
