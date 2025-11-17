@@ -205,12 +205,23 @@ const AIAssistant: React.FC = () => {
             onClick={() => setIsOpen(true)}
             className="fixed bottom-8 right-8 z-50 w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
                      shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
-                     flex items-center justify-center transition-all duration-300 hover:scale-110 group"
+                     flex items-center justify-center transition-all duration-300 hover:scale-110 group relative"
             style={{
               animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             }}
           >
-            <AstronautIcon className="w-10 h-10 text-white group-hover:scale-110 transition-transform" />
+            <style>{`
+              @keyframes wave {
+                0%, 100% { transform: rotate(0deg); }
+                25% { transform: rotate(-20deg); }
+                75% { transform: rotate(20deg); }
+              }
+              .floating-astronaut .waving-arm {
+                transform-origin: 18px 9px;
+                animation: wave 1s ease-in-out infinite;
+              }
+            `}</style>
+            <AstronautIcon className="w-10 h-10 text-white group-hover:scale-110 transition-transform floating-astronaut" />
             <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all" />
           </motion.button>
         )}
