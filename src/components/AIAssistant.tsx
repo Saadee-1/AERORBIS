@@ -31,7 +31,7 @@ const LANGUAGES = [
   { code: 'ur', name: 'اردو' },
 ];
 
-// Cute Cartoon Astronaut Icon (matching the provided image)
+// Cute Cartoon Astronaut Icon - Waving "Hi" with Animation
 const AstronautIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"
@@ -77,12 +77,16 @@ const AstronautIcon = ({ className }: { className?: string }) => (
           fill="white" strokeWidth="2.5" strokeLinecap="round" />
     <circle cx="6" cy="16.5" r="1.5" fill="white" strokeWidth="2" />
     
-    {/* Right arm - raised with thumbs up */}
-    <path d="M18 12 Q19 11 19.5 10 Q20 9 19 8.5 Q18 8 17 9 Q16.5 10 17 11 Q17.5 12 18 12" 
-          fill="white" strokeWidth="2.5" strokeLinecap="round" />
-    {/* Thumbs up hand */}
-    <circle cx="19" cy="9.5" r="1.2" fill="white" strokeWidth="2" />
-    <path d="M19.5 8.5v1.5" strokeWidth="2" strokeLinecap="round" />
+    {/* Right arm - WAVING HAND (animated) */}
+    <g className="waving-arm">
+      <path d="M18 12 Q19 10.5 19.5 9 Q20 7.5 19.5 6.5 Q19 5.5 18 6 Q17 6.5 16.5 7.5 Q16 8.5 16.5 9.5 Q17 10.5 18 12" 
+            fill="white" strokeWidth="2.5" strokeLinecap="round" />
+      {/* Waving hand - open palm */}
+      <circle cx="19.5" cy="7" r="1.3" fill="white" strokeWidth="2" />
+      {/* Fingers spread for waving */}
+      <path d="M19 6.2 L19.2 5.5 M19.5 6 L19.8 5.3 M20 6.2 L20.2 5.5" 
+            strokeWidth="1.5" strokeLinecap="round" />
+    </g>
     
     {/* Legs - rounded puffy boots */}
     <path d="M10 18.5 L10 21 Q10 22 11 22 L11.5 22 Q12.5 22 12.5 21 L12.5 18.5" 
@@ -220,16 +224,27 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[calc(100vh-4rem)] max-h-[700px] min-h-[520px] flex flex-col
+            className="fixed bottom-0 right-4 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[calc(100vh-5rem)] max-h-[620px] min-h-[480px] flex flex-col
                      bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
                      border-t border-l border-r border-cyan-400/40 rounded-t-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
           >
             {/* Minimal Header - Always Visible at Top */}
-            <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky top-0 z-10">
+            <div className="flex items-center justify-between p-2.5 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky top-0 z-10">
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
-                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0 p-1.5">
-                  <AstronautIcon className="w-full h-full text-white" />
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
+                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0 p-1.5 relative">
+                  <style>{`
+                    @keyframes wave {
+                      0%, 100% { transform: rotate(0deg); }
+                      25% { transform: rotate(-15deg); }
+                      75% { transform: rotate(15deg); }
+                    }
+                    .header-astronaut .waving-arm {
+                      transform-origin: 18px 9px;
+                      animation: wave 1.2s ease-in-out infinite;
+                    }
+                  `}</style>
+                  <AstronautIcon className="w-full h-full text-white header-astronaut" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
