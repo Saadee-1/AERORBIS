@@ -145,13 +145,52 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         content: m.content,
       }));
 
+      // Extract requestId from message
+      const requestId = extractRequestId(content);
+      
+      // Try to fetch calculation context from localStorage if requestId is present
+      let calculationContext = null;
+      if (requestId) {
+        try {
+          const storedData = localStorage.getItem(`calc-${requestId}`);
+          if (storedData) {
+            const parsed = JSON.parse(storedData);
+            // Check if data hasn't expired
+            if (parsed.expiresAt && parsed.expiresAt > Date.now()) {
+              calculationContext = {
+                requestId: parsed.requestId,
+                toolId: parsed.toolId,
+                toolName: parsed.toolName,
+                inputs: parsed.inputs,
+                results: parsed.results,
+                steps: parsed.steps,
+                metadata: parsed.metadata,
+                timestamp: parsed.timestamp,
+              };
+            } else {
+              // Data expired, remove it
+              localStorage.removeItem(`calc-${requestId}`);
+            }
+          }
+        } catch (error) {
+          console.error('Error reading calculation context from localStorage:', error);
+        }
+      }
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages, mode, language, toolContext, requestId: extractRequestId(content) }),
+        body: JSON.stringify({ 
+          messages: apiMessages, 
+          mode, 
+          language, 
+          toolContext, 
+          requestId,
+          calculationContext // Pass the full context from localStorage
+        }),
       });
 
       const data = await response.json();
