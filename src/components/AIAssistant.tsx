@@ -37,40 +37,61 @@ const AstronautIcon = ({ className }: { className?: string }) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.5"
+    strokeWidth="1.2"
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
   >
-    {/* Helmet - Main circle */}
-    <circle cx="12" cy="9" r="5.5" fill="currentColor" fillOpacity="0.1" />
-    <circle cx="12" cy="9" r="5.5" />
+    {/* Helmet - More realistic rounded shape */}
+    <circle cx="12" cy="8.5" r="5" fill="white" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="12" cy="8.5" r="5" fill="currentColor" fillOpacity="0.05" />
     
-    {/* Visor - Curved reflective surface */}
-    <path d="M8 9c0-1.5 1.5-2.5 4-2.5s4 1 4 2.5" strokeWidth="1.5" />
-    <ellipse cx="12" cy="9" rx="3" ry="2" fill="currentColor" fillOpacity="0.2" />
+    {/* Helmet rim/band */}
+    <path d="M7 6.5h10" stroke="currentColor" strokeWidth="1.5" />
     
-    {/* Helmet details - Antenna/communication device */}
-    <circle cx="12" cy="3.5" r="0.8" fill="currentColor" />
-    <path d="M12 3.5v1.5" />
+    {/* Visor - Dark reflective with highlights */}
+    <ellipse cx="12" cy="8.5" rx="3.5" ry="2.8" fill="#1a0d3a" stroke="currentColor" strokeWidth="0.8" />
+    <ellipse cx="12" cy="8.5" rx="3.5" ry="2.8" fill="currentColor" fillOpacity="0.15" />
+    {/* Visor highlight */}
+    <ellipse cx="10.5" cy="8" rx="1.2" ry="0.8" fill="white" opacity="0.4" />
     
-    {/* Body - Suit torso */}
-    <path d="M10 14.5h4" strokeWidth="2" />
-    <rect x="9" y="14.5" width="6" height="3" rx="1" fill="currentColor" fillOpacity="0.1" />
-    <rect x="9" y="14.5" width="6" height="3" rx="1" />
+    {/* Antenna on helmet */}
+    <circle cx="12" cy="3" r="0.6" fill="currentColor" />
+    <path d="M12 3v1.5" stroke="currentColor" strokeWidth="1.2" />
     
-    {/* Arms - Bent position */}
-    <path d="M6 12.5c-1-1-2-0.5-2.5 0.5" />
-    <path d="M18 12.5c1-1 2-0.5 2.5 0.5" />
+    {/* Body - More realistic torso shape */}
+    <path d="M9 13.5 Q9 12.5 12 12.5 Q15 12.5 15 13.5 L15 17 Q15 18 12 18 Q9 18 9 17 Z" 
+          fill="white" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M9 13.5 Q9 12.5 12 12.5 Q15 12.5 15 13.5 L15 17 Q15 18 12 18 Q9 18 9 17 Z" 
+          fill="currentColor" fillOpacity="0.05" />
     
-    {/* Legs - Space suit legs */}
-    <path d="M10 17.5v3.5" strokeWidth="2" />
-    <path d="M14 17.5v3.5" strokeWidth="2" />
-    <path d="M9 21l1 1.5" />
-    <path d="M15 21l-1 1.5" />
+    {/* Chest control panel */}
+    <rect x="10.5" y="14" width="3" height="2.5" rx="0.4" fill="white" stroke="currentColor" strokeWidth="0.8" />
+    <rect x="10.5" y="14" width="3" height="2.5" rx="0.4" fill="currentColor" fillOpacity="0.2" />
+    {/* Control buttons */}
+    <circle cx="11.2" cy="15.2" r="0.3" fill="currentColor" fillOpacity="0.6" />
+    <circle cx="12" cy="15.2" r="0.3" fill="currentColor" fillOpacity="0.6" />
+    <circle cx="12.8" cy="15.2" r="0.3" fill="currentColor" fillOpacity="0.6" />
     
-    {/* Chest pack/controls */}
-    <rect x="10.5" y="15" width="3" height="2" rx="0.5" fill="currentColor" fillOpacity="0.3" />
+    {/* Left arm - more natural position */}
+    <path d="M6.5 12 Q5.5 13 5 14.5 Q4.5 16 5.5 17" 
+          fill="white" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="5.5" cy="17" r="1.2" fill="white" stroke="currentColor" strokeWidth="1.2" />
+    
+    {/* Right arm - waving position */}
+    <path d="M17.5 12 Q18.5 11 19 9.5 Q19.5 8 18.5 7.5 Q17.5 7 16.5 8 Q16 9 16.5 10 Q17 11 17.5 12" 
+          fill="white" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="18.5" cy="8" r="1.2" fill="white" stroke="currentColor" strokeWidth="1.2" />
+    
+    {/* Legs - More realistic space suit legs */}
+    <path d="M10.5 17 L10.5 20.5 Q10.5 21.5 11.5 21.5 L11.5 21.5 Q12.5 21.5 12.5 20.5 L12.5 17" 
+          fill="white" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M11.5 17 L11.5 20.5 Q11.5 21.5 12.5 21.5 L12.5 21.5 Q13.5 21.5 13.5 20.5 L13.5 17" 
+          fill="white" stroke="currentColor" strokeWidth="1.5" />
+    
+    {/* Boots */}
+    <ellipse cx="11" cy="21.5" rx="1" ry="0.8" fill="currentColor" fillOpacity="0.3" />
+    <ellipse cx="13" cy="21.5" rx="1" ry="0.8" fill="currentColor" fillOpacity="0.3" />
   </svg>
 );
 
