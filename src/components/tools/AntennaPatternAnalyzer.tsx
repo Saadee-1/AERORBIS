@@ -781,9 +781,36 @@ const AntennaPatternAnalyzer = () => {
                       <SelectItem value="Hz">Hz</SelectItem>
                       <SelectItem value="MHz">MHz</SelectItem>
                       <SelectItem value="GHz">GHz</SelectItem>
+                      <SelectItem value="Custom">Custom</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Custom Frequency Unit Card */}
+                {frequencyUnit === "Custom" && (
+                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10 mt-4">
+                    <Label className="text-white font-semibold">Custom Frequency Unit</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Input 
+                        placeholder="Unit Name" 
+                        value={customFrequencyUnitName}
+                        onChange={(e) => setCustomFrequencyUnitName(e.target.value)}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                      <Input 
+                        type="number"
+                        step="0.0001"
+                        placeholder="Hz Factor"
+                        value={customFrequencyFactor}
+                        onChange={(e) => setCustomFrequencyFactor(e.target.value)}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      1 {customFrequencyUnitName || "Unit"} = {customFrequencyFactor || "..."} Hz
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="power" className="text-gray-300">
