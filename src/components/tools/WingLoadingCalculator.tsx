@@ -39,6 +39,7 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   LineChart, 
   Line, 
@@ -48,6 +49,7 @@ import {
   Tooltip as RechartsTooltip, 
   ResponsiveContainer 
 } from "recharts";
+import { Save, FolderOpen, Trash2 } from "lucide-react";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type PresetCondition = "Takeoff" | "Cruise" | "Landing" | "Custom";
@@ -56,6 +58,16 @@ interface CalculationStep {
   equation: string;
   description: string;
 }
+
+interface SavedPreset {
+  name: string;
+  basicInputs: { weight: string; wingArea: string };
+  advInputs: { wingLoading: string; airDensity: string; clMax: string; stallSpeed: string };
+  unitSystem: UnitSystem;
+  timestamp: number;
+}
+
+const STORAGE_KEY_CUSTOM_PRESETS = "wingLoadingCalculator_customPresets";
 
 // --- Zod Schemas ---
 const basicSchema = z.object({
@@ -93,6 +105,10 @@ const AdvancedWingLoadingCalculator = () => {
   const [basicResult, setBasicResult] = useState<any | null>(null);
   const [advancedResult, setAdvancedResult] = useState<any | null>(null);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [savePresetName, setSavePresetName] = useState("");
   
   // FIXED: Use useMemo for chart data to avoid unnecessary recalculations
   const memoizedChartData = useMemo(() => {
@@ -142,6 +158,25 @@ const AdvancedWingLoadingCalculator = () => {
     localStorage.setItem("advWingCalc_customNames", JSON.stringify(customUnitNames));
     localStorage.setItem("advWingCalc_customFactors", JSON.stringify(customFactors));
   }, [unitSystem, basicInputs, advInputs, customUnitNames, customFactors]);
+
+  // Load custom presets on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY_CUSTOM_PRESETS);
+    if (stored) {
+      try {
+        setCustomPresets(JSON.parse(stored));
+      } catch (e) {
+        console.warn("Failed to load custom presets:", e);
+      }
+    }
+  }, []);
+
+  // Save custom presets when they change
+  useEffect(() => {
+    if (customPresets.length > 0) {
+      localStorage.setItem(STORAGE_KEY_CUSTOM_PRESETS, JSON.stringify(customPresets));
+    }
+  }, [customPresets]);
 
   // --- Unit Conversion ---
   const getUnit = (field: string): string => {
@@ -234,6 +269,38 @@ const AdvancedWingLoadingCalculator = () => {
     }));
     
     toast({ title: "Presets Loaded", description: `${condition} values for Air Density and CL,max have been set.` });
+  };
+
+  const handleSaveCustomPreset = () => {
+    if (!savePresetName.trim()) {
+      toast({ title: "Error", description: "Please enter a name for the custom preset", variant: "destructive" });
+      return;
+    }
+    const newPreset: SavedPreset = {
+      name: savePresetName.trim(),
+      basicInputs: { ...basicInputs },
+      advInputs: { ...advInputs },
+      unitSystem,
+      timestamp: Date.now(),
+    };
+    setCustomPresets([...customPresets, newPreset]);
+    setSavePresetName("");
+    setIsSaveDialogOpen(false);
+    toast({ title: "Success", description: `Custom preset "${newPreset.name}" saved!` });
+  };
+
+  const handleLoadCustomPreset = (preset: SavedPreset) => {
+    setBasicInputs(preset.basicInputs);
+    setAdvInputs(preset.advInputs);
+    setUnitSystem(preset.unitSystem);
+    setIsLoadDialogOpen(false);
+    toast({ title: "Loaded", description: `Custom preset "${preset.name}" loaded!` });
+  };
+
+  const handleDeleteCustomPreset = (index: number) => {
+    const preset = customPresets[index];
+    setCustomPresets(customPresets.filter((_, i) => i !== index));
+    toast({ title: "Deleted", description: `Custom preset "${preset.name}" deleted!` });
   };
   
   // --- Feasibility Check ---
@@ -510,6 +577,27 @@ const AdvancedWingLoadingCalculator = () => {
                   <SelectItem value="Custom">Custom (No values set)</SelectItem>
                 </SelectContent>
               </Select>
+              <div className="flex gap-2 mt-4">
+                <Button
+                  type="button"
+                  onClick={() => setIsSaveDialogOpen(true)}
+                  variant="outline"
+                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Custom Preset
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setIsLoadDialogOpen(true)}
+                  variant="outline"
+                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+                  disabled={customPresets.length === 0}
+                >
+                  <FolderOpen className="w-4 h-4 mr-2" />
+                  Load Custom ({customPresets.length})
+                </Button>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="wl_adv" className="text-gray-300">Wing Loading (W/S) <span className="text-gray-500">{getUnit("wingLoading")}</span></Label>
                 <Input id="wl_adv" type="number" step="0.01" value={advInputs.wingLoading} onChange={(e) => setAdvInputs(p => ({ ...p, wingLoading: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="From Part 1 or enter" />
@@ -711,6 +799,115 @@ const AdvancedWingLoadingCalculator = () => {
 
         </div>
       </div>
+
+      {/* Save Custom Preset Dialog */}
+      <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Save Custom Preset</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Save the current input values as a custom preset
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="presetName" className="text-cyan-300">Preset Name</Label>
+              <Input
+                id="presetName"
+                value={savePresetName}
+                onChange={(e) => setSavePresetName(e.target.value)}
+                placeholder="e.g., My Aircraft Config"
+                className="bg-slate-700/50 text-white"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSaveCustomPreset();
+                  }
+                }}
+              />
+            </div>
+            <div className="text-sm text-gray-400 space-y-1">
+              <p>Unit System: {unitSystem}</p>
+              <p>Weight: {basicInputs.weight || "N/A"} | Wing Area: {basicInputs.wingArea || "N/A"}</p>
+              <p>Wing Loading: {advInputs.wingLoading || "N/A"} | CL,max: {advInputs.clMax || "N/A"}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSaveDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCustomPreset}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Load Custom Preset Dialog */}
+      <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Load Custom Preset</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Select a saved custom preset to load
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
+            {customPresets.length === 0 ? (
+              <p className="text-gray-400 text-center py-8">No custom presets saved yet</p>
+            ) : (
+              customPresets.map((preset, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                >
+                  <div className="flex-1">
+                    <p className="text-white font-semibold">{preset.name}</p>
+                    <p className="text-xs text-gray-400">
+                      Unit System: {preset.unitSystem} | Weight: {preset.basicInputs.weight || "N/A"} | Area: {preset.basicInputs.wingArea || "N/A"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Saved: {new Date(preset.timestamp).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleLoadCustomPreset(preset)}
+                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleDeleteCustomPreset(index)}
+                      className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/30"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsLoadDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

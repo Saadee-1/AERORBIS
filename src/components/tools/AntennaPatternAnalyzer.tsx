@@ -79,6 +79,8 @@ import { useToolContext } from "@/hooks/useToolContext";
 import { useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Save, FolderOpen, Trash2 } from "lucide-react";
 
 // Import antenna models and math utilities
 import { ANTENNA_TYPES, getAntennaById, AntennaParams } from "@/lib/antenna/models";
@@ -106,6 +108,21 @@ interface PatternPoint {
   gainLinear: number;
   gainDbi: number;
 }
+
+interface SavedAntennaPreset {
+  name: string;
+  antennaId: string;
+  antennaParams: AntennaParams;
+  frequency: number;
+  frequencyUnit: "Hz" | "MHz" | "GHz";
+  transmitPower: number;
+  polarization: string;
+  resolution: number;
+  computeMode: "fast" | "accurate";
+  timestamp: number;
+}
+
+const STORAGE_KEY_CUSTOM_PRESETS = "antennaPatternAnalyzer_customPresets";
 
 interface AntennaResult {
   peakGainDbi: number;
@@ -153,6 +170,10 @@ const AntennaPatternAnalyzer = () => {
     patternMesh: THREE.Mesh | null;
     animationId: number | null;
   } | null>(null);
+  const [customPresets, setCustomPresets] = useState<SavedAntennaPreset[]>([]);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [savePresetName, setSavePresetName] = useState("");
 
   // Get selected antenna
   const selectedAntenna = useMemo(() => {
@@ -470,6 +491,25 @@ const AntennaPatternAnalyzer = () => {
     };
   }, [show3D, patternFunction, patternData]);
 
+  // Load custom presets on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY_CUSTOM_PRESETS);
+    if (stored) {
+      try {
+        setCustomPresets(JSON.parse(stored));
+      } catch (e) {
+        console.warn("Failed to load custom presets:", e);
+      }
+    }
+  }, []);
+
+  // Save custom presets when they change
+  useEffect(() => {
+    if (customPresets.length > 0) {
+      localStorage.setItem(STORAGE_KEY_CUSTOM_PRESETS, JSON.stringify(customPresets));
+    }
+  }, [customPresets]);
+
   // Handle antenna selection
   const handleAntennaChange = (id: string) => {
     setSelectedAntennaId(id);
@@ -477,6 +517,48 @@ const AntennaPatternAnalyzer = () => {
     if (antenna) {
       setAntennaParams({ ...antenna.defaultParams });
     }
+  };
+
+  const handleSaveCustomPreset = () => {
+    if (!savePresetName.trim()) {
+      toast({ title: "Error", description: "Please enter a name for the custom preset", variant: "destructive" });
+      return;
+    }
+    const newPreset: SavedAntennaPreset = {
+      name: savePresetName.trim(),
+      antennaId: selectedAntennaId,
+      antennaParams: { ...antennaParams },
+      frequency,
+      frequencyUnit,
+      transmitPower,
+      polarization,
+      resolution,
+      computeMode,
+      timestamp: Date.now(),
+    };
+    setCustomPresets([...customPresets, newPreset]);
+    setSavePresetName("");
+    setIsSaveDialogOpen(false);
+    toast({ title: "Success", description: `Custom preset "${newPreset.name}" saved!` });
+  };
+
+  const handleLoadCustomPreset = (preset: SavedAntennaPreset) => {
+    setSelectedAntennaId(preset.antennaId);
+    setAntennaParams(preset.antennaParams);
+    setFrequency(preset.frequency);
+    setFrequencyUnit(preset.frequencyUnit);
+    setTransmitPower(preset.transmitPower);
+    setPolarization(preset.polarization);
+    setResolution(preset.resolution);
+    setComputeMode(preset.computeMode);
+    setIsLoadDialogOpen(false);
+    toast({ title: "Loaded", description: `Custom preset "${preset.name}" loaded!` });
+  };
+
+  const handleDeleteCustomPreset = (index: number) => {
+    const preset = customPresets[index];
+    setCustomPresets(customPresets.filter((_, i) => i !== index));
+    toast({ title: "Deleted", description: `Custom preset "${preset.name}" deleted!` });
   };
 
   // Handle parameter change
@@ -556,6 +638,23 @@ const AntennaPatternAnalyzer = () => {
           Analyze antenna radiation patterns, calculate gain, directivity, HPBW, and EIRP for aerospace applications
         </p>
         <div className="flex justify-center gap-2 mt-4">
+          <Button
+            variant="outline"
+            onClick={() => setIsSaveDialogOpen(true)}
+            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Save Preset
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsLoadDialogOpen(true)}
+            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+            disabled={customPresets.length === 0}
+          >
+            <FolderOpen className="w-4 h-4 mr-2" />
+            Load ({customPresets.length})
+          </Button>
           <Button
             variant="outline"
             onClick={exportJSON}
@@ -962,6 +1061,118 @@ const AntennaPatternAnalyzer = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Save Custom Preset Dialog */}
+      <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Save Custom Preset</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Save the current antenna configuration as a custom preset
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="presetName" className="text-cyan-300">Preset Name</Label>
+              <Input
+                id="presetName"
+                value={savePresetName}
+                onChange={(e) => setSavePresetName(e.target.value)}
+                placeholder="e.g., My Custom Antenna"
+                className="bg-slate-700/50 text-white"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSaveCustomPreset();
+                  }
+                }}
+              />
+            </div>
+            <div className="text-sm text-gray-400 space-y-1">
+              <p>Antenna: {selectedAntenna?.name || "N/A"}</p>
+              <p>Frequency: {frequency} {frequencyUnit}</p>
+              <p>Power: {transmitPower} W | Polarization: {polarization}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSaveDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCustomPreset}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Load Custom Preset Dialog */}
+      <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Load Custom Preset</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Select a saved custom preset to load
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
+            {customPresets.length === 0 ? (
+              <p className="text-gray-400 text-center py-8">No custom presets saved yet</p>
+            ) : (
+              customPresets.map((preset, index) => {
+                const presetAntenna = getAntennaById(preset.antennaId);
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <p className="text-white font-semibold">{preset.name}</p>
+                      <p className="text-xs text-gray-400">
+                        Antenna: {presetAntenna?.name || preset.antennaId} | Frequency: {preset.frequency} {preset.frequencyUnit}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Saved: {new Date(preset.timestamp).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleLoadCustomPreset(preset)}
+                        className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
+                      >
+                        <FolderOpen className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleDeleteCustomPreset(index)}
+                        className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/30"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsLoadDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

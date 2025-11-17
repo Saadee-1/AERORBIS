@@ -30,6 +30,7 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   LineChart, 
   Line, 
@@ -40,6 +41,7 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
+import { Save, FolderOpen, Trash2 } from "lucide-react";
 
 // --- Types & Constants ---
 
@@ -60,6 +62,20 @@ interface CalculationStep {
   equation: string;
   description: string;
 }
+
+interface SavedPreset {
+  name: string;
+  inputs: {
+    density: string;
+    velocity: string;
+    length: string;
+    viscosity: string;
+  };
+  unitSystem: UnitSystem;
+  timestamp: number;
+}
+
+const STORAGE_KEY_CUSTOM_PRESETS = "reynoldsCalculator_customPresets";
 
 const PRESETS: Record<string, PresetScenario> = {
   "sea-level-air": {
@@ -120,6 +136,10 @@ const ReynoldsNumberCalculator = () => {
   const { updateToolContext } = useToolContext();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
   const [selectedPreset, setSelectedPreset] = useState<string>("");
+  const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [savePresetName, setSavePresetName] = useState("");
 
   // --- State ---
   const [inputs, setInputs] = useState({
@@ -178,6 +198,25 @@ const ReynoldsNumberCalculator = () => {
     localStorage.setItem("reynoldsCalc_customNames", JSON.stringify(customUnitNames));
     localStorage.setItem("reynoldsCalc_customFactors", JSON.stringify(customFactors));
   }, [unitSystem, inputs, customUnitNames, customFactors]);
+
+  // Load custom presets on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY_CUSTOM_PRESETS);
+    if (stored) {
+      try {
+        setCustomPresets(JSON.parse(stored));
+      } catch (e) {
+        console.warn("Failed to load custom presets:", e);
+      }
+    }
+  }, []);
+
+  // Save custom presets when they change
+  useEffect(() => {
+    if (customPresets.length > 0) {
+      localStorage.setItem(STORAGE_KEY_CUSTOM_PRESETS, JSON.stringify(customPresets));
+    }
+  }, [customPresets]);
 
   // --- Unit Conversion ---
   const getUnit = (field: string): string => {
@@ -247,6 +286,37 @@ const ReynoldsNumberCalculator = () => {
         viscosity: convertFromSI(preset.viscosity, "viscosity").toFixed(8),
       });
     }
+  };
+
+  const handleSaveCustomPreset = () => {
+    if (!savePresetName.trim()) {
+      toast({ title: "Error", description: "Please enter a name for the custom preset", variant: "destructive" });
+      return;
+    }
+    const newPreset: SavedPreset = {
+      name: savePresetName.trim(),
+      inputs: { ...inputs },
+      unitSystem,
+      timestamp: Date.now(),
+    };
+    setCustomPresets([...customPresets, newPreset]);
+    setSavePresetName("");
+    setIsSaveDialogOpen(false);
+    toast({ title: "Success", description: `Custom preset "${newPreset.name}" saved!` });
+  };
+
+  const handleLoadCustomPreset = (preset: SavedPreset) => {
+    setInputs(preset.inputs);
+    setUnitSystem(preset.unitSystem);
+    setSelectedPreset("");
+    setIsLoadDialogOpen(false);
+    toast({ title: "Loaded", description: `Custom preset "${preset.name}" loaded!` });
+  };
+
+  const handleDeleteCustomPreset = (index: number) => {
+    const preset = customPresets[index];
+    setCustomPresets(customPresets.filter((_, i) => i !== index));
+    toast({ title: "Deleted", description: `Custom preset "${preset.name}" deleted!` });
   };
 
   // --- Validation & Warnings ---
@@ -524,6 +594,27 @@ const ReynoldsNumberCalculator = () => {
                   {PRESETS[selectedPreset].description}
                 </p>
               )}
+              <div className="flex gap-2 mt-4">
+                <Button
+                  type="button"
+                  onClick={() => setIsSaveDialogOpen(true)}
+                  variant="outline"
+                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Custom Preset
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setIsLoadDialogOpen(true)}
+                  variant="outline"
+                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+                  disabled={customPresets.length === 0}
+                >
+                  <FolderOpen className="w-4 h-4 mr-2" />
+                  Load Custom ({customPresets.length})
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -850,6 +941,116 @@ const ReynoldsNumberCalculator = () => {
 
         </div>
       </div>
+
+      {/* Save Custom Preset Dialog */}
+      <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Save Custom Preset</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Save the current input values as a custom preset
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="presetName" className="text-cyan-300">Preset Name</Label>
+              <Input
+                id="presetName"
+                value={savePresetName}
+                onChange={(e) => setSavePresetName(e.target.value)}
+                placeholder="e.g., My Custom Flow"
+                className="bg-slate-700/50 text-white"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSaveCustomPreset();
+                  }
+                }}
+              />
+            </div>
+            <div className="text-sm text-gray-400 space-y-1">
+              <p>Density: {inputs.density || "N/A"} {getUnit("density")}</p>
+              <p>Velocity: {inputs.velocity || "N/A"} {getUnit("velocity")}</p>
+              <p>Length: {inputs.length || "N/A"} {getUnit("length")}</p>
+              <p>Viscosity: {inputs.viscosity || "N/A"} {getUnit("viscosity")}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSaveDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCustomPreset}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Load Custom Preset Dialog */}
+      <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Load Custom Preset</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Select a saved custom preset to load
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
+            {customPresets.length === 0 ? (
+              <p className="text-gray-400 text-center py-8">No custom presets saved yet</p>
+            ) : (
+              customPresets.map((preset, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                >
+                  <div className="flex-1">
+                    <p className="text-white font-semibold">{preset.name}</p>
+                    <p className="text-xs text-gray-400">
+                      ρ: {preset.inputs.density} | V: {preset.inputs.velocity} | L: {preset.inputs.length} | μ: {preset.inputs.viscosity}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Unit System: {preset.unitSystem} | Saved: {new Date(preset.timestamp).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleLoadCustomPreset(preset)}
+                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleDeleteCustomPreset(index)}
+                      className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/30"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsLoadDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

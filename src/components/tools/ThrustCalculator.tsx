@@ -40,6 +40,7 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   LineChart, 
   Line, 
@@ -50,6 +51,7 @@ import {
   ResponsiveContainer, 
   Legend 
 } from "recharts";
+import { Save, FolderOpen, Trash2 } from "lucide-react";
 
 // --- Types & Constants ---
 
@@ -59,6 +61,23 @@ interface CalculationStep {
   equation: string;
   description: string;
 }
+
+interface SavedPreset {
+  name: string;
+  inputs: {
+    massFlowRate: string;
+    exhaustVelocity: string;
+    exitArea: string;
+    exitPressure: string;
+    ambientPressure: string;
+    thrust: string;
+    isp: string;
+  };
+  unitSystem: UnitSystem;
+  timestamp: number;
+}
+
+const STORAGE_KEY_CUSTOM_PRESETS = "thrustCalculator_customPresets";
 
 const G0_SI = 9.80665; // m/s²
 const G0_IMPERIAL = 32.174; // ft/s²
@@ -112,6 +131,10 @@ const AdvancedThrustCalculator = () => {
   const [thrustResult, setThrustResult] = useState<any | null>(null);
   const [performanceResult, setPerformanceResult] = useState<any | null>(null);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [savePresetName, setSavePresetName] = useState("");
 
   // --- Effects for LocalStorage ---
   useEffect(() => {
@@ -204,6 +227,36 @@ const AdvancedThrustCalculator = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setInputs(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveCustomPreset = () => {
+    if (!savePresetName.trim()) {
+      toast({ title: "Error", description: "Please enter a name for the custom preset", variant: "destructive" });
+      return;
+    }
+    const newPreset: SavedPreset = {
+      name: savePresetName.trim(),
+      inputs: { ...inputs },
+      unitSystem,
+      timestamp: Date.now(),
+    };
+    setCustomPresets([...customPresets, newPreset]);
+    setSavePresetName("");
+    setIsSaveDialogOpen(false);
+    toast({ title: "Success", description: `Custom preset "${newPreset.name}" saved!` });
+  };
+
+  const handleLoadCustomPreset = (preset: SavedPreset) => {
+    setInputs(preset.inputs);
+    setUnitSystem(preset.unitSystem);
+    setIsLoadDialogOpen(false);
+    toast({ title: "Loaded", description: `Custom preset "${preset.name}" loaded!` });
+  };
+
+  const handleDeleteCustomPreset = (index: number) => {
+    const preset = customPresets[index];
+    setCustomPresets(customPresets.filter((_, i) => i !== index));
+    toast({ title: "Deleted", description: `Custom preset "${preset.name}" deleted!` });
   };
 
   // --- Calculation Functions ---
@@ -458,6 +511,25 @@ const AdvancedThrustCalculator = () => {
             </SelectContent>
           </Select>
           <Button type="button" onClick={resetCalculators} variant="outline" className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10">Reset All</Button>
+          <Button
+            type="button"
+            onClick={() => setIsSaveDialogOpen(true)}
+            variant="outline"
+            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Save Preset
+          </Button>
+          <Button
+            type="button"
+            onClick={() => setIsLoadDialogOpen(true)}
+            variant="outline"
+            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+            disabled={customPresets.length === 0}
+          >
+            <FolderOpen className="w-4 h-4 mr-2" />
+            Load ({customPresets.length})
+          </Button>
         </div>
       </motion.div>
 
@@ -695,6 +767,115 @@ const AdvancedThrustCalculator = () => {
 
         </div>
       </div>
+
+      {/* Save Custom Preset Dialog */}
+      <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Save Custom Preset</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Save the current input values as a custom preset
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="presetName" className="text-cyan-300">Preset Name</Label>
+              <Input
+                id="presetName"
+                value={savePresetName}
+                onChange={(e) => setSavePresetName(e.target.value)}
+                placeholder="e.g., My Rocket Engine"
+                className="bg-slate-700/50 text-white"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSaveCustomPreset();
+                  }
+                }}
+              />
+            </div>
+            <div className="text-sm text-gray-400 space-y-1">
+              <p>Unit System: {unitSystem}</p>
+              <p>Mass Flow: {inputs.massFlowRate || "N/A"} | Exhaust Vel: {inputs.exhaustVelocity || "N/A"}</p>
+              <p>Exit Area: {inputs.exitArea || "N/A"} | Thrust: {inputs.thrust || "N/A"}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSaveDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCustomPreset}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Load Custom Preset Dialog */}
+      <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Load Custom Preset</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Select a saved custom preset to load
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
+            {customPresets.length === 0 ? (
+              <p className="text-gray-400 text-center py-8">No custom presets saved yet</p>
+            ) : (
+              customPresets.map((preset, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                >
+                  <div className="flex-1">
+                    <p className="text-white font-semibold">{preset.name}</p>
+                    <p className="text-xs text-gray-400">
+                      Unit System: {preset.unitSystem} | Thrust: {preset.inputs.thrust || "N/A"} | Isp: {preset.inputs.isp || "N/A"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Saved: {new Date(preset.timestamp).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleLoadCustomPreset(preset)}
+                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleDeleteCustomPreset(index)}
+                      className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/30"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsLoadDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
