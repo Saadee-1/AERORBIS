@@ -181,14 +181,14 @@ const AIAssistant: React.FC = () => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-8 right-8 z-50 w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
+            className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
                      shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
                      flex items-center justify-center transition-all duration-300 hover:scale-110 group"
             style={{
               animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             }}
           >
-            <AstronautIcon className="w-10 h-10 text-white group-hover:scale-110 transition-transform" />
+            <AstronautIcon className="w-8 h-8 text-white group-hover:scale-110 transition-transform" />
             <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all" />
           </motion.button>
         )}
@@ -202,7 +202,7 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-4 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[680px] min-h-[500px] flex flex-col
+            className="fixed bottom-4 right-4 z-50 w-[320px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[600px] min-h-[450px] flex flex-col
                      bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
                      border border-cyan-400/40 rounded-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
           >
