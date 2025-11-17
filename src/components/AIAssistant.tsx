@@ -31,72 +31,50 @@ const LANGUAGES = [
   { code: 'ur', name: 'اردو' },
 ];
 
-// Simplified Astronaut Icon - Waving "Hi" with Animation (Reliable Rendering with Inline Styles)
+// Simple Astronaut Icon - Clean Vector Art with Waving Animation
 const AstronautIcon = ({ className }: { className?: string }) => {
   return (
-    <>
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      style={{ width: '100%', height: '100%', display: 'block' }}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <style>{`
-        @keyframes astronaut-wave {
+        @keyframes wave {
           0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(-20deg); }
-          75% { transform: rotate(20deg); }
+          50% { transform: rotate(25deg); }
         }
-        .astronaut-waving-arm {
-          transform-origin: 18px 9px;
-          animation: astronaut-wave 1s ease-in-out infinite;
+        .wave-arm {
+          transform-origin: 18px 8px;
+          animation: wave 1s ease-in-out infinite;
         }
       `}</style>
-      <svg
-        viewBox="0 0 24 24"
-        className={className}
-        style={{ width: '100%', height: '100%', display: 'block' }}
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Helmet */}
-        <circle cx="12" cy="8" r="5.5" fill="#ffffff" stroke="#000000" strokeWidth="0.5" />
-        <path d="M7 5.5h10" stroke="#000000" strokeWidth="1.5" />
-        <circle cx="6.5" cy="8" r="1.2" fill="#ffffff" stroke="#000000" strokeWidth="1" />
-        <circle cx="17.5" cy="8" r="1.2" fill="#ffffff" stroke="#000000" strokeWidth="1" />
-        
-        {/* Visor */}
-        <ellipse cx="12" cy="8" rx="4" ry="3.5" fill="#4a148c" stroke="#000000" strokeWidth="0.5" />
-        <circle cx="10" cy="7.5" r="0.8" fill="#ffffff" opacity="0.8" />
-        <circle cx="13.5" cy="8" r="0.6" fill="#ffffff" opacity="0.6" />
-        
-        {/* Body */}
-        <path d="M8 13.5 Q8 12 12 12 Q16 12 16 13.5 L16 18 Q16 19 12 19 Q8 19 8 18 Z" 
-              fill="#ffffff" stroke="#000000" strokeWidth="1" />
-        
-        {/* Chest Panel */}
-        <rect x="10" y="14" width="4" height="3" rx="0.5" fill="#ffffff" stroke="#000000" strokeWidth="1" />
-        <path d="M10.5 14.5h2v1.5h-2z M10.5 16h3" stroke="#000000" strokeWidth="1" fill="none" />
-        <circle cx="13" cy="15.5" r="0.6" fill="#3b82f6" stroke="#000000" strokeWidth="0.3" />
-        
-        {/* Belt */}
-        <path d="M8 17.5h8" stroke="#000000" strokeWidth="2" />
-        
-        {/* Left Arm */}
-        <path d="M6 12 Q5 13 5 14.5 Q5 16 6.5 16.5" 
-              fill="#ffffff" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" />
-        <circle cx="6" cy="16.5" r="1.5" fill="#ffffff" stroke="#000000" strokeWidth="1" />
-        
-        {/* Right Arm - Waving */}
-        <g className="astronaut-waving-arm">
-          <path d="M18 12 Q19 10.5 19.5 9 Q20 7.5 19.5 6.5 Q19 5.5 18 6 Q17 6.5 16.5 7.5 Q16 8.5 16.5 9.5 Q17 10.5 18 12" 
-                fill="#ffffff" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" />
-          <circle cx="19.5" cy="7" r="1.3" fill="#ffffff" stroke="#000000" strokeWidth="1" />
-          <path d="M19 6.2 L19.2 5.5 M19.5 6 L19.8 5.3 M20 6.2 L20.2 5.5" 
-                stroke="#000000" strokeWidth="1" strokeLinecap="round" />
-        </g>
-        
-        {/* Legs */}
-        <path d="M10 18.5 L10 21 Q10 22 11 22 L11.5 22 Q12.5 22 12.5 21 L12.5 18.5" 
-              fill="#ffffff" stroke="#000000" strokeWidth="1.5" />
-        <path d="M11.5 18.5 L11.5 21 Q11.5 22 12.5 22 L13 22 Q14 22 14 21 L14 18.5" 
-              fill="#ffffff" stroke="#000000" strokeWidth="1.5" />
-      </svg>
-    </>
+      
+      {/* Simple Helmet */}
+      <circle cx="12" cy="7" r="4.5" fill="white" stroke="currentColor" strokeWidth="1.5" />
+      
+      {/* Visor */}
+      <ellipse cx="12" cy="7" rx="3" ry="2.5" fill="#4a148c" />
+      
+      {/* Simple Body */}
+      <rect x="9" y="11" width="6" height="5" rx="1" fill="white" stroke="currentColor" strokeWidth="1.5" />
+      
+      {/* Left Arm */}
+      <line x1="7" y1="12" x2="5" y2="15" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="5" cy="15" r="1.5" fill="white" />
+      
+      {/* Right Arm - Waving */}
+      <g className="wave-arm">
+        <line x1="17" y1="12" x2="19" y2="8" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="19" cy="8" r="1.5" fill="white" />
+      </g>
+      
+      {/* Legs */}
+      <line x1="10.5" y1="16" x2="10.5" y2="20" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <line x1="13.5" y1="16" x2="13.5" y2="20" stroke="white" strokeWidth="2" strokeLinecap="round" />
+    </svg>
   );
 };
 
