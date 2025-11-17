@@ -324,7 +324,7 @@ const AdvancedThrustCalculator = () => {
     }
   };
 
-  const calculateThrust = () => {
+  const calculateThrust = async () => {
     try {
       const rawValues = {
         massFlowRate: inputs.massFlowRate.trim() ? convertToSI(parseFloat(inputs.massFlowRate), "massFlowRate") : undefined,
