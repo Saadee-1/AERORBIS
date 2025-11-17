@@ -183,20 +183,29 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         console.log('No requestId found in message:', content);
       }
 
+      const requestBody = { 
+        messages: apiMessages, 
+        mode, 
+        language, 
+        toolContext, 
+        requestId,
+        calculationContext // Pass the full context from localStorage
+      };
+      
+      console.log('Sending AI chat request:', {
+        hasRequestId: !!requestId,
+        hasCalculationContext: !!calculationContext,
+        calculationContextKeys: calculationContext ? Object.keys(calculationContext) : null,
+        messageCount: apiMessages.length,
+      });
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ 
-          messages: apiMessages, 
-          mode, 
-          language, 
-          toolContext, 
-          requestId,
-          calculationContext // Pass the full context from localStorage
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();

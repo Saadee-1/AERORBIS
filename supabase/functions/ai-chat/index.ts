@@ -26,6 +26,16 @@ serve(async (req) => {
     }
 
     const { messages, mode = 'chat', language = 'en', toolContext, requestId, calculationContext } = await req.json();
+    
+    // Debug logging
+    console.log('AI Chat Request:', {
+      hasRequestId: !!requestId,
+      hasCalculationContext: !!calculationContext,
+      hasToolContext: !!toolContext,
+      requestId,
+      calculationContextKeys: calculationContext ? Object.keys(calculationContext) : null,
+    });
+    
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -197,8 +207,51 @@ If the user hasn't asked a specific question yet, proactively explain the tool r
     if (requestId && mode === 'chat') {
       if (calculationContext) {
         // Use the context provided from client-side localStorage
-        enhancedSystemPrompt += `\n\nCALCULATION CONTEXT (requestId: ${requestId}):\n${JSON.stringify(calculationContext, null, 2)}\n\nWhen the user asks about this calculation, use the stored inputs, results, and steps to provide accurate explanations. Reference specific steps when the user asks "explain step X". The user has performed a calculation using the ${calculationContext.toolName || calculationContext.toolId} tool.`;
+        console.log('Using calculationContext from request:', {
+          toolName: calculationContext.toolName,
+          toolId: calculationContext.toolId,
+          hasInputs: !!calculationContext.inputs,
+          hasResults: !!calculationContext.results,
+          hasSteps: !!calculationContext.steps,
+          stepsCount: calculationContext.steps?.length || 0,
+        });
+        
+        const contextSummary = {
+          toolName: calculationContext.toolName || calculationContext.toolId,
+          inputs: calculationContext.inputs || {},
+          results: calculationContext.results || {},
+          steps: calculationContext.steps || [],
+          metadata: calculationContext.metadata || {},
+        };
+        
+        enhancedSystemPrompt += `\n\n=== CALCULATION CONTEXT (requestId: ${requestId}) ===
+The user has performed a calculation using the ${contextSummary.toolName} tool.
+
+INPUTS:
+${JSON.stringify(contextSummary.inputs, null, 2)}
+
+RESULTS:
+${JSON.stringify(contextSummary.results, null, 2)}
+
+CALCULATION STEPS:
+${contextSummary.steps.map((step: string, idx: number) => `Step ${idx + 1}: ${step}`).join('\n')}
+
+METADATA:
+${JSON.stringify(contextSummary.metadata, null, 2)}
+
+=== END CALCULATION CONTEXT ===
+
+CRITICAL INSTRUCTIONS:
+1. You MUST use the calculation context above to explain the user's calculation
+2. Reference the specific inputs, results, and steps when explaining
+3. If the user asks "explain step X", refer to the step number in the CALCULATION STEPS section above
+4. Provide detailed engineering analysis of the results
+5. Connect the results to real-world aerospace applications
+6. Do NOT say you don't have access to the calculation - you have the full context above
+
+The user is asking about THIS SPECIFIC CALCULATION. Use the context provided above to give a detailed, accurate explanation.`;
       } else {
+        console.log('No calculationContext provided, trying to fetch from endpoint');
         // Fallback: try to fetch from Edge Function endpoint
         try {
           const baseUrl = url.origin;
@@ -211,13 +264,18 @@ If the user hasn't asked a specific question yet, proactively explain the tool r
           });
           if (contextResponse.ok) {
             const context = await contextResponse.json();
+            console.log('Fetched context from endpoint');
             enhancedSystemPrompt += `\n\nCALCULATION CONTEXT (requestId: ${requestId}):\n${JSON.stringify(context, null, 2)}\n\nWhen the user asks about this calculation, use the stored inputs, results, and steps to provide accurate explanations. Reference specific steps when the user asks "explain step X".`;
+          } else {
+            console.warn('Failed to fetch context from endpoint:', contextResponse.status);
           }
         } catch (error) {
           console.error('Failed to fetch calculation context:', error);
           // Continue without context
         }
       }
+    } else {
+      console.log('No requestId or not in chat mode, skipping context');
     }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
