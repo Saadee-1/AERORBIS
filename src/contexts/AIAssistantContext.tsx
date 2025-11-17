@@ -28,6 +28,7 @@ interface AIAssistantContextType {
   language: string;
   chatHistory: ChatSession[];
   toolContext: ToolContext | null;
+  notificationMessage: string | null;
   setIsOpen: (isOpen: boolean) => void;
   setMode: (mode: 'chat' | 'summarize') => void;
   setLanguage: (language: string) => void;
@@ -36,6 +37,8 @@ interface AIAssistantContextType {
   clearChat: () => void;
   loadChatSession: (sessionId: string) => void;
   startNewChat: () => void;
+  showNotification: (message: string) => void;
+  clearNotification: () => void;
 }
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -61,6 +64,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [chatHistory, setChatHistory] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string>(() => Date.now().toString());
   const [toolContext, setToolContext] = useState<ToolContext | null>(null);
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
 
   // Save language preference
   useEffect(() => {
@@ -183,7 +187,20 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
   const startNewChat = () => {
     setMessages([]);
     setCurrentSessionId(Date.now().toString());
+    setToolContext(null);
     localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const showNotification = (message: string) => {
+    setNotificationMessage(message);
+    // Auto-clear notification after 5 seconds
+    setTimeout(() => {
+      setNotificationMessage(null);
+    }, 5000);
+  };
+
+  const clearNotification = () => {
+    setNotificationMessage(null);
   };
 
   return (
@@ -196,6 +213,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         language,
         chatHistory,
         toolContext,
+        notificationMessage,
         setIsOpen,
         setMode,
         setLanguage,
@@ -204,6 +222,8 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         clearChat,
         loadChatSession,
         startNewChat,
+        showNotification,
+        clearNotification,
       }}
     >
       {children}

@@ -25,7 +25,7 @@ const LANGUAGES = [
 ];
 
 const AIAssistant: React.FC = () => {
-  const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat } = useAIAssistant();
+  const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, notificationMessage, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat, clearNotification } = useAIAssistant();
   const [inputValue, setInputValue] = useState('');
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -235,11 +235,14 @@ const AIAssistant: React.FC = () => {
 
             {/* Chat History Panel */}
             {showHistory && (
-              <div className="border-b border-cyan-400/20 bg-slate-800/30 max-h-40">
-                <ScrollArea className="h-full">
+              <div className="border-b border-cyan-400/20 bg-slate-800/30 max-h-60">
+                <div className="p-2 border-b border-cyan-400/10">
+                  <p className="text-xs font-semibold text-cyan-400 px-2">Chat History</p>
+                </div>
+                <ScrollArea className="h-full max-h-52">
                   <div className="p-3 space-y-2">
                     {chatHistory.length === 0 ? (
-                      <p className="text-xs text-gray-500 text-center py-2">No chat history yet</p>
+                      <p className="text-xs text-gray-500 text-center py-4">No chat history yet</p>
                     ) : (
                       chatHistory.map((session) => (
                         <button
@@ -248,13 +251,25 @@ const AIAssistant: React.FC = () => {
                             loadChatSession(session.id);
                             setShowHistory(false);
                           }}
-                          className="w-full text-left p-2 rounded-lg bg-slate-900/50 hover:bg-slate-800/70 
-                                   border border-cyan-400/10 hover:border-cyan-400/30 transition-all"
+                          className="w-full text-left p-3 rounded-lg bg-slate-900/50 hover:bg-slate-800/70 
+                                   border border-cyan-400/10 hover:border-cyan-400/30 transition-all group"
                         >
-                          <p className="text-xs text-gray-300 truncate">{session.title}</p>
-                          <p className="text-[10px] text-gray-500">
-                            {new Date(session.timestamp).toLocaleDateString()}
-                          </p>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-gray-300 truncate group-hover:text-cyan-400 transition-colors">
+                                {session.title}
+                              </p>
+                              <p className="text-[10px] text-gray-500 mt-1">
+                                {new Date(session.timestamp).toLocaleString()}
+                              </p>
+                              <p className="text-[10px] text-gray-600 mt-1">
+                                {session.messages.length} message{session.messages.length !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                            {session.id === currentSessionId && (
+                              <span className="text-[10px] text-cyan-400 font-semibold">Current</span>
+                            )}
+                          </div>
                         </button>
                       ))
                     )}

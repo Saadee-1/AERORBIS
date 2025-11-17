@@ -17,13 +17,24 @@ import { useAIAssistant, ToolContext } from '@/contexts/AIAssistantContext';
  * ```
  */
 export const useToolContext = () => {
-  const { setToolContext, setIsOpen } = useAIAssistant();
+  const { setToolContext, setIsOpen, showNotification } = useAIAssistant();
 
   const updateToolContext = useCallback((context: ToolContext) => {
     setToolContext(context);
-    // Optionally auto-open AI assistant when tool context is updated
-    // setIsOpen(true);
-  }, [setToolContext]);
+    // Show notification when calculation completes
+    const toolNames: Record<string, string> = {
+      "WingLoading": "Wing Loading Calculator",
+      "LiftDrag": "Lift/Drag Analyzer",
+      "OrbitalPath": "Orbital Visualizer",
+      "DeltaV": "Delta-V Budget Planner",
+      "Reynolds": "Reynolds Number Calculator",
+      "MaterialsDB": "Materials Density Database",
+      "Thrust": "Thrust Calculator",
+      "Antenna": "Antenna Pattern Analyzer",
+    };
+    const toolName = toolNames[context.tool] || context.tool;
+    showNotification(`📊 ${toolName} calculation complete! Click to analyze results.`);
+  }, [setToolContext, showNotification]);
 
   const clearToolContext = useCallback(() => {
     setToolContext(null);
