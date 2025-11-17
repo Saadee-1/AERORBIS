@@ -114,7 +114,7 @@ interface SavedAntennaPreset {
   antennaId: string;
   antennaParams: AntennaParams;
   frequency: number;
-  frequencyUnit: "Hz" | "MHz" | "GHz";
+  frequencyUnit: "Hz" | "MHz" | "GHz" | "Custom";
   transmitPower: number;
   polarization: string;
   resolution: number;
@@ -153,7 +153,9 @@ const AntennaPatternAnalyzer = () => {
   const [selectedAntennaId, setSelectedAntennaId] = useState("half-wave-dipole");
   const [antennaParams, setAntennaParams] = useState<AntennaParams>({});
   const [frequency, setFrequency] = useState(1000); // MHz
-  const [frequencyUnit, setFrequencyUnit] = useState<"Hz" | "MHz" | "GHz">("MHz");
+  const [frequencyUnit, setFrequencyUnit] = useState<"Hz" | "MHz" | "GHz" | "Custom">("MHz");
+  const [customFrequencyUnitName, setCustomFrequencyUnitName] = useState("Unit-f");
+  const [customFrequencyFactor, setCustomFrequencyFactor] = useState("1.0");
   const [transmitPower, setTransmitPower] = useState(1); // W
   const [polarization, setPolarization] = useState("linear-vertical");
   const [resolution, setResolution] = useState(1); // degrees
@@ -182,20 +184,22 @@ const AntennaPatternAnalyzer = () => {
 
   // Calculate wavelength
   const lambda = useMemo(() => {
-    const freqHz = frequencyToHz(frequency, frequencyUnit);
+    const customFactor = frequencyUnit === "Custom" ? parseFloat(customFrequencyFactor) : undefined;
+    const freqHz = frequencyToHz(frequency, frequencyUnit, customFactor);
     return wavelength(freqHz);
-  }, [frequency, frequencyUnit]);
+  }, [frequency, frequencyUnit, customFrequencyFactor]);
 
   // Generate pattern function
   const patternFunction = useMemo(() => {
     if (!selectedAntenna) return null;
 
     return (theta: number, phi: number): number => {
-      const freqHz = frequencyToHz(frequency, frequencyUnit);
+      const customFactor = frequencyUnit === "Custom" ? parseFloat(customFrequencyFactor) : undefined;
+      const freqHz = frequencyToHz(frequency, frequencyUnit, customFactor);
       const lambda = wavelength(freqHz);
       return selectedAntenna.pattern(theta, phi, antennaParams, lambda);
     };
-  }, [selectedAntenna, antennaParams, frequency, frequencyUnit]);
+  }, [selectedAntenna, antennaParams, frequency, frequencyUnit, customFrequencyFactor]);
 
   // Generate pattern data
   const generatedPattern = useMemo(() => {

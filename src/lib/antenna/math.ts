@@ -32,7 +32,7 @@ export const wavelength = (frequencyHz: number): number => {
 /**
  * Convert frequency units to Hz
  */
-export const frequencyToHz = (value: number, unit: "Hz" | "MHz" | "GHz"): number => {
+export const frequencyToHz = (value: number, unit: "Hz" | "MHz" | "GHz" | "Custom", customFactor?: number): number => {
   switch (unit) {
     case "Hz":
       return value;
@@ -40,6 +40,11 @@ export const frequencyToHz = (value: number, unit: "Hz" | "MHz" | "GHz"): number
       return value * 1e6;
     case "GHz":
       return value * 1e9;
+    case "Custom":
+      if (customFactor && !isNaN(customFactor) && customFactor > 0) {
+        return value * customFactor;
+      }
+      return value; // Fallback to Hz if invalid factor
   }
 };
 
