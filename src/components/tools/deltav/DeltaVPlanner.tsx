@@ -53,9 +53,11 @@ import {
   Info,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useToolContext } from "@/hooks/useToolContext";
 
 const DeltaVPlanner = () => {
   const { toast } = useToast();
+  const { updateToolContext } = useToolContext();
   const [showKm, setShowKm] = useState(false);
   const [mission, setMission] = useState<MissionParameters>({
     targetOrbitAltitude: 200,
@@ -117,7 +119,7 @@ const DeltaVPlanner = () => {
   // Update result
   useEffect(() => {
     if (stageResults.length > 0) {
-      setResult({
+      const resultData = {
         mission,
         stages: stageResults,
         breakdown,
@@ -126,11 +128,37 @@ const DeltaVPlanner = () => {
         payloadMass: mission.payloadMass,
         warnings,
         recommendations,
+      };
+      setResult(resultData);
+      
+      // Update AI assistant context
+      updateToolContext({
+        tool: "Delta-V Budget Planner",
+        inputs: {
+          targetOrbitAltitude: `${mission.targetOrbitAltitude} km`,
+          orbitType: mission.orbitType,
+          targetInclination: `${mission.targetInclination}°`,
+          payloadMass: `${mission.payloadMass} kg`,
+          gravityLoss: `${mission.gravityLoss} m/s`,
+          dragLoss: `${mission.dragLoss} m/s`,
+          steeringLoss: `${mission.steeringLoss} m/s`,
+          reserveMargin: `${mission.reserveMargin}%`,
+          numberOfStages: stages.length
+        },
+        results: {
+          totalRequiredDeltaV: `${breakdown.totalRequired.toFixed(1)} m/s`,
+          totalAchievableDeltaV: `${totalAchievable.toFixed(1)} m/s`,
+          feasibility: breakdown.totalRequired <= totalAchievable ? "Feasible" : "Not Feasible",
+          totalLiftoffMass: `${resultData.totalLiftoffMass.toFixed(1)} kg`,
+          payloadMass: `${mission.payloadMass} kg`,
+          warnings: warnings.length > 0 ? warnings.join("; ") : "None",
+          recommendations: recommendations.length > 0 ? recommendations.join("; ") : "None"
+        }
       });
     } else {
       setResult(null);
     }
-  }, [mission, stageResults, breakdown, warnings, recommendations]);
+  }, [mission, stageResults, breakdown, warnings, recommendations, totalAchievable, updateToolContext]);
 
   const loadPreset = useCallback((preset: typeof MISSION_PRESETS[0]) => {
     setMission(preset.mission);
@@ -593,7 +621,7 @@ const DeltaVPlanner = () => {
 
       {/* Save Preset Dialog */}
       <Dialog open={isPresetDialogOpen} onOpenChange={setIsPresetDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white">
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Preset</DialogTitle>
             <DialogDescription className="text-gray-400">
@@ -634,7 +662,7 @@ const DeltaVPlanner = () => {
 
       {/* Import Dialog */}
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white">
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
           <DialogHeader>
             <DialogTitle>Import Mission</DialogTitle>
             <DialogDescription className="text-gray-400">

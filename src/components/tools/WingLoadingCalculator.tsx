@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Gauge, Plane, Info, TrendingUp, Settings2, AlertTriangle, CheckCircle, Wind, Anchor } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { useToolContext } from "@/hooks/useToolContext";
 import { 
   Select, 
   SelectContent, 
@@ -73,6 +74,7 @@ const advancedSchema = z.object({
 // --- Main Component ---
 const AdvancedWingLoadingCalculator = () => {
   const { toast } = useToast();
+  const { updateToolContext } = useToolContext();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
 
   // --- State ---
@@ -325,6 +327,23 @@ const AdvancedWingLoadingCalculator = () => {
       
       setBasicResult({ ...resultData, steps, solvedFor: solveFor, ...interpretation, feasibility });
       setAdvancedResult(null); // Clear advanced results as basic inputs changed
+      
+      // Update AI assistant context
+      updateToolContext({
+        tool: "Wing Loading Calculator",
+        inputs: {
+          weight: basicInputs.weight ? `${convertFromSI(validated.weight || 0, "weight").toFixed(2)} ${getUnit("weight")}` : "Not provided",
+          wingArea: basicInputs.wingArea ? `${convertFromSI(validated.wingArea || 0, "wingArea").toFixed(2)} ${getUnit("wingArea")}` : "Not provided",
+          wingLoading: advInputs.wingLoading ? `${convertFromSI(validated.wingLoading || 0, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}` : "Not provided",
+          unitSystem
+        },
+        results: {
+          solvedFor: solveFor,
+          wingLoading: `${convertFromSI(final_wl, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}`,
+          interpretation: interpretation.category,
+          feasibility: feasibility.isFeasible ? "Feasible" : "Not Feasible"
+        }
+      });
 
     } catch (error) {
       if (error instanceof z.ZodError) {

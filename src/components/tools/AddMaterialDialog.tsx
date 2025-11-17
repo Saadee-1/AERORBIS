@@ -117,7 +117,7 @@ const AddMaterialDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-md">
+      <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-2xl text-white flex items-center gap-2">
             <Plus className="w-6 h-6 text-cyan-400" />

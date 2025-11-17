@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Database, Search, Filter, Plus, Ruler } from "lucide-react";
+import { useToolContext } from "@/hooks/useToolContext";
 
 // Full Aerospace Materials Database
 const MATERIALS: Material[] = [
@@ -74,6 +75,7 @@ const CATEGORIES = [
 ];
 
 const MaterialsDatabase = () => {
+  const { updateToolContext } = useToolContext();
   const [materials, setMaterials] = useState<Material[]>(MATERIALS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -135,6 +137,23 @@ const MaterialsDatabase = () => {
   const handleMaterialClick = (material: Material) => {
     setSelectedMaterial(material);
     setIsDrawerOpen(true);
+    
+    // Update AI assistant context
+    const densitySI = material.density;
+    const densityImperial = densitySI * 0.062428;
+    updateToolContext({
+      tool: "Materials Density Database",
+      inputs: {
+        materialName: material.name,
+        category: material.category,
+        unitSystem
+      },
+      results: {
+        densitySI: `${densitySI} kg/m³`,
+        densityImperial: `${densityImperial.toFixed(2)} lb/ft³`,
+        description: material.description
+      }
+    });
   };
 
   const handleAddMaterial = (material: Material) => {

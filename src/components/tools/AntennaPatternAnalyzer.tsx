@@ -75,6 +75,10 @@ import {
   Calculator,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useToolContext } from "@/hooks/useToolContext";
+import { useRef } from "react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 // Import antenna models and math utilities
 import { ANTENNA_TYPES, getAntennaById, AntennaParams } from "@/lib/antenna/models";
@@ -126,6 +130,7 @@ interface AntennaResult {
 
 const AntennaPatternAnalyzer = () => {
   const { toast } = useToast();
+  const { updateToolContext } = useToolContext();
 
   // State
   const [selectedAntennaId, setSelectedAntennaId] = useState("half-wave-dipole");
@@ -139,6 +144,15 @@ const AntennaPatternAnalyzer = () => {
   const [show3D, setShow3D] = useState(false);
   const [result, setResult] = useState<AntennaResult | null>(null);
   const [patternData, setPatternData] = useState<PatternPoint[]>([]);
+  const canvas3DRef = useRef<HTMLCanvasElement>(null);
+  const three3DRef = useRef<{
+    scene: THREE.Scene;
+    camera: THREE.PerspectiveCamera;
+    renderer: THREE.WebGLRenderer;
+    controls: OrbitControls;
+    patternMesh: THREE.Mesh | null;
+    animationId: number | null;
+  } | null>(null);
 
   // Get selected antenna
   const selectedAntenna = useMemo(() => {
@@ -276,7 +290,185 @@ const AntennaPatternAnalyzer = () => {
   useEffect(() => {
     setResult(calculatedResults);
     setPatternData(generatedPattern);
-  }, [calculatedResults, generatedPattern]);
+    
+    // Update AI assistant context when results are calculated
+    if (calculatedResults && selectedAntenna) {
+      updateToolContext({
+        tool: "Antenna Pattern Analyzer",
+        inputs: {
+          antennaType: selectedAntenna.name,
+          frequency: `${frequency} ${frequencyUnit}`,
+          transmitPower: `${transmitPower} W`,
+          polarization,
+          resolution: `${resolution}°`,
+          computeMode
+        },
+        results: {
+          peakGain: `${calculatedResults.peakGainDbi.toFixed(2)} dBi`,
+          directivity: `${calculatedResults.directivityDbi.toFixed(2)} dBi`,
+          eirp: `${calculatedResults.eirp.eirpDbw.toFixed(2)} dBW`,
+          hpbmE: calculatedResults.hpbmE ? `${calculatedResults.hpbmE.toFixed(2)}°` : "N/A",
+          hpbmH: calculatedResults.hpbmH ? `${calculatedResults.hpbmH.toFixed(2)}°` : "N/A",
+          sideLobeLevel: `${calculatedResults.sideLobeLevel.toFixed(2)} dB`,
+          frontToBackRatio: `${calculatedResults.frontToBackRatio.toFixed(2)} dB`,
+          wavelength: `${(lambda * 1000).toFixed(2)} mm`
+        }
+      });
+    }
+  }, [calculatedResults, generatedPattern, selectedAntenna, frequency, frequencyUnit, transmitPower, polarization, resolution, computeMode, lambda, updateToolContext]);
+
+  // Initialize and update 3D visualization
+  useEffect(() => {
+    if (!show3D || !canvas3DRef.current || !patternFunction) {
+      // Cleanup if 3D is disabled
+      if (three3DRef.current) {
+        if (three3DRef.current.animationId) {
+          cancelAnimationFrame(three3DRef.current.animationId);
+        }
+        if (three3DRef.current.patternMesh) {
+          three3DRef.current.scene.remove(three3DRef.current.patternMesh);
+          three3DRef.current.patternMesh.geometry.dispose();
+          if (Array.isArray(three3DRef.current.patternMesh.material)) {
+            three3DRef.current.patternMesh.material.forEach((m) => m.dispose());
+          } else {
+            three3DRef.current.patternMesh.material.dispose();
+          }
+        }
+        three3DRef.current.renderer.dispose();
+        three3DRef.current = null;
+      }
+      return;
+    }
+
+    // Initialize Three.js scene
+    if (!three3DRef.current) {
+      const canvas = canvas3DRef.current;
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x020617);
+
+      const camera = new THREE.PerspectiveCamera(
+        50,
+        canvas.clientWidth / canvas.clientHeight,
+        0.1,
+        1000
+      );
+      camera.position.set(0, 0, 5);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      three3DRef.current = {
+        scene,
+        camera,
+        renderer,
+        controls,
+        patternMesh: null,
+        animationId: null,
+      };
+    }
+
+    const { scene, camera, renderer, controls } = three3DRef.current;
+
+    // Remove old pattern mesh if exists
+    if (three3DRef.current.patternMesh) {
+      scene.remove(three3DRef.current.patternMesh);
+      three3DRef.current.patternMesh.geometry.dispose();
+      if (Array.isArray(three3DRef.current.patternMesh.material)) {
+        three3DRef.current.patternMesh.material.forEach((m) => m.dispose());
+      } else {
+        three3DRef.current.patternMesh.material.dispose();
+      }
+    }
+
+    // Create pattern geometry
+    const segments = 64;
+    const geometry = new THREE.SphereGeometry(1, segments, segments);
+    const positions = geometry.attributes.position;
+    const colors: number[] = [];
+
+    // Map pattern function to sphere vertices
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i);
+      const y = positions.getY(i);
+      const z = positions.getZ(i);
+      
+      // Convert to spherical coordinates
+      const r = Math.sqrt(x * x + y * y + z * z);
+      const theta = Math.acos(z / r);
+      const phi = Math.atan2(y, x);
+
+      // Get pattern value
+      const gain = Math.max(0, patternFunction(theta, phi));
+      const gainDbi = linearToDbi(gain);
+      
+      // Normalize gain to 0-1 range for color mapping (assuming max 30 dBi)
+      const normalizedGain = Math.min(1, Math.max(0, (gainDbi + 30) / 60));
+      
+      // Color: cyan for high gain, dark blue for low gain
+      const color = new THREE.Color();
+      color.setHSL(0.5 - normalizedGain * 0.3, 1, 0.3 + normalizedGain * 0.5);
+      colors.push(color.r, color.g, color.b);
+      
+      // Scale radius by gain
+      const scale = 1 + normalizedGain * 0.5;
+      positions.setXYZ(i, x * scale, y * scale, z * scale);
+    }
+
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.computeVertexNormals();
+
+    const material = new THREE.MeshPhongMaterial({
+      vertexColors: true,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.8,
+    });
+
+    const patternMesh = new THREE.Mesh(geometry, material);
+    scene.add(patternMesh);
+    three3DRef.current.patternMesh = patternMesh;
+
+    // Add lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0x22d3ee, 1);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    // Animation loop
+    const animate = () => {
+      if (!three3DRef.current) return;
+      three3DRef.current.animationId = requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    // Cleanup
+    return () => {
+      if (three3DRef.current?.animationId) {
+        cancelAnimationFrame(three3DRef.current.animationId);
+      }
+      if (three3DRef.current?.patternMesh) {
+        three3DRef.current.scene.remove(three3DRef.current.patternMesh);
+        three3DRef.current.patternMesh.geometry.dispose();
+        if (Array.isArray(three3DRef.current.patternMesh.material)) {
+          three3DRef.current.patternMesh.material.forEach((m) => m.dispose());
+        } else {
+          three3DRef.current.patternMesh.material.dispose();
+        }
+      }
+      if (three3DRef.current) {
+        three3DRef.current.renderer.dispose();
+        three3DRef.current = null;
+      }
+    };
+  }, [show3D, patternFunction, patternData]);
 
   // Handle antenna selection
   const handleAntennaChange = (id: string) => {
@@ -688,6 +880,28 @@ const AntennaPatternAnalyzer = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          {/* 3D Pattern Visualization */}
+          {show3D && (
+            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-cyan-400" />
+                  3D Radiation Pattern
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Interactive 3D visualization of antenna radiation pattern
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <canvas
+                  ref={canvas3DRef}
+                  className="w-full h-[500px] rounded-lg bg-slate-900"
+                />
+              </CardContent>
+            </Card>
+          )}
+
 
           {/* Theory Accordion */}
           <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">

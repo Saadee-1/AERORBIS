@@ -22,6 +22,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useToolContext } from "@/hooks/useToolContext";
 
 type UnitSystem = "SI" | "Imperial";
 type AirfoilKey = keyof typeof airfoils | "custom";
@@ -114,6 +115,7 @@ interface LiftDragResult {
 }
 
 const LiftDragAnalyzer = () => {
+  const { updateToolContext } = useToolContext();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
     return (localStorage.getItem("liftDragUnitSystem") as UnitSystem) || "SI";
   });
@@ -314,10 +316,35 @@ const LiftDragAnalyzer = () => {
         `**Interpretation:** ${L_D_ratio > 25 ? "Excellent glide performance (Glider-like)" : L_D_ratio > 15 ? "Good efficiency (Airliner)" : L_D_ratio > 8 ? "Moderate efficiency (Prop plane)" : "Poor efficiency (High drag/High power)"}`,
       ];
 
-      setResult({
+      const resultData = {
         CL, CD, L_D_ratio, liftForce, dragForce,
         aspectRatio, k_factor, steps,
         airfoilName: activeAirfoil.name
+      };
+      setResult(resultData);
+      
+      // Update AI assistant context
+      updateToolContext({
+        tool: "Lift/Drag Analyzer",
+        inputs: {
+          airfoil: activeAirfoil.name,
+          angleOfAttack: `${alpha}°`,
+          airspeed: `${convertFromSI(V, "speed").toFixed(2)} ${getUnit("speed")}`,
+          airDensity: `${convertFromSI(rho, "density").toFixed(3)} ${getUnit("density")}`,
+          wingArea: `${convertFromSI(S, "area").toFixed(2)} ${getUnit("area")}`,
+          wingSpan: `${convertFromSI(b, "span").toFixed(2)} ${getUnit("span")}`,
+          oswaldEfficiency: e.toFixed(3),
+          unitSystem
+        },
+        results: {
+          liftCoefficient: CL.toFixed(4),
+          dragCoefficient: CD.toFixed(4),
+          liftToDragRatio: L_D_ratio.toFixed(2),
+          liftForce: `${convertFromSI(liftForce, "force").toFixed(2)} ${getUnit("force")}`,
+          dragForce: `${convertFromSI(dragForce, "force").toFixed(2)} ${getUnit("force")}`,
+          aspectRatio: aspectRatio.toFixed(2),
+          flowRegime: L_D_ratio > 20 ? "Excellent" : L_D_ratio > 15 ? "Good" : L_D_ratio > 10 ? "Moderate" : "Poor"
+        }
       });
     } catch (err) {
       setError((err as Error).message);

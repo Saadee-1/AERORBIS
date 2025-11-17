@@ -20,9 +20,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Rocket, Info, Orbit, Move } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2 } from "lucide-react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { useToolContext } from "@/hooks/useToolContext";
+import { useToast } from "@/hooks/use-toast";
 
 type UnitSystem = "SI" | "Imperial";
 
@@ -52,10 +55,24 @@ interface OrbitalParams {
   meanAnomaly0: number; // Initial mean anomaly (radians)
 }
 
+interface SavedOrbit {
+  name: string;
+  inputs: OrbitalInputs;
+  timestamp: number;
+}
+
+const STORAGE_KEY_CUSTOM_ORBITS = "orbitalVisualizer_customOrbits";
+
 const OrbitalVisualizer = () => {
+  const { updateToolContext } = useToolContext();
+  const { toast } = useToast();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
     return (localStorage.getItem("orbitalUnitSystem") as UnitSystem) || "SI";
   });
+  const [customOrbits, setCustomOrbits] = useState<SavedOrbit[]>([]);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
+  const [saveOrbitName, setSaveOrbitName] = useState("");
 
   const [inputs, setInputs] = useState<OrbitalInputs>(() => {
     const saved = localStorage.getItem("orbitalInputs");
@@ -528,7 +545,7 @@ const OrbitalVisualizer = () => {
       }
 
       // --- 4. SET RESULTS ---
-      setOrbitResult({
+      const resultData = {
         semiMajorAxis: semiMajorAxis,
         orbitalPeriod: orbitalPeriodMinutes,
         periapsisRadius: periapsisRadius,
@@ -538,6 +555,30 @@ const OrbitalVisualizer = () => {
         apoapsisVelocity: apoapsisVelocity,
         inclination: inclination,
         eccentricity: eccentricity,
+      };
+      setOrbitResult(resultData);
+      
+      // Update AI assistant context
+      const convert = (val: number) => unitSystem === "Imperial" ? val * KM_TO_MI : val;
+      const unit = unitSystem === "Imperial" ? "mi" : "km";
+      updateToolContext({
+        tool: "Orbital Visualizer",
+        inputs: {
+          periapsisAltitude: `${convert(parseFloat(currentInputs.periapsisAltitude)).toFixed(2)} ${unit}`,
+          inclination: `${inclination.toFixed(2)}°`,
+          eccentricity: eccentricity.toFixed(4),
+          centralBodyRadius: `${convert(parseFloat(currentInputs.centralBodyRadius)).toFixed(2)} ${unit}`,
+          unitSystem
+        },
+        results: {
+          semiMajorAxis: `${convert(semiMajorAxis).toFixed(2)} ${unit}`,
+          orbitalPeriod: `${orbitalPeriodMinutes.toFixed(2)} minutes`,
+          periapsisAltitude: `${convert(apoapsisAltitude).toFixed(2)} ${unit}`,
+          apoapsisAltitude: `${convert(apoapsisAltitude).toFixed(2)} ${unit}`,
+          periapsisVelocity: `${periapsisVelocity.toFixed(2)} km/s`,
+          apoapsisVelocity: `${apoapsisVelocity.toFixed(2)} km/s`,
+          orbitType: eccentricity < 0.01 ? "Circular" : eccentricity < 0.5 ? "Elliptical" : "Highly Elliptical"
+        }
       });
 
     } catch (err) {
@@ -662,6 +703,35 @@ const OrbitalVisualizer = () => {
     setError("");
   };
 
+  const handleSaveCustomOrbit = () => {
+    if (!saveOrbitName.trim()) {
+      toast({ title: "Error", description: "Please enter a name for the custom orbit", variant: "destructive" });
+      return;
+    }
+    const newOrbit: SavedOrbit = {
+      name: saveOrbitName.trim(),
+      inputs: { ...inputs },
+      timestamp: Date.now(),
+    };
+    setCustomOrbits([...customOrbits, newOrbit]);
+    setSaveOrbitName("");
+    setIsSaveDialogOpen(false);
+    toast({ title: "Success", description: `Custom orbit "${newOrbit.name}" saved!` });
+  };
+
+  const handleLoadCustomOrbit = (orbit: SavedOrbit) => {
+    setInputs(orbit.inputs);
+    calculateOrbit(orbit.inputs);
+    setIsLoadDialogOpen(false);
+    toast({ title: "Loaded", description: `Custom orbit "${orbit.name}" loaded!` });
+  };
+
+  const handleDeleteCustomOrbit = (index: number) => {
+    const orbit = customOrbits[index];
+    setCustomOrbits(customOrbits.filter((_, i) => i !== index));
+    toast({ title: "Deleted", description: `Custom orbit "${orbit.name}" deleted!` });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -733,6 +803,27 @@ const OrbitalVisualizer = () => {
             <p className="text-sm text-slate-400 mt-2">
               Click any preset to instantly load real-world satellite parameters
             </p>
+            <div className="flex gap-2 mt-4">
+              <Button
+                type="button"
+                onClick={() => setIsSaveDialogOpen(true)}
+                variant="outline"
+                className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Custom Orbit
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setIsLoadDialogOpen(true)}
+                variant="outline"
+                className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+                disabled={customOrbits.length === 0}
+              >
+                <FolderOpen className="w-4 h-4 mr-2" />
+                Load Custom ({customOrbits.length})
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -841,6 +932,117 @@ const OrbitalVisualizer = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Save Custom Orbit Dialog */}
+      <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Save Custom Orbit</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Save the current orbit parameters as a custom preset
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="orbitName" className="text-cyan-300">Orbit Name</Label>
+              <Input
+                id="orbitName"
+                value={saveOrbitName}
+                onChange={(e) => setSaveOrbitName(e.target.value)}
+                placeholder="e.g., My Custom LEO"
+                className="bg-slate-700/50 text-white"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSaveCustomOrbit();
+                  }
+                }}
+              />
+            </div>
+            <div className="text-sm text-gray-400 space-y-1">
+              <p>Periapsis: {inputs.periapsisAltitude} {getUnit("dist")}</p>
+              <p>Inclination: {inputs.inclination}°</p>
+              <p>Eccentricity: {inputs.eccentricity}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSaveDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCustomOrbit}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Load Custom Orbit Dialog */}
+      <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
+        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Load Custom Orbit</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Select a saved custom orbit to load
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
+            {customOrbits.length === 0 ? (
+              <p className="text-gray-400 text-center py-8">No custom orbits saved yet</p>
+            ) : (
+              customOrbits.map((orbit, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                >
+                  <div className="flex-1">
+                    <p className="text-white font-semibold">{orbit.name}</p>
+                    <p className="text-xs text-gray-400">
+                      Periapsis: {orbit.inputs.periapsisAltitude} {getUnit("dist")} | 
+                      Inc: {orbit.inputs.inclination}° | 
+                      e: {orbit.inputs.eccentricity}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Saved: {new Date(orbit.timestamp).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleLoadCustomOrbit(orbit)}
+                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleDeleteCustomOrbit(index)}
+                      className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/30"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsLoadDialogOpen(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
