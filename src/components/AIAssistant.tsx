@@ -41,58 +41,59 @@ const AstronautIcon = ({ className }: { className?: string }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
+    style={{ color: 'white' }}
   >
     {/* Large round helmet */}
-    <circle cx="12" cy="8" r="5.5" fill="white" strokeWidth="2.5" />
+    <circle cx="12" cy="8" r="5.5" fill="white" stroke="white" strokeWidth="2.5" />
     
     {/* Helmet trim band across top */}
-    <path d="M7 5.5h10" strokeWidth="2" />
+    <path d="M7 5.5h10" stroke="white" strokeWidth="2" />
     
     {/* Ear-like protrusions on sides */}
-    <circle cx="6.5" cy="8" r="1.2" fill="white" strokeWidth="2" />
-    <circle cx="17.5" cy="8" r="1.2" fill="white" strokeWidth="2" />
+    <circle cx="6.5" cy="8" r="1.2" fill="white" stroke="white" strokeWidth="2" />
+    <circle cx="17.5" cy="8" r="1.2" fill="white" stroke="white" strokeWidth="2" />
     
     {/* Dark visor covering face */}
-    <ellipse cx="12" cy="8" rx="4" ry="3.5" fill="#4a148c" strokeWidth="0" />
+    <ellipse cx="12" cy="8" rx="4" ry="3.5" fill="#4a148c" stroke="none" />
     {/* Visor highlights */}
     <circle cx="10" cy="7.5" r="0.8" fill="white" opacity="0.8" />
     <circle cx="13.5" cy="8" r="0.6" fill="white" opacity="0.6" />
     
     {/* Body - Bulky rounded suit */}
     <path d="M8 13.5 Q8 12 12 12 Q16 12 16 13.5 L16 18 Q16 19 12 19 Q8 19 8 18 Z" 
-          fill="white" strokeWidth="2.5" />
+          fill="white" stroke="white" strokeWidth="2.5" />
     
     {/* Chest panel with L shape */}
-    <rect x="10" y="14" width="4" height="3" rx="0.5" fill="white" strokeWidth="2" />
+    <rect x="10" y="14" width="4" height="3" rx="0.5" fill="white" stroke="white" strokeWidth="2" />
     {/* L shape design on chest */}
-    <path d="M10.5 14.5h2v1.5h-2z M10.5 16h3" strokeWidth="1.5" fill="none" />
+    <path d="M10.5 14.5h2v1.5h-2z M10.5 16h3" stroke="white" strokeWidth="1.5" fill="none" />
     {/* Blue button/indicator */}
-    <circle cx="13" cy="15.5" r="0.6" fill="#3b82f6" strokeWidth="0" />
+    <circle cx="13" cy="15.5" r="0.6" fill="#3b82f6" stroke="none" />
     
     {/* Belt/strap around waist */}
-    <path d="M8 17.5h8" strokeWidth="2.5" />
+    <path d="M8 17.5h8" stroke="white" strokeWidth="2.5" />
     
     {/* Left arm - hand on hip */}
     <path d="M6 12 Q5 13 5 14.5 Q5 16 6.5 16.5" 
-          fill="white" strokeWidth="2.5" strokeLinecap="round" />
-    <circle cx="6" cy="16.5" r="1.5" fill="white" strokeWidth="2" />
+          fill="white" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+    <circle cx="6" cy="16.5" r="1.5" fill="white" stroke="white" strokeWidth="2" />
     
     {/* Right arm - WAVING HAND (animated) */}
     <g className="waving-arm">
       <path d="M18 12 Q19 10.5 19.5 9 Q20 7.5 19.5 6.5 Q19 5.5 18 6 Q17 6.5 16.5 7.5 Q16 8.5 16.5 9.5 Q17 10.5 18 12" 
-            fill="white" strokeWidth="2.5" strokeLinecap="round" />
+            fill="white" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
       {/* Waving hand - open palm */}
-      <circle cx="19.5" cy="7" r="1.3" fill="white" strokeWidth="2" />
+      <circle cx="19.5" cy="7" r="1.3" fill="white" stroke="white" strokeWidth="2" />
       {/* Fingers spread for waving */}
       <path d="M19 6.2 L19.2 5.5 M19.5 6 L19.8 5.3 M20 6.2 L20.2 5.5" 
-            strokeWidth="1.5" strokeLinecap="round" />
+            stroke="white" strokeWidth="1.5" strokeLinecap="round" />
     </g>
     
     {/* Legs - rounded puffy boots */}
     <path d="M10 18.5 L10 21 Q10 22 11 22 L11.5 22 Q12.5 22 12.5 21 L12.5 18.5" 
-          fill="white" strokeWidth="2.5" />
+          fill="white" stroke="white" strokeWidth="2.5" />
     <path d="M11.5 18.5 L11.5 21 Q11.5 22 12.5 22 L13 22 Q14 22 14 21 L14 18.5" 
-          fill="white" strokeWidth="2.5" />
+          fill="white" stroke="white" strokeWidth="2.5" />
   </svg>
 );
 
