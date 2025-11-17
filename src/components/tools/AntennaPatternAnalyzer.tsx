@@ -177,6 +177,26 @@ const AntennaPatternAnalyzer = () => {
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [savePresetName, setSavePresetName] = useState("");
 
+  // Load custom frequency unit settings
+  useEffect(() => {
+    const storedCustomUnitName = localStorage.getItem("antennaPattern_customFrequencyUnitName");
+    if (storedCustomUnitName) {
+      setCustomFrequencyUnitName(storedCustomUnitName);
+    }
+    const storedCustomFactor = localStorage.getItem("antennaPattern_customFrequencyFactor");
+    if (storedCustomFactor) {
+      setCustomFrequencyFactor(storedCustomFactor);
+    }
+  }, []);
+
+  // Save custom frequency unit settings
+  useEffect(() => {
+    if (frequencyUnit === "Custom") {
+      localStorage.setItem("antennaPattern_customFrequencyUnitName", customFrequencyUnitName);
+      localStorage.setItem("antennaPattern_customFrequencyFactor", customFrequencyFactor);
+    }
+  }, [frequencyUnit, customFrequencyUnitName, customFrequencyFactor]);
+
   // Get selected antenna
   const selectedAntenna = useMemo(() => {
     return getAntennaById(selectedAntennaId);
