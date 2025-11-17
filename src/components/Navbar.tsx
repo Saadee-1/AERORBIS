@@ -64,7 +64,9 @@ const Navbar = () => {
                 Join Now
               </Button>
             </Link>
-            <ProfileMenu className="rounded bg-transparent" />
+            <div className="rounded bg-transparent">
+              <ProfileMenu />
+            </div>
           </div>
 
           {/* Mobile Menu Button */}

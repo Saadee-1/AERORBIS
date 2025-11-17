@@ -286,7 +286,7 @@ const LiftDragAnalyzer = () => {
       : airfoils[inputs.airfoil];
   };
 
-  const calculateLiftDrag = () => {
+  const calculateLiftDrag = async () => {
     setError("");
     try {
       const alpha = parseFloat(inputs.angleOfAttack);
