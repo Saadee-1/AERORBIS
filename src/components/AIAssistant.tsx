@@ -156,7 +156,7 @@ const AIAssistant: React.FC = () => {
                      shadow-[0_0_60px_rgba(34,211,238,0.4)] overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-cyan-400/20 bg-slate-800/50">
+            <div className="relative flex items-center justify-between p-4 border-b border-cyan-400/20 bg-slate-800/50">
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
@@ -208,34 +208,44 @@ const AIAssistant: React.FC = () => {
                 >
                   <History className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={startNewChat}
-                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
-                  title="New chat"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={clearChat}
-                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
-                  title="Clear chat"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
-                  title="Minimize"
-                >
-                  <Minimize2 className="w-4 h-4" />
-                </Button>
               </div>
+            </div>
+
+            {/* Action Buttons Row - Clear Chat and New Chat */}
+            <div className="flex gap-2 px-4 py-2 border-b border-cyan-400/20 bg-slate-800/30">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startNewChat}
+                className="flex-1 text-xs border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/60"
+              >
+                <Plus className="w-3 h-3 mr-1.5" />
+                New Chat
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearChat}
+                disabled={messages.length === 0}
+                className="flex-1 text-xs border-red-400/40 text-red-400 hover:bg-red-400/10 hover:border-red-400/60 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="w-3 h-3 mr-1.5" />
+                Clear Chat
+              </Button>
+            </div>
+            
+            {/* Header Actions (Minimize) */}
+            <div className="absolute top-4 right-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+                className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
+                title="Minimize"
+              >
+                <Minimize2 className="w-4 h-4" />
+              </Button>
+            </div>
             </div>
 
             {/* Mode Toggle */}
