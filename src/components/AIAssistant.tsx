@@ -208,16 +208,18 @@ const AIAssistant: React.FC = () => {
           className="fixed bottom-8 right-8 z-[9999] w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
                    shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
                    flex items-center justify-center transition-all duration-300 hover:scale-110 group relative
-                   border-2 border-white/30"
+                   border-2 border-white/50"
           style={{
             animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
           }}
           aria-label="Open Aerobot AI Assistant"
         >
-          <div className="w-12 h-12 flex items-center justify-center relative z-10">
+          {/* Fallback text for debugging - remove if icon works */}
+          <span className="sr-only">Aerobot</span>
+          <div className="w-14 h-14 flex items-center justify-center relative z-10 pointer-events-none">
             <AstronautIcon className="w-full h-full" />
           </div>
-          <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all" />
+          <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all pointer-events-none" />
         </motion.button>
       )}
 
