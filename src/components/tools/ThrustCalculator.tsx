@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Calculator, Rocket, Info, TrendingUp, Settings2, Anchor } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { useToolContext } from "@/hooks/useToolContext";
 import { 
   Select, 
   SelectContent, 
@@ -68,6 +69,7 @@ const performanceSchema = z.object({
 // --- Main Component ---
 const AdvancedThrustCalculator = () => {
   const { toast } = useToast();
+  const { updateToolContext } = useToolContext();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
 
   // --- State ---
@@ -232,6 +234,20 @@ const AdvancedThrustCalculator = () => {
       setPerformanceResult({ ...resultData, steps, solveFor });
       setThrustResult(null); // Clear thrust results
       setChartData([]);
+      
+      // Update AI Assistant context
+      updateToolContext({
+        tool: "Thrust",
+        inputs: {
+          isp: inputs.isp || undefined,
+          exhaustVelocity: inputs.exhaustVelocity || undefined,
+          unitSystem: unitSystem,
+        },
+        results: {
+          ...resultData,
+          solveFor: solveFor,
+        },
+      });
 
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -339,6 +355,26 @@ const AdvancedThrustCalculator = () => {
 
       setThrustResult({ ...resultData, steps, solveFor });
       setPerformanceResult(null); // Clear performance results
+      
+      // Update AI Assistant context
+      updateToolContext({
+        tool: "Thrust",
+        inputs: {
+          massFlowRate: inputs.massFlowRate || undefined,
+          exhaustVelocity: inputs.exhaustVelocity || undefined,
+          exitArea: inputs.exitArea || undefined,
+          exitPressure: inputs.exitPressure || undefined,
+          ambientPressure: inputs.ambientPressure || undefined,
+          unitSystem: unitSystem,
+        },
+        results: {
+          thrust: resultData.thrust,
+          momentumThrust: resultData.momentumThrust,
+          pressureThrust: resultData.pressureThrust,
+          isp: resultData.isp,
+          solveFor: solveFor,
+        },
+      });
       
       // Generate Chart
       if (validated.massFlowRate && validated.exhaustVelocity && validated.exitArea && validated.exitPressure) {

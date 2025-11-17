@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Wind, Info, TrendingUp, Settings2, AlertTriangle, CheckCircle, Calculator } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { useToolContext } from "@/hooks/useToolContext";
 import { 
   Select, 
   SelectContent, 
@@ -116,6 +117,7 @@ const reynoldsSchema = z.object({
 // --- Main Component ---
 const ReynoldsNumberCalculator = () => {
   const { toast } = useToast();
+  const { updateToolContext } = useToolContext();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
   const [selectedPreset, setSelectedPreset] = useState<string>("");
 
@@ -370,6 +372,23 @@ const ReynoldsNumberCalculator = () => {
       if (reynoldsNumber > 1e8) {
         warnings.push("Extreme flow regime detected (Re > 10⁸)");
       }
+
+      // Update AI Assistant context
+      updateToolContext({
+        tool: "Reynolds",
+        inputs: {
+          density: inputs.density,
+          velocity: inputs.velocity,
+          length: inputs.length,
+          viscosity: inputs.viscosity,
+          unitSystem: unitSystem,
+        },
+        results: {
+          reynoldsNumber: reynoldsNumber,
+          flowRegime: flowRegime,
+          warnings: warnings,
+        },
+      });
 
       setResult({
         reynoldsNumber,

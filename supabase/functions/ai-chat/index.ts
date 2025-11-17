@@ -158,7 +158,14 @@ Then redirect to safe topics.${languageInstruction}`;
     // Add tool context to system message if provided
     let enhancedSystemPrompt = systemPrompt;
     if (toolContext && mode === 'chat') {
-      enhancedSystemPrompt += `\n\nCURRENT TOOL CONTEXT:\n${JSON.stringify(toolContext, null, 2)}\n\nAnalyze the tool results and provide expert aerospace engineering insights.`;
+      enhancedSystemPrompt += `\n\nCURRENT TOOL CONTEXT:\n${JSON.stringify(toolContext, null, 2)}\n\nIMPORTANT: When tool context is provided, you should:
+1. Immediately recognize which tool produced these results
+2. Analyze the inputs and results as an expert aerospace engineer
+3. Provide insights about what the results mean in real-world aerospace terms
+4. Point out any concerns (unrealistic values, warnings, etc.)
+5. Suggest follow-up calculations or next steps
+
+If the user hasn't asked a specific question yet, proactively explain the tool results and their engineering significance.`;
     }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
