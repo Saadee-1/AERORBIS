@@ -31,46 +31,64 @@ const LANGUAGES = [
   { code: 'ur', name: 'اردو' },
 ];
 
-// Realistic Astronaut Icon Component
+// Cute Cartoon Astronaut Icon (matching the provided image)
 const AstronautIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.5"
+    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
   >
-    {/* Helmet - Main circle */}
-    <circle cx="12" cy="9" r="5.5" fill="currentColor" fillOpacity="0.1" />
-    <circle cx="12" cy="9" r="5.5" />
+    {/* Large round helmet */}
+    <circle cx="12" cy="8" r="5.5" fill="white" strokeWidth="2.5" />
     
-    {/* Visor - Curved reflective surface */}
-    <path d="M8 9c0-1.5 1.5-2.5 4-2.5s4 1 4 2.5" strokeWidth="1.5" />
-    <ellipse cx="12" cy="9" rx="3" ry="2" fill="currentColor" fillOpacity="0.2" />
+    {/* Helmet trim band across top */}
+    <path d="M7 5.5h10" strokeWidth="2" />
     
-    {/* Helmet details - Antenna/communication device */}
-    <circle cx="12" cy="3.5" r="0.8" fill="currentColor" />
-    <path d="M12 3.5v1.5" />
+    {/* Ear-like protrusions on sides */}
+    <circle cx="6.5" cy="8" r="1.2" fill="white" strokeWidth="2" />
+    <circle cx="17.5" cy="8" r="1.2" fill="white" strokeWidth="2" />
     
-    {/* Body - Suit torso */}
-    <path d="M10 14.5h4" strokeWidth="2" />
-    <rect x="9" y="14.5" width="6" height="3" rx="1" fill="currentColor" fillOpacity="0.1" />
-    <rect x="9" y="14.5" width="6" height="3" rx="1" />
+    {/* Dark visor covering face */}
+    <ellipse cx="12" cy="8" rx="4" ry="3.5" fill="#4a148c" strokeWidth="0" />
+    {/* Visor highlights */}
+    <circle cx="10" cy="7.5" r="0.8" fill="white" opacity="0.8" />
+    <circle cx="13.5" cy="8" r="0.6" fill="white" opacity="0.6" />
     
-    {/* Arms - Bent position */}
-    <path d="M6 12.5c-1-1-2-0.5-2.5 0.5" />
-    <path d="M18 12.5c1-1 2-0.5 2.5 0.5" />
+    {/* Body - Bulky rounded suit */}
+    <path d="M8 13.5 Q8 12 12 12 Q16 12 16 13.5 L16 18 Q16 19 12 19 Q8 19 8 18 Z" 
+          fill="white" strokeWidth="2.5" />
     
-    {/* Legs - Space suit legs */}
-    <path d="M10 17.5v3.5" strokeWidth="2" />
-    <path d="M14 17.5v3.5" strokeWidth="2" />
-    <path d="M9 21l1 1.5" />
-    <path d="M15 21l-1 1.5" />
+    {/* Chest panel with L shape */}
+    <rect x="10" y="14" width="4" height="3" rx="0.5" fill="white" strokeWidth="2" />
+    {/* L shape design on chest */}
+    <path d="M10.5 14.5h2v1.5h-2z M10.5 16h3" strokeWidth="1.5" fill="none" />
+    {/* Blue button/indicator */}
+    <circle cx="13" cy="15.5" r="0.6" fill="#3b82f6" strokeWidth="0" />
     
-    {/* Chest pack/controls */}
-    <rect x="10.5" y="15" width="3" height="2" rx="0.5" fill="currentColor" fillOpacity="0.3" />
+    {/* Belt/strap around waist */}
+    <path d="M8 17.5h8" strokeWidth="2.5" />
+    
+    {/* Left arm - hand on hip */}
+    <path d="M6 12 Q5 13 5 14.5 Q5 16 6.5 16.5" 
+          fill="white" strokeWidth="2.5" strokeLinecap="round" />
+    <circle cx="6" cy="16.5" r="1.5" fill="white" strokeWidth="2" />
+    
+    {/* Right arm - raised with thumbs up */}
+    <path d="M18 12 Q19 11 19.5 10 Q20 9 19 8.5 Q18 8 17 9 Q16.5 10 17 11 Q17.5 12 18 12" 
+          fill="white" strokeWidth="2.5" strokeLinecap="round" />
+    {/* Thumbs up hand */}
+    <circle cx="19" cy="9.5" r="1.2" fill="white" strokeWidth="2" />
+    <path d="M19.5 8.5v1.5" strokeWidth="2" strokeLinecap="round" />
+    
+    {/* Legs - rounded puffy boots */}
+    <path d="M10 18.5 L10 21 Q10 22 11 22 L11.5 22 Q12.5 22 12.5 21 L12.5 18.5" 
+          fill="white" strokeWidth="2.5" />
+    <path d="M11.5 18.5 L11.5 21 Q11.5 22 12.5 22 L13 22 Q14 22 14 21 L14 18.5" 
+          fill="white" strokeWidth="2.5" />
   </svg>
 );
 
@@ -202,16 +220,16 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-4 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[680px] min-h-[500px] flex flex-col
+            className="fixed bottom-0 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[calc(100vh-4rem)] max-h-[700px] min-h-[520px] flex flex-col
                      bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
-                     border border-cyan-400/40 rounded-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
+                     border-t border-l border-r border-cyan-400/40 rounded-t-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
           >
-            {/* Minimal Header - Always Visible */}
-            <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
+            {/* Minimal Header - Always Visible at Top */}
+            <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky top-0 z-10">
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
-                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0">
-                  <AstronautIcon className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
+                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0 p-1.5">
+                  <AstronautIcon className="w-full h-full text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
