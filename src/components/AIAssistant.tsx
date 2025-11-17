@@ -34,7 +34,7 @@ const LANGUAGES = [
 // Simplified Astronaut Icon - Waving "Hi" with Animation (Reliable Rendering with Inline Styles)
 const AstronautIcon = ({ className }: { className?: string }) => {
   return (
-    <div className={className} style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <>
       <style>{`
         @keyframes astronaut-wave {
           0%, 100% { transform: rotate(0deg); }
@@ -48,6 +48,7 @@ const AstronautIcon = ({ className }: { className?: string }) => {
       `}</style>
       <svg
         viewBox="0 0 24 24"
+        className={className}
         style={{ width: '100%', height: '100%', display: 'block' }}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
