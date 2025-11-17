@@ -84,18 +84,13 @@ import { Save, FolderOpen, Trash2 } from "lucide-react";
 
 // Import antenna models and math utilities
 import { ANTENNA_TYPES, getAntennaById, AntennaParams } from "@/lib/antenna/models";
+import { computePattern, AntennaPatternResult, AntennaGeometry, PatternOptions } from "@/lib/antenna/models-enhanced";
 import {
   wavelength,
   frequencyToHz,
   linearToDbi,
   dbiToLinear,
   calculateEIRP,
-  calculateDirectivity,
-  calculateHPBW,
-  calculateSideLobeLevel,
-  calculateFrontToBackRatio,
-  checkGratingLobes,
-  farFieldDistance,
 } from "@/lib/antenna/math";
 
 // ============================================================================
@@ -139,6 +134,7 @@ interface AntennaResult {
     eirpDbm: number;
   };
   warnings: string[];
+  metadata?: AntennaPatternResult['metadata'];
 }
 
 // ============================================================================
@@ -209,127 +205,160 @@ const AntennaPatternAnalyzer = () => {
     return wavelength(freqHz);
   }, [frequency, frequencyUnit, customFrequencyFactor]);
 
-  // Generate pattern function
-  const patternFunction = useMemo(() => {
+  // Calculate frequency in Hz
+  const frequencyHz = useMemo(() => {
+    const customFactor = frequencyUnit === "Custom" ? parseFloat(customFrequencyFactor) : undefined;
+    return frequencyToHz(frequency, frequencyUnit, customFactor);
+  }, [frequency, frequencyUnit, customFrequencyFactor]);
+
+  // Map old antenna IDs to new type names
+  const mapAntennaIdToType = (id: string): string => {
+    const mapping: Record<string, string> = {
+      "isotropic": "isotropic",
+      "short-dipole": "shortdipole",
+      "half-wave-dipole": "halfwavedipole",
+      "folded-dipole": "foldeddipole",
+      "quarter-wave-monopole": "quarterwavemonopole",
+      "ground-plane-monopole": "monopoleground",
+      "rectangular-patch": "rectangularpatch",
+      "circular-patch": "circularpatch",
+      "slotted-patch": "rectangularpatch", // Similar
+      "stacked-patch": "rectangularpatch", // Similar
+      "horn": "horn",
+      "parabolic-dish": "parabolicdish",
+      "cassegrain": "cassegrain",
+      "helical-axial": "helix",
+      "helical-normal": "helix",
+      "yagi": "yagi",
+      "lpda": "lpda",
+      "spiral": "spiral",
+      "vivaldi": "vivaldi",
+      "biconical": "biconical",
+      "waveguide-slot": "waveguideslot",
+      "patch-array": "patcharray",
+      "linear-phased-array": "phasedarray",
+      "planar-phased-array": "phasedarray",
+      "circular-phased-array": "phasedarray",
+      "conformal-array": "conformal",
+      "quadrifilar-helix": "helix",
+      "gnss-patch": "rectangularpatch",
+      "dra": "dra",
+    };
+    return mapping[id] || id.replace(/-/g, '');
+  };
+
+  // Compute pattern using enhanced models
+  const patternResult = useMemo(() => {
     if (!selectedAntenna) return null;
 
-    return (theta: number, phi: number): number => {
-      const customFactor = frequencyUnit === "Custom" ? parseFloat(customFrequencyFactor) : undefined;
-      const freqHz = frequencyToHz(frequency, frequencyUnit, customFactor);
-      const lambda = wavelength(freqHz);
-      return selectedAntenna.pattern(theta, phi, antennaParams, lambda);
-    };
-  }, [selectedAntenna, antennaParams, frequency, frequencyUnit, customFrequencyFactor]);
+    try {
+      // Convert antenna ID to type name for computePattern
+      const antennaTypeName = mapAntennaIdToType(selectedAntenna.id);
+      
+      // Prepare geometry from antennaParams
+      const geometry: AntennaGeometry = { ...antennaParams };
+      
+      // Determine sampling based on resolution and compute mode
+      // Use suggested sampling from metadata if available, otherwise compute
+      const numTheta = computeMode === "fast" ? Math.max(37, Math.floor(180 / resolution)) : Math.max(91, Math.floor(180 / resolution));
+      const numPhi = computeMode === "fast" ? Math.max(73, Math.floor(360 / resolution)) : Math.max(181, Math.floor(360 / resolution));
+      
+      const options: PatternOptions = {
+        numTheta: Math.min(numTheta, 361), // Cap at reasonable max
+        numPhi: Math.min(numPhi, 721), // Cap at reasonable max
+        efficiency: 1.0, // Can be made configurable
+        dBFloor: -80,
+        normalize: true,
+        fastPreview: computeMode === "fast"
+      };
 
-  // Generate pattern data
+      const result = computePattern(antennaTypeName, frequencyHz, geometry, options);
+      
+      // Override sampling with suggested if available
+      if (result.metadata.suggestedSampling) {
+        const suggested = result.metadata.suggestedSampling;
+        const adjustedOptions: PatternOptions = {
+          ...options,
+          numTheta: computeMode === "fast" ? Math.min(suggested.numTheta, 181) : suggested.numTheta,
+          numPhi: computeMode === "fast" ? Math.min(suggested.numPhi, 361) : suggested.numPhi,
+        };
+        return computePattern(antennaTypeName, frequencyHz, geometry, adjustedOptions);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error("Error computing pattern:", error);
+      // Fallback: try to use old pattern function if available
+      return null;
+    }
+  }, [selectedAntenna, antennaParams, frequencyHz, resolution, computeMode]);
+
+  // Generate pattern data for 2D charts from slices
   const generatedPattern = useMemo(() => {
-    if (!patternFunction) return [];
+    if (!patternResult) return [];
 
     const data: PatternPoint[] = [];
-    const thetaStep = (Math.PI * resolution) / 180;
-    const phiStep = (2 * Math.PI * resolution) / 180;
-
-    // Generate pattern for E-plane (φ = 0) and H-plane (φ = π/2)
-    for (let theta = 0; theta <= Math.PI; theta += thetaStep) {
-      // E-plane cut
-      const gainE = patternFunction(theta, 0);
-      const gainDbiE = linearToDbi(gainE);
+    
+    // Use E-plane and H-plane slices from patternResult
+    const ePlane = patternResult.slices.E_plane;
+    const hPlane = patternResult.slices.H_plane;
+    
+    // Combine E-plane and H-plane data
+    ePlane.angleDeg.forEach((angle, i) => {
       data.push({
-        theta: (theta * 180) / Math.PI,
+        theta: angle,
         phi: 0,
-        gainLinear: gainE,
-        gainDbi: gainDbiE,
+        gainLinear: ePlane.power[i],
+        gainDbi: ePlane.power_db[i],
       });
-
-      // H-plane cut
-      const gainH = patternFunction(theta, Math.PI / 2);
-      const gainDbiH = linearToDbi(gainH);
+    });
+    
+    hPlane.angleDeg.forEach((angle, i) => {
       data.push({
-        theta: (theta * 180) / Math.PI,
+        theta: angle,
         phi: 90,
-        gainLinear: gainH,
-        gainDbi: gainDbiH,
+        gainLinear: hPlane.power[i],
+        gainDbi: hPlane.power_db[i],
       });
-    }
+    });
 
     return data;
-  }, [patternFunction, resolution]);
+  }, [patternResult]);
 
-  // Calculate results
+  // Calculate results from patternResult
   const calculatedResults = useMemo(() => {
-    if (!patternFunction) return null;
+    if (!patternResult) return null;
 
-    const warnings: string[] = [];
-
-    // Calculate directivity
-    const directivityRes = calculateDirectivity(
-      patternFunction,
-      resolution,
-      resolution
-    );
-
-    // Find peak gain
-    let peakGain = 0;
-    let peakTheta = 0;
-    for (let theta = 0; theta <= Math.PI; theta += (Math.PI * resolution) / 180) {
-      const gain = patternFunction(theta, 0);
-      if (gain > peakGain) {
-        peakGain = gain;
-        peakTheta = theta;
-      }
-    }
-
-    const peakGainDbi = linearToDbi(peakGain);
-
-    // Calculate HPBW
-    const hpbmE = calculateHPBW(patternFunction, 0, resolution);
-    const hpbmH = calculateHPBW(patternFunction, Math.PI / 2, resolution);
-
-    // Calculate side-lobe level
-    const sideLobeLevel = calculateSideLobeLevel(
-      patternFunction,
-      peakTheta,
-      (hpbmE.hpbm || 30) * (Math.PI / 180),
-      resolution
-    );
-
-    // Calculate front-to-back ratio
-    const frontToBack = calculateFrontToBackRatio(patternFunction, peakTheta, resolution);
+    const scalars = patternResult.scalars;
+    const metadata = patternResult.metadata;
 
     // Calculate EIRP
-    const eirp = calculateEIRP(transmitPower, peakGain);
+    const eirp = calculateEIRP(transmitPower, scalars.D_max_linear);
 
-    // Validation warnings
-    if (peakGainDbi > 60) {
+    // Combine warnings from metadata and validation
+    const warnings: string[] = [...(metadata.warnings || [])];
+    
+    if (scalars.G_dBi > 60) {
       warnings.push("Very high gain (>60 dBi) - verify antenna parameters");
     }
-    if (hpbmE.hpbm && hpbmE.hpbm < 0.1) {
+    if (scalars.HPBW_major_deg < 0.1) {
       warnings.push("Very narrow beamwidth (<0.1°) - verify parameters");
     }
 
-    // Check for grating lobes (if array)
-    if (selectedAntenna?.id.includes("array")) {
-      const spacing = (antennaParams.spacing as number) || 0.5;
-      const steeringAngle = (antennaParams.steeringAngle as number) || 0;
-      const gratingCheck = checkGratingLobes(lambda, spacing * lambda, steeringAngle);
-      if (gratingCheck.hasGratingLobes) {
-        warnings.push(gratingCheck.warning);
-      }
-    }
-
     return {
-      peakGainDbi,
-      peakGainLinear: peakGain,
-      directivity: directivityRes.directivity,
-      directivityDbi: directivityRes.directivityDbi,
-      hpbmE: hpbmE.hpbm,
-      hpbmH: hpbmH.hpbm,
-      sideLobeLevel,
-      frontToBackRatio: frontToBack,
+      peakGainDbi: scalars.G_dBi,
+      peakGainLinear: scalars.D_max_linear,
+      directivity: scalars.D_max_linear,
+      directivityDbi: scalars.D_max_dBi,
+      hpbmE: scalars.HPBW_major_deg,
+      hpbmH: scalars.HPBW_minor_deg,
+      sideLobeLevel: scalars.SLL_dB,
+      frontToBackRatio: scalars.FBR_dB,
       eirp,
       warnings,
+      metadata,
     };
-  }, [patternFunction, resolution, transmitPower, selectedAntenna, antennaParams, lambda]);
+  }, [patternResult, transmitPower]);
 
   // Update results when calculations change
   useEffect(() => {
@@ -364,7 +393,7 @@ const AntennaPatternAnalyzer = () => {
 
   // Initialize and update 3D visualization
   useEffect(() => {
-    if (!show3D || !canvas3DRef.current || !patternFunction) {
+    if (!show3D || !canvas3DRef.current || !patternResult) {
       // Cleanup if 3D is disabled
       if (three3DRef.current) {
         if (three3DRef.current.animationId) {
@@ -430,41 +459,76 @@ const AntennaPatternAnalyzer = () => {
       }
     }
 
-    // Create pattern geometry
-    const segments = 64;
-    const geometry = new THREE.SphereGeometry(1, segments, segments);
-    const positions = geometry.attributes.position;
+    // Use cartesianMesh from patternResult for 3D visualization
+    const cartesianMesh = patternResult.cartesianMesh;
+    const pattern = patternResult.pattern;
+    const numTheta = pattern.length;
+    const numPhi = pattern[0]?.length || 1;
+
+    // Create geometry from pattern matrix
+    const geometry = new THREE.BufferGeometry();
+    const vertices: number[] = [];
     const colors: number[] = [];
+    const indices: number[] = [];
 
-    // Map pattern function to sphere vertices
-    for (let i = 0; i < positions.count; i++) {
-      const x = positions.getX(i);
-      const y = positions.getY(i);
-      const z = positions.getZ(i);
-      
-      // Convert to spherical coordinates
-      const r = Math.sqrt(x * x + y * y + z * z);
-      const theta = Math.acos(z / r);
-      const phi = Math.atan2(y, x);
-
-      // Get pattern value
-      const gain = Math.max(0, patternFunction(theta, phi));
-      const gainDbi = linearToDbi(gain);
-      
-      // Normalize gain to 0-1 range for color mapping (assuming max 30 dBi)
-      const normalizedGain = Math.min(1, Math.max(0, (gainDbi + 30) / 60));
-      
-      // Color: cyan for high gain, dark blue for low gain
-      const color = new THREE.Color();
-      color.setHSL(0.5 - normalizedGain * 0.3, 1, 0.3 + normalizedGain * 0.5);
-      colors.push(color.r, color.g, color.b);
-      
-      // Scale radius by gain
-      const scale = 1 + normalizedGain * 0.5;
-      positions.setXYZ(i, x * scale, y * scale, z * scale);
+    // Find max value for normalization
+    let maxValue = 0;
+    for (let i = 0; i < numTheta; i++) {
+      for (let j = 0; j < numPhi; j++) {
+        maxValue = Math.max(maxValue, pattern[i][j]);
+      }
     }
 
+    // Create vertices from cartesian mesh or compute from pattern
+    for (let i = 0; i < numTheta; i++) {
+      for (let j = 0; j < numPhi; j++) {
+        const power = pattern[i][j];
+        const normalizedPower = maxValue > 0 ? power / maxValue : 0;
+        
+        // Use cartesian mesh if available, otherwise compute from spherical
+        let x: number, y: number, z: number;
+        if (cartesianMesh && cartesianMesh.x[i] && cartesianMesh.y[i] && cartesianMesh.z[i]) {
+          x = cartesianMesh.x[i][j];
+          y = cartesianMesh.y[i][j];
+          z = cartesianMesh.z[i][j];
+        } else {
+          // Fallback: compute from spherical coordinates
+          const theta = (i / (numTheta - 1)) * Math.PI;
+          const phi = (j / numPhi) * 2 * Math.PI;
+          const r = 1 + normalizedPower * 0.5; // Scale by pattern
+          x = r * Math.sin(theta) * Math.cos(phi);
+          y = r * Math.sin(theta) * Math.sin(phi);
+          z = r * Math.cos(theta);
+        }
+
+        vertices.push(x, y, z);
+
+        // Color based on power (cyan for high, dark blue for low)
+        const gainDbi = 10 * Math.log10(Math.max(1e-10, normalizedPower));
+        const normalizedGain = Math.min(1, Math.max(0, (gainDbi + 30) / 60));
+        const color = new THREE.Color();
+        color.setHSL(0.5 - normalizedGain * 0.3, 1, 0.3 + normalizedGain * 0.5);
+        colors.push(color.r, color.g, color.b);
+      }
+    }
+
+    // Create indices for triangular faces
+    for (let i = 0; i < numTheta - 1; i++) {
+      for (let j = 0; j < numPhi - 1; j++) {
+        const a = i * numPhi + j;
+        const b = i * numPhi + (j + 1);
+        const c = (i + 1) * numPhi + j;
+        const d = (i + 1) * numPhi + (j + 1);
+
+        // Two triangles per quad
+        indices.push(a, b, c);
+        indices.push(b, d, c);
+      }
+    }
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setIndex(indices);
     geometry.computeVertexNormals();
 
     const material = new THREE.MeshPhongMaterial({
@@ -513,7 +577,7 @@ const AntennaPatternAnalyzer = () => {
         three3DRef.current = null;
       }
     };
-  }, [show3D, patternFunction, patternData]);
+  }, [show3D, patternResult]);
 
   // Load custom presets on mount
   useEffect(() => {
@@ -793,7 +857,7 @@ const AntennaPatternAnalyzer = () => {
                   <Label htmlFor="freq-unit" className="text-gray-300">
                     Unit
                   </Label>
-                  <Select value={frequencyUnit} onValueChange={(v: any) => setFrequencyUnit(v)}>
+                  <Select value={frequencyUnit} onValueChange={(v: "Hz" | "MHz" | "GHz" | "Custom") => setFrequencyUnit(v)}>
                     <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
@@ -967,6 +1031,81 @@ const AntennaPatternAnalyzer = () => {
                         <AlertDescription className="text-gray-300">{warning}</AlertDescription>
                       </Alert>
                     ))}
+                  </div>
+                )}
+
+                {/* Metadata: Notes, Assumptions, Recommendations */}
+                {result.metadata && (
+                  <div className="mt-6 space-y-4">
+                    {/* Approximation Level & Confidence */}
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">Approximation:</span>
+                        <span className={`font-semibold ${
+                          result.metadata.approxLevel === "analytic" ? "text-green-400" :
+                          result.metadata.approxLevel === "array-analytic" ? "text-blue-400" :
+                          result.metadata.approxLevel === "hybrid" ? "text-yellow-400" :
+                          "text-orange-400"
+                        }`}>
+                          {result.metadata.approxLevel}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">Confidence:</span>
+                        <span className={`font-semibold ${
+                          result.metadata.confidence === "high" ? "text-green-400" :
+                          result.metadata.confidence === "medium" ? "text-yellow-400" :
+                          "text-orange-400"
+                        }`}>
+                          {result.metadata.confidence}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    {result.metadata.notes && result.metadata.notes.length > 0 && (
+                      <div className="p-3 bg-cyan-400/10 rounded-lg border border-cyan-400/20">
+                        <p className="text-cyan-400 font-semibold text-sm mb-2">Formulas & Notes</p>
+                        <ul className="space-y-1 text-xs text-gray-300">
+                          {result.metadata.notes.map((note, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-cyan-400 mt-1">•</span>
+                              <span>{note}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Assumptions */}
+                    {result.metadata.assumptions && result.metadata.assumptions.length > 0 && (
+                      <div className="p-3 bg-blue-400/10 rounded-lg border border-blue-400/20">
+                        <p className="text-blue-400 font-semibold text-sm mb-2">Assumptions</p>
+                        <ul className="space-y-1 text-xs text-gray-300">
+                          {result.metadata.assumptions.map((assumption, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-blue-400 mt-1">•</span>
+                              <span>{assumption}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Recommended Next Steps */}
+                    {result.metadata.recommended_next_steps && result.metadata.recommended_next_steps.length > 0 && (
+                      <div className="p-3 bg-purple-400/10 rounded-lg border border-purple-400/20">
+                        <p className="text-purple-400 font-semibold text-sm mb-2">Recommended Next Steps</p>
+                        <ul className="space-y-1 text-xs text-gray-300">
+                          {result.metadata.recommended_next_steps.map((step, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-purple-400 mt-1">→</span>
+                              <span>{step}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
