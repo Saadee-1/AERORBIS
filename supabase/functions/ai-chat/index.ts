@@ -224,32 +224,59 @@ If the user hasn't asked a specific question yet, proactively explain the tool r
           metadata: calculationContext.metadata || {},
         };
         
-        enhancedSystemPrompt += `\n\n=== CALCULATION CONTEXT (requestId: ${requestId}) ===
-The user has performed a calculation using the ${contextSummary.toolName} tool.
+        // Format the context in a very clear way for the AI
+        const inputsText = Object.entries(contextSummary.inputs).map(([key, value]) => 
+          `  - ${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`
+        ).join('\n');
+        
+        const resultsText = Object.entries(contextSummary.results).map(([key, value]) => 
+          `  - ${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`
+        ).join('\n');
+        
+        const stepsText = contextSummary.steps.length > 0 
+          ? contextSummary.steps.map((step: string, idx: number) => `  Step ${idx + 1}: ${step}`).join('\n')
+          : '  (No detailed steps available)';
 
-INPUTS:
-${JSON.stringify(contextSummary.inputs, null, 2)}
+        enhancedSystemPrompt += `\n\n╔══════════════════════════════════════════════════════════════╗
+║  CALCULATION CONTEXT - YOU MUST USE THIS INFORMATION  ║
+╚══════════════════════════════════════════════════════════════╝
 
-RESULTS:
-${JSON.stringify(contextSummary.results, null, 2)}
+The user has just performed a calculation using: ${contextSummary.toolName}
+Request ID: ${requestId}
 
-CALCULATION STEPS:
-${contextSummary.steps.map((step: string, idx: number) => `Step ${idx + 1}: ${step}`).join('\n')}
+INPUT VALUES:
+${inputsText || '  (No inputs provided)'}
+
+CALCULATED RESULTS:
+${resultsText || '  (No results provided)'}
+
+CALCULATION PROCESS:
+${stepsText}
 
 METADATA:
-${JSON.stringify(contextSummary.metadata, null, 2)}
+  - Units: ${contextSummary.metadata?.units || 'Not specified'}
+  - Approximation Level: ${contextSummary.metadata?.approxLevel || 'Not specified'}
+  - Confidence: ${contextSummary.metadata?.confidence || 'Not specified'}
+${contextSummary.metadata?.warnings?.length ? `  - Warnings: ${contextSummary.metadata.warnings.join(', ')}` : ''}
 
-=== END CALCULATION CONTEXT ===
+╔══════════════════════════════════════════════════════════════╗
+║  CRITICAL: YOU HAVE THE FULL CALCULATION DATA ABOVE          ║
+╚══════════════════════════════════════════════════════════════╝
 
-CRITICAL INSTRUCTIONS:
-1. You MUST use the calculation context above to explain the user's calculation
-2. Reference the specific inputs, results, and steps when explaining
-3. If the user asks "explain step X", refer to the step number in the CALCULATION STEPS section above
-4. Provide detailed engineering analysis of the results
-5. Connect the results to real-world aerospace applications
-6. Do NOT say you don't have access to the calculation - you have the full context above
+THE USER IS ASKING YOU TO EXPLAIN THIS SPECIFIC CALCULATION.
 
-The user is asking about THIS SPECIFIC CALCULATION. Use the context provided above to give a detailed, accurate explanation.`;
+YOU MUST:
+1. ✅ IMMEDIATELY acknowledge that you can see their calculation
+2. ✅ Use the INPUT VALUES, RESULTS, and STEPS shown above
+3. ✅ Explain what each result means in aerospace engineering terms
+4. ✅ Reference the specific calculation steps when explaining
+5. ✅ Provide engineering insights about the results
+6. ❌ DO NOT say you cannot access the calculation - YOU HAVE IT ABOVE
+7. ❌ DO NOT ask for more information - YOU HAVE EVERYTHING YOU NEED
+
+START YOUR RESPONSE BY SAYING: "I can see your ${contextSummary.toolName} calculation. Let me explain..."
+
+Then provide a detailed explanation using the data above.`;
       } else {
         console.log('No calculationContext provided, trying to fetch from endpoint');
         // Fallback: try to fetch from Edge Function endpoint

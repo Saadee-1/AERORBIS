@@ -147,14 +147,21 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
 
       // Extract requestId from message
       const requestId = extractRequestId(content);
+      console.log('Extracted requestId from message:', requestId, 'from:', content);
       
       // Try to fetch calculation context from localStorage if requestId is present
       let calculationContext = null;
       if (requestId) {
         try {
-          const storedData = localStorage.getItem(`calc-${requestId}`);
+          const storageKey = `calc-${requestId}`;
+          console.log('Looking for calculation data in localStorage with key:', storageKey);
+          const storedData = localStorage.getItem(storageKey);
+          
           if (storedData) {
+            console.log('Found stored data, parsing...');
             const parsed = JSON.parse(storedData);
+            console.log('Parsed data keys:', Object.keys(parsed));
+            
             // Check if data hasn't expired
             if (!parsed.expiresAt || parsed.expiresAt > Date.now()) {
               calculationContext = {
@@ -167,20 +174,28 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
                 metadata: parsed.metadata || {},
                 timestamp: parsed.timestamp || new Date().toISOString(),
               };
-              console.log('Calculation context loaded from localStorage:', calculationContext);
+              console.log('✅ Calculation context loaded successfully:', {
+                toolName: calculationContext.toolName,
+                hasInputs: Object.keys(calculationContext.inputs).length > 0,
+                hasResults: Object.keys(calculationContext.results).length > 0,
+                stepsCount: calculationContext.steps.length,
+              });
             } else {
               // Data expired, remove it
-              console.warn('Calculation context expired, removing from localStorage');
-              localStorage.removeItem(`calc-${requestId}`);
+              console.warn('❌ Calculation context expired, removing from localStorage');
+              localStorage.removeItem(storageKey);
             }
           } else {
-            console.warn(`No calculation data found in localStorage for requestId: ${requestId}`);
+            console.warn(`❌ No calculation data found in localStorage for key: ${storageKey}`);
+            // Try to list all calc- keys to help debug
+            const allKeys = Object.keys(localStorage).filter(k => k.startsWith('calc-'));
+            console.log('Available calc- keys in localStorage:', allKeys);
           }
         } catch (error) {
-          console.error('Error reading calculation context from localStorage:', error);
+          console.error('❌ Error reading calculation context from localStorage:', error);
         }
       } else {
-        console.log('No requestId found in message:', content);
+        console.log('⚠️ No requestId found in message:', content);
       }
 
       const requestBody = { 
