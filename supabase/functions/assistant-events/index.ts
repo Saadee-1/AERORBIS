@@ -44,10 +44,14 @@ serve(async (req) => {
     // Route to appropriate handler
     if (path.includes('/events/calc-complete') && req.method === 'POST') {
       return await handleCalculationEvent(req);
+    } else if (path.includes('/events/calc-update') && req.method === 'POST') {
+      return await handleCalculationUpdate(req);
     } else if (path.includes('/explain') && req.method === 'POST') {
       return await handleExplainRequest(req);
     } else if (path.includes('/export/pdf') && req.method === 'POST') {
       return await handlePDFExport(req);
+    } else if (path.includes('/export/batch') && req.method === 'POST') {
+      return await handleBatchExport(req);
     } else if (path.includes('/context/') && req.method === 'GET') {
       return await handleGetContext(req);
     }
