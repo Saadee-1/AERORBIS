@@ -95,7 +95,7 @@ const AstronautIcon = ({ className }: { className?: string }) => {
         <path d="M11.5 18.5 L11.5 21 Q11.5 22 12.5 22 L13 22 Q14 22 14 21 L14 18.5" 
               fill="#ffffff" stroke="#000000" strokeWidth="1.5" />
       </svg>
-    </div>
+    </>
   );
 };
 
@@ -214,11 +214,9 @@ const AIAssistant: React.FC = () => {
           }}
           aria-label="Open Aerobot AI Assistant"
         >
-          {/* Icon Container */}
-          <div className="w-14 h-14 flex items-center justify-center relative z-10 pointer-events-none">
+          {/* Icon Container - Direct SVG rendering */}
+          <div className="w-14 h-14 flex items-center justify-center relative z-10">
             <AstronautIcon className="w-full h-full" />
-            {/* Fallback emoji if SVG fails */}
-            <span className="absolute text-3xl" style={{ display: 'none' }}>👨‍🚀</span>
           </div>
           <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all pointer-events-none" />
         </motion.button>
