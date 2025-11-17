@@ -174,7 +174,7 @@ const AIAssistant: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
                                bg-clip-text text-transparent">
-                    AeroVerse AI
+                    Aerobot
                   </h3>
                   <p className="text-[10px] text-gray-400">
                     {toolContext ? `Analyzing: ${toolContext.tool}` : 'Your aerospace guide'}

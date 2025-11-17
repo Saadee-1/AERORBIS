@@ -36,10 +36,13 @@ serve(async (req) => {
       calculationContextKeys: calculationContext ? Object.keys(calculationContext) : null,
     });
     
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    // Support both LOVABLE_API_KEY (legacy) and AEROBOT_API_KEY (new)
+    const AEROBOT_API_KEY = Deno.env.get('AEROBOT_API_KEY') || Deno.env.get('LOVABLE_API_KEY');
+    const AEROBOT_API_URL = Deno.env.get('AEROBOT_API_URL') || 'https://api.openai.com/v1/chat/completions';
+    const AEROBOT_MODEL = Deno.env.get('AEROBOT_MODEL') || 'gpt-4o-mini';
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    if (!AEROBOT_API_KEY) {
+      throw new Error('AEROBOT_API_KEY or LOVABLE_API_KEY is not configured');
     }
 
     const languageMap: Record<string, string> = {
@@ -61,7 +64,9 @@ serve(async (req) => {
     const languageName = languageMap[language] || 'English';
     const languageInstruction = language !== 'en' ? ` Always respond in ${languageName}.` : '';
 
-    const aeroverseSystemPrompt = `You are AeroVerse AI (also known as AeroBot), an advanced real-time aerospace assistant with deep, comprehensive knowledge of all aerospace engineering domains. You are integrated with engineering tools inside AeroVerse and serve as an expert mentor.
+    const aeroverseSystemPrompt = `You are Aerobot, an advanced real-time aerospace assistant integrated with AeroVerse engineering tools. Your responses must be CRISP, CONCISE, and TO THE POINT.
+
+CRITICAL: Keep responses brief and actionable. Avoid lengthy explanations unless specifically requested. Aim for 2-4 sentences for most answers. Use bullet points for lists. Be direct and practical.
 
 Your role is to provide expert-level reasoning, error-free physics, and clear explanations for all aerospace topics. You learn from every calculation, understand the full context of each tool's operation, and provide deep insights.
 
@@ -186,7 +191,7 @@ Respond:
 Then redirect to safe topics.${languageInstruction}`;
 
     const systemPrompt = mode === 'summarize' 
-      ? `You are an AI assistant specialized in summarizing content clearly and concisely. Provide brief, actionable summaries.${languageInstruction}`
+      ? `You are Aerobot, specialized in summarizing content. Provide CRISP, CONCISE summaries (2-3 sentences max). Focus on key points only.${languageInstruction}`
       : aeroverseSystemPrompt;
 
     // Add tool context to system message if provided
@@ -305,18 +310,24 @@ Then provide a detailed explanation using the data above.`;
       console.log('No requestId or not in chat mode, skipping context');
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Determine response length based on mode
+    const maxTokens = mode === 'summarize' ? 500 : 1000;
+    const temperature = mode === 'summarize' ? 0.3 : 0.7;
+
+    const response = await fetch(AEROBOT_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${AEROBOT_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: AEROBOT_MODEL,
         messages: [
           { role: 'system', content: enhancedSystemPrompt },
           ...messages
         ],
+        temperature,
+        max_tokens: maxTokens,
         stream: false,
       }),
     });
