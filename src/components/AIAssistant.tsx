@@ -273,18 +273,24 @@ const AIAssistant: React.FC = () => {
               </Button>
             </div>
 
-            {/* Chat History Panel */}
-            {showHistory && (
-              <div className="border-b border-cyan-400/20 bg-slate-800/30 max-h-60">
-                <div className="p-2 border-b border-cyan-400/10">
-                  <p className="text-xs font-semibold text-cyan-400 px-2">Chat History</p>
+            {/* Chat History Panel - Always visible if there are chats */}
+            {chatHistory.length > 0 && (
+              <div className="border-b border-cyan-400/20 bg-slate-800/30">
+                <div className="p-2 border-b border-cyan-400/10 flex items-center justify-between">
+                  <p className="text-xs font-semibold text-cyan-400 px-2">Recent Chats</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowHistory(!showHistory)}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 h-6 px-2"
+                  >
+                    {showHistory ? 'Hide' : 'Show All'}
+                  </Button>
                 </div>
-                <ScrollArea className="h-full max-h-52">
-                  <div className="p-3 space-y-2">
-                    {chatHistory.length === 0 ? (
-                      <p className="text-xs text-gray-500 text-center py-4">No chat history yet</p>
-                    ) : (
-                      chatHistory.map((session) => (
+                {showHistory ? (
+                  <ScrollArea className="h-full max-h-52">
+                    <div className="p-3 space-y-2">
+                      {chatHistory.map((session) => (
                         <div
                           key={session.id}
                           className="w-full p-3 rounded-lg bg-slate-900/50 hover:bg-slate-800/70 
@@ -329,10 +335,43 @@ const AIAssistant: React.FC = () => {
                             Delete
                           </button>
                         </div>
-                      ))
-                    )}
+                      ))}
+                    </div>
+                  </ScrollArea>
+                ) : (
+                  <div className="p-3">
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-cyan-400/20 scrollbar-track-transparent">
+                      {chatHistory.slice(0, 5).map((session) => (
+                        <button
+                          key={session.id}
+                          onClick={() => {
+                            loadChatSession(session.id);
+                          }}
+                          className={cn(
+                            "flex-shrink-0 p-2 rounded-lg border transition-all text-left min-w-[120px]",
+                            session.id === currentSessionId
+                              ? "bg-cyan-400/20 border-cyan-400/50 text-cyan-400"
+                              : "bg-slate-900/50 border-cyan-400/10 hover:border-cyan-400/30 text-gray-300 hover:text-cyan-400"
+                          )}
+                        >
+                          <p className="text-xs font-medium truncate">{session.title}</p>
+                          <p className="text-[10px] text-gray-500 mt-1">
+                            {new Date(session.timestamp).toLocaleDateString()}
+                          </p>
+                        </button>
+                      ))}
+                      {chatHistory.length > 5 && (
+                        <button
+                          onClick={() => setShowHistory(true)}
+                          className="flex-shrink-0 p-2 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 
+                                   bg-slate-900/50 text-cyan-400 hover:bg-cyan-400/10 transition-all text-xs"
+                        >
+                          +{chatHistory.length - 5} more
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </ScrollArea>
+                )}
               </div>
             )}
 
