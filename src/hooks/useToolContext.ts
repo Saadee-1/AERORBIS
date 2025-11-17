@@ -1,14 +1,49 @@
 import { useCallback } from 'react';
 import { useAIAssistant, ToolContext } from '@/contexts/AIAssistantContext';
 
+export interface CalculationEventPayload {
+  toolId: string;
+  toolName: string;
+  inputs: Record<string, any>;
+  results: Record<string, any>;
+  steps?: string[];
+  attachments?: {
+    charts?: Array<{ mime: string; data: string }>;
+    files?: Array<{ name: string; url: string }>;
+  };
+  metadata?: {
+    units?: string;
+    approxLevel?: string;
+    confidence?: string;
+    warnings?: string[];
+  };
+}
+
+export interface CalculationEventResponse {
+  ack: boolean;
+  requestId: string;
+  explanationId: string;
+  summary: string;
+  recommendations: string[];
+}
+
 /**
  * Hook for tools to easily update AI Assistant context with their results
+ * and send calculation events to the assistant
  * 
  * Usage in a tool component:
  * ```tsx
- * const { updateToolContext, clearToolContext } = useToolContext();
+ * const { updateToolContext, sendCalculationEvent, clearToolContext } = useToolContext();
  * 
  * // After calculation:
+ * const eventResponse = await sendCalculationEvent({
+ *   toolId: "thrust-calculator",
+ *   toolName: "Thrust Calculator",
+ *   inputs: { massFlow: 10, exhaustVelocity: 3000 },
+ *   results: { thrust: 30000 },
+ *   steps: ["T = ṁ × Ve", "T = 10 × 3000 = 30000 N"]
+ * });
+ * 
  * updateToolContext({
  *   tool: "Thrust",
  *   inputs: { massFlow: 10, exhaustVelocity: 3000 },
@@ -18,6 +53,50 @@ import { useAIAssistant, ToolContext } from '@/contexts/AIAssistantContext';
  */
 export const useToolContext = () => {
   const { setToolContext, setIsOpen, showNotification } = useAIAssistant();
+
+  const sendCalculationEvent = useCallback(async (
+    payload: CalculationEventPayload
+  ): Promise<CalculationEventResponse | null> => {
+    try {
+      const requestId = `calc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const userId = 'user-' + (localStorage.getItem('userId') || 'anonymous');
+      
+      const event = {
+        eventType: 'calculation.complete' as const,
+        ...payload,
+        requestId,
+        userId,
+        timestamp: new Date().toISOString(),
+      };
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        console.warn('Supabase URL not configured, skipping calculation event');
+        return null;
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/events/calc-complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+      });
+
+      if (response.ok) {
+        const result: CalculationEventResponse = await response.json();
+        // Store requestId for later reference
+        localStorage.setItem(`calc-${requestId}`, JSON.stringify({ ...event, ...result }));
+        return result;
+      } else {
+        console.error('Failed to send calculation event:', await response.text());
+        return null;
+      }
+    } catch (error) {
+      console.error('Error sending calculation event:', error);
+      return null;
+    }
+  }, []);
 
   const updateToolContext = useCallback((context: ToolContext) => {
     setToolContext(context);
@@ -49,6 +128,7 @@ export const useToolContext = () => {
     updateToolContext,
     clearToolContext,
     updateToolContextAndOpen,
+    sendCalculationEvent,
   };
 };
 

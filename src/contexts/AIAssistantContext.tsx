@@ -5,6 +5,7 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  requestId?: string; // Reference to calculation requestId for follow-up Q&A
 }
 
 export interface ChatSession {

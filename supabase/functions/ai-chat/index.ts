@@ -11,7 +11,21 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, mode = 'chat', language = 'en', toolContext } = await req.json();
+    const url = new URL(req.url);
+    const path = url.pathname;
+    
+    // Handle explain endpoint (forward to assistant-events)
+    if (path.includes('/explain') && req.method === 'POST') {
+      const { requestId, explanationLevel = 'detailed' } = await req.json();
+      // For now, return a placeholder (can forward to assistant-events)
+      return new Response(JSON.stringify({ 
+        explanation: `Detailed explanation for calculation ${requestId} would be generated here. Use the assistant-events endpoint for full functionality.` 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { messages, mode = 'chat', language = 'en', toolContext, requestId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -176,6 +190,27 @@ Then redirect to safe topics.${languageInstruction}`;
 5. Suggest follow-up calculations or next steps
 
 If the user hasn't asked a specific question yet, proactively explain the tool results and their engineering significance.`;
+    }
+
+    // If requestId is provided, try to fetch stored calculation context
+    if (requestId && mode === 'chat') {
+      try {
+        const baseUrl = url.origin;
+        const contextUrl = `${baseUrl}/functions/v1/assistant-events/context/${requestId}`;
+        const contextResponse = await fetch(contextUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': req.headers.get('Authorization') || '',
+          },
+        });
+        if (contextResponse.ok) {
+          const context = await contextResponse.json();
+          enhancedSystemPrompt += `\n\nCALCULATION CONTEXT (requestId: ${requestId}):\n${JSON.stringify(context, null, 2)}\n\nWhen the user asks about this calculation, use the stored inputs, results, and steps to provide accurate explanations. Reference specific steps when the user asks "explain step X".`;
+        }
+      } catch (error) {
+        console.error('Failed to fetch calculation context:', error);
+        // Continue without context
+      }
     }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

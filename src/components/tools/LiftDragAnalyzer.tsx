@@ -23,6 +23,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal, Settings2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useToolContext } from "@/hooks/useToolContext";
+import { PDFExportButton } from "@/components/tools/PDFExportButton";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type AirfoilKey = keyof typeof airfoils | "custom";
@@ -115,7 +116,8 @@ interface LiftDragResult {
 }
 
 const LiftDragAnalyzer = () => {
-  const { updateToolContext } = useToolContext();
+  const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
     return (localStorage.getItem("liftDragUnitSystem") as UnitSystem) || "SI";
   });
@@ -331,7 +333,8 @@ const LiftDragAnalyzer = () => {
       
       // Physics: Drag coefficient CD = CD₀ + k × CL²
       // where CD₀ is parasitic drag, k×CL² is induced drag
-      const CD = activeAirfoil.CD_0 + k_factor * Math.pow(CL, 2);
+      const CDi = k_factor * Math.pow(CL, 2);
+      const CD = activeAirfoil.CD_0 + CDi;
       
       // Physics: Dynamic pressure q = 0.5 × ρ × V²
       const q = 0.5 * rho * Math.pow(V, 2);
@@ -386,9 +389,57 @@ const LiftDragAnalyzer = () => {
       };
       setResult(resultData);
       
+      // Prepare calculation steps for event (machine-friendly format)
+      const calculationSteps = [
+        `Lift Coefficient: CL = CL₀ + CL_α × α = ${activeAirfoil.CL_0} + ${activeAirfoil.CL_alpha} × ${alpha}° = ${CL.toFixed(4)}`,
+        `Induced Drag Coefficient: CDi = CL² / (π × AR × e) = ${CL.toFixed(4)}² / (π × ${aspectRatio.toFixed(2)} × ${e.toFixed(3)}) = ${CDi.toFixed(4)}`,
+        `Drag Coefficient: CD = CD₀ + CDi = ${activeAirfoil.CD_0} + ${CDi.toFixed(4)} = ${CD.toFixed(4)}`,
+        `Dynamic Pressure: q = ½ × ρ × V² = ½ × ${rho.toFixed(3)} × ${V.toFixed(2)}² = ${q.toFixed(2)} Pa`,
+        `Lift Force: L = CL × q × S = ${CL.toFixed(4)} × ${q.toFixed(2)} × ${S.toFixed(2)} = ${liftForce.toFixed(2)} N`,
+        `Drag Force: D = CD × q × S = ${CD.toFixed(4)} × ${q.toFixed(2)} × ${S.toFixed(2)} = ${dragForce.toFixed(2)} N`,
+        `Lift-to-Drag Ratio: L/D = ${CL.toFixed(4)} / ${CD.toFixed(4)} = ${L_D_ratio.toFixed(2)}`
+      ];
+
+      // Send calculation event to assistant
+      const eventResponse = await sendCalculationEvent({
+        toolId: "liftdrag-analyzer",
+        toolName: "Lift/Drag Analyzer",
+        inputs: {
+          airfoil: activeAirfoil.name,
+          angleOfAttack: alpha,
+          airspeed: V,
+          airDensity: rho,
+          wingArea: S,
+          wingSpan: b,
+          oswaldEfficiency: e,
+          aspectRatio,
+          unitSystem
+        },
+        results: {
+          liftCoefficient: CL,
+          dragCoefficient: CD,
+          liftToDragRatio: L_D_ratio,
+          liftForce,
+          dragForce,
+          aspectRatio,
+          flowRegime: L_D_ratio > 20 ? "Excellent" : L_D_ratio > 15 ? "Good" : L_D_ratio > 10 ? "Moderate" : "Poor"
+        },
+        steps: calculationSteps,
+        metadata: {
+          units: unitSystem,
+          approxLevel: "analytic",
+          confidence: "high",
+          warnings: alpha >= activeAirfoil.alpha_stall ? [`Angle of attack (${alpha}°) exceeds stall angle (${activeAirfoil.alpha_stall}°)`] : []
+        }
+      });
+
+      if (eventResponse) {
+        setLastRequestId(eventResponse.requestId);
+      }
+      
       // Update AI assistant context
       updateToolContext({
-        tool: "Lift/Drag Analyzer",
+        tool: "LiftDrag",
         inputs: {
           airfoil: activeAirfoil.name,
           angleOfAttack: `${alpha}°`,
@@ -687,7 +738,14 @@ const LiftDragAnalyzer = () => {
                 animate={{ opacity: 1, x: 0 }} 
                 className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20"
               >
-                <h3 className="text-xl font-semibold text-cyan-400">Analysis Results</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-cyan-400">Analysis Results</h3>
+                  <PDFExportButton 
+                    requestId={lastRequestId} 
+                    toolName="Lift/Drag Analyzer"
+                    disabled={!lastRequestId}
+                  />
+                </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
