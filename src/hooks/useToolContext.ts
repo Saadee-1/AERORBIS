@@ -69,69 +69,8 @@ export const useToolContext = () => {
       timestamp: new Date().toISOString(),
     };
 
-    try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (!supabaseUrl) {
-        console.warn('Supabase URL not configured, storing calculation locally only');
-        // Store locally even if Supabase is not configured
-        const fallbackResponse: CalculationEventResponse = {
-          ack: true,
-          requestId,
-          explanationId: `exp-${requestId}`,
-          summary: `${payload.toolName} calculation completed.`,
-          recommendations: []
-        };
-        const storageData = {
-          ...event,
-          ...fallbackResponse,
-          storedAt: Date.now(),
-          expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
-        };
-        localStorage.setItem(`calc-${requestId}`, JSON.stringify(storageData));
-        return fallbackResponse;
-      }
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/events/calc-complete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(event),
-      });
-
-      if (response.ok) {
-        const result: CalculationEventResponse = await response.json();
-        // Store requestId for later reference (with expiration - 30 days)
-        const storageData = {
-          ...event,
-          ...result,
-          storedAt: Date.now(),
-          expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
-        };
-        localStorage.setItem(`calc-${requestId}`, JSON.stringify(storageData));
-        return result;
-      } else {
-        console.error('Failed to send calculation event:', await response.text());
-        // Still return a response with requestId so PDF button appears
-        const fallbackResponse: CalculationEventResponse = {
-          ack: false,
-          requestId,
-          explanationId: `exp-${requestId}`,
-          summary: `${payload.toolName} calculation completed (offline mode).`,
-          recommendations: []
-        };
-        const storageData = {
-          ...event,
-          ...fallbackResponse,
-          storedAt: Date.now(),
-          expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
-        };
-        localStorage.setItem(`calc-${requestId}`, JSON.stringify(storageData));
-        return fallbackResponse;
-      }
-    } catch (error) {
-      console.error('Error sending calculation event:', error);
-      // Still return a response with requestId so PDF button appears
+    // Create fallback response function
+    const createFallbackResponse = (): CalculationEventResponse => {
       const fallbackResponse: CalculationEventResponse = {
         ack: false,
         requestId,
@@ -146,6 +85,63 @@ export const useToolContext = () => {
         expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
       };
       localStorage.setItem(`calc-${requestId}`, JSON.stringify(storageData));
+      return fallbackResponse;
+    };
+
+    // Always store locally first (even before trying to send to server)
+    const fallbackResponse = createFallbackResponse();
+    
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+      console.warn('Supabase URL not configured, storing calculation locally only');
+      return fallbackResponse;
+    }
+
+    // Try to send to server, but don't fail if it doesn't work
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/events/calc-complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+      }).catch((fetchError) => {
+        // Network error (CORS, connection refused, etc.)
+        console.warn('Network error sending calculation event (this is OK, using local storage):', fetchError);
+        return null;
+      });
+
+      if (response && response.ok) {
+        try {
+          const result: CalculationEventResponse = await response.json();
+          // Update localStorage with server response
+          const storageData = {
+            ...event,
+            ...result,
+            storedAt: Date.now(),
+            expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+          };
+          localStorage.setItem(`calc-${requestId}`, JSON.stringify(storageData));
+          return result;
+        } catch (parseError) {
+          console.warn('Failed to parse server response (using fallback):', parseError);
+          return fallbackResponse;
+        }
+      } else {
+        // Server returned error, but we already have fallback stored
+        if (response) {
+          try {
+            const errorText = await response.text();
+            console.warn('Server returned error (using local storage):', response.status, errorText);
+          } catch {
+            console.warn('Server returned error (using local storage):', response.status);
+          }
+        }
+        return fallbackResponse;
+      }
+    } catch (error) {
+      // Any other error (network, timeout, etc.)
+      console.warn('Error sending calculation event (using local storage, this is OK):', error);
       return fallbackResponse;
     }
   }, []);
