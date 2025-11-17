@@ -44,10 +44,10 @@ const AstronautIcon = ({ className }: { className?: string }) => {
       <style>{`
         @keyframes wave {
           0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(25deg); }
+          50% { transform: rotate(20deg); }
         }
         .wave-arm {
-          transform-origin: 18px 8px;
+          transform-origin: 17px 12px;
           animation: wave 1s ease-in-out infinite;
         }
       `}</style>
@@ -65,8 +65,8 @@ const AstronautIcon = ({ className }: { className?: string }) => {
       <line x1="7" y1="12" x2="5" y2="15" stroke="white" strokeWidth="2" strokeLinecap="round" />
       <circle cx="5" cy="15" r="1.5" fill="white" />
       
-      {/* Right Arm - Waving */}
-      <g className="wave-arm">
+      {/* Right Arm - Waving (fixed transform origin) */}
+      <g className="wave-arm" style={{ transformOrigin: '17px 12px' }}>
         <line x1="17" y1="12" x2="19" y2="8" stroke="white" strokeWidth="2" strokeLinecap="round" />
         <circle cx="19" cy="8" r="1.5" fill="white" />
       </g>
