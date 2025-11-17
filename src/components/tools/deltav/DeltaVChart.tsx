@@ -14,17 +14,35 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 
+type UnitSystem = "SI" | "Imperial" | "Custom";
+
 interface DeltaVChartProps {
   breakdown: DeltaVBreakdown;
-  showKm: boolean;
+  unitSystem: UnitSystem;
+  customUnitName?: string;
+  customFactor?: string;
 }
 
-const DeltaVChart = ({ breakdown, showKm }: DeltaVChartProps) => {
+const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: DeltaVChartProps) => {
   const formatValue = (value: number): number => {
-    return showKm ? value / 1000 : value;
+    if (unitSystem === "Imperial") {
+      return value * 3.28084; // m/s to ft/s
+    } else if (unitSystem === "Custom") {
+      const factor = parseFloat(customFactor || "1.0");
+      if (!isNaN(factor) && factor > 0) {
+        return value / factor; // Convert from SI (m/s) to custom
+      }
+    }
+    return value; // SI (m/s)
   };
 
-  const unit = showKm ? "km/s" : "m/s";
+  const getUnit = (): string => {
+    if (unitSystem === "SI") return "m/s";
+    if (unitSystem === "Imperial") return "ft/s";
+    return customUnitName || "Unit";
+  };
+
+  const unit = getUnit();
 
   const data = [
     {

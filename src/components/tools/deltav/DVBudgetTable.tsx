@@ -13,17 +13,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Calculator, CheckCircle, XCircle } from "lucide-react";
 
+type UnitSystem = "SI" | "Imperial" | "Custom";
+
 interface DVBudgetTableProps {
   breakdown: DeltaVBreakdown;
   stageResults: StageResult[];
-  showKm: boolean;
+  unitSystem: UnitSystem;
+  customUnitName?: string;
+  customFactor?: string;
 }
 
-const DVBudgetTable = ({ breakdown, stageResults, showKm }: DVBudgetTableProps) => {
+const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, customFactor }: DVBudgetTableProps) => {
   const formatDeltaV = (value: number): string => {
-    const display = showKm ? value / 1000 : value;
-    const unit = showKm ? "km/s" : "m/s";
-    return `${display.toFixed(1)} ${unit}`;
+    let converted = value;
+    let unit = "m/s";
+    
+    if (unitSystem === "Imperial") {
+      converted = value * 3.28084; // m/s to ft/s
+      unit = "ft/s";
+    } else if (unitSystem === "Custom") {
+      const factor = parseFloat(customFactor || "1.0");
+      if (!isNaN(factor) && factor > 0) {
+        converted = value / factor; // Convert from SI (m/s) to custom
+      }
+      unit = customUnitName || "Unit";
+    }
+    
+    return `${converted.toFixed(1)} ${unit}`;
   };
 
   return (

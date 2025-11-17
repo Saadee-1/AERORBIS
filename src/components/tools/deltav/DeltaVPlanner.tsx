@@ -55,10 +55,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 
+type UnitSystem = "SI" | "Imperial" | "Custom";
+
 const DeltaVPlanner = () => {
   const { toast } = useToast();
   const { updateToolContext } = useToolContext();
-  const [showKm, setShowKm] = useState(false);
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
+  const [customUnitName, setCustomUnitName] = useState("Unit-Δv");
+  const [customFactor, setCustomFactor] = useState("1.0");
   const [mission, setMission] = useState<MissionParameters>({
     targetOrbitAltitude: 200,
     orbitType: "LEO",
@@ -88,6 +92,18 @@ const DeltaVPlanner = () => {
         loadPreset(MISSION_PRESETS[0]);
       }
     }
+    const storedUnitSystem = localStorage.getItem("deltavPlanner_unitSystem");
+    if (storedUnitSystem) {
+      setUnitSystem(storedUnitSystem as UnitSystem);
+    }
+    const storedCustomUnitName = localStorage.getItem("deltavPlanner_customUnitName");
+    if (storedCustomUnitName) {
+      setCustomUnitName(storedCustomUnitName);
+    }
+    const storedCustomFactor = localStorage.getItem("deltavPlanner_customFactor");
+    if (storedCustomFactor) {
+      setCustomFactor(storedCustomFactor);
+    }
   }, []);
 
   // Save mission on change
@@ -96,6 +112,17 @@ const DeltaVPlanner = () => {
       saveLastMission(mission, stages);
     }
   }, [mission, stages]);
+
+  useEffect(() => {
+    localStorage.setItem("deltavPlanner_unitSystem", unitSystem);
+  }, [unitSystem]);
+
+  useEffect(() => {
+    if (unitSystem === "Custom") {
+      localStorage.setItem("deltavPlanner_customUnitName", customUnitName);
+      localStorage.setItem("deltavPlanner_customFactor", customFactor);
+    }
+  }, [unitSystem, customUnitName, customFactor]);
 
   // Calculate results when mission or stages change
   const stageResults = useMemo(() => {
@@ -115,6 +142,25 @@ const DeltaVPlanner = () => {
     if (stageResults.length === 0) return { warnings: [], recommendations: [] };
     return generateWarningsAndRecommendations(breakdown, stageResults, mission.payloadMass);
   }, [breakdown, stageResults, mission.payloadMass]);
+
+  // Format DeltaV for display
+  const formatDeltaV = (value: number): string => {
+    let converted = value;
+    let unit = "m/s";
+    
+    if (unitSystem === "Imperial") {
+      converted = value * 3.28084; // m/s to ft/s
+      unit = "ft/s";
+    } else if (unitSystem === "Custom") {
+      const factor = parseFloat(customFactor);
+      if (!isNaN(factor) && factor > 0) {
+        converted = value / factor; // Convert from SI (m/s) to custom
+      }
+      unit = customUnitName || "Unit";
+    }
+    
+    return `${converted.toFixed(1)} ${unit}`;
+  };
 
   // Update result
   useEffect(() => {
@@ -139,15 +185,15 @@ const DeltaVPlanner = () => {
           orbitType: mission.orbitType,
           targetInclination: `${mission.targetInclination}°`,
           payloadMass: `${mission.payloadMass} kg`,
-          gravityLoss: `${mission.gravityLoss} m/s`,
-          dragLoss: `${mission.dragLoss} m/s`,
-          steeringLoss: `${mission.steeringLoss} m/s`,
+          gravityLoss: formatDeltaV(mission.gravityLoss),
+          dragLoss: formatDeltaV(mission.dragLoss),
+          steeringLoss: formatDeltaV(mission.steeringLoss),
           reserveMargin: `${mission.reserveMargin}%`,
           numberOfStages: stages.length
         },
         results: {
-          totalRequiredDeltaV: `${breakdown.totalRequired.toFixed(1)} m/s`,
-          totalAchievableDeltaV: `${totalAchievable.toFixed(1)} m/s`,
+          totalRequiredDeltaV: formatDeltaV(breakdown.totalRequired),
+          totalAchievableDeltaV: formatDeltaV(totalAchievable),
           feasibility: breakdown.totalRequired <= totalAchievable ? "Feasible" : "Not Feasible",
           totalLiftoffMass: `${resultData.totalLiftoffMass.toFixed(1)} kg`,
           payloadMass: `${mission.payloadMass} kg`,
@@ -258,13 +304,16 @@ const DeltaVPlanner = () => {
           Mission Δv & Staging Designer - Calculate required Δv, stage sizing, and mission feasibility
         </p>
         <div className="flex justify-center gap-2 mt-4">
-          <Button
-            variant="outline"
-            onClick={() => setShowKm(!showKm)}
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-          >
-            {showKm ? "Show m/s" : "Show km/s"}
-          </Button>
+          <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
+            <SelectTrigger className="w-40 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="SI">SI (m/s)</SelectItem>
+              <SelectItem value="Imperial">Imperial (ft/s)</SelectItem>
+              <SelectItem value="Custom">Custom</SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             variant="outline"
             onClick={() => setIsPresetDialogOpen(true)}
@@ -413,7 +462,7 @@ const DeltaVPlanner = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="drag-loss" className="text-gray-300">
-                    Drag Loss (m/s)
+                    Drag Loss ({unitSystem === "SI" ? "m/s" : unitSystem === "Imperial" ? "ft/s" : customUnitName || "Unit"})
                   </Label>
                   <Input
                     id="drag-loss"
@@ -431,7 +480,7 @@ const DeltaVPlanner = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="steering-loss" className="text-gray-300">
-                    Steering Loss (m/s)
+                    Steering Loss ({unitSystem === "SI" ? "m/s" : unitSystem === "Imperial" ? "ft/s" : customUnitName || "Unit"})
                   </Label>
                   <Input
                     id="steering-loss"
@@ -528,9 +577,7 @@ const DeltaVPlanner = () => {
                 <div className="p-4 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-lg border border-blue-400/30">
                   <p className="text-sm text-gray-400 mb-1">Total Achievable Δv</p>
                   <p className="text-3xl font-bold text-blue-400">
-                    {showKm
-                      ? `${(breakdown.totalAchievable / 1000).toFixed(2)} km/s`
-                      : `${breakdown.totalAchievable.toFixed(0)} m/s`}
+                    {formatDeltaV(breakdown.totalAchievable)}
                   </p>
                 </div>
                 <div
@@ -551,9 +598,7 @@ const DeltaVPlanner = () => {
                     </p>
                   </div>
                   <p className="text-sm text-gray-300">
-                    Required: {showKm
-                      ? `${(breakdown.totalWithMargin / 1000).toFixed(2)} km/s`
-                      : `${breakdown.totalWithMargin.toFixed(0)} m/s`}
+                    Required: {formatDeltaV(breakdown.totalWithMargin)}
                   </p>
                 </div>
               </CardContent>
@@ -610,8 +655,8 @@ const DeltaVPlanner = () => {
       {/* Results Section */}
       {result && (
         <div className="grid lg:grid-cols-2 gap-6">
-          <DVBudgetTable breakdown={breakdown} stageResults={stageResults} showKm={showKm} />
-          <DeltaVChart breakdown={breakdown} showKm={showKm} />
+          <DVBudgetTable breakdown={breakdown} stageResults={stageResults} unitSystem={unitSystem} customUnitName={customUnitName} customFactor={customFactor} />
+          <DeltaVChart breakdown={breakdown} unitSystem={unitSystem} customUnitName={customUnitName} customFactor={customFactor} />
         </div>
       )}
 
@@ -693,6 +738,47 @@ const DeltaVPlanner = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Custom Units Card */}
+      {unitSystem === "Custom" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Settings2 className="w-5 h-5 text-cyan-400" />
+                Custom Unit Definitions
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Define conversion factor to SI (m/s)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                <Label className="text-white font-semibold">Delta-V (Δv)</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <Input 
+                    placeholder="Unit Name" 
+                    value={customUnitName}
+                    onChange={(e) => setCustomUnitName(e.target.value)}
+                    className="bg-slate-800 border-cyan-400/30 text-white"
+                  />
+                  <Input 
+                    type="number"
+                    step="0.0001"
+                    placeholder="SI Factor"
+                    value={customFactor}
+                    onChange={(e) => setCustomFactor(e.target.value)}
+                    className="bg-slate-800 border-cyan-400/30 text-white"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1.5">
+                  1 {customUnitName || "Unit"} = {customFactor || "..."} m/s
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </div>
   );
 };
