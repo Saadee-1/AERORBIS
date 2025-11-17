@@ -39,6 +39,7 @@ interface AIAssistantContextType {
   clearChat: () => void;
   loadChatSession: (sessionId: string) => void;
   startNewChat: () => void;
+  deleteChatSession: (sessionId: string) => void;
   showNotification: (message: string) => void;
   clearNotification: () => void;
 }
@@ -107,21 +108,27 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
   // Save messages and update history whenever messages change
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-MAX_STORED_MESSAGES)));
-      
-      // Update chat history when there are messages
+      // Only save current messages to STORAGE_KEY if there are messages
       if (messages.length > 0) {
-        const sessionTitle = messages[0]?.content.slice(0, 50) || 'New Chat';
-        const updatedHistory = chatHistory.filter(s => s.id !== currentSessionId);
-        const currentSession: ChatSession = {
-          id: currentSessionId,
-          title: sessionTitle,
-          messages: messages,
-          timestamp: Date.now(),
-        };
-        const newHistory = [currentSession, ...updatedHistory].slice(0, MAX_HISTORY_SESSIONS);
-        setChatHistory(newHistory);
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-MAX_STORED_MESSAGES)));
+        
+        // Update chat history - save current session
+        setChatHistory(prevHistory => {
+          const sessionTitle = messages[0]?.content.slice(0, 50) || 'New Chat';
+          const updatedHistory = prevHistory.filter(s => s.id !== currentSessionId);
+          const currentSession: ChatSession = {
+            id: currentSessionId,
+            title: sessionTitle,
+            messages: [...messages], // Save a copy of messages
+            timestamp: Date.now(),
+          };
+          const newHistory = [currentSession, ...updatedHistory].slice(0, MAX_HISTORY_SESSIONS);
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+          return newHistory;
+        });
+      } else {
+        // If no messages, remove current session from storage but keep history
+        localStorage.removeItem(STORAGE_KEY);
       }
     } catch (error) {
       console.error('Error saving chat history:', error);
@@ -309,6 +316,22 @@ Error: ${data.error}`;
   };
 
   const clearChat = () => {
+    // Save current session to history before clearing (if it has messages)
+    if (messages.length > 0) {
+      const sessionTitle = messages[0]?.content.slice(0, 50) || 'New Chat';
+      const updatedHistory = chatHistory.filter(s => s.id !== currentSessionId);
+      const currentSession: ChatSession = {
+        id: currentSessionId,
+        title: sessionTitle,
+        messages: [...messages],
+        timestamp: Date.now(),
+      };
+      const newHistory = [currentSession, ...updatedHistory].slice(0, MAX_HISTORY_SESSIONS);
+      setChatHistory(newHistory);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+    }
+    
+    // Clear current messages but keep history
     setMessages([]);
     localStorage.removeItem(STORAGE_KEY);
   };
@@ -316,16 +339,64 @@ Error: ${data.error}`;
   const loadChatSession = (sessionId: string) => {
     const session = chatHistory.find(s => s.id === sessionId);
     if (session) {
+      // Save current session before loading another
+      if (messages.length > 0 && currentSessionId !== sessionId) {
+        const sessionTitle = messages[0]?.content.slice(0, 50) || 'New Chat';
+        const updatedHistory = chatHistory.filter(s => s.id !== currentSessionId);
+        const currentSession: ChatSession = {
+          id: currentSessionId,
+          title: sessionTitle,
+          messages: [...messages],
+          timestamp: Date.now(),
+        };
+        const newHistory = [currentSession, ...updatedHistory].slice(0, MAX_HISTORY_SESSIONS);
+        setChatHistory(newHistory);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+      }
+      
       setMessages(session.messages);
       setCurrentSessionId(sessionId);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session.messages.slice(-MAX_STORED_MESSAGES)));
     }
   };
 
   const startNewChat = () => {
+    // Save current session to history before starting new chat (if it has messages)
+    if (messages.length > 0) {
+      const sessionTitle = messages[0]?.content.slice(0, 50) || 'New Chat';
+      const updatedHistory = chatHistory.filter(s => s.id !== currentSessionId);
+      const currentSession: ChatSession = {
+        id: currentSessionId,
+        title: sessionTitle,
+        messages: [...messages],
+        timestamp: Date.now(),
+      };
+      const newHistory = [currentSession, ...updatedHistory].slice(0, MAX_HISTORY_SESSIONS);
+      setChatHistory(newHistory);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+    }
+    
+    // Start new chat
+    const newSessionId = Date.now().toString();
     setMessages([]);
-    setCurrentSessionId(Date.now().toString());
+    setCurrentSessionId(newSessionId);
     setToolContext(null);
     localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const deleteChatSession = (sessionId: string) => {
+    const updatedHistory = chatHistory.filter(s => s.id !== sessionId);
+    setChatHistory(updatedHistory);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
+    
+    // If deleting current session, clear messages
+    if (sessionId === currentSessionId) {
+      setMessages([]);
+      localStorage.removeItem(STORAGE_KEY);
+      // Start a new session
+      const newSessionId = Date.now().toString();
+      setCurrentSessionId(newSessionId);
+    }
   };
 
   const showNotification = (message: string) => {
@@ -360,6 +431,7 @@ Error: ${data.error}`;
         clearChat,
         loadChatSession,
         startNewChat,
+        deleteChatSession,
         showNotification,
         clearNotification,
       }}
