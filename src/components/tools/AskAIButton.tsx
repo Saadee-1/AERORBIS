@@ -35,11 +35,21 @@ export function AskAIButton({
 
     setIsLoading(true);
     try {
+      // Check if calculation data exists in localStorage
+      const storedData = localStorage.getItem(`calc-${requestId}`);
+      if (!storedData) {
+        toast({
+          title: 'Warning',
+          description: 'Calculation data not found. The AI may not have full context.',
+          variant: 'destructive',
+        });
+      }
+
       // Open AI assistant first
       setIsOpen(true);
       
-      // Send a message with the explanation request
-      // The assistant will use the requestId to fetch context automatically
+      // Send a message with the explanation request and requestId
+      // The assistant will use the requestId to fetch context from localStorage
       await sendMessage(`Please explain this calculation in detail. Request ID: ${requestId}`);
       
       toast({

@@ -156,25 +156,31 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
           if (storedData) {
             const parsed = JSON.parse(storedData);
             // Check if data hasn't expired
-            if (parsed.expiresAt && parsed.expiresAt > Date.now()) {
+            if (!parsed.expiresAt || parsed.expiresAt > Date.now()) {
               calculationContext = {
-                requestId: parsed.requestId,
+                requestId: parsed.requestId || requestId,
                 toolId: parsed.toolId,
                 toolName: parsed.toolName,
-                inputs: parsed.inputs,
-                results: parsed.results,
-                steps: parsed.steps,
-                metadata: parsed.metadata,
-                timestamp: parsed.timestamp,
+                inputs: parsed.inputs || {},
+                results: parsed.results || {},
+                steps: parsed.steps || [],
+                metadata: parsed.metadata || {},
+                timestamp: parsed.timestamp || new Date().toISOString(),
               };
+              console.log('Calculation context loaded from localStorage:', calculationContext);
             } else {
               // Data expired, remove it
+              console.warn('Calculation context expired, removing from localStorage');
               localStorage.removeItem(`calc-${requestId}`);
             }
+          } else {
+            console.warn(`No calculation data found in localStorage for requestId: ${requestId}`);
           }
         } catch (error) {
           console.error('Error reading calculation context from localStorage:', error);
         }
+      } else {
+        console.log('No requestId found in message:', content);
       }
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`, {
