@@ -208,6 +208,15 @@ const AIAssistant: React.FC = () => {
                 >
                   <History className="w-4 h-4" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
+                  title="Minimize"
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </Button>
               </div>
             </div>
 
@@ -217,7 +226,7 @@ const AIAssistant: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={startNewChat}
-                className="flex-1 text-xs border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/60"
+                className="flex-1 text-xs border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/60 transition-all"
               >
                 <Plus className="w-3 h-3 mr-1.5" />
                 New Chat
@@ -227,25 +236,11 @@ const AIAssistant: React.FC = () => {
                 size="sm"
                 onClick={clearChat}
                 disabled={messages.length === 0}
-                className="flex-1 text-xs border-red-400/40 text-red-400 hover:bg-red-400/10 hover:border-red-400/60 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 text-xs border-red-400/40 text-red-400 hover:bg-red-400/10 hover:border-red-400/60 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 <Trash2 className="w-3 h-3 mr-1.5" />
                 Clear Chat
               </Button>
-            </div>
-            
-            {/* Header Actions (Minimize) */}
-            <div className="absolute top-4 right-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-                className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 h-8 w-8"
-                title="Minimize"
-              >
-                <Minimize2 className="w-4 h-4" />
-              </Button>
-            </div>
             </div>
 
             {/* Mode Toggle */}
