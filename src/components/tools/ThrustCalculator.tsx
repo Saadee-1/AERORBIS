@@ -467,6 +467,7 @@ const AdvancedThrustCalculator = () => {
         }
       });
 
+      // Always set lastRequestId (even if event failed, requestId is still generated)
       if (eventResponse) {
         setLastRequestId(eventResponse.requestId);
       }

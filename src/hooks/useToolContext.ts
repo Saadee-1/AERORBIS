@@ -57,22 +57,38 @@ export const useToolContext = () => {
   const sendCalculationEvent = useCallback(async (
     payload: CalculationEventPayload
   ): Promise<CalculationEventResponse | null> => {
-    try {
-      const requestId = `calc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const userId = 'user-' + (localStorage.getItem('userId') || 'anonymous');
-      
-      const event = {
-        eventType: 'calculation.complete' as const,
-        ...payload,
-        requestId,
-        userId,
-        timestamp: new Date().toISOString(),
-      };
+    // Always generate requestId first, so we can return it even if the event fails
+    const requestId = `calc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const userId = 'user-' + (localStorage.getItem('userId') || 'anonymous');
+    
+    const event = {
+      eventType: 'calculation.complete' as const,
+      ...payload,
+      requestId,
+      userId,
+      timestamp: new Date().toISOString(),
+    };
 
+    try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       if (!supabaseUrl) {
-        console.warn('Supabase URL not configured, skipping calculation event');
-        return null;
+        console.warn('Supabase URL not configured, storing calculation locally only');
+        // Store locally even if Supabase is not configured
+        const fallbackResponse: CalculationEventResponse = {
+          ack: true,
+          requestId,
+          explanationId: `exp-${requestId}`,
+          summary: `${payload.toolName} calculation completed.`,
+          recommendations: []
+        };
+        const storageData = {
+          ...event,
+          ...fallbackResponse,
+          storedAt: Date.now(),
+          expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+        };
+        localStorage.setItem(`calc-${requestId}`, JSON.stringify(storageData));
+        return fallbackResponse;
       }
 
       const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/events/calc-complete`, {
@@ -96,11 +112,41 @@ export const useToolContext = () => {
         return result;
       } else {
         console.error('Failed to send calculation event:', await response.text());
-        return null;
+        // Still return a response with requestId so PDF button appears
+        const fallbackResponse: CalculationEventResponse = {
+          ack: false,
+          requestId,
+          explanationId: `exp-${requestId}`,
+          summary: `${payload.toolName} calculation completed (offline mode).`,
+          recommendations: []
+        };
+        const storageData = {
+          ...event,
+          ...fallbackResponse,
+          storedAt: Date.now(),
+          expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+        };
+        localStorage.setItem(`calc-${requestId}`, JSON.stringify(storageData));
+        return fallbackResponse;
       }
     } catch (error) {
       console.error('Error sending calculation event:', error);
-      return null;
+      // Still return a response with requestId so PDF button appears
+      const fallbackResponse: CalculationEventResponse = {
+        ack: false,
+        requestId,
+        explanationId: `exp-${requestId}`,
+        summary: `${payload.toolName} calculation completed (offline mode).`,
+        recommendations: []
+      };
+      const storageData = {
+        ...event,
+        ...fallbackResponse,
+        storedAt: Date.now(),
+        expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+      };
+      localStorage.setItem(`calc-${requestId}`, JSON.stringify(storageData));
+      return fallbackResponse;
     }
   }, []);
 
