@@ -31,67 +31,71 @@ const LANGUAGES = [
   { code: 'ur', name: 'اردو' },
 ];
 
-// Simplified Astronaut Icon - Waving "Hi" with Animation (Reliable Rendering)
+// Simplified Astronaut Icon - Waving "Hi" with Animation (Reliable Rendering with Inline Styles)
 const AstronautIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    className={className}
-    style={{ width: '100%', height: '100%', display: 'block' }}
-  >
-    <defs>
-      <style>{`
-        .astronaut-helmet { fill: #ffffff; stroke: #ffffff; stroke-width: 1.5; }
-        .astronaut-body { fill: #ffffff; stroke: #ffffff; stroke-width: 1.5; }
-        .astronaut-visor { fill: #4a148c; }
-        .astronaut-button { fill: #3b82f6; }
-        .waving-arm { transform-origin: 18px 9px; animation: wave 1s ease-in-out infinite; }
-        @keyframes wave {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(-20deg); }
-          75% { transform: rotate(20deg); }
-        }
-      `}</style>
-    </defs>
-    
-    {/* Helmet */}
-    <circle cx="12" cy="8" r="5.5" className="astronaut-helmet" />
-    <path d="M7 5.5h10" stroke="#ffffff" strokeWidth="2" />
-    <circle cx="6.5" cy="8" r="1.2" className="astronaut-helmet" />
-    <circle cx="17.5" cy="8" r="1.2" className="astronaut-helmet" />
-    
-    {/* Visor */}
-    <ellipse cx="12" cy="8" rx="4" ry="3.5" className="astronaut-visor" />
-    <circle cx="10" cy="7.5" r="0.8" fill="#ffffff" opacity="0.8" />
-    <circle cx="13.5" cy="8" r="0.6" fill="#ffffff" opacity="0.6" />
-    
-    {/* Body */}
-    <path d="M8 13.5 Q8 12 12 12 Q16 12 16 13.5 L16 18 Q16 19 12 19 Q8 19 8 18 Z" className="astronaut-body" />
-    
-    {/* Chest Panel */}
-    <rect x="10" y="14" width="4" height="3" rx="0.5" className="astronaut-body" />
-    <path d="M10.5 14.5h2v1.5h-2z M10.5 16h3" stroke="#ffffff" strokeWidth="1.5" fill="none" />
-    <circle cx="13" cy="15.5" r="0.6" className="astronaut-button" />
-    
-    {/* Belt */}
-    <path d="M8 17.5h8" stroke="#ffffff" strokeWidth="2.5" />
-    
-    {/* Left Arm */}
-    <path d="M6 12 Q5 13 5 14.5 Q5 16 6.5 16.5" className="astronaut-body" strokeLinecap="round" />
-    <circle cx="6" cy="16.5" r="1.5" className="astronaut-body" />
-    
-    {/* Right Arm - Waving */}
-    <g className="waving-arm">
-      <path d="M18 12 Q19 10.5 19.5 9 Q20 7.5 19.5 6.5 Q19 5.5 18 6 Q17 6.5 16.5 7.5 Q16 8.5 16.5 9.5 Q17 10.5 18 12" 
-            className="astronaut-body" strokeLinecap="round" />
-      <circle cx="19.5" cy="7" r="1.3" className="astronaut-body" />
-      <path d="M19 6.2 L19.2 5.5 M19.5 6 L19.8 5.3 M20 6.2 L20.2 5.5" 
-            stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
-    </g>
-    
-    {/* Legs */}
-    <path d="M10 18.5 L10 21 Q10 22 11 22 L11.5 22 Q12.5 22 12.5 21 L12.5 18.5" className="astronaut-body" />
-    <path d="M11.5 18.5 L11.5 21 Q11.5 22 12.5 22 L13 22 Q14 22 14 21 L14 18.5" className="astronaut-body" />
-  </svg>
+  <>
+    <style>{`
+      @keyframes astronaut-wave {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-20deg); }
+        75% { transform: rotate(20deg); }
+      }
+      .astronaut-waving-arm {
+        transform-origin: 18px 9px;
+        animation: astronaut-wave 1s ease-in-out infinite;
+      }
+    `}</style>
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      style={{ width: '100%', height: '100%', display: 'block' }}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Helmet */}
+      <circle cx="12" cy="8" r="5.5" fill="#ffffff" stroke="#ffffff" strokeWidth="1.5" />
+      <path d="M7 5.5h10" stroke="#ffffff" strokeWidth="2" />
+      <circle cx="6.5" cy="8" r="1.2" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
+      <circle cx="17.5" cy="8" r="1.2" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
+      
+      {/* Visor */}
+      <ellipse cx="12" cy="8" rx="4" ry="3.5" fill="#4a148c" />
+      <circle cx="10" cy="7.5" r="0.8" fill="#ffffff" opacity="0.8" />
+      <circle cx="13.5" cy="8" r="0.6" fill="#ffffff" opacity="0.6" />
+      
+      {/* Body */}
+      <path d="M8 13.5 Q8 12 12 12 Q16 12 16 13.5 L16 18 Q16 19 12 19 Q8 19 8 18 Z" 
+            fill="#ffffff" stroke="#ffffff" strokeWidth="1.5" />
+      
+      {/* Chest Panel */}
+      <rect x="10" y="14" width="4" height="3" rx="0.5" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
+      <path d="M10.5 14.5h2v1.5h-2z M10.5 16h3" stroke="#ffffff" strokeWidth="1.5" fill="none" />
+      <circle cx="13" cy="15.5" r="0.6" fill="#3b82f6" />
+      
+      {/* Belt */}
+      <path d="M8 17.5h8" stroke="#ffffff" strokeWidth="2.5" />
+      
+      {/* Left Arm */}
+      <path d="M6 12 Q5 13 5 14.5 Q5 16 6.5 16.5" 
+            fill="#ffffff" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+      <circle cx="6" cy="16.5" r="1.5" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
+      
+      {/* Right Arm - Waving */}
+      <g className="astronaut-waving-arm">
+        <path d="M18 12 Q19 10.5 19.5 9 Q20 7.5 19.5 6.5 Q19 5.5 18 6 Q17 6.5 16.5 7.5 Q16 8.5 16.5 9.5 Q17 10.5 18 12" 
+              fill="#ffffff" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+        <circle cx="19.5" cy="7" r="1.3" fill="#ffffff" stroke="#ffffff" strokeWidth="2" />
+        <path d="M19 6.2 L19.2 5.5 M19.5 6 L19.8 5.3 M20 6.2 L20.2 5.5" 
+              stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
+      </g>
+      
+      {/* Legs */}
+      <path d="M10 18.5 L10 21 Q10 22 11 22 L11.5 22 Q12.5 22 12.5 21 L12.5 18.5" 
+            fill="#ffffff" stroke="#ffffff" strokeWidth="2.5" />
+      <path d="M11.5 18.5 L11.5 21 Q11.5 22 12.5 22 L13 22 Q14 22 14 21 L14 18.5" 
+            fill="#ffffff" stroke="#ffffff" strokeWidth="2.5" />
+    </svg>
+  </>
 );
 
 const AIAssistant: React.FC = () => {
