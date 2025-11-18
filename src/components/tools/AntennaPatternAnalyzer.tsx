@@ -370,7 +370,7 @@ const AntennaPatternAnalyzer = () => {
         `Frequency: ${frequency} ${frequencyUnit} (λ = ${(lambda * 1000).toFixed(2)} mm)`,
         `Peak Gain: ${calculatedResults.peakGainDbi.toFixed(2)} dBi (${calculatedResults.peakGainLinear.toFixed(4)} linear)`,
         `Directivity: ${calculatedResults.directivityDbi.toFixed(2)} dBi`,
-        `EIRP: ${calculatedResults.eirp.eirpDbw.toFixed(2)} dBW (${calculatedResults.eirp.eirpW.toFixed(2)} W)`,
+        `EIRP: ${calculatedResults.eirp.eirpDbw.toFixed(2)} dBW (${calculatedResults.eirp.eirpWatts.toFixed(2)} W)`,
         `HPBW (E-plane): ${calculatedResults.hpbmE ? calculatedResults.hpbmE.toFixed(2) + '°' : 'N/A'}`,
         `HPBW (H-plane): ${calculatedResults.hpbmH ? calculatedResults.hpbmH.toFixed(2) + '°' : 'N/A'}`,
         `Side-lobe Level: ${calculatedResults.sideLobeLevel.toFixed(2)} dB`,
