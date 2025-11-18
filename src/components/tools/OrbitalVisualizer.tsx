@@ -27,6 +27,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
+import { buildAeroversePayload } from "@/ai/buildPayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -1041,9 +1042,60 @@ const OrbitalVisualizer = () => {
               <AeroCard
                 title="Orbit Results"
                 headerActions={
-                  lastRequestId ? (
+                  lastRequestId && orbitResult ? (
                     <div className="flex gap-2">
-                      <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                      <AskAIButton 
+                        requestId={lastRequestId} 
+                        payload={buildAeroversePayload({
+                          toolName: "Orbital Visualizer",
+                          requestId: lastRequestId || undefined,
+                          inputs: {
+                            periapsisAltitude: parseFloat(inputs.periapsisAltitude) || 0,
+                            inclination: parseFloat(inputs.inclination) || 0,
+                            eccentricity: parseFloat(inputs.eccentricity) || 0,
+                            centralBodyRadius: parseFloat(inputs.centralBodyRadius) || 0,
+                            gm: parseFloat(inputs.gm) || 0,
+                            unitSystem
+                          },
+                          results: {
+                            ...orbitResult
+                          },
+                          units: {
+                            periapsisAltitude: unitSystem === "Imperial" ? "mi" : "km",
+                            inclination: "deg",
+                            eccentricity: "",
+                            centralBodyRadius: unitSystem === "Imperial" ? "mi" : "km",
+                            gm: unitSystem === "Imperial" ? "mi³/s²" : "km³/s²",
+                            semiMajorAxis: unitSystem === "Imperial" ? "mi" : "km",
+                            orbitalPeriod: "minutes",
+                            periapsisVelocity: "km/s",
+                            apoapsisVelocity: "km/s"
+                          },
+                          configuration: {
+                            unitSystem
+                          },
+                          charts: [{
+                            id: "orbital-3d",
+                            title: "3D Orbital Visualization",
+                            dataSummary: `Orbit with ${orbitResult.eccentricity?.toFixed(4)} eccentricity`
+                          }],
+                          metadata: {
+                            steps: [
+                              `Periapsis radius: r_p = R + h_p`,
+                              `Semi-major axis: a = r_p / (1 - e)`,
+                              `Apoapsis radius: r_a = a(1 + e)`,
+                              `Periapsis velocity: v_p = sqrt(μ(2/r_p - 1/a))`,
+                              `Apoapsis velocity: v_a = sqrt(μ(2/r_a - 1/a))`,
+                              `Orbital period: T = 2π√(a³/μ)`
+                            ],
+                            unitsSystem: unitSystem,
+                            approxLevel: "exact",
+                            confidence: "high",
+                            warnings: error ? [error] : []
+                          }
+                        })}
+                        disabled={!orbitResult}
+                      />
                       <PDFExportButton 
                         requestId={lastRequestId} 
                         toolName="Orbital Visualizer"

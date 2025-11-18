@@ -53,6 +53,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
+import { buildAeroversePayload } from "@/ai/buildPayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -530,9 +531,89 @@ const DeltaVPlanner = () => {
               <AeroCard
                 title="Mission Summary"
                 headerActions={
-                  lastRequestId ? (
+                  lastRequestId && result && breakdown && stageResults.length > 0 ? (
                     <div className="flex gap-2">
-                      <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                      <AskAIButton 
+                        requestId={lastRequestId} 
+                        payload={buildAeroversePayload({
+                          toolName: "Delta-V Budget Planner",
+                          requestId: lastRequestId || undefined,
+                          inputs: {
+                            targetOrbitAltitude: mission.targetOrbitAltitude,
+                            orbitType: mission.orbitType,
+                            targetInclination: mission.targetInclination,
+                            payloadMass: mission.payloadMass,
+                            gravityLoss: mission.gravityLoss,
+                            dragLoss: mission.dragLoss,
+                            steeringLoss: mission.steeringLoss,
+                            reserveMargin: mission.reserveMargin,
+                            numberOfStages: stages.length,
+                            stages: stages.map(s => ({
+                              name: s.name,
+                              dryMass: s.dryMass,
+                              propellantMass: s.propellantMass,
+                              ispSeaLevel: s.ispSeaLevel,
+                              ispVacuum: s.ispVacuum,
+                              useVacuumIsp: s.useVacuumIsp
+                            })),
+                            unitSystem
+                          },
+                          results: {
+                            totalRequiredDeltaV: breakdown.totalRequired,
+                            totalAchievableDeltaV: breakdown.totalAchievable || 0,
+                            feasibility: breakdown.isFeasible,
+                            totalLiftoffMass: result.totalLiftoffMass,
+                            payloadMass: mission.payloadMass,
+                            stageResults: stageResults.map(sr => ({
+                              stageName: sr.stage.name,
+                              achievableDeltaV: sr.achievableDeltaV,
+                              initialMass: sr.initialMass,
+                              finalMass: sr.finalMass
+                            }))
+                          },
+                          units: {
+                            targetOrbitAltitude: unitSystem === "Imperial" ? "mi" : "km",
+                            targetInclination: "deg",
+                            payloadMass: unitSystem === "Imperial" ? "lb" : "kg",
+                            gravityLoss: "m/s",
+                            dragLoss: "m/s",
+                            steeringLoss: "m/s",
+                            reserveMargin: "%",
+                            totalRequiredDeltaV: "m/s",
+                            totalAchievableDeltaV: "m/s",
+                            totalLiftoffMass: unitSystem === "Imperial" ? "lb" : "kg"
+                          },
+                          configuration: {
+                            unitSystem,
+                            orbitType: mission.orbitType,
+                            numberOfStages: stages.length
+                          },
+                          charts: [{
+                            id: "deltav-chart",
+                            title: "Delta-V Budget Chart",
+                            dataSummary: `Required vs achievable Δv comparison`
+                          }, {
+                            id: "mass-breakdown-chart",
+                            title: "Mass Breakdown Chart",
+                            dataSummary: `Stage mass distribution`
+                          }],
+                          metadata: {
+                            steps: [
+                              `Mission: ${mission.orbitType} at ${mission.targetOrbitAltitude} km`,
+                              `Total Required Δv: ${breakdown.totalRequired.toFixed(2)} m/s`,
+                              `Total Achievable Δv: ${(breakdown.totalAchievable || 0).toFixed(2)} m/s`,
+                              `Feasibility: ${breakdown.isFeasible ? "Feasible" : "Not Feasible"}`,
+                              ...stageResults.map(sr => `Stage ${sr.stage.name}: ${sr.achievableDeltaV.toFixed(2)} m/s`)
+                            ],
+                            unitsSystem: unitSystem,
+                            approxLevel: "exact",
+                            confidence: "high",
+                            warnings: warnings || [],
+                            recommendations: recommendations || []
+                          }
+                        })}
+                        disabled={!result || !breakdown || stageResults.length === 0}
+                      />
                       <PDFExportButton 
                         requestId={lastRequestId} 
                         toolName="Delta-V Budget Planner"

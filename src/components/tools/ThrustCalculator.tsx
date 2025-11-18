@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
+import { buildAeroversePayload } from "@/ai/buildPayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -675,9 +676,57 @@ const AdvancedThrustCalculator = () => {
             <AeroCard
               title="Results"
               headerActions={
-                lastRequestId ? (
+                lastRequestId && (thrustResult || performanceResult) ? (
                   <div className="flex gap-2">
-                    <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                    <AskAIButton 
+                      requestId={lastRequestId} 
+                      payload={buildAeroversePayload({
+                        toolName: "Thrust Calculator",
+                        requestId: lastRequestId || undefined,
+                        inputs: {
+                          massFlowRate: inputs.massFlowRate || undefined,
+                          exhaustVelocity: inputs.exhaustVelocity || undefined,
+                          exitArea: inputs.exitArea || undefined,
+                          exitPressure: inputs.exitPressure || undefined,
+                          ambientPressure: inputs.ambientPressure || undefined,
+                          thrust: inputs.thrust || undefined,
+                          isp: performanceResult?.isp || undefined,
+                          unitSystem
+                        },
+                        results: {
+                          ...(thrustResult || {}),
+                          ...(performanceResult || {}),
+                          solvedFor: thrustResult?.solvedFor || performanceResult?.solvedFor || undefined
+                        },
+                        units: {
+                          massFlowRate: unitSystem === "SI" ? "kg/s" : "lb/s",
+                          exhaustVelocity: unitSystem === "SI" ? "m/s" : "ft/s",
+                          exitArea: unitSystem === "SI" ? "m²" : "ft²",
+                          exitPressure: unitSystem === "SI" ? "Pa" : "psi",
+                          ambientPressure: unitSystem === "SI" ? "Pa" : "psi",
+                          thrust: unitSystem === "SI" ? "N" : "lbf",
+                          isp: "s"
+                        },
+                        configuration: {
+                          unitSystem,
+                          solvedFor: thrustResult?.solvedFor || performanceResult?.solvedFor || undefined
+                        },
+                        charts: chartData && chartData.length > 0 ? [{
+                          id: "thrust-chart",
+                          title: "Thrust vs Ambient Pressure",
+                          dataSummary: `Thrust variation with ambient pressure`
+                        }] : [],
+                        metadata: {
+                          steps: thrustResult?.steps?.map((s: any) => `${s.equation} - ${s.description}`) || 
+                                 performanceResult?.steps?.map((s: any) => `${s.equation} - ${s.description}`) || [],
+                          unitsSystem: unitSystem,
+                          approxLevel: "analytic",
+                          confidence: "high",
+                          warnings: []
+                        }
+                      })}
+                      disabled={!thrustResult && !performanceResult}
+                    />
                     <PDFExportButton 
                       requestId={lastRequestId} 
                       toolName="Thrust Calculator"

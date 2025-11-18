@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
+import { buildAeroversePayload } from "@/ai/buildPayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -756,9 +757,61 @@ const AdvancedWingLoadingCalculator = () => {
             <AeroCard
               title="Results"
               headerActions={
-                lastRequestId ? (
+                lastRequestId && (basicResult || advancedResult) ? (
                   <div className="flex gap-2">
-                    <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                    <AskAIButton 
+                      requestId={lastRequestId} 
+                      payload={buildAeroversePayload({
+                        toolName: "Wing Loading Calculator",
+                        requestId: lastRequestId || undefined,
+                        inputs: {
+                          ...(basicResult ? {
+                            weight: basicInputs.weight || undefined,
+                            wingArea: basicInputs.wingArea || undefined,
+                            wingLoading: advInputs.wingLoading || undefined
+                          } : {}),
+                          ...(advancedResult ? {
+                            wingLoading: advInputs.wingLoading || undefined,
+                            airDensity: advInputs.airDensity || undefined,
+                            clMax: advInputs.clMax || undefined,
+                            stallSpeed: advInputs.stallSpeed || undefined
+                          } : {}),
+                          unitSystem
+                        },
+                        results: {
+                          ...(basicResult || {}),
+                          ...(advancedResult || {}),
+                          ...(basicResult?.feasibility ? { feasibility: basicResult.feasibility } : {}),
+                          ...(advancedResult?.feasibility ? { feasibility: advancedResult.feasibility } : {})
+                        },
+                        units: {
+                          weight: getUnit("weight"),
+                          wingArea: getUnit("wingArea"),
+                          wingLoading: getUnit("wingLoading"),
+                          airDensity: getUnit("airDensity"),
+                          stallSpeed: getUnit("stallSpeed"),
+                          clMax: ""
+                        },
+                        configuration: {
+                          unitSystem,
+                          solvedFor: basicResult?.solvedFor || advancedResult?.solvedFor || "unknown"
+                        },
+                        charts: chartData && chartData.length > 0 ? [{
+                          id: "wing-loading-chart",
+                          title: "Wing Loading Chart",
+                          dataSummary: `Wing loading vs wing area`
+                        }] : [],
+                        metadata: {
+                          steps: basicResult?.steps?.map(s => `${s.equation} - ${s.description}`) || 
+                                 advancedResult?.steps?.map(s => `${s.equation} - ${s.description}`) || [],
+                          unitsSystem: unitSystem,
+                          approxLevel: "exact",
+                          confidence: "high",
+                          warnings: []
+                        }
+                      })}
+                      disabled={!basicResult && !advancedResult}
+                    />
                     <PDFExportButton 
                       requestId={lastRequestId} 
                       toolName="Wing Loading Calculator"

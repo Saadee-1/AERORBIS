@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
+import { buildAeroversePayload } from "@/ai/buildPayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -773,9 +774,49 @@ const ReynoldsNumberCalculator = () => {
               <AeroCard
                 title="Results"
                 headerActions={
-                  lastRequestId ? (
+                  lastRequestId && result ? (
                     <div className="flex gap-2">
-                      <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                      <AskAIButton 
+                        requestId={lastRequestId} 
+                        payload={buildAeroversePayload({
+                          toolName: "Reynolds Number Calculator",
+                          requestId: lastRequestId || undefined,
+                          inputs: {
+                            density: parseFloat(inputs.density) || 0,
+                            velocity: parseFloat(inputs.velocity) || 0,
+                            length: parseFloat(inputs.length) || 0,
+                            viscosity: parseFloat(inputs.viscosity) || 0,
+                            unitSystem
+                          },
+                          results: {
+                            reynoldsNumber: result.reynoldsNumber,
+                            flowRegime: result.flowRegime,
+                            warnings: result.warnings || []
+                          },
+                          units: {
+                            density: getUnit("density"),
+                            velocity: getUnit("velocity"),
+                            length: getUnit("length"),
+                            viscosity: getUnit("viscosity")
+                          },
+                          configuration: {
+                            unitSystem
+                          },
+                          charts: chartData && chartData.length > 0 ? [{
+                            id: "reynolds-chart",
+                            title: "Reynolds Number Chart",
+                            dataSummary: `Reynolds number vs characteristic length`
+                          }] : [],
+                          metadata: {
+                            steps: result.steps?.map(s => `${s.equation} - ${s.description}`) || [],
+                            unitsSystem: unitSystem,
+                            approxLevel: "exact",
+                            confidence: "high",
+                            warnings: result.warnings || []
+                          }
+                        })}
+                        disabled={!result}
+                      />
                       <PDFExportButton 
                         requestId={lastRequestId} 
                         toolName="Reynolds Number Calculator"

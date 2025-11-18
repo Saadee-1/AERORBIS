@@ -25,6 +25,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
+import { buildAeroversePayload } from "@/ai/buildPayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -695,9 +696,60 @@ const LiftDragAnalyzer = () => {
             <AeroCard
               title="Analysis Results"
               headerActions={
-                lastRequestId ? (
+                lastRequestId && result ? (
                   <div className="flex gap-2">
-                    <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                    <AskAIButton 
+                      requestId={lastRequestId} 
+                      payload={buildAeroversePayload({
+                        toolName: "Lift/Drag Analyzer",
+                        requestId: lastRequestId || undefined,
+                        inputs: {
+                          airfoil: result.airfoilName || inputs.airfoil,
+                          angleOfAttack: parseFloat(inputs.angleOfAttack) || 0,
+                          airspeed: inputs.airspeed,
+                          airDensity: inputs.airDensity,
+                          wingArea: inputs.wingArea,
+                          wingSpan: inputs.wingSpan,
+                          oswaldEfficiency: inputs.oswaldEfficiency,
+                          unitSystem
+                        },
+                        results: {
+                          CL: result.CL,
+                          CD: result.CD,
+                          L_D_ratio: result.L_D_ratio,
+                          liftForce: result.liftForce,
+                          dragForce: result.dragForce,
+                          aspectRatio: result.aspectRatio,
+                          k_factor: result.k_factor
+                        },
+                        units: {
+                          angleOfAttack: "deg",
+                          airspeed: getUnit("speed"),
+                          airDensity: getUnit("density"),
+                          wingArea: getUnit("area"),
+                          wingSpan: getUnit("span"),
+                          liftForce: getUnit("force"),
+                          dragForce: getUnit("force")
+                        },
+                        configuration: {
+                          unitSystem,
+                          airfoil: result.airfoilName || inputs.airfoil
+                        },
+                        charts: result ? [{
+                          id: "lift-drag-chart",
+                          title: "Lift/Drag Comparison Chart",
+                          dataSummary: `CL and CD vs angle of attack`
+                        }] : [],
+                        metadata: {
+                          steps: result.steps || [],
+                          unitsSystem: unitSystem,
+                          approxLevel: "numeric",
+                          confidence: "high",
+                          warnings: error && error.includes("Warning") ? [error] : []
+                        }
+                      })}
+                      disabled={!result}
+                    />
                     <PDFExportButton 
                       requestId={lastRequestId} 
                       toolName="Lift/Drag Analyzer"

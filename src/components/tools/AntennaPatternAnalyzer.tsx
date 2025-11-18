@@ -75,6 +75,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
+import { buildAeroversePayload } from "@/ai/buildPayload";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1101,7 +1102,61 @@ const AntennaPatternAnalyzer = () => {
                 title="Results Summary"
                 headerActions={
                   <div className="flex gap-2">
-                    <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                    <AskAIButton 
+                      requestId={lastRequestId} 
+                      payload={result && selectedAntenna ? buildAeroversePayload({
+                        toolName: "Antenna Pattern Analyzer",
+                        requestId: lastRequestId || undefined,
+                        inputs: {
+                          antennaType: selectedAntenna.name,
+                          frequency: `${frequency} ${frequencyUnit}`,
+                          transmitPower,
+                          polarization,
+                          resolution: `${resolution}°`,
+                          computeMode
+                        },
+                        results: {
+                          peakGainDbi: result.peakGainDbi,
+                          directivityDbi: result.directivityDbi,
+                          eirpDbw: result.eirp.eirpDbw,
+                          hpbmE: result.hpbmE,
+                          hpbmH: result.hpbmH,
+                          sideLobeLevel: result.sideLobeLevel,
+                          frontToBackRatio: result.frontToBackRatio,
+                          wavelength: lambda * 1000
+                        },
+                        units: {
+                          frequency: frequencyUnit,
+                          transmitPower: "W",
+                          peakGainDbi: "dBi",
+                          eirpDbw: "dBW"
+                        },
+                        configuration: {
+                          resolution: `${resolution}°`,
+                          computeMode,
+                          polarization
+                        },
+                        charts: chartData && chartData.ePlane && chartData.ePlane.length > 0 ? [{
+                          id: "polar-pattern",
+                          title: "2D Polar Radiation Pattern",
+                          dataSummary: `${selectedAntenna.name} pattern at ${frequency} ${frequencyUnit}`
+                        }] : [],
+                        metadata: {
+                          steps: result ? [
+                            `Antenna Type: ${selectedAntenna.name}`,
+                            `Frequency: ${frequency} ${frequencyUnit}`,
+                            `Peak Gain: ${result.peakGainDbi.toFixed(2)} dBi`,
+                            `Directivity: ${result.directivityDbi.toFixed(2)} dBi`,
+                            `EIRP: ${result.eirp.eirpDbw.toFixed(2)} dBW`
+                          ] : [],
+                          unitsSystem: "SI",
+                          approxLevel: computeMode === "fast" ? "approximate" : "numeric",
+                          confidence: "high",
+                          warnings: result?.warnings || []
+                        }
+                      }) : null}
+                      disabled={!result || !selectedAntenna}
+                    />
                     <PDFExportButton 
                       requestId={lastRequestId} 
                       toolName="Antenna Pattern Analyzer"
