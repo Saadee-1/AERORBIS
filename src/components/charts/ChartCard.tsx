@@ -16,6 +16,7 @@
  */
 
 import { ReactNode } from 'react';
+import { LucideIcon } from 'lucide-react';
 import { AeroCard } from '@/components/common/AeroCard';
 import { typography } from '@/styles/typography';
 
@@ -26,6 +27,7 @@ interface ChartCardProps {
   className?: string;
   height?: number;
   headerActions?: ReactNode;
+  icon?: LucideIcon;
 }
 
 export function ChartCard({ 
@@ -34,10 +36,11 @@ export function ChartCard({
   description,
   className = '',
   height = 350,
-  headerActions
+  headerActions,
+  icon
 }: ChartCardProps) {
   return (
-    <AeroCard title={title} description={description} className={className} headerActions={headerActions}>
+    <AeroCard title={title} description={description} className={className} headerActions={headerActions} icon={icon}>
       <div style={{ height: `${height}px` }} className="w-full">
         {children}
       </div>
