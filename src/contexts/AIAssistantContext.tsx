@@ -141,11 +141,137 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
   }, [messages, currentSessionId]);
 
   const sendMessage = async (content: string) => {
+    // PRIORITY 1: Use currentPayload from context if available (most reliable)
+    // PRIORITY 2: Try to fetch calculation context from localStorage if requestId is present
+    let calculationContext = null;
+    const requestId = extractRequestId(content) || currentPayload?.requestId;
+    
+    if (currentPayload) {
+      // Use the payload that was set via openAssistantWithPayload
+      console.log('✅ Using currentPayload from context:', {
+        toolName: currentPayload.toolName,
+        requestId: currentPayload.requestId,
+        hasInputs: Object.keys(currentPayload.inputs).length > 0,
+        hasResults: Object.keys(currentPayload.results).length > 0,
+        stepsCount: currentPayload.metadata.steps?.length || 0,
+      });
+      
+      calculationContext = {
+        requestId: currentPayload.requestId || requestId || `calc-${Date.now()}`,
+        toolId: currentPayload.toolName,
+        toolName: currentPayload.toolName,
+        inputs: currentPayload.inputs,
+        results: currentPayload.results,
+        steps: currentPayload.metadata.steps || [],
+        metadata: {
+          ...currentPayload.metadata,
+          units: currentPayload.units || {},
+          charts: currentPayload.charts || [],
+          configuration: currentPayload.configuration || {},
+        },
+        timestamp: currentPayload.metadata.timestamp,
+      };
+    } else if (requestId) {
+      // Fallback: Load from localStorage
+      try {
+        const storageKey = `calc-${requestId}`;
+        console.log('Looking for calculation data in localStorage with key:', storageKey);
+        const storedData = localStorage.getItem(storageKey);
+        
+        if (storedData) {
+          console.log('Found stored data, parsing...');
+          const parsed = JSON.parse(storedData);
+          console.log('Parsed data keys:', Object.keys(parsed));
+          
+          // Check if data hasn't expired
+          if (!parsed.expiresAt || parsed.expiresAt > Date.now()) {
+            calculationContext = {
+              requestId: parsed.requestId || requestId,
+              toolId: parsed.toolId,
+              toolName: parsed.toolName,
+              inputs: parsed.inputs || {},
+              results: parsed.results || {},
+              steps: parsed.steps || [],
+              metadata: parsed.metadata || {},
+              timestamp: parsed.timestamp || new Date().toISOString(),
+            };
+            console.log('✅ Calculation context loaded from localStorage:', {
+              toolName: calculationContext.toolName,
+              hasInputs: Object.keys(calculationContext.inputs).length > 0,
+              hasResults: Object.keys(calculationContext.results).length > 0,
+              stepsCount: calculationContext.steps.length,
+            });
+          } else {
+            // Data expired, remove it
+            console.warn('❌ Calculation context expired, removing from localStorage');
+            localStorage.removeItem(storageKey);
+          }
+        } else {
+          console.warn(`❌ No calculation data found in localStorage for key: ${storageKey}`);
+          // Try to list all calc- keys to help debug
+          const allKeys = Object.keys(localStorage).filter(k => k.startsWith('calc-'));
+          console.log('Available calc- keys in localStorage:', allKeys);
+        }
+      } catch (error) {
+        console.error('❌ Error reading calculation context from localStorage:', error);
+      }
+    } else {
+      console.log('⚠️ No requestId found in message and no currentPayload available');
+    }
+
+    // Build user message content - ALWAYS include payload JSON if available
+    let userMessageContent = content;
+    
+    if (currentPayload) {
+      // CRITICAL: Include full payload JSON in user message so Gemini receives it directly
+      // Wrap in code block to preserve formatting and avoid truncation
+      const payloadJson = JSON.stringify(currentPayload, null, 2);
+      userMessageContent = `${content}
+
+Please analyze the following JSON payload and explain the calculation in detail. Do not ask for external access or try to fetch data by Request ID. Use only the data provided below.
+
+\`\`\`json
+${payloadJson}
+\`\`\`
+
+Use this payload to:
+1. Provide a short summary of the calculation
+2. Explain step-by-step how the formulas map to the results
+3. Check units consistency
+4. Identify any warnings or assumptions
+5. Suggest next steps
+
+If any required values are missing in the payload, explicitly state which fields are missing.`;
+
+      console.log('✅ Including full payload JSON in user message:', {
+        toolName: currentPayload.toolName,
+        requestId: currentPayload.requestId,
+        payloadSize: payloadJson.length,
+      });
+    } else if (calculationContext) {
+      // Fallback: Include calculation context in user message if no structured payload
+      const contextJson = JSON.stringify(calculationContext, null, 2);
+      userMessageContent = `${content}
+
+Calculation Context:
+\`\`\`json
+${contextJson}
+\`\`\`
+
+Use this context to explain the calculation. Reference specific inputs, results, and steps.`;
+
+      console.log('✅ Including calculation context in user message:', {
+        toolName: calculationContext.toolName,
+        requestId: calculationContext.requestId,
+      });
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content,
+      content: userMessageContent,
       timestamp: Date.now(),
+      requestId: currentPayload?.requestId || requestId,
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -157,86 +283,6 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
         content: m.content,
       }));
 
-      // Extract requestId from message
-      const requestId = extractRequestId(content);
-      console.log('Extracted requestId from message:', requestId, 'from:', content);
-      
-      // PRIORITY 1: Use currentPayload from context if available (most reliable)
-      // PRIORITY 2: Try to fetch calculation context from localStorage if requestId is present
-      let calculationContext = null;
-      
-      if (currentPayload) {
-        // Use the payload that was set via openAssistantWithPayload
-        console.log('✅ Using currentPayload from context:', {
-          toolName: currentPayload.toolName,
-          hasInputs: Object.keys(currentPayload.inputs).length > 0,
-          hasResults: Object.keys(currentPayload.results).length > 0,
-          stepsCount: currentPayload.metadata.steps?.length || 0,
-        });
-        
-        calculationContext = {
-          requestId: requestId || `calc-${Date.now()}`,
-          toolId: currentPayload.toolName,
-          toolName: currentPayload.toolName,
-          inputs: currentPayload.inputs,
-          results: currentPayload.results,
-          steps: currentPayload.metadata.steps || [],
-          metadata: {
-            ...currentPayload.metadata,
-            units: currentPayload.units || {},
-            charts: currentPayload.charts || [],
-            configuration: currentPayload.configuration || {},
-          },
-          timestamp: currentPayload.metadata.timestamp,
-        };
-      } else if (requestId) {
-        // Fallback: Load from localStorage
-        try {
-          const storageKey = `calc-${requestId}`;
-          console.log('Looking for calculation data in localStorage with key:', storageKey);
-          const storedData = localStorage.getItem(storageKey);
-          
-          if (storedData) {
-            console.log('Found stored data, parsing...');
-            const parsed = JSON.parse(storedData);
-            console.log('Parsed data keys:', Object.keys(parsed));
-            
-            // Check if data hasn't expired
-            if (!parsed.expiresAt || parsed.expiresAt > Date.now()) {
-              calculationContext = {
-                requestId: parsed.requestId || requestId,
-                toolId: parsed.toolId,
-                toolName: parsed.toolName,
-                inputs: parsed.inputs || {},
-                results: parsed.results || {},
-                steps: parsed.steps || [],
-                metadata: parsed.metadata || {},
-                timestamp: parsed.timestamp || new Date().toISOString(),
-              };
-              console.log('✅ Calculation context loaded from localStorage:', {
-                toolName: calculationContext.toolName,
-                hasInputs: Object.keys(calculationContext.inputs).length > 0,
-                hasResults: Object.keys(calculationContext.results).length > 0,
-                stepsCount: calculationContext.steps.length,
-              });
-            } else {
-              // Data expired, remove it
-              console.warn('❌ Calculation context expired, removing from localStorage');
-              localStorage.removeItem(storageKey);
-            }
-          } else {
-            console.warn(`❌ No calculation data found in localStorage for key: ${storageKey}`);
-            // Try to list all calc- keys to help debug
-            const allKeys = Object.keys(localStorage).filter(k => k.startsWith('calc-'));
-            console.log('Available calc- keys in localStorage:', allKeys);
-          }
-        } catch (error) {
-          console.error('❌ Error reading calculation context from localStorage:', error);
-        }
-      } else {
-        console.log('⚠️ No requestId found in message and no currentPayload available');
-      }
-
       const requestBody = { 
         messages: apiMessages, 
         mode, 
@@ -246,7 +292,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
           inputs: currentPayload.inputs,
           results: currentPayload.results
         } : toolContext, 
-        requestId,
+        requestId: currentPayload?.requestId || requestId,
         calculationContext, // Pass the full context (from payload or localStorage)
         aeroversePayload: currentPayload // Also pass the structured payload if available
       };
@@ -517,8 +563,8 @@ Error: ${data.error}`;
       setIsOpen(true);
 
       // Send initial explanation request with full context
-      // The sendMessage function will use currentPayload from context
-      const explanationPrompt = `Please explain this ${finalPayload.toolName} calculation in detail. Request ID: ${requestId}`;
+      // The sendMessage function will use currentPayload from context and include payload JSON in message
+      const explanationPrompt = `Please explain this ${finalPayload.toolName} calculation in detail.`;
       await sendMessage(explanationPrompt);
     } catch (error) {
       console.error('Error opening assistant with payload:', error);

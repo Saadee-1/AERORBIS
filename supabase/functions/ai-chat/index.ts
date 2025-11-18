@@ -25,15 +25,19 @@ serve(async (req) => {
       });
     }
 
-    const { messages, mode = 'chat', language = 'en', toolContext, requestId, calculationContext } = await req.json();
+    const { messages, mode = 'chat', language = 'en', toolContext, requestId, calculationContext, aeroversePayload } = await req.json();
     
     // Debug logging
     console.log('AI Chat Request:', {
       hasRequestId: !!requestId,
       hasCalculationContext: !!calculationContext,
+      hasAeroversePayload: !!aeroversePayload,
       hasToolContext: !!toolContext,
       requestId,
       calculationContextKeys: calculationContext ? Object.keys(calculationContext) : null,
+      aeroversePayloadKeys: aeroversePayload ? Object.keys(aeroversePayload) : null,
+      messageCount: messages?.length || 0,
+      lastMessageHasPayload: messages?.[messages.length - 1]?.content?.includes('```json') || false,
     });
     
     // Support both LOVABLE_API_KEY (legacy) and AEROBOT_API_KEY (new)
@@ -174,6 +178,14 @@ Structure for longer answers (only when needed):
 3. Actionable next steps (if applicable)
 
 Keep it SHORT and DIRECT. Users prefer quick, actionable answers.
+
+CRITICAL: PAYLOAD HANDLING
+- The user message may contain a JSON payload wrapped in \`\`\`json code blocks
+- ALWAYS use the payload JSON from the user message - it contains the full calculation data
+- DO NOT attempt to access external systems or fetch data by Request ID
+- If the payload JSON is present in the user message, you MUST use it to provide explanations
+- If needed values are missing in the payload, explicitly state which fields are missing
+- Never say "I can't access external systems" if payload JSON is provided in the message
 
 IF NO CONTEXT AVAILABLE:
 If user asks a general question not tied to a tool:

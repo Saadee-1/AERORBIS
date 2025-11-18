@@ -96,7 +96,7 @@ const AstronautIcon = ({ className }: { className?: string }) => (
 );
 
 const AIAssistant: React.FC = () => {
-  const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, notificationMessage, currentSessionId, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat, deleteChatSession, clearNotification } = useAIAssistant();
+  const { messages, isOpen, isLoading, mode, language, chatHistory, toolContext, notificationMessage, currentSessionId, currentPayload, setIsOpen, setMode, setLanguage, sendMessage, clearChat, loadChatSession, startNewChat, deleteChatSession, clearNotification } = useAIAssistant();
   const [inputValue, setInputValue] = useState('');
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -423,12 +423,12 @@ const AIAssistant: React.FC = () => {
                     </div>
                     <p className="text-gray-400 text-sm">
                       {mode === 'chat' 
-                        ? (toolContext 
-                          ? `Analyzing ${toolContext.tool} results. Ask anything!`
+                        ? (toolContext || currentPayload
+                          ? `Analyzing ${toolContext?.tool || currentPayload?.toolName || 'calculation'} results. Ask anything!`
                           : 'Ask me anything about aerospace!')
                         : 'Paste text for a concise summary'}
                     </p>
-                    {toolContext && mode === 'chat' && (
+                    {(toolContext || currentPayload) && mode === 'chat' && (
                       <div className="mt-4 p-3 bg-cyan-400/10 border border-cyan-400/30 rounded-lg text-left max-w-xs mx-auto">
                         <div className="flex items-center gap-2 mb-2">
                           <Rocket className="w-4 h-4 text-cyan-400" />
@@ -437,6 +437,11 @@ const AIAssistant: React.FC = () => {
                         <p className="text-xs text-gray-400">
                           I can explain results, perform calculations, and provide insights.
                         </p>
+                        {currentPayload && (!currentPayload.results || Object.keys(currentPayload.results).length === 0) && (
+                          <div className="mt-2 p-2 bg-yellow-400/10 border border-yellow-400/30 rounded text-xs text-yellow-400">
+                            ⚠️ No results found in payload. Please verify the calculation completed.
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

@@ -18,31 +18,40 @@ const APP_VERSION = '1.0.0'; // Update this when app version changes
  * @example
  * ```ts
  * const payload = buildAeroversePayload({
+ *   requestId: "calc-123",
  *   toolName: "LiftDrag",
+ *   toolVersion: "1.0.0",
  *   inputs: { alpha: 5, airspeed: 100, airDensity: 1.225 },
  *   results: { CL: 0.5, CD: 0.03, L_D_ratio: 16.67 },
  *   units: { alpha: "deg", airspeed: "m/s", airDensity: "kg/m³" },
- *   charts: [{ id: "polar", title: "Polar Diagram" }],
+ *   charts: [{ id: "polar", title: "Polar Diagram", dataSummary: "CL vs CD" }],
  *   configuration: { unitSystem: "SI" },
+ *   userNotes: "Testing at cruise conditions",
  *   metadata: { steps: ["CL = f(alpha)", "CD = f(alpha)"], warnings: [] }
  * });
  * ```
  */
 export function buildAeroversePayload({
+  requestId,
   toolName,
+  toolVersion,
   inputs = {},
   results = {},
   units = {},
   charts = [],
   configuration = {},
+  userNotes,
   metadata = {}
 }: {
+  requestId?: string;
   toolName: string;
+  toolVersion?: string;
   inputs?: Record<string, any>;
   results?: Record<string, any>;
   units?: Record<string, string>;
-  charts?: Array<{ id: string; title: string }>;
+  charts?: Array<{ id: string; title: string; dataSummary?: string; imageBase64?: string }>;
   configuration?: Record<string, any>;
+  userNotes?: string;
   metadata?: {
     steps?: string[];
     unitsSystem?: string;
@@ -50,6 +59,7 @@ export function buildAeroversePayload({
     confidence?: string;
     warnings?: string[];
     userNotes?: string;
+    userId?: string | null;
   };
 }): AeroverseAIPayload {
   // Ensure required fields are present
@@ -61,22 +71,37 @@ export function buildAeroversePayload({
   const validatedInputs = typeof inputs === 'object' && inputs !== null ? inputs : {};
   const validatedResults = typeof results === 'object' && results !== null ? results : {};
 
+  // Generate requestId if not provided
+  const finalRequestId = requestId || `calc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Get app version from env or use default
+  const appVersion = process.env.APP_VERSION || import.meta.env.VITE_APP_VERSION || APP_VERSION;
+  
+  // Get user ID from localStorage if available
+  const userId = metadata.userId ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('userId') || null : null);
+
   return {
+    requestId: finalRequestId,
     toolName,
+    toolVersion: toolVersion || appVersion,
     inputs: validatedInputs,
     results: validatedResults,
     units: units || {},
     charts: Array.isArray(charts) ? charts : [],
     configuration: configuration || {},
+    userNotes: userNotes || metadata.userNotes,
     metadata: {
       timestamp: new Date().toISOString(),
-      version: APP_VERSION,
+      browser: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+      userId,
+      appVersion,
+      version: appVersion, // Legacy field for backward compatibility
       steps: metadata.steps || [],
       unitsSystem: metadata.unitsSystem || 'SI',
       approxLevel: metadata.approxLevel || 'numeric',
       confidence: metadata.confidence || 'medium',
       warnings: metadata.warnings || [],
-      userNotes: metadata.userNotes,
+      userNotes: userNotes || metadata.userNotes,
     },
   };
 }
