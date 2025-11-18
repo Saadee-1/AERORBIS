@@ -27,6 +27,16 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
+import { AskAIButton } from "@/components/tools/AskAIButton";
+import { ToolWrapper } from "@/components/layout/ToolWrapper";
+import { ToolHeader } from "@/components/layout/ToolHeader";
+import { ToolSection } from "@/components/layout/ToolSection";
+import { ToolActions } from "@/components/layout/ToolActions";
+import { AeroCard } from "@/components/common/AeroCard";
+import { AeroFormField } from "@/components/forms/AeroFormField";
+import { AeroButton } from "@/components/common/AeroButton";
+import { ChartCard } from "@/components/charts/ChartCard";
+import { spacingVertical } from "@/styles/spacing";
 import { 
   Select, 
   SelectContent, 
@@ -407,10 +417,13 @@ const AdvancedWingLoadingCalculator = () => {
           unitSystem
         },
         results: {
-          solvedFor,
+          solvedFor: solveFor,
           wingLoading: final_wl,
           interpretation: interpretation.category,
-          feasibility: feasibility.isFeasible
+          feasibility: {
+            feasible: feasibility.feasible,
+            message: feasibility.message
+          }
         },
         steps: calculationSteps,
         metadata: {
@@ -449,7 +462,10 @@ const AdvancedWingLoadingCalculator = () => {
           solvedFor: solveFor,
           wingLoading: `${convertFromSI(final_wl, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}`,
           interpretation: interpretation.category,
-          feasibility: feasibility.isFeasible ? "Feasible" : "Not Feasible"
+          feasibility: {
+            feasible: feasibility.feasible,
+            message: feasibility.message
+          }
         }
       });
 
@@ -595,14 +611,13 @@ const AdvancedWingLoadingCalculator = () => {
 
   // --- Render ---
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Plane className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">Advanced Wing Performance Calculator</h2>
-        </div>
-        <p className="text-gray-300 text-lg max-w-3xl mx-auto">Calculate wing loading and use it to solve for stall speed, required CL,max, and more.</p>
-        <div className="flex justify-center gap-2 mt-4">
+    <ToolWrapper>
+      <ToolHeader
+        title="Advanced Wing Performance Calculator"
+        description="Calculate wing loading and use it to solve for stall speed, required CL,max, and more"
+        icon={Plane}
+        actions={
+          <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
               <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -611,158 +626,149 @@ const AdvancedWingLoadingCalculator = () => {
                 <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
-            <Button type="button" onClick={resetCalculators} variant="outline" className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10">Reset All</Button>
-          </div>
-      </motion.div>
+            <AeroButton type="button" onClick={resetCalculators} variant="outline">Reset All</AeroButton>
+          </ToolActions>
+        }
+      />
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        
+      <ToolSection gridCols={2}>
         {/* --- LEFT COLUMN (INPUTS) --- */}
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="space-y-6">
-          
-          {/* --- Part 1: Basic Wing Loading --- */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2"><Gauge className="w-5 h-5 text-cyan-400" />Part 1: Basic Wing Loading</CardTitle>
-              <CardDescription className="text-gray-400">Solve for W, S, or W/S. Fill 2 of 3 fields. W/S auto-populates in Part 2.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="weight" className="text-gray-300">Aircraft Weight (W) <span className="text-gray-500">{getUnit("weight")}</span></Label>
+        <div>
+          <div className={spacingVertical.L}>
+            {/* --- Part 1: Basic Wing Loading --- */}
+            <AeroCard
+              title="Part 1: Basic Wing Loading"
+              description="Solve for W, S, or W/S. Fill 2 of 3 fields. W/S auto-populates in Part 2."
+              icon={Gauge}
+            >
+              <AeroFormField label={`Aircraft Weight (W) ${getUnit("weight")}`}>
                 <Input id="weight" type="number" step="0.01" value={basicInputs.weight} onChange={(e) => setBasicInputs(p => ({ ...p, weight: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 98100" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="wingArea" className="text-gray-300">Wing Area (S) <span className="text-gray-500">{getUnit("wingArea")}</span></Label>
+              </AeroFormField>
+              <AeroFormField label={`Wing Area (S) ${getUnit("wingArea")}`}>
                 <Input id="wingArea" type="number" step="0.01" value={basicInputs.wingArea} onChange={(e) => setBasicInputs(p => ({ ...p, wingArea: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 30" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="wl_basic" className="text-gray-300">Wing Loading (W/S) <span className="text-gray-500">{getUnit("wingLoading")}</span></Label>
+              </AeroFormField>
+              <AeroFormField label={`Wing Loading (W/S) ${getUnit("wingLoading")}`}>
                 <Input id="wl_basic" type="number" step="0.01" value={advInputs.wingLoading} onChange={(e) => setAdvInputs(p => ({ ...p, wingLoading: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="Solves or enter manually" />
-              </div>
-              <Button type="button" onClick={calculateBasic} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"><Gauge className="w-4 h-4 mr-2" />Calculate Part 1</Button>
-            </CardContent>
-          </Card>
+              </AeroFormField>
+              <AeroButton type="button" onClick={calculateBasic} variant="primary" icon={Gauge} className="w-full">
+                Calculate Part 1
+              </AeroButton>
+            </AeroCard>
 
-          {/* --- Part 2: Performance Calculator --- */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2"><Wind className="w-5 h-5 text-cyan-400" />Part 2: Performance Calculator</CardTitle>
-              <CardDescription className="text-gray-400">Solve for V_stall, C_L_max, ρ, or W/S. Fill 3 of 4 fields.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Select onValueChange={(v) => handlePresetLoad(v as PresetCondition)}>
-                <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue placeholder="Load Presets (Optional)" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Takeoff">Preset: Takeoff (Sea Level, Flaps)</SelectItem>
-                  <SelectItem value="Landing">Preset: Landing (Sea Level, Full Flaps)</SelectItem>
-                  <SelectItem value="Cruise">Preset: Cruise (30,000 ft, Clean)</SelectItem>
-                  <SelectItem value="Custom">Custom (No values set)</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="flex gap-2 mt-4">
-                <Button
+            {/* --- Part 2: Performance Calculator --- */}
+            <AeroCard
+              title="Part 2: Performance Calculator"
+              description="Solve for V_stall, C_L_max, ρ, or W/S. Fill 3 of 4 fields."
+              icon={Wind}
+            >
+              <AeroFormField label="Load Presets (Optional)">
+                <Select onValueChange={(v) => handlePresetLoad(v as PresetCondition)}>
+                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue placeholder="Load Presets (Optional)" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Takeoff">Preset: Takeoff (Sea Level, Flaps)</SelectItem>
+                    <SelectItem value="Landing">Preset: Landing (Sea Level, Full Flaps)</SelectItem>
+                    <SelectItem value="Cruise">Preset: Cruise (30,000 ft, Clean)</SelectItem>
+                    <SelectItem value="Custom">Custom (No values set)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </AeroFormField>
+              <div className="flex gap-2">
+                <AeroButton
                   type="button"
                   onClick={() => setIsSaveDialogOpen(true)}
                   variant="outline"
-                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+                  icon={Save}
                 >
-                  <Save className="w-4 h-4 mr-2" />
                   Save Custom Preset
-                </Button>
-                <Button
+                </AeroButton>
+                <AeroButton
                   type="button"
                   onClick={() => setIsLoadDialogOpen(true)}
                   variant="outline"
-                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+                  icon={FolderOpen}
                   disabled={customPresets.length === 0}
                 >
-                  <FolderOpen className="w-4 h-4 mr-2" />
-                  Load Custom ({customPresets.length})
-                </Button>
+                  Load ({customPresets.length})
+                </AeroButton>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="wl_adv" className="text-gray-300">Wing Loading (W/S) <span className="text-gray-500">{getUnit("wingLoading")}</span></Label>
+              <AeroFormField label={`Wing Loading (W/S) ${getUnit("wingLoading")}`}>
                 <Input id="wl_adv" type="number" step="0.01" value={advInputs.wingLoading} onChange={(e) => setAdvInputs(p => ({ ...p, wingLoading: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="From Part 1 or enter" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="airDensity" className="text-gray-300">Air Density (ρ) <span className="text-gray-500">{getUnit("airDensity")}</span></Label>
+              </AeroFormField>
+              <AeroFormField label={`Air Density (ρ) ${getUnit("airDensity")}`}>
                 <Input id="airDensity" type="number" step="0.001" value={advInputs.airDensity} onChange={(e) => setAdvInputs(p => ({ ...p, airDensity: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 1.225" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clMax" className="text-gray-300">Max Lift Coefficient (C_L_max) <span className="text-gray-500">(Unitless)</span></Label>
+              </AeroFormField>
+              <AeroFormField label="Max Lift Coefficient (C_L_max) (Unitless)">
                 <Input id="clMax" type="number" step="0.01" value={advInputs.clMax} onChange={(e) => setAdvInputs(p => ({ ...p, clMax: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 2.2" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="stallSpeed" className="text-gray-300">Stall Speed (V_stall) <span className="text-gray-500">{getUnit("stallSpeed")}</span></Label>
+              </AeroFormField>
+              <AeroFormField label={`Stall Speed (V_stall) ${getUnit("stallSpeed")}`}>
                 <Input id="stallSpeed" type="number" step="0.01" value={advInputs.stallSpeed} onChange={(e) => setAdvInputs(p => ({ ...p, stallSpeed: e.target.value }))} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank to solve" />
-              </div>
-              <Button type="button" onClick={calculateAdvanced} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"><Wind className="w-4 h-4 mr-2" />Calculate Performance</Button>
-            </CardContent>
-          </Card>
+              </AeroFormField>
+              <AeroButton type="button" onClick={calculateAdvanced} variant="primary" icon={Wind} className="w-full">
+                Calculate Performance
+              </AeroButton>
+            </AeroCard>
 
-          {/* --- Custom Units --- */}
-          {unitSystem === "Custom" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2"><Settings2 className="w-5 h-5 text-cyan-400" />Custom Unit Definitions</CardTitle>
-                  {/* FIX 4: Corrected description */}
-                  <CardDescription className="text-gray-400">Define conversion factors to SI (N, m, kg, s)</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    {id: 'weight', label: 'Weight (W)'},
-                    {id: 'wingArea', label: 'Wing Area (S)'},
-                    {id: 'wingLoading', label: 'Wing Loading (W/S)'},
-                    {id: 'airDensity', label: 'Air Density (ρ)'},
-                    {id: 'stallSpeed', label: 'Stall Speed (V)'}
-                  ].map(field => (
-                    <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <Label className="text-white font-semibold">{field.label}</Label>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        <Input 
-                          placeholder="Unit Name" 
-                          value={customUnitNames[field.id as keyof typeof customUnitNames]}
-                          onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                          className="bg-slate-800 border-cyan-400/30 text-white"
-                        />
-                        <Input 
-                          type="number"
-                          placeholder="SI Factor"
-                          value={customFactors[field.id as keyof typeof customFactors]}
-                          onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                          className="bg-slate-800 border-cyan-400/30 text-white"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-        </motion.div>
-
-        {/* --- RIGHT COLUMN (RESULTS & THEORY) --- */}
-        <div className="space-y-6">
-          
-          {/* --- Results Card --- */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader><CardTitle className="text-white">Results</CardTitle></CardHeader>
-              <CardContent className="space-y-6">
-                
-                {/* Basic Result */}
-                {basicResult && (
-                  <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-semibold text-cyan-400">Part 1 Result (Basic)</p>
-                      <PDFExportButton 
-                        requestId={lastRequestId} 
-                        toolName="Wing Loading Calculator"
-                        disabled={!lastRequestId}
+            {/* --- Custom Units --- */}
+            {unitSystem === "Custom" && (
+              <AeroCard
+                title="Custom Unit Definitions"
+                description="Define conversion factors to SI (N, m, kg, s)"
+                icon={Settings2}
+              >
+                {[
+                  {id: 'weight', label: 'Weight (W)'},
+                  {id: 'wingArea', label: 'Wing Area (S)'},
+                  {id: 'wingLoading', label: 'Wing Loading (W/S)'},
+                  {id: 'airDensity', label: 'Air Density (ρ)'},
+                  {id: 'stallSpeed', label: 'Stall Speed (V)'}
+                ].map(field => (
+                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
+                    <Label className="text-white font-semibold">{field.label}</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Input 
+                        placeholder="Unit Name" 
+                        value={customUnitNames[field.id as keyof typeof customUnitNames]}
+                        onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                      <Input 
+                        type="number"
+                        placeholder="SI Factor"
+                        value={customFactors[field.id as keyof typeof customFactors]}
+                        onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
                       />
                     </div>
+                  </div>
+                ))}
+              </AeroCard>
+            )}
+          </div>
+        </div>
+
+        {/* --- RIGHT COLUMN (RESULTS & THEORY) --- */}
+        <div>
+          <div className={spacingVertical.L}>
+            {/* --- Results Card --- */}
+            <AeroCard
+              title="Results"
+              headerActions={
+                lastRequestId ? (
+                  <div className="flex gap-2">
+                    <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                    <PDFExportButton 
+                      requestId={lastRequestId} 
+                      toolName="Wing Loading Calculator"
+                      disabled={!lastRequestId}
+                    />
+                  </div>
+                ) : null
+              }
+            >
+              {/* Basic Result */}
+              {basicResult && (
+                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
+                  <p className="text-sm font-semibold text-cyan-400 mb-2">Part 1 Result (Basic)</p>
                     <p className="text-gray-400 text-sm mb-1">Solved: {basicResult.solvedFor}</p>
                     <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
                       {/* Display solved value */}
@@ -779,17 +785,10 @@ const AdvancedWingLoadingCalculator = () => {
                   </div>
                 )}
                 
-                {/* Advanced Result */}
-                {advancedResult && (
-                  <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-semibold text-green-400">Part 2 Result (Performance)</p>
-                      <PDFExportButton 
-                        requestId={lastRequestId} 
-                        toolName="Wing Loading Calculator"
-                        disabled={!lastRequestId}
-                      />
-                    </div>
+              {/* Advanced Result */}
+              {advancedResult && (
+                <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30 mb-4">
+                  <p className="text-sm font-semibold text-green-400 mb-2">Part 2 Result (Performance)</p>
                     <p className="text-gray-400 text-sm mb-1">Solved: {advancedResult.solvedFor}</p>
                     <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
                       {/* Display solved value */}
@@ -839,62 +838,58 @@ const AdvancedWingLoadingCalculator = () => {
                   </Accordion>
                 )}
 
-                {/* Chart (if basic result exists) */}
-                {memoizedChartData.length > 0 && (
-                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                    <h4 className="text-white font-semibold mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-cyan-400" />Wing Loading vs. Wing Area (Constant Weight)</h4>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <LineChart data={memoizedChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                        <XAxis dataKey="wingArea" stroke="#94a3b8" tickFormatter={(val) => val.toFixed(1)}
-                          label={{ value: `Wing Area (${getUnit("wingArea")})`, position: 'insideBottom', offset: -5, fill: '#94a3b8' }}/>
-                        <YAxis stroke="#94a3b8" tickFormatter={(val) => val.toFixed(1)}
-                          label={{ value: `Wing Loading (${getUnit("wingLoading")})`, angle: -90, position: 'insideLeft', fill: '#94a3b8' }}/>
-                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/>
-                        <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} dot={false} name="W/S" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-                
-                {/* Placeholder */}
-                {!basicResult && !advancedResult && (
-                  <div className="text-center py-12">
-                    <Gauge className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-                    <p className="text-gray-400">Results will appear here</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* --- Theory Card --- */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader><CardTitle className="text-white">Equations</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">W/S = W ÷ S</p>
-                  <div className="text-gray-400 text-sm space-y-1">
-                    <p><span className="text-cyan-400">W/S</span> = Wing Loading</p>
-                    <p><span className="text-cyan-400">W</span> = Aircraft Weight</p>
-                    <p><span className="text-cyan-400">S</span> = Wing Area</p>
-                  </div>
+              {/* Chart (if basic result exists) */}
+              {memoizedChartData.length > 0 && (
+                <ChartCard 
+                  title="Wing Loading vs. Wing Area (Constant Weight)"
+                  height={300}
+                  className="mt-4"
+                >
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={memoizedChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis dataKey="wingArea" stroke="#94a3b8" tickFormatter={(val) => val.toFixed(1)}
+                        label={{ value: `Wing Area (${getUnit("wingArea")})`, position: 'insideBottom', offset: -5, fill: '#94a3b8' }}/>
+                      <YAxis stroke="#94a3b8" tickFormatter={(val) => val.toFixed(1)}
+                        label={{ value: `Wing Loading (${getUnit("wingLoading")})`, angle: -90, position: 'insideLeft', fill: '#94a3b8' }}/>
+                      <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/>
+                      <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} dot={false} name="W/S" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartCard>
+              )}
+              
+              {/* Placeholder */}
+              {!basicResult && !advancedResult && (
+                <div className="text-center py-12">
+                  <Gauge className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
+                  <p className="text-gray-400">Results will appear here</p>
                 </div>
-                <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">W/S = ½ · ρ · V² · C_L_max</p>
-                  <div className="text-gray-400 text-sm space-y-1">
-                    <p><span className="text-cyan-400">ρ</span> = Air Density</p>
-                    <p><span className="text-cyan-400">V</span> = Stall Speed</p>
-                    <p><span className="text-cyan-400">C_L_max</span> = Max Lift Coefficient</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+              )}
+            </AeroCard>
 
+            {/* --- Theory Card --- */}
+            <AeroCard title="Theory & Formulas" icon={Info}>
+              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30 mb-4">
+                <p className="text-center text-lg font-mono text-cyan-400 mb-2">W/S = W ÷ S</p>
+                <div className="text-gray-400 text-sm space-y-1">
+                  <p><span className="text-cyan-400">W/S</span> = Wing Loading</p>
+                  <p><span className="text-cyan-400">W</span> = Aircraft Weight</p>
+                  <p><span className="text-cyan-400">S</span> = Wing Area</p>
+                </div>
+              </div>
+              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
+                <p className="text-center text-lg font-mono text-cyan-400 mb-2">W/S = ½ · ρ · V² · C_L_max</p>
+                <div className="text-gray-400 text-sm space-y-1">
+                  <p><span className="text-cyan-400">ρ</span> = Air Density</p>
+                  <p><span className="text-cyan-400">V</span> = Stall Speed</p>
+                  <p><span className="text-cyan-400">C_L_max</span> = Max Lift Coefficient</p>
+                </div>
+              </div>
+            </AeroCard>
+          </div>
         </div>
-      </div>
+      </ToolSection>
 
       {/* Save Custom Preset Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
@@ -1004,7 +999,7 @@ const AdvancedWingLoadingCalculator = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </ToolWrapper>
   );
 };
 
