@@ -563,9 +563,12 @@ const AdvancedWingLoadingCalculator = () => {
           unitSystem
         },
         results: {
-          solvedFor,
+          solvedFor: solveFor,
           ...resultData,
-          feasibility: feasibility.isFeasible
+          feasibility: {
+            feasible: feasibility.feasible,
+            message: feasibility.message
+          }
         },
         steps: calculationSteps,
         metadata: {
