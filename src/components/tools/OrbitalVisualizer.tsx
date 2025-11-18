@@ -979,117 +979,116 @@ const OrbitalVisualizer = () => {
                 ))}
               </AeroCard>
             )}
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
+
             {/* --- Part 1: Orbit Definition --- */}
-            <div className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
-              <h3 className="text-xl font-semibold text-cyan-400">Part 1: Define Initial Orbit</h3>
+            <AeroCard title="Part 1: Define Initial Orbit" icon={Orbit}>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="periapsisAltitude" className="text-cyan-300">Periapsis Altitude ({getUnit("dist")})</Label>
+                <AeroFormField label={`Periapsis Altitude (${getUnit("dist")})`}>
                   <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-slate-700/50" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="eccentricity" className="text-cyan-300">Eccentricity (0-1)</Label>
+                </AeroFormField>
+                <AeroFormField label="Eccentricity (0-1)">
                   <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-slate-700/50" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="inclination" className="text-cyan-300">Inclination ({getUnit("incl")})</Label>
+                </AeroFormField>
+                <AeroFormField label={`Inclination (${getUnit("incl")})`}>
                   <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-slate-700/50" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="centralBodyRadius" className="text-cyan-300">Body Radius ({getUnit("dist")})</Label>
+                </AeroFormField>
+                <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
                   <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-slate-700/50" />
-                </div>
+                </AeroFormField>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="gm" className="text-cyan-300">Grav. Parameter (GM) ({getUnit("gm")})</Label>
+              <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
                 <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-slate-700/50" />
-              </div>
-              <Button type="button" onClick={() => calculateOrbit(inputs)} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">
-                <Orbit className="w-4 h-4 mr-2" />Calculate Orbit
-              </Button>
-            </div>
-            
+              </AeroFormField>
+              <AeroButton type="button" onClick={() => calculateOrbit(inputs)} variant="primary" icon={Orbit} className="w-full">
+                Calculate Orbit
+              </AeroButton>
+            </AeroCard>
+
             {/* --- Part 2: Maneuver Calculator --- */}
-            <div className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
-              <h3 className="text-xl font-semibold text-cyan-400">Part 2: Hohmann Transfer</h3>
-              <div className="space-y-2">
-                <Label htmlFor="targetAltitude" className="text-cyan-300">Target Circular Altitude ({getUnit("dist")})</Label>
+            <AeroCard title="Part 2: Hohmann Transfer" icon={Move}>
+              <AeroFormField label={`Target Circular Altitude (${getUnit("dist")})`}>
                 <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-slate-700/50" placeholder="e.g., 800" />
-              </div>
-              <Button type="button" onClick={calculateManeuver} className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold" disabled={!orbitResult}>
-                <Move className="w-4 h-4 mr-2" />Calculate Maneuver
-              </Button>
+              </AeroFormField>
+              <AeroButton type="button" onClick={calculateManeuver} variant="primary" icon={Move} className="w-full" disabled={!orbitResult}>
+                Calculate Maneuver
+              </AeroButton>
               {maneuverResult && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2 pt-2">
+                <div className="space-y-2 pt-2">
                   <div className="p-3 rounded-lg bg-slate-700/50">
-                    <div className="text-sm text-cyan-300">First Burn ($\Delta v_1$)</div>
+                    <div className="text-sm text-cyan-300">First Burn (Δv₁)</div>
                     <div className="text-xl font-bold text-white">{format("vel", maneuverResult.delta_v1)}</div>
                   </div>
                   <div className="p-3 rounded-lg bg-slate-700/50">
-                    <div className="text-sm text-cyan-300">Second Burn ($\Delta v_2$)</div>
+                    <div className="text-sm text-cyan-300">Second Burn (Δv₂)</div>
                     <div className="text-xl font-bold text-white">{format("vel", maneuverResult.delta_v2)}</div>
                   </div>
                   <div className="p-3 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Total Maneuver $\Delta v$</div>
+                    <div className="text-sm text-cyan-300">Total Maneuver Δv</div>
                     <div className="text-2xl font-bold text-cyan-400">{format("vel", maneuverResult.total_dv)}</div>
                     <div className="text-sm text-slate-400 mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </div>
-            
+            </AeroCard>
           </div>
+        </div>
 
-          {/* Results */}
-          {orbitResult && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-cyan-400">Orbit Results</h3>
-                <PDFExportButton 
-                  requestId={lastRequestId} 
-                  toolName="Orbital Visualizer"
-                  disabled={!lastRequestId}
-                />
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                  <div className="text-sm text-cyan-300">Orbital Period</div>
-                  <div className="text-2xl font-bold text-white">{format("time", orbitResult.orbitalPeriod)}</div>
-                </div>
-                <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                  <div className="text-sm text-cyan-300">Semi-Major Axis</div>
-                  <div className="text-2xl font-bold text-white">{format("dist", orbitResult.semiMajorAxis)}</div>
-                </div>
-                <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                  <div className="text-sm text-cyan-300">Apoapsis Altitude</div>
-                  <div className="text-2xl font-bold text-white">{format("dist", orbitResult.apoapsisAltitude)}</div>
-                </div>
-                <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                  <div className="text-sm text-cyan-300">Periapsis Velocity</div>
-                  <div className="text-2xl font-bold text-white">{format("vel", orbitResult.periapsisVelocity)}</div>
-                </div>
-              </div>
-
-              <Accordion type="single" collapsible className="bg-slate-800/50 rounded-lg border border-cyan-400/20">
-                <AccordionItem value="explanation" className="border-none">
-                  <AccordionTrigger className="px-4 text-cyan-300 hover:text-cyan-400">
-                    <div className="flex items-center gap-2"><Info className="w-4 h-4" />Orbit Interpretation</div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4 text-slate-300 space-y-4">
-                    <p className="text-base">
-                      This orbit has an eccentricity of {orbitResult.eccentricity.toFixed(4)}, making it {orbitResult.eccentricity < 0.01 ? 'nearly circular' : 'noticeably elliptical'}. 
-                      It completes one orbit every {format("time", orbitResult.orbitalPeriod)}.
-                    </p>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <p><strong>Periapsis (Lowest Point):</strong><br /> {format("dist", orbitResult.periapsisRadius)} from center<br /> {format("vel", orbitResult.periapsisVelocity)} (Fastest)</p>
-                      <p><strong>Apoapsis (Highest Point):</strong><br /> {format("dist", orbitResult.apoapsisRadius)} from center<br /> {format("vel", orbitResult.apoapsisVelocity)} (Slowest)</p>
+        {/* Right Column - Results */}
+        <div>
+          <div className={spacingVertical.L}>
+            {/* Results */}
+            {orbitResult ? (
+              <AeroCard
+                title="Orbit Results"
+                headerActions={
+                  lastRequestId ? (
+                    <div className="flex gap-2">
+                      <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                      <PDFExportButton 
+                        requestId={lastRequestId} 
+                        toolName="Orbital Visualizer"
+                        disabled={!lastRequestId}
+                      />
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+                  ) : null
+                }
+              >
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
+                    <div className="text-sm text-cyan-300">Orbital Period</div>
+                    <div className="text-2xl font-bold text-white">{format("time", orbitResult.orbitalPeriod)}</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
+                    <div className="text-sm text-cyan-300">Semi-Major Axis</div>
+                    <div className="text-2xl font-bold text-white">{format("dist", orbitResult.semiMajorAxis)}</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
+                    <div className="text-sm text-cyan-300">Apoapsis Altitude</div>
+                    <div className="text-2xl font-bold text-white">{format("dist", orbitResult.apoapsisAltitude)}</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
+                    <div className="text-sm text-cyan-300">Periapsis Velocity</div>
+                    <div className="text-2xl font-bold text-white">{format("vel", orbitResult.periapsisVelocity)}</div>
+                  </div>
+                </div>
+
+                <Accordion type="single" collapsible className="bg-slate-800/50 rounded-lg border border-cyan-400/20">
+                  <AccordionItem value="explanation" className="border-none">
+                    <AccordionTrigger className="px-4 text-cyan-300 hover:text-cyan-400">
+                      <div className="flex items-center gap-2"><Info className="w-4 h-4" />Orbit Interpretation</div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4 text-slate-300 space-y-4">
+                      <p className="text-base">
+                        This orbit has an eccentricity of {orbitResult.eccentricity.toFixed(4)}, making it {orbitResult.eccentricity < 0.01 ? 'nearly circular' : 'noticeably elliptical'}. 
+                        It completes one orbit every {format("time", orbitResult.orbitalPeriod)}.
+                      </p>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <p><strong>Periapsis (Lowest Point):</strong><br /> {format("dist", orbitResult.periapsisRadius)} from center<br /> {format("vel", orbitResult.periapsisVelocity)} (Fastest)</p>
+                        <p><strong>Apoapsis (Highest Point):</strong><br /> {format("dist", orbitResult.apoapsisRadius)} from center<br /> {format("vel", orbitResult.apoapsisVelocity)} (Slowest)</p>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </AeroCard>
             ) : (
               <AeroCard title="Orbit Results">
@@ -1102,7 +1101,6 @@ const OrbitalVisualizer = () => {
           </div>
         </div>
       </ToolSection>
-    </ToolWrapper>
 
       {/* Save Custom Orbit Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
@@ -1136,20 +1134,19 @@ const OrbitalVisualizer = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button
+            <AeroButton
               variant="outline"
               onClick={() => setIsSaveDialogOpen(false)}
-              className="border-gray-600 text-gray-300"
             >
               Cancel
-            </Button>
-            <Button
+            </AeroButton>
+            <AeroButton
               onClick={handleSaveCustomOrbit}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+              variant="primary"
+              icon={Save}
             >
-              <Save className="w-4 h-4 mr-2" />
               Save
-            </Button>
+            </AeroButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1184,37 +1181,34 @@ const OrbitalVisualizer = () => {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button
+                    <AeroButton
                       size="sm"
                       onClick={() => handleLoadCustomOrbit(orbit)}
-                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
-                    >
-                      <FolderOpen className="w-4 h-4" />
-                    </Button>
-                    <Button
+                      variant="outline"
+                      icon={FolderOpen}
+                    />
+                    <AeroButton
                       size="sm"
                       onClick={() => handleDeleteCustomOrbit(index)}
-                      className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-400/30"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                      variant="destructive"
+                      icon={Trash2}
+                    />
                   </div>
                 </div>
               ))
             )}
           </div>
           <DialogFooter>
-            <Button
+            <AeroButton
               variant="outline"
               onClick={() => setIsLoadDialogOpen(false)}
-              className="border-gray-600 text-gray-300"
             >
               Close
-            </Button>
+            </AeroButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </ToolWrapper>
   );
 };
 
