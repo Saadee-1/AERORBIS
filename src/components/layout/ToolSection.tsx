@@ -7,7 +7,7 @@
  * ```tsx
  * <ToolSection>
  *   <AeroCard title="Inputs">
- *     {/* Content */}
+ *     Content here
  *   </AeroCard>
  * </ToolSection>
  * ```

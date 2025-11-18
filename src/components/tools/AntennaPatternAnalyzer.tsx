@@ -934,6 +934,7 @@ const AntennaPatternAnalyzer = () => {
               </div>
             </AeroCard>
           </div>
+        </div>
 
         {/* Right Panel - Results & Visualizations */}
         <div className="lg:col-span-2">
@@ -1207,7 +1208,7 @@ const AntennaPatternAnalyzer = () => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-              </AeroCard>
+            </AeroCard>
           </div>
         </div>
       </ToolSection>

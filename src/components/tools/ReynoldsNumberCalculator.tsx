@@ -842,9 +842,6 @@ const ReynoldsNumberCalculator = () => {
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
-                  </>
-                )}
-
               </AeroCard>
             ) : (
               <AeroCard title="Results">
@@ -895,12 +892,10 @@ const ReynoldsNumberCalculator = () => {
                     <p>• <span className="text-red-400">Turbulent:</span> Re ≥ 40,000</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-        </div>
-      </div>
+              </AeroCard>
+            </div>
+          </div>
+        </ToolSection>
 
       {/* Save Custom Preset Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
@@ -1011,7 +1006,7 @@ const ReynoldsNumberCalculator = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </ToolWrapper>
   );
 };
 

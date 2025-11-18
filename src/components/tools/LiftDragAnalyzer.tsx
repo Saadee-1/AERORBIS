@@ -818,75 +818,74 @@ const LiftDragAnalyzer = () => {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
-              </div>
-              <p className="text-sm text-slate-400 -mt-2 mb-4">
-                Comparing all airfoils using your wing's calculated Aspect Ratio of {result?.aspectRatio.toFixed(2)}
-              </p>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={comparisonData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                  <XAxis
-                    dataKey="alpha"
-                    stroke="#94a3b8"
-                    label={{ value: "Angle of Attack (degrees)", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
-                  />
-                  <YAxis
-                    stroke="#94a3b8"
-                    label={{ value: "L/D Ratio", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
-                  />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
-                    labelStyle={{ color: "#22d3ee" }}
-                    formatter={(value: number) => value.toFixed(2)}
-                  />
-                  <Legend />
-                  
-                  {/* Dynamic Line Rendering */}
-                  {chartMode === 'compareAll' ? (
-                    <>
-                      {/* Show all database airfoils */}
-                      <Line connectNulls type="monotone" dataKey="NACA0012" name="NACA 0012" stroke="#22d3ee" strokeWidth={2} dot={false} />
-                      <Line connectNulls type="monotone" dataKey="NACA2412" name="NACA 2412" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                      <Line connectNulls type="monotone" dataKey="NACA4415" name="NACA 4415" stroke="#10b981" strokeWidth={2} dot={false} />
-                      <Line connectNulls type="monotone" dataKey="ClarkY" name="Clark Y" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                      <Line connectNulls type="monotone" dataKey="Supercritical" name="Supercritical" stroke="#ef4444" strokeWidth={2} dot={false} />
-                      {/* Also show custom if it's the selected one */}
-                      {inputs.airfoil === 'custom' && (
-                         <Line connectNulls type="monotone" dataKey="custom" name={result?.airfoilName || "Custom"} stroke="#e879f9" strokeWidth={3} strokeDasharray="5 5" dot={false} />
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      {/* Show 1-v-1 comparison */}
-                      <Line 
-                        connectNulls 
-                        type="monotone" 
-                        dataKey={inputs.airfoil === 'custom' ? 'custom' : inputs.airfoil} 
-                        name={result?.airfoilName || "Current"} 
-                        stroke="#22d3ee" 
-                        strokeWidth={3} 
-                        dot={false} 
-                      />
-                      <Line 
-                        connectNulls 
-                        type="monotone" 
-                        dataKey={comparisonAirfoil} 
-                        name={airfoils[comparisonAirfoil].name} 
-                        stroke="#f59e0b" 
-                        strokeWidth={2} 
-                        strokeDasharray="5 5"
-                        dot={false} 
-                      />
-                    </>
+            </div>
+          }
+        >
+          <p className="text-sm text-slate-400 -mt-2 mb-4">
+            Comparing all airfoils using your wing's calculated Aspect Ratio of {result?.aspectRatio.toFixed(2)}
+          </p>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={comparisonData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis
+                dataKey="alpha"
+                stroke="#94a3b8"
+                label={{ value: "Angle of Attack (degrees)", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
+              />
+              <YAxis
+                stroke="#94a3b8"
+                label={{ value: "L/D Ratio", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
+              />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
+                labelStyle={{ color: "#22d3ee" }}
+                formatter={(value: number) => value.toFixed(2)}
+              />
+              <Legend />
+              
+              {/* Dynamic Line Rendering */}
+              {chartMode === 'compareAll' ? (
+                <>
+                  {/* Show all database airfoils */}
+                  <Line connectNulls type="monotone" dataKey="NACA0012" name="NACA 0012" stroke="#22d3ee" strokeWidth={2} dot={false} />
+                  <Line connectNulls type="monotone" dataKey="NACA2412" name="NACA 2412" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                  <Line connectNulls type="monotone" dataKey="NACA4415" name="NACA 4415" stroke="#10b981" strokeWidth={2} dot={false} />
+                  <Line connectNulls type="monotone" dataKey="ClarkY" name="Clark Y" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                  <Line connectNulls type="monotone" dataKey="Supercritical" name="Supercritical" stroke="#ef4444" strokeWidth={2} dot={false} />
+                  {/* Also show custom if it's the selected one */}
+                  {inputs.airfoil === 'custom' && (
+                     <Line connectNulls type="monotone" dataKey="custom" name={result?.airfoilName || "Custom"} stroke="#e879f9" strokeWidth={3} strokeDasharray="5 5" dot={false} />
                   )}
-                </LineChart>
-              </ResponsiveContainer>
-            </motion.div>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
+                </>
+              ) : (
+                <>
+                  {/* Show 1-v-1 comparison */}
+                  <Line 
+                    connectNulls 
+                    type="monotone" 
+                    dataKey={inputs.airfoil === 'custom' ? 'custom' : inputs.airfoil} 
+                    name={result?.airfoilName || "Current"} 
+                    stroke="#22d3ee" 
+                    strokeWidth={3} 
+                    dot={false} 
+                  />
+                  <Line 
+                    connectNulls 
+                    type="monotone" 
+                    dataKey={comparisonAirfoil} 
+                    name={airfoils[comparisonAirfoil].name} 
+                    stroke="#f59e0b" 
+                    strokeWidth={2} 
+                    strokeDasharray="5 5"
+                    dot={false} 
+                  />
+                </>
+              )}
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      )}
+    </ToolWrapper>
   );
 };
 

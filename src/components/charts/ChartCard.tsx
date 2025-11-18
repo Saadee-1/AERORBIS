@@ -8,7 +8,7 @@
  * <ChartCard title="Lift vs Drag">
  *   <ResponsiveContainer width="100%" height={350}>
  *     <LineChart data={data}>
- *       {/* Chart components */}
+ *       Chart components here
  *     </LineChart>
  *   </ResponsiveContainer>
  * </ChartCard>
@@ -18,7 +18,6 @@
 import { ReactNode } from 'react';
 import { LucideIcon } from 'lucide-react';
 import { AeroCard } from '@/components/common/AeroCard';
-import { typography } from '@/styles/typography';
 
 interface ChartCardProps {
   title: string;

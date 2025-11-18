@@ -916,7 +916,7 @@ const AdvancedThrustCalculator = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </ToolWrapper>
   );
 };
 

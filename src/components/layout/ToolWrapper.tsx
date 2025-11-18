@@ -9,7 +9,7 @@
  * <ToolWrapper>
  *   <ToolHeader title="Tool Name" icon={Icon} />
  *   <ToolContent>
- *     {/* Tool content */}
+ *     Tool content here
  *   </ToolContent>
  * </ToolWrapper>
  * ```

@@ -7,7 +7,7 @@
  * Usage:
  * ```tsx
  * <AeroCard title="Section Title" icon={Icon}>
- *   {/* Card content */}
+ *   Card content here
  * </AeroCard>
  * ```
  */
