@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database, Zap, Radio } from "lucide-react";
+import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database, Zap, Radio, Cloud } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ const getToolUrl = (toolName: string): string => {
     "Material Density Database": "materials",
     "Delta-V Budget Planner": "deltav",
     "Antenna Pattern Analyzer": "antenna",
+    "Standard Atmosphere Calculator": "atmosphere",
   };
   const toolId = toolMap[toolName];
   return toolId ? `/tools/launch?tool=${toolId}` : "/tools/launch";
@@ -77,6 +78,12 @@ const Tools = () => {
       description: "Calculate Reynolds numbers to predict flow regimes and boundary layer behavior.",
       category: "Aerodynamics",
     },
+    {
+      icon: Cloud,
+      name: "Standard Atmosphere Calculator",
+      description: "Compute atmospheric properties (temperature, pressure, density, speed of sound) from 0-86 km using U.S. Standard Atmosphere 1976.",
+      category: "Atmospheric Science",
+    },
   ];
 
   return (
@@ -134,10 +141,10 @@ const Tools = () => {
                     <Button 
                       className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300"
                       asChild
-                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name)}
+                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator"].includes(tool.name)}
                     >
-                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
-                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
+                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
+                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
                       </a>
                     </Button>
                   </CardFooter>

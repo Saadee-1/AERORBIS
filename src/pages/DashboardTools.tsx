@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Satellite, Wind, Gauge, Database, Zap, Star, Search, Radio } from "lucide-react";
+import { Calculator, Satellite, Wind, Gauge, Database, Zap, Star, Search, Radio, Cloud } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -18,6 +18,7 @@ const getToolUrl = (toolName: string): string => {
     "Material Density Database": "materials",
     "Delta-V Budget Planner": "deltav",
     "Antenna Pattern Analyzer": "antenna",
+    "Standard Atmosphere Calculator": "atmosphere",
   };
   const toolId = toolMap[toolName];
   return toolId ? `/tools/launch?tool=${toolId}` : "/tools/launch";
@@ -108,6 +109,15 @@ const DashboardTools = () => {
       category: "Avionics",
       usageCount: 28,
       favorite: true,
+    },
+    {
+      id: 10,
+      name: "Standard Atmosphere Calculator",
+      icon: Cloud,
+      description: "Compute atmospheric properties (temperature, pressure, density, speed of sound) from 0-86 km using U.S. Standard Atmosphere 1976",
+      category: "Atmospheric Science",
+      usageCount: 0,
+      favorite: false,
     },
   ];
 
