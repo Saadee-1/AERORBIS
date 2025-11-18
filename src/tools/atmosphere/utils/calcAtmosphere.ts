@@ -247,60 +247,77 @@ export function calculateAtmosphere(
   
   // Calculate pressure layer by layer from sea level to target altitude
   // We need to compute pressure at each layer boundary, then use the layer containing the target altitude
+  let pressure = SEA_LEVEL_PRESSURE;
   let currentPressure = SEA_LEVEL_PRESSURE;
   
-  // Find which layer contains the target altitude
-  let targetLayerIndex = -1;
-  for (let i = 0; i < ATMOSPHERE_LAYERS.length; i++) {
-    if (geopotentialAltitude >= ATMOSPHERE_LAYERS[i].baseHeight) {
-      targetLayerIndex = i;
-    }
-  }
-  
-  if (targetLayerIndex === -1) {
-    throw new Error('Could not determine layer for altitude');
-  }
-  
-  // Calculate pressure up through each layer boundary until we reach the layer containing target altitude
-  for (let i = 0; i <= targetLayerIndex; i++) {
-    const layer = ATMOSPHERE_LAYERS[i];
-    
-    // Determine the altitude at the top of this layer
-    const layerTopAltitude = i < targetLayerIndex
-      ? ATMOSPHERE_LAYERS[i + 1].baseHeight  // Top of this layer
-      : geopotentialAltitude;  // Target altitude (we're in this layer)
-    
-    if (i === 0 && geopotentialAltitude === 0) {
-      // At sea level, pressure is already set
-      pressure = SEA_LEVEL_PRESSURE;
-      break;
+  // Handle sea level case
+  if (geopotentialAltitude === 0) {
+    pressure = SEA_LEVEL_PRESSURE;
+  } else {
+    // Find which layer contains the target altitude
+    let targetLayerIndex = -1;
+    for (let i = 0; i < ATMOSPHERE_LAYERS.length; i++) {
+      if (geopotentialAltitude >= ATMOSPHERE_LAYERS[i].baseHeight) {
+        targetLayerIndex = i;
+      }
     }
     
-    // Calculate pressure at layer top
-    if (layer.lapseRate === 0) {
-      // Isothermal layer - exponential
-      const deltaH = layerTopAltitude - layer.baseHeight;
-      const exponent = -(GRAVITY_SEA_LEVEL * deltaH) / (GAS_CONSTANT_R * layer.baseTemp);
-      currentPressure = currentPressure * Math.exp(exponent);
-    } else {
-      // Non-zero lapse rate - power law
-      const tempAtBase = calculateTemperature(layer.baseHeight, layer);
-      const tempAtTop = calculateTemperature(layerTopAltitude, layer);
+    if (targetLayerIndex === -1) {
+      throw new Error('Could not determine layer for altitude');
+    }
+    
+    // Calculate pressure up through each layer boundary
+    for (let i = 0; i <= targetLayerIndex; i++) {
+      const layer = ATMOSPHERE_LAYERS[i];
       
-      if (tempAtTop <= 0 || tempAtBase <= 0) {
-        throw new Error('Invalid temperature in layer calculation');
+      // Determine the altitude we're calculating to within this layer
+      let altitudeToCalculate: number;
+      
+      if (i < targetLayerIndex) {
+        // We're going through this layer to its top boundary
+        altitudeToCalculate = i < ATMOSPHERE_LAYERS.length - 1
+          ? ATMOSPHERE_LAYERS[i + 1].baseHeight
+          : layer.baseHeight;
+      } else {
+        // We're in the target layer, calculate to the target altitude
+        altitudeToCalculate = geopotentialAltitude;
       }
       
-      const exponent = GRAVITY_SEA_LEVEL / (GAS_CONSTANT_R * layer.lapseRate);
-      const ratio = tempAtBase / tempAtTop;
+      const deltaH = altitudeToCalculate - layer.baseHeight;
       
-      currentPressure = currentPressure * Math.pow(ratio, exponent);
-    }
-    
-    // If this is the target layer, we're done
-    if (i === targetLayerIndex) {
-      pressure = currentPressure;
-      break;
+      if (Math.abs(deltaH) < 1e-9) {
+        // No height change in this layer, pressure stays the same
+        pressure = currentPressure;
+        break;
+      }
+      
+      // Calculate pressure at layer top
+      if (layer.lapseRate === 0) {
+        // Isothermal layer - exponential formula
+        // P = Pb * exp[-g0 * (h - hb) / (R * Tb)]
+        const exponent = -(GRAVITY_SEA_LEVEL * deltaH) / (GAS_CONSTANT_R * layer.baseTemp);
+        currentPressure = currentPressure * Math.exp(exponent);
+      } else {
+        // Non-zero lapse rate - power law formula
+        // P = Pb * (Tb / T)^(g0 / (R * Lb))
+        const tempAtBase = calculateTemperature(layer.baseHeight, layer);
+        const tempAtTop = calculateTemperature(altitudeToCalculate, layer);
+        
+        if (tempAtTop <= 0 || tempAtBase <= 0) {
+          throw new Error('Invalid temperature in layer calculation');
+        }
+        
+        const exponent = GRAVITY_SEA_LEVEL / (GAS_CONSTANT_R * layer.lapseRate);
+        const ratio = tempAtBase / tempAtTop;
+        
+        currentPressure = currentPressure * Math.pow(ratio, exponent);
+      }
+      
+      // If this is the target layer, we're done
+      if (i === targetLayerIndex) {
+        pressure = currentPressure;
+        break;
+      }
     }
   }
   
