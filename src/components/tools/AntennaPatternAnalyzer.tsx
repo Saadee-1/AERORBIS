@@ -78,6 +78,15 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Save, FolderOpen, Trash2 } from "lucide-react";
+import { ToolWrapper } from "@/components/layout/ToolWrapper";
+import { ToolHeader } from "@/components/layout/ToolHeader";
+import { ToolSection } from "@/components/layout/ToolSection";
+import { ToolActions } from "@/components/layout/ToolActions";
+import { AeroCard } from "@/components/common/AeroCard";
+import { AeroFormField } from "@/components/forms/AeroFormField";
+import { AeroButton } from "@/components/common/AeroButton";
+import { ChartCard } from "@/components/charts/ChartCard";
+import { spacingVertical } from "@/styles/spacing";
 
 // Import antenna models and math utilities
 import { ANTENNA_TYPES, getAntennaById, AntennaParams } from "@/lib/antenna/models";
@@ -729,63 +738,43 @@ const AntennaPatternAnalyzer = () => {
   }, [generatedPattern]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Radio className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Antenna Pattern Analyzer
-          </h2>
-        </div>
-        <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-          Analyze antenna radiation patterns, calculate gain, directivity, HPBW, and EIRP for aerospace applications
-        </p>
-        <div className="flex justify-center gap-2 mt-4">
-          <Button
-            variant="outline"
-            onClick={() => setIsSaveDialogOpen(true)}
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save Preset
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsLoadDialogOpen(true)}
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-            disabled={customPresets.length === 0}
-          >
-            <FolderOpen className="w-4 h-4 mr-2" />
-            Load ({customPresets.length})
-          </Button>
-        </div>
-      </motion.div>
+    <ToolWrapper>
+      <ToolHeader
+        title="Antenna Pattern Analyzer"
+        description="Analyze antenna radiation patterns, calculate gain, directivity, HPBW, and EIRP for aerospace applications"
+        icon={Radio}
+        actions={
+          <ToolActions>
+            <AeroButton
+              variant="outline"
+              icon={Save}
+              onClick={() => setIsSaveDialogOpen(true)}
+            >
+              Save Preset
+            </AeroButton>
+            <AeroButton
+              variant="outline"
+              icon={FolderOpen}
+              onClick={() => setIsLoadDialogOpen(true)}
+              disabled={customPresets.length === 0}
+            >
+              Load ({customPresets.length})
+            </AeroButton>
+          </ToolActions>
+        }
+      />
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <ToolSection gridCols={3}>
         {/* Left Panel - Inputs */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="lg:col-span-1 space-y-6"
-        >
-          {/* Antenna Selection */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Radio className="w-5 h-5 text-cyan-400" />
-                Antenna Type
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Select antenna type and configure parameters
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="antenna-type" className="text-gray-300">
-                  Antenna Type
-                </Label>
+        <div className="lg:col-span-1">
+          <div className={spacingVertical.L}>
+            {/* Antenna Selection */}
+            <AeroCard
+              title="Antenna Type"
+              description="Select antenna type and configure parameters"
+              icon={Radio}
+            >
+              <AeroFormField label="Antenna Type">
                 <Select value={selectedAntennaId} onValueChange={handleAntennaChange}>
                   <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
                     <SelectValue />
@@ -801,7 +790,7 @@ const AntennaPatternAnalyzer = () => {
                 {selectedAntenna && (
                   <p className="text-xs text-gray-400 mt-1">{selectedAntenna.description}</p>
                 )}
-              </div>
+              </AeroFormField>
 
               {/* Dynamic Parameters */}
               {selectedAntenna &&
