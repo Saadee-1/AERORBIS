@@ -25,6 +25,7 @@ import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2 } from "
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { useToolContext } from "@/hooks/useToolContext";
+import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { useToast } from "@/hooks/use-toast";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
@@ -64,8 +65,9 @@ interface SavedOrbit {
 const STORAGE_KEY_CUSTOM_ORBITS = "orbitalVisualizer_customOrbits";
 
 const OrbitalVisualizer = () => {
-  const { updateToolContext } = useToolContext();
+  const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { toast } = useToast();
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [customUnitNames, setCustomUnitNames] = useState({
     dist: "Unit-D",
     vel: "Unit-V",
@@ -496,7 +498,7 @@ const OrbitalVisualizer = () => {
   }, []);
 
   // --- Calculation Functions ---
-  const calculateOrbit = (currentInputs: OrbitalInputs) => {
+  const calculateOrbit = async (currentInputs: OrbitalInputs) => {
     setError("");
     setManeuverResult(null);
     if (threeRef.current && threeRef.current.transferOrbitLine.geometry) {
@@ -622,11 +624,56 @@ const OrbitalVisualizer = () => {
         inclination: inclination,
         eccentricity: eccentricity,
       };
+      
+      // Generate calculation steps for PDF
+      const calculationSteps = [
+        `Periapsis radius: r_p = R + h_p = ${radius_SI.toFixed(2)} + ${periapsisAlt_SI.toFixed(2)} = ${periapsisRadius.toFixed(2)} km`,
+        `Semi-major axis: a = r_p / (1 - e) = ${periapsisRadius.toFixed(2)} / (1 - ${eccentricity.toFixed(4)}) = ${semiMajorAxis.toFixed(2)} km`,
+        `Apoapsis radius: r_a = a(1 + e) = ${semiMajorAxis.toFixed(2)} × (1 + ${eccentricity.toFixed(4)}) = ${apoapsisRadius.toFixed(2)} km`,
+        `Periapsis velocity: v_p = sqrt(μ(2/r_p - 1/a)) = ${periapsisVelocity.toFixed(2)} km/s`,
+        `Apoapsis velocity: v_a = sqrt(μ(2/r_a - 1/a)) = ${apoapsisVelocity.toFixed(2)} km/s`,
+        `Orbital period: T = 2π√(a³/μ) = ${orbitalPeriodMinutes.toFixed(2)} minutes`
+      ];
+      
+      // Send calculation event to assistant
+      const convert = (val: number) => unitSystem === "Imperial" ? val * KM_TO_MI : val;
+      const unit = unitSystem === "Imperial" ? "mi" : "km";
+      const eventResponse = await sendCalculationEvent({
+        toolId: "orbital-visualizer",
+        toolName: "Orbital Visualizer",
+        inputs: {
+          periapsisAltitude: parseFloat(currentInputs.periapsisAltitude),
+          inclination,
+          eccentricity,
+          centralBodyRadius: parseFloat(currentInputs.centralBodyRadius),
+          gm: GM,
+          unitSystem
+        },
+        results: resultData,
+        steps: calculationSteps,
+        metadata: {
+          units: unitSystem,
+          approxLevel: "exact",
+          confidence: "high"
+        }
+      });
+
+      // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
+      if (eventResponse?.requestId) {
+        setLastRequestId(eventResponse.requestId);
+      } else {
+        // Fallback: try to get the latest requestId from localStorage
+        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
+        if (storedKeys.length > 0) {
+          const latestKey = storedKeys.sort().reverse()[0];
+          const requestId = latestKey.replace('calc-', '');
+          setLastRequestId(requestId);
+        }
+      }
+      
       setOrbitResult(resultData);
       
       // Update AI assistant context
-      const convert = (val: number) => unitSystem === "Imperial" ? val * KM_TO_MI : val;
-      const unit = unitSystem === "Imperial" ? "mi" : "km";
       updateToolContext({
         tool: "Orbital Visualizer",
         inputs: {
@@ -1014,6 +1061,14 @@ const OrbitalVisualizer = () => {
           {/* Results */}
           {orbitResult && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-cyan-400">Orbit Results</h3>
+                <PDFExportButton 
+                  requestId={lastRequestId} 
+                  toolName="Orbital Visualizer"
+                  disabled={!lastRequestId}
+                />
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
                   <div className="text-sm text-cyan-300">Orbital Period</div>

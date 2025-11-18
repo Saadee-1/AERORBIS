@@ -85,13 +85,14 @@ export function PDFExportButton({ requestId, toolName, disabled }: PDFExportButt
       <div className="flex gap-2">
         <AskAIButton 
           requestId={requestId}
-          disabled={disabled}
+          disabled={disabled || !requestId}
         />
         <Button
           variant="outline"
           onClick={() => setIsDialogOpen(true)}
           disabled={disabled || !requestId}
-          className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+          className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={!requestId ? "Run a calculation first to enable PDF export" : "Export PDF report"}
         >
           <Download className="w-4 h-4 mr-2" />
           Export PDF

@@ -288,7 +288,6 @@ const AdvancedThrustCalculator = () => {
         steps.push({ equation: `Ve = ${isp.toFixed(1)} × ${G0_SI.toFixed(2)}`, description: "Substitute values" });
         resultData = { exhaustVelocity: ve, isp: isp };
         setInputs(prev => ({ ...prev, exhaustVelocity: convertFromSI(ve, "exhaustVelocity").toFixed(2) }));
-        toast({ title: "Calculation Complete", description: "Exhaust Velocity populated in Part 2." });
       } else { // solveFor === "isp"
         const ve = validated.exhaustVelocity!;
         const isp = ve / G0_SI; // Always calculate in SI
@@ -400,7 +399,6 @@ const AdvancedThrustCalculator = () => {
           resultData = { exhaustVelocity: ve, momentumThrust: massFlowRate! * ve, pressureThrust, isp };
           // Auto-populate Part 1
           setInputs(prev => ({ ...prev, isp: isp!.toFixed(1) }));
-          toast({ title: "Calculation Complete", description: "Isp populated in Part 1." });
           break;
         }
         case "exitArea": {

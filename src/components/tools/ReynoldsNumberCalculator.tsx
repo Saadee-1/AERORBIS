@@ -16,6 +16,7 @@ import { Wind, Info, TrendingUp, Settings2, AlertTriangle, CheckCircle, Calculat
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
+import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { 
   Select, 
   SelectContent, 
@@ -133,7 +134,8 @@ const reynoldsSchema = z.object({
 // --- Main Component ---
 const ReynoldsNumberCalculator = () => {
   const { toast } = useToast();
-  const { updateToolContext } = useToolContext();
+  const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
   const [selectedPreset, setSelectedPreset] = useState<string>("");
   const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
@@ -362,7 +364,7 @@ const ReynoldsNumberCalculator = () => {
   };
 
   // --- Calculation Function ---
-  const calculateReynolds = () => {
+  const calculateReynolds = async () => {
     const validation = validateInputs();
     if (!validation.valid) {
       toast({ 
@@ -394,6 +396,18 @@ const ReynoldsNumberCalculator = () => {
       }
 
       // Generate step-by-step calculation
+      const calculationSteps = [
+        "Re = (ρ × V × L) / μ",
+        `ρ = ${densitySI.toFixed(6)} kg/m³ (converted to SI)`,
+        `V = ${velocitySI.toFixed(2)} m/s (converted to SI)`,
+        `L = ${lengthSI.toFixed(4)} m (converted to SI)`,
+        `μ = ${viscositySI.toExponential(3)} Pa·s (converted to SI)`,
+        `Numerator = ρ × V × L = ${(densitySI * velocitySI * lengthSI).toExponential(3)}`,
+        `Re = ${(densitySI * velocitySI * lengthSI).toExponential(3)} / ${viscositySI.toExponential(3)}`,
+        `Re = ${reynoldsNumber.toExponential(3)}`,
+        `Flow Regime: ${flowRegime} (Re ${flowRegime === "Laminar" ? "<" : flowRegime === "Transitional" ? "≥" : "≥"} ${flowRegime === "Laminar" ? "2,300" : flowRegime === "Transitional" ? "2,300 and < 40,000" : "40,000"})`
+      ];
+
       const steps: CalculationStep[] = [
         {
           equation: "Re = (ρ × V × L) / μ",
@@ -443,6 +457,45 @@ const ReynoldsNumberCalculator = () => {
         warnings.push("Extreme flow regime detected (Re > 10⁸)");
       }
 
+      // Send calculation event to assistant
+      const eventResponse = await sendCalculationEvent({
+        toolId: "reynolds-calculator",
+        toolName: "Reynolds Number Calculator",
+        inputs: {
+          density: parseFloat(inputs.density),
+          velocity: parseFloat(inputs.velocity),
+          length: parseFloat(inputs.length),
+          viscosity: parseFloat(inputs.viscosity),
+          unitSystem
+        },
+        results: {
+          reynoldsNumber,
+          flowRegime,
+          warnings
+        },
+        steps: calculationSteps,
+        metadata: {
+          units: unitSystem,
+          approxLevel: "exact",
+          confidence: "high",
+          warnings
+        }
+      });
+
+      // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
+      const requestId = eventResponse?.requestId;
+      if (requestId) {
+        setLastRequestId(requestId);
+      } else {
+        // Fallback: try to get the latest requestId from localStorage
+        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
+        if (storedKeys.length > 0) {
+          const latestKey = storedKeys.sort().reverse()[0];
+          const fallbackRequestId = latestKey.replace('calc-', '');
+          setLastRequestId(fallbackRequestId);
+        }
+      }
+
       // Update AI Assistant context
       updateToolContext({
         tool: "Reynolds",
@@ -467,10 +520,6 @@ const ReynoldsNumberCalculator = () => {
         warnings
       });
 
-      toast({ 
-        title: "Calculation Complete", 
-        description: `Reynolds Number: ${reynoldsNumber.toExponential(3)} (${flowRegime} flow)` 
-      });
 
     } catch (error) {
       toast({ 
@@ -762,7 +811,14 @@ const ReynoldsNumberCalculator = () => {
                 {result && (
                   <>
                     <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                      <p className="text-sm font-semibold text-cyan-400 mb-2">Reynolds Number</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-semibold text-cyan-400">Reynolds Number</p>
+                        <PDFExportButton 
+                          requestId={lastRequestId} 
+                          toolName="Reynolds Number Calculator"
+                          disabled={!lastRequestId}
+                        />
+                      </div>
                       <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
                         Re = {result.reynoldsNumber.toExponential(3)}
                       </p>

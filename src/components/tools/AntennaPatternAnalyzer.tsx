@@ -10,7 +10,6 @@
  * - Array factor calculations for phased arrays
  * - Directivity, HPBW, side-lobe level calculations
  * - EIRP and link budget estimates
- * - Export patterns (JSON/CSV)
  * - Theory accordion with formulas
  * 
  * Dependencies:
@@ -25,7 +24,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -66,8 +65,6 @@ import {
 import {
   Radio,
   Settings2,
-  Download,
-  Upload,
   Info,
   AlertTriangle,
   TrendingUp,
@@ -76,7 +73,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
-import { useRef } from "react";
+import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -143,7 +140,8 @@ interface AntennaResult {
 
 const AntennaPatternAnalyzer = () => {
   const { toast } = useToast();
-  const { updateToolContext } = useToolContext();
+  const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
 
   // State
   const [selectedAntennaId, setSelectedAntennaId] = useState("half-wave-dipole");
@@ -365,8 +363,63 @@ const AntennaPatternAnalyzer = () => {
     setResult(calculatedResults);
     setPatternData(generatedPattern);
     
-    // Update AI assistant context when results are calculated
-    if (calculatedResults && selectedAntenna) {
+    // Send calculation event and update AI assistant context when results are calculated
+    if (calculatedResults && selectedAntenna && patternResult) {
+      const calculationSteps = [
+        `Antenna Type: ${selectedAntenna.name}`,
+        `Frequency: ${frequency} ${frequencyUnit} (λ = ${(lambda * 1000).toFixed(2)} mm)`,
+        `Peak Gain: ${calculatedResults.peakGainDbi.toFixed(2)} dBi (${calculatedResults.peakGainLinear.toFixed(4)} linear)`,
+        `Directivity: ${calculatedResults.directivityDbi.toFixed(2)} dBi`,
+        `EIRP: ${calculatedResults.eirp.eirpDbw.toFixed(2)} dBW (${calculatedResults.eirp.eirpW.toFixed(2)} W)`,
+        `HPBW (E-plane): ${calculatedResults.hpbmE ? calculatedResults.hpbmE.toFixed(2) + '°' : 'N/A'}`,
+        `HPBW (H-plane): ${calculatedResults.hpbmH ? calculatedResults.hpbmH.toFixed(2) + '°' : 'N/A'}`,
+        `Side-lobe Level: ${calculatedResults.sideLobeLevel.toFixed(2)} dB`,
+        `Front-to-Back Ratio: ${calculatedResults.frontToBackRatio.toFixed(2)} dB`
+      ];
+      
+      // Send calculation event to assistant
+      sendCalculationEvent({
+        toolId: "antenna-pattern-analyzer",
+        toolName: "Antenna Pattern Analyzer",
+        inputs: {
+          antennaType: selectedAntenna.name,
+          frequency: `${frequency} ${frequencyUnit}`,
+          transmitPower,
+          polarization,
+          resolution,
+          computeMode
+        },
+        results: {
+          peakGainDbi: calculatedResults.peakGainDbi,
+          directivityDbi: calculatedResults.directivityDbi,
+          eirpDbw: calculatedResults.eirp.eirpDbw,
+          hpbmE: calculatedResults.hpbmE,
+          hpbmH: calculatedResults.hpbmH,
+          sideLobeLevel: calculatedResults.sideLobeLevel,
+          frontToBackRatio: calculatedResults.frontToBackRatio,
+          wavelength: lambda * 1000
+        },
+        steps: calculationSteps,
+        metadata: {
+          units: "SI",
+          approxLevel: computeMode === "fast" ? "approximate" : "numeric",
+          confidence: "high",
+          warnings: calculatedResults.warnings
+        }
+      }).then((eventResponse) => {
+        // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
+        setLastRequestId(eventResponse?.requestId || null);
+      }).catch((error) => {
+        console.warn("Failed to send calculation event:", error);
+        // Even on error, try to get requestId from localStorage
+        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
+        if (storedKeys.length > 0) {
+          const latestKey = storedKeys.sort().reverse()[0];
+          const requestId = latestKey.replace('calc-', '');
+          setLastRequestId(requestId);
+        }
+      });
+      
       updateToolContext({
         tool: "Antenna Pattern Analyzer",
         inputs: {
@@ -389,7 +442,7 @@ const AntennaPatternAnalyzer = () => {
         }
       });
     }
-  }, [calculatedResults, generatedPattern, selectedAntenna, frequency, frequencyUnit, transmitPower, polarization, resolution, computeMode, lambda, updateToolContext]);
+  }, [calculatedResults, generatedPattern, selectedAntenna, frequency, frequencyUnit, transmitPower, polarization, resolution, computeMode, lambda, patternResult, sendCalculationEvent, updateToolContext]);
 
   // Initialize and update 3D visualization
   useEffect(() => {
@@ -654,43 +707,6 @@ const AntennaPatternAnalyzer = () => {
     setAntennaParams((prev) => ({ ...prev, [key]: value }));
   };
 
-  // Export pattern to JSON
-  const exportJSON = useCallback(() => {
-    const exportData = {
-      antenna: selectedAntenna?.name,
-      frequency: frequency,
-      frequencyUnit: frequencyUnit,
-      parameters: antennaParams,
-      pattern: patternData,
-      results: result,
-    };
-    const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `antenna-pattern-${Date.now()}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Exported", description: "Pattern exported to JSON" });
-  }, [patternData, result, selectedAntenna, frequency, frequencyUnit, antennaParams, toast]);
-
-  // Export pattern to CSV
-  const exportCSV = useCallback(() => {
-    const headers = "Theta (deg),Phi (deg),Gain (linear),Gain (dBi)\n";
-    const rows = patternData
-      .map((p) => `${p.theta},${p.phi},${p.gainLinear},${p.gainDbi}`)
-      .join("\n");
-    const csv = headers + rows;
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `antenna-pattern-${Date.now()}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Exported", description: "Pattern exported to CSV" });
-  }, [patternData, toast]);
 
   // Prepare chart data for polar plot
   const chartData = useMemo(() => {
@@ -742,22 +758,6 @@ const AntennaPatternAnalyzer = () => {
           >
             <FolderOpen className="w-4 h-4 mr-2" />
             Load ({customPresets.length})
-          </Button>
-          <Button
-            variant="outline"
-            onClick={exportJSON}
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export JSON
-          </Button>
-          <Button
-            variant="outline"
-            onClick={exportCSV}
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
           </Button>
         </div>
       </motion.div>
@@ -979,7 +979,14 @@ const AntennaPatternAnalyzer = () => {
           {result && (
             <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-white">Results Summary</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white">Results Summary</CardTitle>
+                  <PDFExportButton 
+                    requestId={lastRequestId} 
+                    toolName="Antenna Pattern Analyzer"
+                    disabled={!lastRequestId}
+                  />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -1372,6 +1379,7 @@ const AntennaPatternAnalyzer = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 };

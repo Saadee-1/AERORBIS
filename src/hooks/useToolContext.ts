@@ -52,7 +52,7 @@ export interface CalculationEventResponse {
  * ```
  */
 export const useToolContext = () => {
-  const { setToolContext, setIsOpen, showNotification } = useAIAssistant();
+  const { setToolContext } = useAIAssistant();
 
   const sendCalculationEvent = useCallback(async (
     payload: CalculationEventPayload
@@ -189,20 +189,8 @@ export const useToolContext = () => {
 
   const updateToolContext = useCallback((context: ToolContext) => {
     setToolContext(context);
-    // Show notification when calculation completes
-    const toolNames: Record<string, string> = {
-      "WingLoading": "Wing Loading Calculator",
-      "LiftDrag": "Lift/Drag Analyzer",
-      "OrbitalPath": "Orbital Visualizer",
-      "DeltaV": "Delta-V Budget Planner",
-      "Reynolds": "Reynolds Number Calculator",
-      "MaterialsDB": "Materials Density Database",
-      "Thrust": "Thrust Calculator",
-      "Antenna": "Antenna Pattern Analyzer",
-    };
-    const toolName = toolNames[context.tool] || context.tool;
-    showNotification(`📊 ${toolName} calculation complete! Click to analyze results.`);
-  }, [setToolContext, showNotification]);
+    // Note: Removed automatic notification - AI assistant now only activates via manual button clicks
+  }, [setToolContext]);
 
   const clearToolContext = useCallback(() => {
     setToolContext(null);

@@ -11,7 +11,6 @@ import {
 } from "./calculations";
 import { MISSION_PRESETS } from "./presets";
 import { saveLastMission, loadLastMission, savePreset, loadPresets } from "./storage";
-import { exportToJSON, downloadJSON, importFromJSON, readJSONFromFile } from "./exportUtils";
 import StageEditor from "./StageEditor";
 import DVBudgetTable from "./DVBudgetTable";
 import DeltaVChart from "./DeltaVChart";
@@ -45,8 +44,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Rocket,
   Settings2,
-  Download,
-  Upload,
   Database,
   AlertTriangle,
   CheckCircle,
@@ -54,12 +51,14 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
+import { PDFExportButton } from "@/components/tools/PDFExportButton";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 
 const DeltaVPlanner = () => {
   const { toast } = useToast();
-  const { updateToolContext } = useToolContext();
+  const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
   const [customUnitName, setCustomUnitName] = useState("Unit-Δv");
   const [customFactor, setCustomFactor] = useState("1.0");
@@ -76,8 +75,6 @@ const DeltaVPlanner = () => {
   const [stages, setStages] = useState<Stage[]>([]);
   const [result, setResult] = useState<MissionResult | null>(null);
   const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
 
   // Load last mission on mount
@@ -175,6 +172,81 @@ const DeltaVPlanner = () => {
         warnings,
         recommendations,
       };
+      
+      // Generate calculation steps for PDF
+      const calculationSteps = [
+        `Mission: ${mission.orbitType} at ${mission.targetOrbitAltitude} km altitude`,
+        `Target inclination: ${mission.targetInclination}°`,
+        `Payload mass: ${mission.payloadMass} kg`,
+        `Number of stages: ${stages.length}`,
+        `Total required Δv: ${breakdown.totalRequired.toFixed(1)} m/s`,
+        `Total achievable Δv: ${totalAchievable.toFixed(1)} m/s`,
+        `Feasibility: ${breakdown.isFeasible ? "Feasible" : "Not Feasible"}`,
+        `Total liftoff mass: ${resultData.totalLiftoffMass.toFixed(1)} kg`,
+        ...stageResults.map((sr, i) => 
+          `Stage ${i + 1}: Δv = ${sr.achievableDeltaV.toFixed(1)} m/s, Initial mass = ${sr.initialMass.toFixed(1)} kg, Final mass = ${sr.finalMass.toFixed(1)} kg`
+        )
+      ];
+      
+      // Send calculation event to assistant
+      sendCalculationEvent({
+        toolId: "deltav-planner",
+        toolName: "Delta-V Budget Planner",
+        inputs: {
+          targetOrbitAltitude: mission.targetOrbitAltitude,
+          orbitType: mission.orbitType,
+          targetInclination: mission.targetInclination,
+          payloadMass: mission.payloadMass,
+          gravityLoss: mission.gravityLoss,
+          dragLoss: mission.dragLoss,
+          steeringLoss: mission.steeringLoss,
+          reserveMargin: mission.reserveMargin,
+          numberOfStages: stages.length,
+          stages: stages.map(s => ({
+            name: s.name,
+            dryMass: s.dryMass,
+            propellantMass: s.propellantMass,
+            ispSeaLevel: s.ispSeaLevel,
+            ispVacuum: s.ispVacuum,
+            useVacuumIsp: s.useVacuumIsp
+          })),
+          unitSystem
+        },
+        results: {
+          totalRequiredDeltaV: breakdown.totalRequired,
+          totalAchievableDeltaV: totalAchievable,
+          feasibility: breakdown.isFeasible,
+          totalLiftoffMass: resultData.totalLiftoffMass,
+          payloadMass: mission.payloadMass,
+          stageResults: stageResults.map(sr => ({
+            stageName: sr.stage.name,
+            achievableDeltaV: sr.achievableDeltaV,
+            initialMass: sr.initialMass,
+            finalMass: sr.finalMass
+          }))
+        },
+        steps: calculationSteps,
+        metadata: {
+          units: unitSystem,
+          approxLevel: "exact",
+          confidence: "high",
+          warnings,
+          recommendations
+        }
+      }).then((eventResponse) => {
+        // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
+        setLastRequestId(eventResponse?.requestId || null);
+      }).catch((error) => {
+        console.warn("Failed to send calculation event:", error);
+        // Even on error, try to get requestId from localStorage
+        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
+        if (storedKeys.length > 0) {
+          const latestKey = storedKeys.sort().reverse()[0];
+          const requestId = latestKey.replace('calc-', '');
+          setLastRequestId(requestId);
+        }
+      });
+      
       setResult(resultData);
       
       // Update AI assistant context
@@ -204,7 +276,7 @@ const DeltaVPlanner = () => {
     } else {
       setResult(null);
     }
-  }, [mission, stageResults, breakdown, warnings, recommendations, totalAchievable, updateToolContext]);
+  }, [mission, stageResults, breakdown, warnings, recommendations, totalAchievable, stages, unitSystem, sendCalculationEvent, updateToolContext]);
 
   const loadPreset = useCallback((preset: typeof MISSION_PRESETS[0]) => {
     setMission(preset.mission);
@@ -220,57 +292,6 @@ const DeltaVPlanner = () => {
     });
   }, [toast]);
 
-  const handleExport = () => {
-    if (!result) {
-      toast({
-        title: "No Data",
-        description: "Calculate a mission first before exporting",
-        variant: "destructive",
-      });
-      return;
-    }
-    const json = exportToJSON(mission, stages, result);
-    downloadJSON(json, `deltav-mission-${Date.now()}.json`);
-    toast({
-      title: "Exported",
-      description: "Mission configuration exported to JSON",
-    });
-  };
-
-  const handleImport = async (file: File) => {
-    try {
-      const jsonString = await readJSONFromFile(file);
-      const imported = importFromJSON(jsonString);
-      if (imported.error) {
-        toast({
-          title: "Import Error",
-          description: imported.error,
-          variant: "destructive",
-        });
-        return;
-      }
-      if (imported.mission && imported.stages) {
-        setMission(imported.mission);
-        setStages(
-          imported.stages.map((s, i) => ({
-            ...s,
-            id: `stage-${Date.now()}-${i}`,
-          }))
-        );
-        toast({
-          title: "Imported",
-          description: "Mission configuration imported successfully",
-        });
-        setIsImportDialogOpen(false);
-      }
-    } catch (error) {
-      toast({
-        title: "Import Error",
-        description: "Failed to read file",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleSavePreset = () => {
     if (!presetName.trim()) {
@@ -321,22 +342,6 @@ const DeltaVPlanner = () => {
           >
             <Database className="w-4 h-4 mr-2" />
             Save Preset
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export JSON
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsImportDialogOpen(true)}
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Import JSON
           </Button>
         </div>
       </motion.div>
@@ -565,7 +570,14 @@ const DeltaVPlanner = () => {
           {result && (
             <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-white">Mission Summary</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white">Mission Summary</CardTitle>
+                  <PDFExportButton 
+                    requestId={lastRequestId} 
+                    toolName="Delta-V Budget Planner"
+                    disabled={!lastRequestId}
+                  />
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
@@ -705,39 +717,7 @@ const DeltaVPlanner = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Import Dialog */}
-      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Import Mission</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Import mission configuration from JSON file
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <Input
-              type="file"
-              accept=".json"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  handleImport(file);
-                }
-              }}
-              className="bg-slate-900/50 border-cyan-400/30 text-white"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsImportDialogOpen(false)}
-              className="border-cyan-400/40 text-cyan-400"
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Custom Units Card */}
       {unitSystem === "Custom" && (

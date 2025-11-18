@@ -26,6 +26,7 @@ import { Gauge, Plane, Info, TrendingUp, Settings2, AlertTriangle, CheckCircle, 
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
+import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { 
   Select, 
   SelectContent, 
@@ -86,7 +87,8 @@ const advancedSchema = z.object({
 // --- Main Component ---
 const AdvancedWingLoadingCalculator = () => {
   const { toast } = useToast();
-  const { updateToolContext } = useToolContext();
+  const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
 
   // --- State ---
@@ -319,7 +321,7 @@ const AdvancedWingLoadingCalculator = () => {
 
   // --- Calculation Functions ---
 
-  const calculateBasic = () => {
+  const calculateBasic = async () => {
     try {
       const rawValues = {
         weight: basicInputs.weight.trim() ? convertToSI(parseFloat(basicInputs.weight), "weight") : undefined,
@@ -349,7 +351,6 @@ const AdvancedWingLoadingCalculator = () => {
         resultData = { wingLoading: wl };
         // Auto-populate the advanced calculator
         setAdvInputs(prev => ({ ...prev, wingLoading: convertFromSI(wl, "wingLoading").toFixed(2) }));
-        toast({ title: "Calculation Complete", description: "W/S populated in Part 2." });
       
         // FIXED: Generate chart only if inputs are physical
         if (weight! > 0 && wingArea! > 0) {
@@ -392,6 +393,46 @@ const AdvancedWingLoadingCalculator = () => {
       const interpretation = interpretWingLoading(final_wl);
       const feasibility = checkFeasibility({ ...validated, ...resultData });
       
+      // Generate calculation steps for PDF
+      const calculationSteps = steps.map(s => `${s.equation} - ${s.description}`);
+      
+      // Send calculation event to assistant
+      const eventResponse = await sendCalculationEvent({
+        toolId: "wing-loading-calculator",
+        toolName: "Wing Loading Calculator",
+        inputs: {
+          weight: validated.weight,
+          wingArea: validated.wingArea,
+          wingLoading: validated.wingLoading,
+          unitSystem
+        },
+        results: {
+          solvedFor,
+          wingLoading: final_wl,
+          interpretation: interpretation.category,
+          feasibility: feasibility.isFeasible
+        },
+        steps: calculationSteps,
+        metadata: {
+          units: unitSystem,
+          approxLevel: "exact",
+          confidence: "high"
+        }
+      });
+
+      // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
+      if (eventResponse?.requestId) {
+        setLastRequestId(eventResponse.requestId);
+      } else {
+        // Fallback: try to get the latest requestId from localStorage
+        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
+        if (storedKeys.length > 0) {
+          const latestKey = storedKeys.sort().reverse()[0];
+          const requestId = latestKey.replace('calc-', '');
+          setLastRequestId(requestId);
+        }
+      }
+      
       setBasicResult({ ...resultData, steps, solvedFor: solveFor, ...interpretation, feasibility });
       setAdvancedResult(null); // Clear advanced results as basic inputs changed
       
@@ -421,7 +462,7 @@ const AdvancedWingLoadingCalculator = () => {
     }
   };
 
-  const calculateAdvanced = () => {
+  const calculateAdvanced = async () => {
     try {
       const rawValues = {
         wingLoading: advInputs.wingLoading.trim() ? convertToSI(parseFloat(advInputs.wingLoading), "wingLoading") : undefined,
@@ -490,6 +531,47 @@ const AdvancedWingLoadingCalculator = () => {
       }
       
       const feasibility = checkFeasibility({ ...validated, ...resultData });
+      
+      // Generate calculation steps for PDF
+      const calculationSteps = steps.map(s => `${s.equation} - ${s.description}`);
+      
+      // Send calculation event to assistant
+      const eventResponse = await sendCalculationEvent({
+        toolId: "wing-loading-calculator",
+        toolName: "Wing Loading Calculator",
+        inputs: {
+          wingLoading: validated.wingLoading,
+          airDensity: validated.airDensity,
+          clMax: validated.clMax,
+          stallSpeed: validated.stallSpeed,
+          unitSystem
+        },
+        results: {
+          solvedFor,
+          ...resultData,
+          feasibility: feasibility.isFeasible
+        },
+        steps: calculationSteps,
+        metadata: {
+          units: unitSystem,
+          approxLevel: "exact",
+          confidence: "high"
+        }
+      });
+
+      // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
+      if (eventResponse?.requestId) {
+        setLastRequestId(eventResponse.requestId);
+      } else {
+        // Fallback: try to get the latest requestId from localStorage
+        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
+        if (storedKeys.length > 0) {
+          const latestKey = storedKeys.sort().reverse()[0];
+          const requestId = latestKey.replace('calc-', '');
+          setLastRequestId(requestId);
+        }
+      }
+      
       setAdvancedResult({ ...resultData, steps, solvedFor: solveFor, feasibility });
       setBasicResult(null); // Clear basic results
       setChartData([]); // Clear chart
@@ -673,7 +755,14 @@ const AdvancedWingLoadingCalculator = () => {
                 {/* Basic Result */}
                 {basicResult && (
                   <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                    <p className="text-sm font-semibold text-cyan-400 mb-2">Part 1 Result (Basic)</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold text-cyan-400">Part 1 Result (Basic)</p>
+                      <PDFExportButton 
+                        requestId={lastRequestId} 
+                        toolName="Wing Loading Calculator"
+                        disabled={!lastRequestId}
+                      />
+                    </div>
                     <p className="text-gray-400 text-sm mb-1">Solved: {basicResult.solvedFor}</p>
                     <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
                       {/* Display solved value */}
@@ -693,7 +782,14 @@ const AdvancedWingLoadingCalculator = () => {
                 {/* Advanced Result */}
                 {advancedResult && (
                   <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
-                    <p className="text-sm font-semibold text-green-400 mb-2">Part 2 Result (Performance)</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold text-green-400">Part 2 Result (Performance)</p>
+                      <PDFExportButton 
+                        requestId={lastRequestId} 
+                        toolName="Wing Loading Calculator"
+                        disabled={!lastRequestId}
+                      />
+                    </div>
                     <p className="text-gray-400 text-sm mb-1">Solved: {advancedResult.solvedFor}</p>
                     <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
                       {/* Display solved value */}
