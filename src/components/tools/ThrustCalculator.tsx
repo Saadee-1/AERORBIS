@@ -28,6 +28,16 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
+import { AskAIButton } from "@/components/tools/AskAIButton";
+import { ToolWrapper } from "@/components/layout/ToolWrapper";
+import { ToolHeader } from "@/components/layout/ToolHeader";
+import { ToolSection } from "@/components/layout/ToolSection";
+import { ToolActions } from "@/components/layout/ToolActions";
+import { AeroCard } from "@/components/common/AeroCard";
+import { AeroFormField } from "@/components/forms/AeroFormField";
+import { AeroButton } from "@/components/common/AeroButton";
+import { ChartCard } from "@/components/charts/ChartCard";
+import { spacingVertical } from "@/styles/spacing";
 import { 
   Select, 
   SelectContent, 
@@ -530,184 +540,170 @@ const AdvancedThrustCalculator = () => {
 
   // --- Render ---
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Rocket className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">Advanced Rocket Thrust Calculator</h2>
-        </div>
-        <p className="text-gray-300 text-lg max-w-3xl mx-auto">Calculate engine performance (I_sp) and solve for any variable in the thrust equation.</p>
-        <div className="flex justify-center gap-2 mt-4">
-          <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-            <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="SI">SI (Metric)</SelectItem>
-              <SelectItem value="Imperial">Imperial</SelectItem>
-              <SelectItem value="Custom">Custom</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button type="button" onClick={resetCalculators} variant="outline" className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10">Reset All</Button>
-          <Button
-            type="button"
-            onClick={() => setIsSaveDialogOpen(true)}
-            variant="outline"
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save Preset
-          </Button>
-          <Button
-            type="button"
-            onClick={() => setIsLoadDialogOpen(true)}
-            variant="outline"
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-            disabled={customPresets.length === 0}
-          >
-            <FolderOpen className="w-4 h-4 mr-2" />
-            Load ({customPresets.length})
-          </Button>
-        </div>
-      </motion.div>
+    <ToolWrapper>
+      <ToolHeader
+        title="Advanced Rocket Thrust Calculator"
+        description="Calculate engine performance (I_sp) and solve for any variable in the thrust equation"
+        icon={Rocket}
+        actions={
+          <ToolActions>
+            <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
+              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SI">SI (Metric)</SelectItem>
+                <SelectItem value="Imperial">Imperial</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+            <AeroButton type="button" onClick={resetCalculators} variant="outline">Reset All</AeroButton>
+            <AeroButton
+              type="button"
+              onClick={() => setIsSaveDialogOpen(true)}
+              variant="outline"
+              icon={Save}
+            >
+              Save Preset
+            </AeroButton>
+            <AeroButton
+              type="button"
+              onClick={() => setIsLoadDialogOpen(true)}
+              variant="outline"
+              icon={FolderOpen}
+              disabled={customPresets.length === 0}
+            >
+              Load ({customPresets.length})
+            </AeroButton>
+          </ToolActions>
+        }
+      />
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        
+      <ToolSection gridCols={2}>
         {/* --- LEFT COLUMN (INPUTS) --- */}
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="space-y-6">
-          
-          {/* --- Part 1: Performance (Isp) --- */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2"><Anchor className="w-5 h-5 text-cyan-400" />Part 1: Performance (Isp ↔ Ve)</CardTitle>
-              <CardDescription className="text-gray-400">Solve for I_sp or V_e. Fill 1 of 2 fields. V_e links to Part 2.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="isp" className="text-gray-300">Specific Impulse (I_sp) <span className="text-gray-500">{getUnit("isp")}</span></Label>
+        <div>
+          <div className={spacingVertical.L}>
+            {/* --- Part 1: Performance (Isp) --- */}
+            <AeroCard
+              title="Part 1: Performance (Isp ↔ Ve)"
+              description="Solve for I_sp or V_e. Fill 1 of 2 fields. V_e links to Part 2."
+              icon={Anchor}
+            >
+              <AeroFormField label={`Specific Impulse (I_sp) ${getUnit("isp")}`}>
                 <Input id="isp" type="number" step="0.1" value={inputs.isp} onChange={(e) => handleInputChange("isp", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 310" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="exhaustVelocity" className="text-gray-300">Exhaust Velocity ($V_e$) <span className="text-gray-500">{getUnit("exhaustVelocity")}</span></Label>
+              </AeroFormField>
+              <AeroFormField label={`Exhaust Velocity (V_e) ${getUnit("exhaustVelocity")}`}>
                 <Input id="exhaustVelocity" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 3040" />
-              </div>
-              <Button type="button" onClick={calculatePerformance} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"><Anchor className="w-4 h-4 mr-2" />Calculate Part 1</Button>
-            </CardContent>
-          </Card>
+              </AeroFormField>
+              <AeroButton type="button" onClick={calculatePerformance} variant="primary" icon={Anchor} className="w-full">
+                Calculate Part 1
+              </AeroButton>
+            </AeroCard>
 
-          {/* --- Part 2: Thrust Solver --- */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2"><Calculator className="w-5 h-5 text-cyan-400" />Part 2: Thrust Solver</CardTitle>
-              <CardDescription className="text-gray-400">Solve for any 1 variable. Fill all other 5 fields.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* --- Part 2: Thrust Solver --- */}
+            <AeroCard
+              title="Part 2: Thrust Solver"
+              description="Solve for any 1 variable. Fill all other 5 fields."
+              icon={Calculator}
+            >
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="thrust" className="text-gray-300">Thrust (F) <span className="text-gray-500">{getUnit("thrust")}</span></Label>
+                <AeroFormField label={`Thrust (F) ${getUnit("thrust")}`}>
                   <Input id="thrust" type="number" step="0.01" value={inputs.thrust} onChange={(e) => handleInputChange("thrust", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="massFlowRate" className="text-gray-300">Mass Flow (ṁ) <span className="text-gray-500">{getUnit("massFlowRate")}</span></Label>
+                </AeroFormField>
+                <AeroFormField label={`Mass Flow (ṁ) ${getUnit("massFlowRate")}`}>
                   <Input id="massFlowRate" type="number" step="0.01" value={inputs.massFlowRate} onChange={(e) => handleInputChange("massFlowRate", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="exitArea" className="text-gray-300">Exit Area (Ae) <span className="text-gray-500">{getUnit("exitArea")}</span></Label>
+                </AeroFormField>
+                <AeroFormField label={`Exit Area (Ae) ${getUnit("exitArea")}`}>
                   <Input id="exitArea" type="number" step="0.001" value={inputs.exitArea} onChange={(e) => handleInputChange("exitArea", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="exhaustVelocity_part2" className="text-gray-300">Exhaust Velocity ($V_e$) <span className="text-gray-500">{getUnit("exhaustVelocity")}</span></Label>
+                </AeroFormField>
+                <AeroFormField label={`Exhaust Velocity (V_e) ${getUnit("exhaustVelocity")}`} helperText="From Part 1">
                   <Input id="exhaustVelocity_part2" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="From Part 1" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="exitPressure" className="text-gray-300">Exit Pressure (Pe) <span className="text-gray-500">{getUnit("exitPressure")}</span></Label>
+                </AeroFormField>
+                <AeroFormField label={`Exit Pressure (Pe) ${getUnit("exitPressure")}`}>
                   <Input id="exitPressure" type="number" step="1" value={inputs.exitPressure} onChange={(e) => handleInputChange("exitPressure", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ambientPressure" className="text-gray-300">Ambient Pressure (Pa) <span className="text-gray-500">{getUnit("ambientPressure")}</span></Label>
+                </AeroFormField>
+                <AeroFormField label={`Ambient Pressure (Pa) ${getUnit("ambientPressure")}`}>
                   <Input id="ambientPressure" type="number" step="1" value={inputs.ambientPressure} onChange={(e) => handleInputChange("ambientPressure", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
-                </div>
+                </AeroFormField>
               </div>
-              <Button type="button" onClick={calculateThrust} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"><Calculator className="w-4 h-4 mr-2" />Calculate Thrust</Button>
-            </CardContent>
-          </Card>
+              <AeroButton type="button" onClick={calculateThrust} variant="primary" icon={Calculator} className="w-full">
+                Calculate Thrust
+              </AeroButton>
+            </AeroCard>
 
-          {/* --- Custom Units --- */}
-          {unitSystem === "Custom" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2"><Settings2 className="w-5 h-5 text-cyan-400" />Custom Unit Definitions</CardTitle>
-                  <CardDescription className="text-gray-400">Define conversion factors to SI (kg, m, s, N, Pa)</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    {id: 'thrust', label: 'Thrust (F)', unit: 'N'},
-                    {id: 'massFlowRate', label: 'Mass Flow (ṁ)', unit: 'kg/s'},
-                    {id: 'exhaustVelocity', label: 'Exhaust Velocity (Ve)', unit: 'm/s'},
-                    {id: 'exitArea', label: 'Area (Ae)', unit: 'm²'},
-                    {id: 'pressure', label: 'Pressure (P)', unit: 'Pa'},
-                  ].map(field => (
-                    <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <Label className="text-white font-semibold">{field.label}</Label>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        <Input 
-                          placeholder="Unit Name" 
-                          value={customUnitNames[field.id as keyof typeof customUnitNames]}
-                          onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                          className="bg-slate-800 border-cyan-400/30 text-white"
-                        />
-                        <Input 
-                          type="number"
-                          placeholder="SI Factor"
-                          value={customFactors[field.id as keyof typeof customFactors]}
-                          onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                          className="bg-slate-800 border-cyan-400/30 text-white"
-                        />
-                      </div>
-                       <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}</p>
+            {/* --- Custom Units --- */}
+            {unitSystem === "Custom" && (
+              <AeroCard
+                title="Custom Unit Definitions"
+                description="Define conversion factors to SI (kg, m, s, N, Pa)"
+                icon={Settings2}
+              >
+                {[
+                  {id: 'thrust', label: 'Thrust (F)', unit: 'N'},
+                  {id: 'massFlowRate', label: 'Mass Flow (ṁ)', unit: 'kg/s'},
+                  {id: 'exhaustVelocity', label: 'Exhaust Velocity (Ve)', unit: 'm/s'},
+                  {id: 'exitArea', label: 'Area (Ae)', unit: 'm²'},
+                  {id: 'pressure', label: 'Pressure (P)', unit: 'Pa'},
+                ].map(field => (
+                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
+                    <Label className="text-white font-semibold">{field.label}</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Input 
+                        placeholder="Unit Name" 
+                        value={customUnitNames[field.id as keyof typeof customUnitNames]}
+                        onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                      <Input 
+                        type="number"
+                        placeholder="SI Factor"
+                        value={customFactors[field.id as keyof typeof customFactors]}
+                        onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-        </motion.div>
+                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}</p>
+                  </div>
+                ))}
+              </AeroCard>
+            )}
+          </div>
+        </div>
 
         {/* --- RIGHT COLUMN (RESULTS & THEORY) --- */}
-        <div className="space-y-6">
-          
-          {/* --- Results Card --- */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader><CardTitle className="text-white">Results</CardTitle></CardHeader>
-              <CardContent className="space-y-6">
-                
-                {/* Performance Result */}
-                {performanceResult && (
-                  <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
-                    <p className="text-sm font-semibold text-green-400 mb-2">Part 1 Result (Performance)</p>
-                    <p className="text-gray-400 text-sm mb-1">Solved: {performanceResult.solvedFor}</p>
-                    <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
-                      {performanceResult.isp ? `${performanceResult.isp.toFixed(1)} ${getUnit("isp")}`
-                      : `${convertFromSI(performanceResult.exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
-                      }
-                    </p>
+        <div>
+          <div className={spacingVertical.L}>
+            {/* --- Results Card --- */}
+            <AeroCard
+              title="Results"
+              headerActions={
+                lastRequestId ? (
+                  <div className="flex gap-2">
+                    <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                    <PDFExportButton 
+                      requestId={lastRequestId} 
+                      toolName="Thrust Calculator"
+                      disabled={!lastRequestId}
+                    />
                   </div>
-                )}
-                
-                {/* Thrust Result */}
-                {thrustResult && (
-                  <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-semibold text-cyan-400">Part 2 Result (Thrust)</p>
-                      {lastRequestId && (
-                        <PDFExportButton 
-                          requestId={lastRequestId} 
-                          toolName="Thrust Calculator"
-                          disabled={!lastRequestId}
-                        />
-                      )}
-                    </div>
+                ) : null
+              }
+            >
+              {/* Performance Result */}
+              {performanceResult && (
+                <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30 mb-4">
+                  <p className="text-sm font-semibold text-green-400 mb-2">Part 1 Result (Performance)</p>
+                  <p className="text-gray-400 text-sm mb-1">Solved: {performanceResult.solvedFor}</p>
+                  <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
+                    {performanceResult.isp ? `${performanceResult.isp.toFixed(1)} ${getUnit("isp")}`
+                    : `${convertFromSI(performanceResult.exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
+                    }
+                  </p>
+                </div>
+              )}
+              
+              {/* Thrust Result */}
+              {thrustResult && (
+                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
+                  <p className="text-sm font-semibold text-cyan-400 mb-2">Part 2 Result (Thrust)</p>
                     <p className="text-gray-400 text-sm mb-1">Solved: {thrustResult.solvedFor}</p>
                     <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
                       {
@@ -754,64 +750,63 @@ const AdvancedThrustCalculator = () => {
                   </Accordion>
                 )}
 
-                {/* Chart (if thrust result exists) */}
-                {chartData.length > 0 && (
-                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                    <h4 className="text-white font-semibold mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-cyan-400" />Thrust vs. Ambient Pressure</h4>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                        <XAxis dataKey="ambientPressure" stroke="#94a3b8" tickFormatter={(val) => val.toFixed(0)}
-                          label={{ value: `Ambient Pressure (${getUnit("ambientPressure")})`, position: 'insideBottom', offset: -5, fill: '#94a3B8' }}/>
-                        <YAxis stroke="#94a3b8" tickFormatter={(val) => val.toFixed(0)}
-                          label={{ value: `Thrust (${getUnit("thrust")})`, angle: -90, position: 'insideLeft', fill: '#94a3b8' }}/>
-                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/>
-                        <Legend />
-                        <Line type="monotone" dataKey="thrust" stroke="#22d3ee" strokeWidth={2} dot={false} name="Thrust" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-                
-                {/* Placeholder */}
-                {!thrustResult && !performanceResult && (
-                  <div className="text-center py-12">
-                    <Calculator className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-                    <p className="text-gray-400">Results will appear here</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+            </AeroCard>
 
-          {/* --- Theory Card --- */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader><CardTitle className="text-white">Equations</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">V_e = I_sp · g_0</p>
-                  <div className="text-gray-400 text-sm space-y-1">
-                    <p><span className="text-cyan-400">V_e</span> = Exhaust Velocity</p>
-                    <p><span className="text-cyan-400">I_sp</span> = Specific Impulse</p>
-                    <p><span className="text-cyan-400">g_0</span> = Std. Gravity (≈ 9.81 m/s²)</p>
-                  </div>
+            {/* Chart (if thrust result exists) */}
+            {chartData.length > 0 && (
+              <ChartCard 
+                title="Thrust vs. Ambient Pressure"
+                height={300}
+                icon={TrendingUp}
+              >
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis dataKey="ambientPressure" stroke="#94a3b8" tickFormatter={(val) => val.toFixed(0)}
+                      label={{ value: `Ambient Pressure (${getUnit("ambientPressure")})`, position: 'insideBottom', offset: -5, fill: '#94a3B8' }}/>
+                    <YAxis stroke="#94a3b8" tickFormatter={(val) => val.toFixed(0)}
+                      label={{ value: `Thrust (${getUnit("thrust")})`, angle: -90, position: 'insideLeft', fill: '#94a3b8' }}/>
+                    <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/>
+                    <Legend />
+                    <Line type="monotone" dataKey="thrust" stroke="#22d3ee" strokeWidth={2} dot={false} name="Thrust" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            )}
+            
+            {/* Placeholder */}
+            {!thrustResult && !performanceResult && (
+              <AeroCard title="Results">
+                <div className="text-center py-12">
+                  <Calculator className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
+                  <p className="text-gray-400">Results will appear here</p>
                 </div>
-                <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">F = ṁV_e + (P_e - P_a)A_e</p>
-                  <div className="text-gray-400 text-sm space-y-1">
-                    <p><span className="text-cyan-400">F</span> = Total Thrust (N)</p>
-                    <p><span className="text-cyan-400">ṁ</span> = Mass Flow Rate (kg/s)</p>
-                    <p><span className="text-cyan-400">P_e, P_a</span> = Exit, Ambient Pressure (Pa)</p>
-                    <p><span className="text-cyan-400">A_e</span> = Nozzle Exit Area (m²)</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+              </AeroCard>
+            )}
 
+            {/* --- Theory Card --- */}
+            <AeroCard title="Theory & Formulas" icon={Info}>
+              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30 mb-4">
+                <p className="text-center text-lg font-mono text-cyan-400 mb-2">V_e = I_sp · g_0</p>
+                <div className="text-gray-400 text-sm space-y-1">
+                  <p><span className="text-cyan-400">V_e</span> = Exhaust Velocity</p>
+                  <p><span className="text-cyan-400">I_sp</span> = Specific Impulse</p>
+                  <p><span className="text-cyan-400">g_0</span> = Std. Gravity (≈ 9.81 m/s²)</p>
+                </div>
+              </div>
+              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
+                <p className="text-center text-lg font-mono text-cyan-400 mb-2">F = ṁV_e + (P_e - P_a)A_e</p>
+                <div className="text-gray-400 text-sm space-y-1">
+                  <p><span className="text-cyan-400">F</span> = Total Thrust (N)</p>
+                  <p><span className="text-cyan-400">ṁ</span> = Mass Flow Rate (kg/s)</p>
+                  <p><span className="text-cyan-400">P_e, P_a</span> = Exit, Ambient Pressure (Pa)</p>
+                  <p><span className="text-cyan-400">A_e</span> = Nozzle Exit Area (m²)</p>
+                </div>
+              </div>
+            </AeroCard>
+          </div>
         </div>
-      </div>
+      </ToolSection>
 
       {/* Save Custom Preset Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
