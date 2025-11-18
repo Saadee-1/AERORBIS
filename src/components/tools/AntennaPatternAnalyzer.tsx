@@ -795,44 +795,39 @@ const AntennaPatternAnalyzer = () => {
               {/* Dynamic Parameters */}
               {selectedAntenna &&
                 Object.keys(selectedAntenna.defaultParams).length > 0 && (
-                  <div className="space-y-3 pt-2 border-t border-cyan-400/10">
+                  <div className={`${spacingVertical.M} pt-2 border-t border-cyan-400/10`}>
                     <Label className="text-gray-300">Antenna Parameters</Label>
                     {Object.entries(selectedAntenna.defaultParams).map(([key, defaultValue]) => (
-                      <div key={key} className="space-y-2">
-                        <Label htmlFor={`param-${key}`} className="text-gray-300 text-sm">
-                          {selectedAntenna.paramLabels[key] || key}
-                        </Label>
+                      <AeroFormField 
+                        key={key} 
+                        label={selectedAntenna.paramLabels[key] || key}
+                      >
                         <Input
                           id={`param-${key}`}
                           type="number"
                           step="0.001"
-                          value={antennaParams[key] || defaultValue}
-                          onChange={(e) =>
-                            handleParamChange(key, parseFloat(e.target.value) || defaultValue)
-                          }
+                          value={String(antennaParams[key] ?? defaultValue)}
+                          onChange={(e) => {
+                            const parsed = parseFloat(e.target.value);
+                            if (!isNaN(parsed)) {
+                              handleParamChange(key, parsed);
+                            }
+                          }}
                           className="bg-slate-900/50 border-cyan-400/30 text-white"
                         />
-                      </div>
+                      </AeroFormField>
                     ))}
                   </div>
                 )}
-            </CardContent>
-          </Card>
+            </AeroCard>
 
-          {/* Frequency & Power */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Zap className="w-5 h-5 text-cyan-400" />
-                Frequency & Power
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* Frequency & Power */}
+            <AeroCard
+              title="Frequency & Power"
+              icon={Zap}
+            >
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="frequency" className="text-gray-300">
-                    Frequency
-                  </Label>
+                <AeroFormField label="Frequency">
                   <Input
                     id="frequency"
                     type="number"
@@ -841,11 +836,8 @@ const AntennaPatternAnalyzer = () => {
                     onChange={(e) => setFrequency(parseFloat(e.target.value) || 0)}
                     className="bg-slate-900/50 border-cyan-400/30 text-white"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="freq-unit" className="text-gray-300">
-                    Unit
-                  </Label>
+                </AeroFormField>
+                <AeroFormField label="Unit">
                   <Select value={frequencyUnit} onValueChange={(v: "Hz" | "MHz" | "GHz" | "Custom") => setFrequencyUnit(v)}>
                     <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
                       <SelectValue />
@@ -857,7 +849,7 @@ const AntennaPatternAnalyzer = () => {
                       <SelectItem value="Custom">Custom</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </AeroFormField>
 
                 {/* Custom Frequency Unit Card */}
                 {frequencyUnit === "Custom" && (
@@ -885,10 +877,7 @@ const AntennaPatternAnalyzer = () => {
                   </div>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="power" className="text-gray-300">
-                  Transmit Power (W)
-                </Label>
+              <AeroFormField label="Transmit Power (W)">
                 <Input
                   id="power"
                   type="number"
@@ -897,29 +886,21 @@ const AntennaPatternAnalyzer = () => {
                   onChange={(e) => setTransmitPower(parseFloat(e.target.value) || 0)}
                   className="bg-slate-900/50 border-cyan-400/30 text-white"
                 />
-              </div>
+              </AeroFormField>
               <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
                 <p className="text-xs text-gray-400">Wavelength</p>
                 <p className="text-cyan-400 font-semibold">
                   λ = {(lambda * 1000).toFixed(3)} mm
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </AeroCard>
 
-          {/* Settings */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Settings2 className="w-5 h-5 text-cyan-400" />
-                Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="resolution" className="text-gray-300">
-                  Angular Resolution: {resolution}°
-                </Label>
+            {/* Settings */}
+            <AeroCard
+              title="Settings"
+              icon={Settings2}
+            >
+              <AeroFormField label={`Angular Resolution: ${resolution}°`}>
                 <Slider
                   id="resolution"
                   min={0.5}
@@ -929,11 +910,8 @@ const AntennaPatternAnalyzer = () => {
                   onValueChange={(vals) => setResolution(vals[0])}
                   className="w-full"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="polarization" className="text-gray-300">
-                  Polarization
-                </Label>
+              </AeroFormField>
+              <AeroFormField label="Polarization">
                 <Select value={polarization} onValueChange={setPolarization}>
                   <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
                     <SelectValue />
@@ -945,7 +923,7 @@ const AntennaPatternAnalyzer = () => {
                     <SelectItem value="lhcp">LHCP</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </AeroFormField>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={show3D}
@@ -953,31 +931,27 @@ const AntennaPatternAnalyzer = () => {
                 />
                 <Label className="text-gray-300">Show 3D Visualization</Label>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </AeroCard>
+          </div>
 
         {/* Right Panel - Results & Visualizations */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="lg:col-span-2 space-y-6"
-        >
-          {/* Results Summary */}
-          {result && (
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">Results Summary</CardTitle>
-                  <PDFExportButton 
-                    requestId={lastRequestId} 
-                    toolName="Antenna Pattern Analyzer"
-                    disabled={!lastRequestId}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent>
+        <div className="lg:col-span-2">
+          <div className={spacingVertical.L}>
+            {/* Results Summary */}
+            {result && (
+              <AeroCard
+                title="Results Summary"
+                headerActions={
+                  <div className="flex gap-2">
+                    <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                    <PDFExportButton 
+                      requestId={lastRequestId} 
+                      toolName="Antenna Pattern Analyzer"
+                      disabled={!lastRequestId}
+                    />
+                  </div>
+                }
+              >
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
                     <p className="text-xs text-gray-400 mb-1">Peak Gain</p>
@@ -1104,22 +1078,15 @@ const AntennaPatternAnalyzer = () => {
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          )}
+              </AeroCard>
+            )}
 
-          {/* 2D Pattern Plot */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-cyan-400" />
-                Radiation Pattern
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                E-plane (φ=0°) and H-plane (φ=90°) cuts
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            {/* 2D Pattern Plot */}
+            <ChartCard 
+              title="Radiation Pattern"
+              description="E-plane (φ=0°) and H-plane (φ=90°) cuts"
+              height={400}
+            >
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={chartData.ePlane}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -1172,40 +1139,27 @@ const AntennaPatternAnalyzer = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
+            </ChartCard>
 
-          {/* 3D Pattern Visualization */}
-          {show3D && (
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-cyan-400" />
-                  3D Radiation Pattern
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Interactive 3D visualization of antenna radiation pattern
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+            {/* 3D Pattern Visualization */}
+            {show3D && (
+              <AeroCard
+                title="3D Radiation Pattern"
+                description="Interactive 3D visualization of antenna radiation pattern"
+                icon={Zap}
+              >
                 <canvas
                   ref={canvas3DRef}
                   className="w-full h-[500px] rounded-lg bg-slate-900"
                 />
-              </CardContent>
-            </Card>
-          )}
+              </AeroCard>
+            )}
 
-
-          {/* Theory Accordion */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Info className="w-5 h-5 text-cyan-400" />
-                Theory & Formulas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+            {/* Theory Accordion */}
+            <AeroCard
+              title="Theory & Formulas"
+              icon={Info}
+            >
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="formulas" className="border-cyan-400/20">
                   <AccordionTrigger className="text-white hover:text-cyan-400">
@@ -1252,10 +1206,10 @@ const AntennaPatternAnalyzer = () => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+              </AeroCard>
+          </div>
+        </div>
+      </ToolSection>
 
       {/* Save Custom Preset Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
@@ -1368,8 +1322,7 @@ const AntennaPatternAnalyzer = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-    </div>
+    </ToolWrapper>
   );
 };
 
