@@ -52,7 +52,7 @@ export interface CalculationEventResponse {
  * ```
  */
 export const useToolContext = () => {
-  const { setToolContext } = useAIAssistant();
+  const { setToolContext, setIsOpen } = useAIAssistant();
 
   const sendCalculationEvent = useCallback(async (
     payload: CalculationEventPayload
