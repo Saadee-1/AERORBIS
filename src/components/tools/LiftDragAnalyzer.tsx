@@ -24,6 +24,16 @@ import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal, Settings2 } from "
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
+import { AskAIButton } from "@/components/tools/AskAIButton";
+import { ToolWrapper } from "@/components/layout/ToolWrapper";
+import { ToolHeader } from "@/components/layout/ToolHeader";
+import { ToolSection } from "@/components/layout/ToolSection";
+import { ToolActions } from "@/components/layout/ToolActions";
+import { AeroCard } from "@/components/common/AeroCard";
+import { AeroFormField } from "@/components/forms/AeroFormField";
+import { AeroButton } from "@/components/common/AeroButton";
+import { ChartCard } from "@/components/charts/ChartCard";
+import { spacingVertical } from "@/styles/spacing";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type AirfoilKey = keyof typeof airfoils | "custom";
@@ -521,234 +531,182 @@ const LiftDragAnalyzer = () => {
   const comparisonAirfoilName = airfoils[comparisonAirfoil].name;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="w-full max-w-7xl mx-auto"
-    >
-      <Card className="bg-slate-900/80 backdrop-blur-lg border-cyan-400/20 shadow-[0_0_40px_rgba(34,211,238,0.15)]">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                <TrendingUp className="w-8 h-8 text-cyan-400" />
-              </div>
-              <div>
-                <CardTitle className="text-3xl text-cyan-400 font-bold">
-                  Advanced Lift-to-Drag Analyzer
-                </CardTitle>
-                <CardDescription className="text-slate-300 text-base">
-                  Analyze wing design and compare airfoil efficiency.
-                </CardDescription>
-              </div>
-            </div>
-            <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SI">SI (m, kg)</SelectItem>
-                <SelectItem value="Imperial">Imperial (ft, slug)</SelectItem>
-                <SelectItem value="Custom">Custom</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
+    <ToolWrapper>
+      <ToolHeader
+        title="Advanced Lift-to-Drag Analyzer"
+        description="Analyze wing design and compare airfoil efficiency"
+        icon={TrendingUp}
+        actions={
+          <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
+            <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30 text-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="SI">SI (m, kg)</SelectItem>
+              <SelectItem value="Imperial">Imperial (ft, slug)</SelectItem>
+              <SelectItem value="Custom">Custom</SelectItem>
+            </SelectContent>
+          </Select>
+        }
+      />
 
-        <CardContent className="space-y-6">
-          {error && (
-            <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-300">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+      {error && (
+        <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-300 mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Input Panel */}
-            <div className="space-y-6">
-              <Card className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
-                <CardContent className="p-0 space-y-4 pt-4">
-                <h3 className="text-xl font-semibold text-cyan-400">Flight Configuration</h3>
-
-                <div className="space-y-2">
-                  <Label htmlFor="airfoil" className="text-cyan-300">Airfoil Type</Label>
-                  <Select value={inputs.airfoil} onValueChange={(v) => setInputs({ ...inputs, airfoil: v as AirfoilKey })}>
-                    <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.keys(airfoils).map((key) => (
-                        <SelectItem key={key} value={key}>
-                          {airfoils[key as keyof typeof airfoils].name}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value="custom">
-                        <span className="text-cyan-400">-- Custom Airfoil --</span>
+      <ToolSection gridCols={2}>
+        {/* Input Panel */}
+        <div>
+          <div className={spacingVertical.L}>
+            <AeroCard title="Flight Configuration" icon={Plane}>
+              <AeroFormField label="Airfoil Type" helperText={currentAirfoilDescription}>
+                <Select value={inputs.airfoil} onValueChange={(v) => setInputs({ ...inputs, airfoil: v as AirfoilKey })}>
+                  <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(airfoils).map((key) => (
+                      <SelectItem key={key} value={key}>
+                        {airfoils[key as keyof typeof airfoils].name}
                       </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-slate-400">{currentAirfoilDescription}</p>
-                </div>
+                    ))}
+                    <SelectItem value="custom">
+                      <span className="text-cyan-400">-- Custom Airfoil --</span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </AeroFormField>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="wingArea" className="text-cyan-300">Wing Area ({getUnit("area")})</Label>
-                    <Input id="wingArea" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="wingSpan" className="text-cyan-300">Wing Span ({getUnit("span")})</Label>
-                    <Input id="wingSpan" type="number" value={inputs.wingSpan} onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                  </div>
-                </div>
+              <div className="grid grid-cols-2 gap-4">
+                <AeroFormField label={`Wing Area (${getUnit("area")})`}>
+                  <Input id="wingArea" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                </AeroFormField>
+                <AeroFormField label={`Wing Span (${getUnit("span")})`}>
+                  <Input id="wingSpan" type="number" value={inputs.wingSpan} onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                </AeroFormField>
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="angleOfAttack" className="text-cyan-300">Angle of Attack (°)</Label>
-                    <Input id="angleOfAttack" type="number" value={inputs.angleOfAttack} onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="oswaldEfficiency" className="text-cyan-300">Oswald Eff. (e)</Label>
-                    <Input id="oswaldEfficiency" type="number" step="0.01" value={inputs.oswaldEfficiency} onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                  </div>
-                </div>
-                <p className="text-xs text-slate-400 -mt-2">Aspect Ratio (AR) is calculated from Area and Span. Oswald (e) is typically 0.7-0.9.</p>
+              <div className="grid grid-cols-2 gap-4">
+                <AeroFormField label="Angle of Attack (°)">
+                  <Input id="angleOfAttack" type="number" value={inputs.angleOfAttack} onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                </AeroFormField>
+                <AeroFormField label="Oswald Eff. (e)" helperText="Typically 0.7-0.9">
+                  <Input id="oswaldEfficiency" type="number" step="0.01" value={inputs.oswaldEfficiency} onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                </AeroFormField>
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="airspeed" className="text-cyan-300">Airspeed ({getUnit("speed")})</Label>
-                    {/* FIXED: Changed e.GValue to e.target.value */}
-                    <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="airDensity" className="text-cyan-300">Air Density ({getUnit("density")})</Label>
-                    <Input id="airDensity" type="number" value={inputs.airDensity} onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                  </div>
-                </div>
+              <div className="grid grid-cols-2 gap-4">
+                <AeroFormField label={`Airspeed (${getUnit("speed")})`}>
+                  <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                </AeroFormField>
+                <AeroFormField label={`Air Density (${getUnit("density")})`}>
+                  <Input id="airDensity" type="number" value={inputs.airDensity} onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                </AeroFormField>
+              </div>
 
-                <Button
-                  type="button"
-                  onClick={calculateLiftDrag}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold"
+              <AeroButton
+                type="button"
+                onClick={calculateLiftDrag}
+                variant="primary"
+                icon={Plane}
+                className="w-full"
+              >
+                Analyze Performance
+              </AeroButton>
+            </AeroCard>
+
+            {/* Custom Airfoil Card */}
+            <AnimatePresence>
+              {inputs.airfoil === "custom" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <Plane className="w-4 h-4 mr-2" />
-                  Analyze Performance
-                </Button>
-                </CardContent>
-              </Card>
-
-              {/* Custom Airfoil Card */}
-              <AnimatePresence>
-                {inputs.airfoil === "custom" && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Card className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
-                      <CardContent className="p-0 space-y-4 pt-4">
-                        <h3 className="text-xl font-semibold text-cyan-400 flex items-center gap-2">
-                          <Pencil className="w-5 h-5" />
-                          Custom Airfoil Coefficients
-                        </h3>
-                        <div className="space-y-2">
-                          <Label htmlFor="customName" className="text-cyan-300">Airfoil Name</Label>
-                          <Input id="customName" type="text" value={customAirfoil.name} onChange={(e) => handleCustomAirfoilChange("name", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="cl0" className="text-cyan-300">CL₀ (at 0° alpha)</Label>
-                            {/* FIXED: Property name matches interface */}
-                            <Input id="cl0" type="number" value={customAirfoil.CL_0} onChange={(e) => handleCustomAirfoilChange("CL_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="clAlpha" className="text-cyan-300">CL_α (per degree)</Label>
-                            <Input id="clAlpha" type="number" value={customAirfoil.CL_alpha} onChange={(e) => handleCustomAirfoilChange("CL_alpha", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="cd0" className="text-cyan-300">CD₀ (Parasitic Drag)</Label>
-                            <Input id="cd0" type="number" value={customAirfoil.CD_0} onChange={(e) => handleCustomAirfoilChange("CD_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="alphaStall" className="text-cyan-300">Stall Angle (°)</Label>
-                            <Input id="alphaStall" type="number" value={customAirfoil.alpha_stall} onChange={(e) => handleCustomAirfoilChange("alpha_stall", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Custom Units Card */}
-              {unitSystem === "Custom" && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-                    <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <Settings2 className="w-5 h-5 text-cyan-400" />
-                        Custom Unit Definitions
-                      </CardTitle>
-                      <CardDescription className="text-gray-400">
-                        Define conversion factors to SI (kg, m, s, N)
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {[
-                        {id: 'speed', label: 'Airspeed (V)', unit: 'm/s'},
-                        {id: 'density', label: 'Air Density (ρ)', unit: 'kg/m³'},
-                        {id: 'area', label: 'Wing Area (S)', unit: 'm²'},
-                        {id: 'force', label: 'Force (L/D)', unit: 'N'},
-                        {id: 'span', label: 'Wing Span (b)', unit: 'm'},
-                      ].map(field => (
-                        <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                          <Label className="text-white font-semibold">{field.label}</Label>
-                          <div className="grid grid-cols-2 gap-2 mt-2">
-                            <Input 
-                              placeholder="Unit Name" 
-                              value={customUnitNames[field.id as keyof typeof customUnitNames]}
-                              onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                              className="bg-slate-800 border-cyan-400/30 text-white"
-                            />
-                            <Input 
-                              type="number"
-                              step="0.0001"
-                              placeholder="SI Factor"
-                              value={customFactors[field.id as keyof typeof customFactors]}
-                              onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                              className="bg-slate-800 border-cyan-400/30 text-white"
-                            />
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1.5">
-                            1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
-                          </p>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
+                  <AeroCard title="Custom Airfoil Coefficients" icon={Pencil}>
+                    <AeroFormField label="Airfoil Name">
+                      <Input id="customName" type="text" value={customAirfoil.name} onChange={(e) => handleCustomAirfoilChange("name", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                    </AeroFormField>
+                    <div className="grid grid-cols-2 gap-4">
+                      <AeroFormField label="CL₀ (at 0° alpha)">
+                        <Input id="cl0" type="number" value={customAirfoil.CL_0} onChange={(e) => handleCustomAirfoilChange("CL_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                      </AeroFormField>
+                      <AeroFormField label="CL_α (per degree)">
+                        <Input id="clAlpha" type="number" value={customAirfoil.CL_alpha} onChange={(e) => handleCustomAirfoilChange("CL_alpha", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                      </AeroFormField>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <AeroFormField label="CD₀ (Parasitic Drag)">
+                        <Input id="cd0" type="number" value={customAirfoil.CD_0} onChange={(e) => handleCustomAirfoilChange("CD_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                      </AeroFormField>
+                      <AeroFormField label="Stall Angle (°)">
+                        <Input id="alphaStall" type="number" value={customAirfoil.alpha_stall} onChange={(e) => handleCustomAirfoilChange("alpha_stall", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                      </AeroFormField>
+                    </div>
+                  </AeroCard>
                 </motion.div>
               )}
-            </div>
+            </AnimatePresence>
 
-            {/* Results Panel */}
-            {result ? (
-              <motion.div 
-                initial={{ opacity: 0, x: 10 }} 
-                animate={{ opacity: 1, x: 0 }} 
-                className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-cyan-400">Analysis Results</h3>
-                  {lastRequestId && (
+            {/* Custom Units Card */}
+            {unitSystem === "Custom" && (
+              <AeroCard title="Custom Unit Definitions" description="Define conversion factors to SI (kg, m, s, N)" icon={Settings2}>
+                {[
+                  {id: 'speed', label: 'Airspeed (V)', unit: 'm/s'},
+                  {id: 'density', label: 'Air Density (ρ)', unit: 'kg/m³'},
+                  {id: 'area', label: 'Wing Area (S)', unit: 'm²'},
+                  {id: 'force', label: 'Force (L/D)', unit: 'N'},
+                  {id: 'span', label: 'Wing Span (b)', unit: 'm'},
+                ].map(field => (
+                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
+                    <Label className="text-white font-semibold">{field.label}</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Input 
+                        placeholder="Unit Name" 
+                        value={customUnitNames[field.id as keyof typeof customUnitNames]}
+                        onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                      <Input 
+                        type="number"
+                        step="0.0001"
+                        placeholder="SI Factor"
+                        value={customFactors[field.id as keyof typeof customFactors]}
+                        onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
+                    </p>
+                  </div>
+                ))}
+              </AeroCard>
+            )}
+          </div>
+        </div>
+
+        {/* Results Panel */}
+        <div>
+          {result ? (
+            <AeroCard
+              title="Analysis Results"
+              headerActions={
+                lastRequestId ? (
+                  <div className="flex gap-2">
+                    <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
                     <PDFExportButton 
                       requestId={lastRequestId} 
                       toolName="Lift/Drag Analyzer"
                       disabled={!lastRequestId}
                     />
-                  )}
-                </div>
+                  </div>
+                ) : null
+              }
+            >
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
@@ -807,39 +765,35 @@ const LiftDragAnalyzer = () => {
                       ))}
                     </AccordionContent>
                   </AccordionItem>
-                </Accordion>
-              </motion.div>
-            ) : (
-                 <div className="space-y-4 p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20 h-full flex flex-col items-center justify-center">
-                    <Plane className="w-24 h-24 text-cyan-400/10" />
-                    <h3 className="text-xl font-semibold text-cyan-400">Results will appear here</h3>
-                    <p className="text-slate-400 text-center">Fill in the configuration and click "Analyze Performance" to see the results.</p>
-                 </div>
-            )}
-          </div>
+              </Accordion>
+            </AeroCard>
+          ) : (
+            <AeroCard title="Analysis Results">
+              <div className="h-full flex flex-col items-center justify-center py-12">
+                <Plane className="w-24 h-24 text-cyan-400/10" />
+                <h3 className="text-xl font-semibold text-cyan-400 mt-4">Results will appear here</h3>
+                <p className="text-slate-400 text-center mt-2">Fill in the configuration and click "Analyze Performance" to see the results.</p>
+              </div>
+            </AeroCard>
+          )}
+        </div>
+      </ToolSection>
 
-          {/* Comparison Chart */}
-          {comparisonData.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20"
-            >
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
-                <h3 className="text-xl font-semibold text-cyan-400">
-                  Performance Comparison (L/D Ratio)
-                </h3>
-                {/* Comparison Controls */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => setChartMode(prev => prev === 'compareOne' ? 'compareAll' : 'compareOne')}
-                    variant="outline"
-                    className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 text-white"
-                  >
-                    <BarChartHorizontal className="w-4 h-4 mr-2" />
-                    {chartMode === 'compareOne' ? 'Compare All' : 'Compare 1-v-1'}
-                  </Button>
+      {/* Comparison Chart */}
+      {comparisonData.length > 0 && (
+        <ChartCard 
+          title="Performance Comparison (L/D Ratio)"
+          height={350}
+          headerActions={
+            <div className="flex items-center gap-2">
+              <AeroButton
+                type="button"
+                onClick={() => setChartMode(prev => prev === 'compareOne' ? 'compareAll' : 'compareOne')}
+                variant="outline"
+                icon={BarChartHorizontal}
+              >
+                {chartMode === 'compareOne' ? 'Compare All' : 'Compare 1-v-1'}
+              </AeroButton>
                   <AnimatePresence>
                     {chartMode === 'compareOne' && (
                       <motion.div

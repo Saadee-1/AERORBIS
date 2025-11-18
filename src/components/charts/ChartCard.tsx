@@ -25,6 +25,7 @@ interface ChartCardProps {
   description?: string;
   className?: string;
   height?: number;
+  headerActions?: ReactNode;
 }
 
 export function ChartCard({ 
@@ -32,10 +33,11 @@ export function ChartCard({
   children, 
   description,
   className = '',
-  height = 350 
+  height = 350,
+  headerActions
 }: ChartCardProps) {
   return (
-    <AeroCard title={title} description={description} className={className}>
+    <AeroCard title={title} description={description} className={className} headerActions={headerActions}>
       <div style={{ height: `${height}px` }} className="w-full">
         {children}
       </div>
