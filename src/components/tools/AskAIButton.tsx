@@ -73,7 +73,7 @@ export function AskAIButton({
         setIsOpen(true);
         
         // Trigger initial explanation message (will include payload JSON in message)
-        await sendMessage(`Please explain this ${finalPayload.toolName} calculation in detail.`);
+        await sendMessage(`Explain this ${finalPayload.toolName} calculation.`);
         
         toast({
           title: 'Success',

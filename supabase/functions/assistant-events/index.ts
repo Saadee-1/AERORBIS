@@ -284,7 +284,7 @@ Provide:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'You are an aerospace engineering expert providing detailed explanations.' },
+          { role: 'system', content: 'You are AEROVERSE AI — a concise aerospace engineering calculation interpreter. Keep explanations SHORT, TECHNICAL, and PROFESSIONAL (6-10 bullet points max). No teaching tone, no fluff.' },
           { role: 'user', content: explainPrompt }
         ],
         temperature: 0.3,

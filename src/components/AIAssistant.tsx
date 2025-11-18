@@ -438,10 +438,17 @@ const AIAssistant: React.FC = () => {
                           I can explain results, perform calculations, and provide insights.
                         </p>
                         {currentPayload && (!currentPayload.results || Object.keys(currentPayload.results).length === 0) && (
-                          <div className="mt-2 p-2 bg-yellow-400/10 border border-yellow-400/30 rounded text-xs text-yellow-400">
-                            ⚠️ No results found in payload. Please verify the calculation completed.
+                          <div className="mt-2 p-2 bg-red-400/10 border border-red-400/30 rounded text-xs text-red-400">
+                            ⚠️ No calculation data found. Please compute first, then click "Ask AI Explain".
                           </div>
                         )}
+                      </div>
+                    )}
+                    {!currentPayload && !toolContext && mode === 'chat' && (
+                      <div className="mt-4 p-3 bg-yellow-400/10 border border-yellow-400/30 rounded-lg text-left max-w-xs mx-auto">
+                        <p className="text-xs text-yellow-400">
+                          No calculation data found. Please compute first, then click "Ask AI Explain".
+                        </p>
                       </div>
                     )}
                   </div>

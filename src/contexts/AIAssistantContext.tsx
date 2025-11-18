@@ -226,22 +226,11 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
       // CRITICAL: Include full payload JSON in user message so Gemini receives it directly
       // Wrap in code block to preserve formatting and avoid truncation
       const payloadJson = JSON.stringify(currentPayload, null, 2);
-      userMessageContent = `${content}
-
-Please analyze the following JSON payload and explain the calculation in detail. Do not ask for external access or try to fetch data by Request ID. Use only the data provided below.
+      userMessageContent = `Explain this calculation concisely using the payload below.
 
 \`\`\`json
 ${payloadJson}
-\`\`\`
-
-Use this payload to:
-1. Provide a short summary of the calculation
-2. Explain step-by-step how the formulas map to the results
-3. Check units consistency
-4. Identify any warnings or assumptions
-5. Suggest next steps
-
-If any required values are missing in the payload, explicitly state which fields are missing.`;
+\`\`\``;
 
       console.log('✅ Including full payload JSON in user message:', {
         toolName: currentPayload.toolName,
@@ -564,7 +553,7 @@ Error: ${data.error}`;
 
       // Send initial explanation request with full context
       // The sendMessage function will use currentPayload from context and include payload JSON in message
-      const explanationPrompt = `Please explain this ${finalPayload.toolName} calculation in detail.`;
+      const explanationPrompt = `Explain this ${finalPayload.toolName} calculation.`;
       await sendMessage(explanationPrompt);
     } catch (error) {
       console.error('Error opening assistant with payload:', error);
