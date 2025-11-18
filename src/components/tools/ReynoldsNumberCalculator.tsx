@@ -845,113 +845,48 @@ const ReynoldsNumberCalculator = () => {
                   </>
                 )}
 
-                {/* Placeholder */}
-                {!result && (
-                  <div className="text-center py-12">
-                    <Calculator className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-                    <p className="text-gray-400">Results will appear here</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+              </AeroCard>
+            ) : (
+              <AeroCard title="Results">
+                <div className="text-center py-12">
+                  <Calculator className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
+                  <p className="text-gray-400">Results will appear here</p>
+                </div>
+              </AeroCard>
+            )}
 
-          {/* --- Physics Insights --- */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Info className="w-5 h-5 text-cyan-400" />
-                  Physics Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                  <p className="text-cyan-400 font-semibold text-sm mb-1">Increasing Velocity</p>
-                  <p className="text-gray-300 text-xs">Higher flow speed increases Re, promoting turbulent flow</p>
-                </div>
-                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                  <p className="text-cyan-400 font-semibold text-sm mb-1">Increasing Viscosity</p>
-                  <p className="text-gray-300 text-xs">Higher viscosity decreases Re, stabilizing laminar flow</p>
-                </div>
-                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                  <p className="text-cyan-400 font-semibold text-sm mb-1">Longer Characteristic Length</p>
-                  <p className="text-gray-300 text-xs">Larger dimensions increase Re, making flow more turbulent</p>
-                </div>
-                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                  <p className="text-cyan-400 font-semibold text-sm mb-1">Higher Altitude</p>
-                  <p className="text-gray-300 text-xs">Lower air density at altitude reduces Re for the same velocity</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+            {/* --- Physics Insights --- */}
+            <AeroCard title="Physics Insights" icon={Info}>
+              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
+                <p className="text-cyan-400 font-semibold text-sm mb-1">Increasing Velocity</p>
+                <p className="text-gray-300 text-xs">Higher flow speed increases Re, promoting turbulent flow</p>
+              </div>
+              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
+                <p className="text-cyan-400 font-semibold text-sm mb-1">Increasing Viscosity</p>
+                <p className="text-gray-300 text-xs">Higher viscosity decreases Re, stabilizing laminar flow</p>
+              </div>
+              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
+                <p className="text-cyan-400 font-semibold text-sm mb-1">Longer Characteristic Length</p>
+                <p className="text-gray-300 text-xs">Larger dimensions increase Re, making flow more turbulent</p>
+              </div>
+              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                <p className="text-cyan-400 font-semibold text-sm mb-1">Higher Altitude</p>
+                <p className="text-gray-300 text-xs">Lower air density at altitude reduces Re for the same velocity</p>
+              </div>
+            </AeroCard>
 
-          {/* --- Chart --- */}
-          {chartData.length > 0 && (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-cyan-400" />
-                    Reynolds Number vs. Characteristic Length
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Relationship at constant velocity and density
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis 
-                        dataKey="length" 
-                        stroke="#94a3b8" 
-                        tickFormatter={(val) => val.toFixed(2)}
-                        label={{ value: `Characteristic Length (${getUnit("length")})`, position: 'insideBottom', offset: -5, fill: '#94a3b8' }}
-                      />
-                      <YAxis 
-                        stroke="#94a3b8" 
-                        tickFormatter={(val) => val.toExponential(1)}
-                        label={{ value: 'Reynolds Number', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
-                      />
-                      <RechartsTooltip 
-                        contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} 
-                        formatter={(value: number) => value.toExponential(2)}
-                        labelFormatter={(label) => `Length: ${label} ${getUnit("length")}`}
-                      />
-                      <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="reynoldsNumber" 
-                        stroke="#22d3ee" 
-                        strokeWidth={2} 
-                        dot={false} 
-                        name="Reynolds Number"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* --- Formula Card --- */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-white">Formula</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-center text-lg font-mono text-cyan-400 mb-2">Re = (ρ × V × L) / μ</p>
-                  <div className="text-gray-400 text-sm space-y-1">
-                    <p><span className="text-cyan-400">Re</span> = Reynolds Number (dimensionless)</p>
-                    <p><span className="text-cyan-400">ρ</span> = Fluid Density (kg/m³)</p>
-                    <p><span className="text-cyan-400">V</span> = Flow Velocity (m/s)</p>
-                    <p><span className="text-cyan-400">L</span> = Characteristic Length (m)</p>
-                    <p><span className="text-cyan-400">μ</span> = Dynamic Viscosity (Pa·s)</p>
-                  </div>
+            {/* --- Formula Card --- */}
+            <AeroCard title="Formula" icon={Info}>
+              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
+                <p className="text-center text-lg font-mono text-cyan-400 mb-2">Re = (ρ × V × L) / μ</p>
+                <div className="text-gray-400 text-sm space-y-1">
+                  <p><span className="text-cyan-400">Re</span> = Reynolds Number (dimensionless)</p>
+                  <p><span className="text-cyan-400">ρ</span> = Fluid Density (kg/m³)</p>
+                  <p><span className="text-cyan-400">V</span> = Flow Velocity (m/s)</p>
+                  <p><span className="text-cyan-400">L</span> = Characteristic Length (m)</p>
+                  <p><span className="text-cyan-400">μ</span> = Dynamic Viscosity (Pa·s)</p>
                 </div>
+              </div>
                 <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
                   <p className="text-cyan-400 font-semibold text-sm mb-2">Flow Regime Thresholds</p>
                   <div className="text-gray-400 text-sm space-y-1">

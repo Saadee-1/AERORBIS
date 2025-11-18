@@ -322,65 +322,46 @@ const DeltaVPlanner = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Rocket className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Delta-V Budget Planner
-          </h2>
-        </div>
-        <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-          Mission Δv & Staging Designer - Calculate required Δv, stage sizing, and mission feasibility
-        </p>
-        <div className="flex justify-center gap-2 mt-4">
-          <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-            <SelectTrigger className="w-40 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="SI">SI (m/s)</SelectItem>
-              <SelectItem value="Imperial">Imperial (ft/s)</SelectItem>
-              <SelectItem value="Custom">Custom</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            onClick={() => setIsPresetDialogOpen(true)}
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-          >
-            <Database className="w-4 h-4 mr-2" />
-            Save Preset
-          </Button>
-        </div>
-      </motion.div>
+    <ToolWrapper>
+      <ToolHeader
+        title="Delta-V Budget Planner"
+        description="Mission Δv & Staging Designer - Calculate required Δv, stage sizing, and mission feasibility"
+        icon={Rocket}
+        actions={
+          <ToolActions>
+            <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
+              <SelectTrigger className="w-40 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SI">SI (m/s)</SelectItem>
+                <SelectItem value="Imperial">Imperial (ft/s)</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+            <AeroButton
+              variant="outline"
+              onClick={() => setIsPresetDialogOpen(true)}
+              icon={Database}
+            >
+              Save Preset
+            </AeroButton>
+          </ToolActions>
+        }
+      />
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <ToolSection gridCols={3}>
         {/* Left Panel - Mission & Stage Inputs */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="lg:col-span-2 space-y-6"
-        >
-          {/* Mission Parameters */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Rocket className="w-5 h-5 text-cyan-400" />
-                Mission Parameters
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Configure target orbit and mission requirements
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <div className="lg:col-span-2">
+          <div className={spacingVertical.L}>
+            {/* Mission Parameters */}
+            <AeroCard
+              title="Mission Parameters"
+              description="Configure target orbit and mission requirements"
+              icon={Rocket}
+            >
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="orbit-type" className="text-gray-300">
-                    Orbit Type
-                  </Label>
+                <AeroFormField label="Orbit Type">
                   <Select
                     value={mission.orbitType}
                     onValueChange={(value: MissionParameters["orbitType"]) =>
@@ -398,11 +379,8 @@ const DeltaVPlanner = () => {
                       <SelectItem value="Custom">Custom</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="altitude" className="text-gray-300">
-                    Target Altitude (km)
-                  </Label>
+                </AeroFormField>
+                <AeroFormField label="Target Altitude (km)">
                   <Input
                     id="altitude"
                     type="number"
@@ -416,13 +394,10 @@ const DeltaVPlanner = () => {
                     }
                     className="bg-slate-900/50 border-cyan-400/30 text-white"
                   />
-                </div>
+                </AeroFormField>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="inclination" className="text-gray-300">
-                    Target Inclination (deg)
-                  </Label>
+                <AeroFormField label="Target Inclination (deg)">
                   <Input
                     id="inclination"
                     type="number"
@@ -436,11 +411,8 @@ const DeltaVPlanner = () => {
                     }
                     className="bg-slate-900/50 border-cyan-400/30 text-white"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="payload" className="text-gray-300">
-                    Payload Mass (kg)
-                  </Label>
+                </AeroFormField>
+                <AeroFormField label={`Payload Mass (kg)`}>
                   <Input
                     id="payload"
                     type="number"
@@ -454,13 +426,10 @@ const DeltaVPlanner = () => {
                     }
                     className="bg-slate-900/50 border-cyan-400/30 text-white"
                   />
-                </div>
+                </AeroFormField>
               </div>
               <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="gravity-loss" className="text-gray-300">
-                    Gravity Loss (m/s)
-                  </Label>
+                <AeroFormField label="Gravity Loss (m/s)">
                   <Input
                     id="gravity-loss"
                     type="number"
@@ -474,11 +443,8 @@ const DeltaVPlanner = () => {
                     }
                     className="bg-slate-900/50 border-cyan-400/30 text-white"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="drag-loss" className="text-gray-300">
-                    Drag Loss ({unitSystem === "SI" ? "m/s" : unitSystem === "Imperial" ? "ft/s" : customUnitName || "Unit"})
-                  </Label>
+                </AeroFormField>
+                <AeroFormField label={`Drag Loss (${unitSystem === "SI" ? "m/s" : unitSystem === "Imperial" ? "ft/s" : customUnitName || "Unit"})`}>
                   <Input
                     id="drag-loss"
                     type="number"
@@ -492,11 +458,8 @@ const DeltaVPlanner = () => {
                     }
                     className="bg-slate-900/50 border-cyan-400/30 text-white"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="steering-loss" className="text-gray-300">
-                    Steering Loss ({unitSystem === "SI" ? "m/s" : unitSystem === "Imperial" ? "ft/s" : customUnitName || "Unit"})
-                  </Label>
+                </AeroFormField>
+                <AeroFormField label={`Steering Loss (${unitSystem === "SI" ? "m/s" : unitSystem === "Imperial" ? "ft/s" : customUnitName || "Unit"})`}>
                   <Input
                     id="steering-loss"
                     type="number"
@@ -510,12 +473,9 @@ const DeltaVPlanner = () => {
                     }
                     className="bg-slate-900/50 border-cyan-400/30 text-white"
                   />
-                </div>
+                </AeroFormField>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="margin" className="text-gray-300">
-                  Reserve Margin (%)
-                </Label>
+              <AeroFormField label="Reserve Margin (%)">
                 <Input
                   id="margin"
                   type="number"
@@ -531,79 +491,71 @@ const DeltaVPlanner = () => {
                   }
                   className="bg-slate-900/50 border-cyan-400/30 text-white"
                 />
-              </div>
-            </CardContent>
-          </Card>
+              </AeroFormField>
+            </AeroCard>
 
-          {/* Stage Editor */}
-          <StageEditor stages={stages} onStagesChange={setStages} />
+            {/* Stage Editor */}
+            <StageEditor stages={stages} onStagesChange={setStages} />
 
-          {/* Presets */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Database className="w-5 h-5 text-cyan-400" />
-                Mission Presets
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Quick-load common mission configurations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            {/* Presets */}
+            <AeroCard
+              title="Mission Presets"
+              description="Quick-load common mission configurations"
+              icon={Database}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {MISSION_PRESETS.map((preset) => (
-                  <Button
+                  <AeroButton
                     key={preset.name}
                     variant="outline"
                     onClick={() => loadPreset(preset)}
-                    className="justify-start border-cyan-400/20 text-gray-300 hover:bg-cyan-400/10 hover:border-cyan-400/40"
+                    className="justify-start"
                   >
                     <div className="text-left">
                       <p className="font-semibold">{preset.name}</p>
                       <p className="text-xs text-gray-400">{preset.description}</p>
                     </div>
-                  </Button>
+                  </AeroButton>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </AeroCard>
+          </div>
+        </div>
 
         {/* Right Panel - Results */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="space-y-6"
-        >
-          {/* Summary Card */}
-          {result && (
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">Mission Summary</CardTitle>
-                  <PDFExportButton 
-                    requestId={lastRequestId} 
-                    toolName="Delta-V Budget Planner"
-                    disabled={!lastRequestId}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
+        <div>
+          <div className={spacingVertical.L}>
+            {/* Summary Card */}
+            {result ? (
+              <AeroCard
+                title="Mission Summary"
+                headerActions={
+                  lastRequestId ? (
+                    <div className="flex gap-2">
+                      <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                      <PDFExportButton 
+                        requestId={lastRequestId} 
+                        toolName="Delta-V Budget Planner"
+                        disabled={!lastRequestId}
+                      />
+                    </div>
+                  ) : null
+                }
+              >
+                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
                   <p className="text-sm text-gray-400 mb-1">Total Liftoff Mass</p>
                   <p className="text-3xl font-bold text-cyan-400">
                     {(result.totalLiftoffMass / 1000).toFixed(1)} t
                   </p>
                 </div>
-                <div className="p-4 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-lg border border-blue-400/30">
+                <div className="p-4 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-lg border border-blue-400/30 mb-4">
                   <p className="text-sm text-gray-400 mb-1">Total Achievable Δv</p>
                   <p className="text-3xl font-bold text-blue-400">
                     {formatDeltaV(breakdown.totalAchievable)}
                   </p>
                 </div>
                 <div
-                  className={`p-4 rounded-lg border ${
+                  className={`p-4 rounded-lg border mb-4 ${
                     breakdown.isFeasible
                       ? "bg-gradient-to-r from-green-400/10 to-emerald-400/10 border-green-400/30"
                       : "bg-gradient-to-r from-red-400/10 to-pink-400/10 border-red-400/30"
@@ -623,20 +575,16 @@ const DeltaVPlanner = () => {
                     Required: {formatDeltaV(breakdown.totalWithMargin)}
                   </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </AeroCard>
+            ) : null}
 
-          {/* Warnings */}
-          {warnings.length > 0 && (
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-yellow-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-yellow-400 flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5" />
-                  Warnings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* Warnings */}
+            {warnings.length > 0 && (
+              <AeroCard
+                title="Warnings"
+                icon={AlertTriangle}
+                className="border-yellow-400/20"
+              >
                 <div className="space-y-2">
                   {warnings.map((warning, i) => (
                     <Alert key={i} variant="default" className="bg-yellow-400/10 border-yellow-400/30">
@@ -646,20 +594,15 @@ const DeltaVPlanner = () => {
                     </Alert>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </AeroCard>
+            )}
 
-          {/* Recommendations */}
-          {recommendations.length > 0 && (
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-cyan-400 flex items-center gap-2">
-                  <Info className="w-5 h-5" />
-                  Recommendations
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* Recommendations */}
+            {recommendations.length > 0 && (
+              <AeroCard
+                title="Recommendations"
+                icon={Info}
+              >
                 <ul className="space-y-2">
                   {recommendations.map((rec, i) => (
                     <li key={i} className="text-gray-300 text-sm flex items-start gap-2">
@@ -668,22 +611,55 @@ const DeltaVPlanner = () => {
                     </li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
-          )}
-        </motion.div>
-      </div>
+              </AeroCard>
+            )}
+
+            {/* Custom Units Card */}
+            {unitSystem === "Custom" && (
+              <AeroCard
+                title="Custom Unit Definitions"
+                description="Define conversion factor to SI (m/s)"
+                icon={Settings2}
+              >
+                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <Label className="text-white font-semibold">Delta-V (Δv)</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <Input 
+                      placeholder="Unit Name" 
+                      value={customUnitName}
+                      onChange={(e) => setCustomUnitName(e.target.value)}
+                      className="bg-slate-800 border-cyan-400/30 text-white"
+                    />
+                    <Input 
+                      type="number"
+                      step="0.0001"
+                      placeholder="SI Factor"
+                      value={customFactor}
+                      onChange={(e) => setCustomFactor(e.target.value)}
+                      className="bg-slate-800 border-cyan-400/30 text-white"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    1 {customUnitName || "Unit"} = {customFactor || "..."} m/s
+                  </p>
+                </div>
+              </AeroCard>
+            )}
+          </div>
+        </div>
+      </ToolSection>
 
       {/* Results Section */}
       {result && (
-        <div className="grid lg:grid-cols-2 gap-6">
-          <DVBudgetTable breakdown={breakdown} stageResults={stageResults} unitSystem={unitSystem} customUnitName={customUnitName} customFactor={customFactor} />
-          <DeltaVChart breakdown={breakdown} unitSystem={unitSystem} customUnitName={customUnitName} customFactor={customFactor} />
+        <div className={spacingVertical.L}>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <DVBudgetTable breakdown={breakdown} stageResults={stageResults} unitSystem={unitSystem} customUnitName={customUnitName} customFactor={customFactor} />
+            <DeltaVChart breakdown={breakdown} unitSystem={unitSystem} customUnitName={customUnitName} customFactor={customFactor} />
+          </div>
+          {result && (
+            <MassBreakdownChart stageResults={stageResults} payloadMass={mission.payloadMass} />
+          )}
         </div>
-      )}
-
-      {result && (
-        <MassBreakdownChart stageResults={stageResults} payloadMass={mission.payloadMass} />
       )}
 
       {/* Save Preset Dialog */}
@@ -710,66 +686,22 @@ const DeltaVPlanner = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button
+            <AeroButton
               variant="outline"
               onClick={() => setIsPresetDialogOpen(false)}
-              className="border-cyan-400/40 text-cyan-400"
             >
               Cancel
-            </Button>
-            <Button
+            </AeroButton>
+            <AeroButton
               onClick={handleSavePreset}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+              variant="primary"
             >
               Save
-            </Button>
+            </AeroButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-
-
-      {/* Custom Units Card */}
-      {unitSystem === "Custom" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Settings2 className="w-5 h-5 text-cyan-400" />
-                Custom Unit Definitions
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Define conversion factor to SI (m/s)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                <Label className="text-white font-semibold">Delta-V (Δv)</Label>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <Input 
-                    placeholder="Unit Name" 
-                    value={customUnitName}
-                    onChange={(e) => setCustomUnitName(e.target.value)}
-                    className="bg-slate-800 border-cyan-400/30 text-white"
-                  />
-                  <Input 
-                    type="number"
-                    step="0.0001"
-                    placeholder="SI Factor"
-                    value={customFactor}
-                    onChange={(e) => setCustomFactor(e.target.value)}
-                    className="bg-slate-800 border-cyan-400/30 text-white"
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1.5">
-                  1 {customUnitName || "Unit"} = {customFactor || "..."} m/s
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-    </div>
+    </ToolWrapper>
   );
 };
 
