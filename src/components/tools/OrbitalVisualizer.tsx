@@ -26,6 +26,15 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
+import { AskAIButton } from "@/components/tools/AskAIButton";
+import { ToolWrapper } from "@/components/layout/ToolWrapper";
+import { ToolHeader } from "@/components/layout/ToolHeader";
+import { ToolSection } from "@/components/layout/ToolSection";
+import { ToolActions } from "@/components/layout/ToolActions";
+import { AeroCard } from "@/components/common/AeroCard";
+import { AeroFormField } from "@/components/forms/AeroFormField";
+import { AeroButton } from "@/components/common/AeroButton";
+import { spacingVertical } from "@/styles/spacing";
 import { useToast } from "@/hooks/use-toast";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
@@ -854,28 +863,13 @@ const OrbitalVisualizer = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="w-full max-w-7xl mx-auto"
-    >
-      <Card className="bg-slate-900/80 backdrop-blur-lg border-cyan-400/20 shadow-[0_0_40px_rgba(34,211,238,0.15)]">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                <Orbit className="w-8 h-8 text-cyan-400" />
-              </div>
-              <div>
-                <CardTitle className="text-3xl text-cyan-400 font-bold">
-                  Advanced Orbital Visualizer
-                </CardTitle>
-                <CardDescription className="text-slate-300 text-base">
-                  Calculate and visualize orbital mechanics and maneuvers.
-                </CardDescription>
-              </div>
-            </div>
+    <ToolWrapper>
+      <ToolHeader
+        title="Advanced Orbital Visualizer"
+        description="Calculate and visualize orbital mechanics and maneuvers"
+        icon={Orbit}
+        actions={
+          <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
               <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30 text-white">
                 <SelectValue />
@@ -886,114 +880,105 @@ const OrbitalVisualizer = () => {
                 <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </CardHeader>
+            <AeroButton
+              type="button"
+              onClick={() => setIsSaveDialogOpen(true)}
+              variant="outline"
+              icon={Save}
+            >
+              Save Custom Orbit
+            </AeroButton>
+            <AeroButton
+              type="button"
+              onClick={() => setIsLoadDialogOpen(true)}
+              variant="outline"
+              icon={FolderOpen}
+              disabled={customOrbits.length === 0}
+            >
+              Load ({customOrbits.length})
+            </AeroButton>
+          </ToolActions>
+        }
+      />
 
-        <CardContent className="space-y-6">
-          {/* 3D Visualization */}
-          <div className="rounded-xl overflow-hidden border border-cyan-400/30 bg-black h-[450px]">
-            <canvas
-              ref={canvasRef}
-              className="w-full h-full"
-              style={{ display: "block" }}
-            />
-          </div>
-          
-          {error && (
-            <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-300">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          {/* Preset Configurations */}
-          <div className="p-4 rounded-lg bg-slate-800/50 border border-cyan-400/20">
-            <h3 className="text-xl font-semibold text-cyan-400 mb-3">Quick Load Preset Orbits</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {(Object.keys(presets) as Array<keyof typeof presets>).map((presetKey) => (
-                <Button
-                  key={presetKey}
-                  type="button"
-                  onClick={() => loadPreset(presetKey)}
-                  variant="outline"
-                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 transition-all text-white"
-                >
-                  <Rocket className="w-4 h-4 mr-2" />
-                  {presetKey}
-                </Button>
-              ))}
-            </div>
-            <p className="text-sm text-slate-400 mt-2">
-              Click any preset to instantly load real-world satellite parameters
-            </p>
-            <div className="flex gap-2 mt-4">
-              <Button
-                type="button"
-                onClick={() => setIsSaveDialogOpen(true)}
-                variant="outline"
-                className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save Custom Orbit
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setIsLoadDialogOpen(true)}
-                variant="outline"
-                className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
-                disabled={customOrbits.length === 0}
-              >
-                <FolderOpen className="w-4 h-4 mr-2" />
-                Load Custom ({customOrbits.length})
-              </Button>
-            </div>
-          </div>
+      {error && (
+        <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-300 mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-          {/* Custom Units Card */}
-          {unitSystem === "Custom" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Settings2 className="w-5 h-5 text-cyan-400" />
-                    Custom Unit Definitions
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Define conversion factors to SI (km, km/s, min)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    {id: 'dist', label: 'Distance (Altitude/Radius)', unit: 'km'},
-                    {id: 'vel', label: 'Velocity', unit: 'km/s'},
-                    {id: 'time', label: 'Time', unit: 'min'},
-                  ].map(field => (
-                    <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <Label className="text-white font-semibold">{field.label}</Label>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        <Input 
-                          placeholder="Unit Name" 
-                          value={customUnitNames[field.id as keyof typeof customUnitNames]}
-                          onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                          className="bg-slate-800 border-cyan-400/30 text-white"
-                        />
-                        <Input 
-                          type="number"
-                          step="0.0001"
-                          placeholder="SI Factor"
-                          value={customFactors[field.id as keyof typeof customFactors]}
-                          onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                          className="bg-slate-800 border-cyan-400/30 text-white"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1.5">
-                        1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
-                      </p>
+      {/* 3D Visualization */}
+      <AeroCard title="3D Orbital Visualization" icon={Orbit} className="mb-6">
+        <div className="rounded-xl overflow-hidden border border-cyan-400/30 bg-black h-[450px]">
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full"
+            style={{ display: "block" }}
+          />
+        </div>
+      </AeroCard>
+
+      <ToolSection gridCols={2}>
+        {/* Left Column - Inputs */}
+        <div>
+          <div className={spacingVertical.L}>
+            {/* Preset Configurations */}
+            <AeroCard title="Quick Load Preset Orbits" icon={Rocket}>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3">
+                {(Object.keys(presets) as Array<keyof typeof presets>).map((presetKey) => (
+                  <AeroButton
+                    key={presetKey}
+                    type="button"
+                    onClick={() => loadPreset(presetKey)}
+                    variant="outline"
+                    icon={Rocket}
+                  >
+                    {presetKey}
+                  </AeroButton>
+                ))}
+              </div>
+              <p className="text-sm text-slate-400 mt-4">
+                Click any preset to instantly load real-world satellite parameters
+              </p>
+            </AeroCard>
+
+            {/* Custom Units Card */}
+            {unitSystem === "Custom" && (
+              <AeroCard
+                title="Custom Unit Definitions"
+                description="Define conversion factors to SI (km, km/s, min)"
+                icon={Settings2}
+              >
+                {[
+                  {id: 'dist', label: 'Distance (Altitude/Radius)', unit: 'km'},
+                  {id: 'vel', label: 'Velocity', unit: 'km/s'},
+                  {id: 'time', label: 'Time', unit: 'min'},
+                ].map(field => (
+                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
+                    <Label className="text-white font-semibold">{field.label}</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Input 
+                        placeholder="Unit Name" 
+                        value={customUnitNames[field.id as keyof typeof customUnitNames]}
+                        onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                      <Input 
+                        type="number"
+                        step="0.0001"
+                        placeholder="SI Factor"
+                        value={customFactors[field.id as keyof typeof customFactors]}
+                        onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
+                    </p>
+                  </div>
+                ))}
+              </AeroCard>
+            )}
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
@@ -1105,10 +1090,19 @@ const OrbitalVisualizer = () => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-            </motion.div>
-          )}
-        </CardContent>
-      </Card>
+              </AeroCard>
+            ) : (
+              <AeroCard title="Orbit Results">
+                <div className="text-center py-12">
+                  <Orbit className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
+                  <p className="text-gray-400">Results will appear here</p>
+                </div>
+              </AeroCard>
+            )}
+          </div>
+        </div>
+      </ToolSection>
+    </ToolWrapper>
 
       {/* Save Custom Orbit Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
