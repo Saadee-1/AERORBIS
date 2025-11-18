@@ -17,6 +17,16 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
+import { AskAIButton } from "@/components/tools/AskAIButton";
+import { ToolWrapper } from "@/components/layout/ToolWrapper";
+import { ToolHeader } from "@/components/layout/ToolHeader";
+import { ToolSection } from "@/components/layout/ToolSection";
+import { ToolActions } from "@/components/layout/ToolActions";
+import { AeroCard } from "@/components/common/AeroCard";
+import { AeroFormField } from "@/components/forms/AeroFormField";
+import { AeroButton } from "@/components/common/AeroButton";
+import { ChartCard } from "@/components/charts/ChartCard";
+import { spacingVertical } from "@/styles/spacing";
 import { 
   Select, 
   SelectContent, 
@@ -580,109 +590,86 @@ const ReynoldsNumberCalculator = () => {
 
   // --- Render ---
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Wind className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Advanced Reynolds Number Calculator
-          </h2>
-        </div>
-        <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-          Calculate Reynolds Number for fluid flow analysis. Determine flow regime (laminar, transitional, or turbulent).
-        </p>
-        <div className="flex justify-center gap-2 mt-4">
-          <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-            <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="SI">SI (Metric)</SelectItem>
-              <SelectItem value="Imperial">Imperial</SelectItem>
-              <SelectItem value="Custom">Custom</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button type="button" onClick={resetCalculator} variant="outline" className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10">
-            Reset All
-          </Button>
-        </div>
-      </motion.div>
+    <ToolWrapper>
+      <ToolHeader
+        title="Advanced Reynolds Number Calculator"
+        description="Calculate Reynolds Number for fluid flow analysis. Determine flow regime (laminar, transitional, or turbulent)"
+        icon={Wind}
+        actions={
+          <ToolActions>
+            <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
+              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SI">SI (Metric)</SelectItem>
+                <SelectItem value="Imperial">Imperial</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+            <AeroButton type="button" onClick={resetCalculator} variant="outline">Reset All</AeroButton>
+          </ToolActions>
+        }
+      />
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        
+      <ToolSection gridCols={2}>
         {/* --- LEFT COLUMN (INPUTS) --- */}
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="space-y-6">
-          
-          {/* --- Preset Selector --- */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Settings2 className="w-5 h-5 text-cyan-400" />
-                Preset Scenarios
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Quick-select common aerospace and fluid flow conditions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select value={selectedPreset} onValueChange={handlePresetChange}>
-                <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
-                  <SelectValue placeholder="Select a preset scenario..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None (Custom Input)</SelectItem>
-                  {Object.entries(PRESETS).map(([key, preset]) => (
-                    <SelectItem key={key} value={key}>
-                      {preset.name} - {preset.description}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedPreset && PRESETS[selectedPreset] && (
-                <p className="text-sm text-gray-400 mt-2">
-                  {PRESETS[selectedPreset].description}
-                </p>
-              )}
-              <div className="flex gap-2 mt-4">
-                <Button
+        <div>
+          <div className={spacingVertical.L}>
+            {/* --- Preset Selector --- */}
+            <AeroCard
+              title="Preset Scenarios"
+              description="Quick-select common aerospace and fluid flow conditions"
+              icon={Settings2}
+            >
+              <AeroFormField label="Select a preset scenario">
+                <Select value={selectedPreset} onValueChange={handlePresetChange}>
+                  <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                    <SelectValue placeholder="Select a preset scenario..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Custom Input)</SelectItem>
+                    {Object.entries(PRESETS).map(([key, preset]) => (
+                      <SelectItem key={key} value={key}>
+                        {preset.name} - {preset.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedPreset && PRESETS[selectedPreset] && (
+                  <p className="text-sm text-gray-400 mt-2">
+                    {PRESETS[selectedPreset].description}
+                  </p>
+                )}
+              </AeroFormField>
+              <div className="flex gap-2">
+                <AeroButton
                   type="button"
                   onClick={() => setIsSaveDialogOpen(true)}
                   variant="outline"
-                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+                  icon={Save}
                 >
-                  <Save className="w-4 h-4 mr-2" />
                   Save Custom Preset
-                </Button>
-                <Button
+                </AeroButton>
+                <AeroButton
                   type="button"
                   onClick={() => setIsLoadDialogOpen(true)}
                   variant="outline"
-                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-400/20 hover:border-cyan-400 text-white"
+                  icon={FolderOpen}
                   disabled={customPresets.length === 0}
                 >
-                  <FolderOpen className="w-4 h-4 mr-2" />
-                  Load Custom ({customPresets.length})
-                </Button>
+                  Load ({customPresets.length})
+                </AeroButton>
               </div>
-            </CardContent>
-          </Card>
+            </AeroCard>
 
-          {/* --- Input Fields --- */}
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Calculator className="w-5 h-5 text-cyan-400" />
-                Input Parameters
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Enter fluid properties and flow conditions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="density" className="text-gray-300">
-                  Fluid Density (ρ) <span className="text-gray-500">{getUnit("density")}</span>
-                </Label>
+            {/* --- Input Fields --- */}
+            <AeroCard
+              title="Input Parameters"
+              description="Enter fluid properties and flow conditions"
+              icon={Calculator}
+            >
+              <AeroFormField label={`Fluid Density (ρ) ${getUnit("density")}`}>
                 <Input 
                   id="density" 
                   type="number" 
@@ -692,11 +679,8 @@ const ReynoldsNumberCalculator = () => {
                   className="bg-slate-900/50 border-cyan-400/30 text-white" 
                   placeholder="e.g., 1.225" 
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="velocity" className="text-gray-300">
-                  Velocity (V) <span className="text-gray-500">{getUnit("velocity")}</span>
-                </Label>
+              </AeroFormField>
+              <AeroFormField label={`Velocity (V) ${getUnit("velocity")}`}>
                 <Input 
                   id="velocity" 
                   type="number" 
@@ -706,11 +690,8 @@ const ReynoldsNumberCalculator = () => {
                   className="bg-slate-900/50 border-cyan-400/30 text-white" 
                   placeholder="e.g., 50" 
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="length" className="text-gray-300">
-                  Characteristic Length (L) <span className="text-gray-500">{getUnit("length")}</span>
-                </Label>
+              </AeroFormField>
+              <AeroFormField label={`Characteristic Length (L) ${getUnit("length")}`}>
                 <Input 
                   id="length" 
                   type="number" 
@@ -720,11 +701,8 @@ const ReynoldsNumberCalculator = () => {
                   className="bg-slate-900/50 border-cyan-400/30 text-white" 
                   placeholder="e.g., 1.0" 
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="viscosity" className="text-gray-300">
-                  Dynamic Viscosity (μ) <span className="text-gray-500">{getUnit("viscosity")}</span>
-                </Label>
+              </AeroFormField>
+              <AeroFormField label={`Dynamic Viscosity (μ) ${getUnit("viscosity")}`}>
                 <Input 
                   id="viscosity" 
                   type="number" 
@@ -734,91 +712,82 @@ const ReynoldsNumberCalculator = () => {
                   className="bg-slate-900/50 border-cyan-400/30 text-white" 
                   placeholder="e.g., 1.81e-5" 
                 />
-              </div>
-              <Button 
+              </AeroFormField>
+              <AeroButton 
                 type="button" 
                 onClick={calculateReynolds} 
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+                variant="primary"
+                icon={Calculator}
+                className="w-full"
               >
-                <Calculator className="w-4 h-4 mr-2" />
                 Calculate Reynolds Number
-              </Button>
-            </CardContent>
-          </Card>
+              </AeroButton>
+            </AeroCard>
 
-          {/* --- Custom Units --- */}
-          {unitSystem === "Custom" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Settings2 className="w-5 h-5 text-cyan-400" />
-                    Custom Unit Definitions
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Define conversion factors to SI (kg, m, s, Pa·s)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    {id: 'density', label: 'Density (ρ)', unit: 'kg/m³'},
-                    {id: 'velocity', label: 'Velocity (V)', unit: 'm/s'},
-                    {id: 'length', label: 'Length (L)', unit: 'm'},
-                    {id: 'viscosity', label: 'Viscosity (μ)', unit: 'Pa·s'},
-                  ].map(field => (
-                    <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <Label className="text-white font-semibold">{field.label}</Label>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        <Input 
-                          placeholder="Unit Name" 
-                          value={customUnitNames[field.id as keyof typeof customUnitNames]}
-                          onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                          className="bg-slate-800 border-cyan-400/30 text-white"
-                        />
-                        <Input 
-                          type="number"
-                          step="0.0001"
-                          placeholder="SI Factor"
-                          value={customFactors[field.id as keyof typeof customFactors]}
-                          onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                          className="bg-slate-800 border-cyan-400/30 text-white"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1.5">
-                        1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
-                      </p>
+            {/* --- Custom Units --- */}
+            {unitSystem === "Custom" && (
+              <AeroCard
+                title="Custom Unit Definitions"
+                description="Define conversion factors to SI (kg, m, s, Pa·s)"
+                icon={Settings2}
+              >
+                {[
+                  {id: 'density', label: 'Density (ρ)', unit: 'kg/m³'},
+                  {id: 'velocity', label: 'Velocity (V)', unit: 'm/s'},
+                  {id: 'length', label: 'Length (L)', unit: 'm'},
+                  {id: 'viscosity', label: 'Viscosity (μ)', unit: 'Pa·s'},
+                ].map(field => (
+                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
+                    <Label className="text-white font-semibold">{field.label}</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Input 
+                        placeholder="Unit Name" 
+                        value={customUnitNames[field.id as keyof typeof customUnitNames]}
+                        onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
+                      <Input 
+                        type="number"
+                        step="0.0001"
+                        placeholder="SI Factor"
+                        value={customFactors[field.id as keyof typeof customFactors]}
+                        onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
+                        className="bg-slate-800 border-cyan-400/30 text-white"
+                      />
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-        </motion.div>
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
+                    </p>
+                  </div>
+                ))}
+              </AeroCard>
+            )}
+          </div>
+        </div>
 
         {/* --- RIGHT COLUMN (RESULTS) --- */}
-        <div className="space-y-6">
-          
-          {/* --- Results Card --- */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-white">Results</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                
+        <div>
+          <div className={spacingVertical.L}>
+            {/* --- Results Card --- */}
+            {result ? (
+              <AeroCard
+                title="Results"
+                headerActions={
+                  lastRequestId ? (
+                    <div className="flex gap-2">
+                      <AskAIButton requestId={lastRequestId} disabled={!lastRequestId} />
+                      <PDFExportButton 
+                        requestId={lastRequestId} 
+                        toolName="Reynolds Number Calculator"
+                        disabled={!lastRequestId}
+                      />
+                    </div>
+                  ) : null
+                }
+              >
                 {/* Reynolds Number Result */}
-                {result && (
-                  <>
-                    <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-semibold text-cyan-400">Reynolds Number</p>
-                        <PDFExportButton 
-                          requestId={lastRequestId} 
-                          toolName="Reynolds Number Calculator"
-                          disabled={!lastRequestId}
-                        />
-                      </div>
+                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
+                  <p className="text-sm font-semibold text-cyan-400 mb-2">Reynolds Number</p>
                       <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
                         Re = {result.reynoldsNumber.toExponential(3)}
                       </p>

@@ -52,6 +52,16 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
+import { AskAIButton } from "@/components/tools/AskAIButton";
+import { ToolWrapper } from "@/components/layout/ToolWrapper";
+import { ToolHeader } from "@/components/layout/ToolHeader";
+import { ToolSection } from "@/components/layout/ToolSection";
+import { ToolActions } from "@/components/layout/ToolActions";
+import { AeroCard } from "@/components/common/AeroCard";
+import { AeroFormField } from "@/components/forms/AeroFormField";
+import { AeroButton } from "@/components/common/AeroButton";
+import { ChartCard } from "@/components/charts/ChartCard";
+import { spacingVertical } from "@/styles/spacing";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 
