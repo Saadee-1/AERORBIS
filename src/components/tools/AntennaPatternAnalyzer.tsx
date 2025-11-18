@@ -92,6 +92,7 @@ import { spacingVertical } from "@/styles/spacing";
 // Import antenna models and math utilities
 import { ANTENNA_TYPES, getAntennaById, AntennaParams } from "@/lib/antenna/models";
 import { computePattern, AntennaPatternResult, AntennaGeometry, PatternOptions } from "@/lib/antenna/models-enhanced";
+import { getAntennaRegistryEntry, computePatternFromRegistry, validatePatternResult, getAllAntennaRegistryEntries } from "@/lib/antenna/data/antennaRegistry";
 import {
   wavelength,
   frequencyToHz,
@@ -201,8 +202,22 @@ const AntennaPatternAnalyzer = () => {
     }
   }, [frequencyUnit, customFrequencyUnitName, customFrequencyFactor]);
 
-  // Get selected antenna
+  // Get selected antenna (prefer registry, fallback to old system)
   const selectedAntenna = useMemo(() => {
+    // Try registry first
+    const registryEntry = getAntennaRegistryEntry(selectedAntennaId);
+    if (registryEntry) {
+      // Convert registry entry to AntennaType format for compatibility
+      return {
+        id: registryEntry.id,
+        name: registryEntry.name,
+        description: registryEntry.description,
+        pattern: () => 1.0, // Placeholder - actual pattern computation uses computePattern
+        defaultParams: registryEntry.defaultParams,
+        paramLabels: registryEntry.paramLabels,
+      };
+    }
+    // Fallback to old system
     return getAntennaById(selectedAntennaId);
   }, [selectedAntennaId]);
 
@@ -219,91 +234,85 @@ const AntennaPatternAnalyzer = () => {
     return frequencyToHz(frequency, frequencyUnit, customFactor);
   }, [frequency, frequencyUnit, customFrequencyFactor]);
 
-  // Map old antenna IDs to new type names
-  const mapAntennaIdToType = (id: string): string => {
-    const mapping: Record<string, string> = {
-      "isotropic": "isotropic",
-      "short-dipole": "shortdipole",
-      "half-wave-dipole": "halfwavedipole",
-      "folded-dipole": "foldeddipole",
-      "quarter-wave-monopole": "quarterwavemonopole",
-      "ground-plane-monopole": "monopoleground",
-      "rectangular-patch": "rectangularpatch",
-      "circular-patch": "circularpatch",
-      "slotted-patch": "rectangularpatch", // Similar
-      "stacked-patch": "rectangularpatch", // Similar
-      "horn": "horn",
-      "parabolic-dish": "parabolicdish",
-      "cassegrain": "cassegrain",
-      "helical-axial": "helix",
-      "helical-normal": "helix",
-      "yagi": "yagi",
-      "lpda": "lpda",
-      "spiral": "spiral",
-      "vivaldi": "vivaldi",
-      "biconical": "biconical",
-      "waveguide-slot": "waveguideslot",
-      "patch-array": "patcharray",
-      "linear-phased-array": "phasedarray",
-      "planar-phased-array": "phasedarray",
-      "circular-phased-array": "phasedarray",
-      "conformal-array": "conformal",
-      "quadrifilar-helix": "helix",
-      "gnss-patch": "rectangularpatch",
-      "dra": "dra",
-    };
-    return mapping[id] || id.replace(/-/g, '');
+  // Use registry for antenna type mapping
+  const getComputeTypeFromId = (id: string): string => {
+    const entry = getAntennaRegistryEntry(id);
+    if (entry) {
+      return entry.computeType;
+    }
+    // Fallback for IDs not in registry (backward compatibility)
+    const fallback = id.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return fallback || "isotropic";
   };
 
-  // Compute pattern using enhanced models
+  // Compute pattern using enhanced models with registry
   const patternResult = useMemo(() => {
-    if (!selectedAntenna) return null;
+    if (!selectedAntenna || !frequencyHz || frequencyHz <= 0) return null;
 
     try {
-      // Convert antenna ID to type name for computePattern
-      const antennaTypeName = mapAntennaIdToType(selectedAntenna.id);
-      
       // Prepare geometry from antennaParams
       const geometry: AntennaGeometry = { ...antennaParams };
       
-      // Determine sampling based on resolution and compute mode
-      // Use suggested sampling from metadata if available, otherwise compute
-      const numTheta = computeMode === "fast" ? Math.max(37, Math.floor(180 / resolution)) : Math.max(91, Math.floor(180 / resolution));
-      const numPhi = computeMode === "fast" ? Math.max(73, Math.floor(360 / resolution)) : Math.max(181, Math.floor(360 / resolution));
+      // Ensure minimum 720 points for smooth 2D plots (0.5° resolution)
+      // For 3D, use resolution setting but cap appropriately
+      const baseResolution = Math.max(0.5, resolution); // Minimum 0.5° for smoothness
+      const numTheta = computeMode === "fast" 
+        ? Math.max(91, Math.floor(180 / baseResolution)) 
+        : Math.max(181, Math.floor(180 / baseResolution));
+      const numPhi = computeMode === "fast" 
+        ? Math.max(181, Math.floor(360 / baseResolution))
+        : Math.max(721, Math.floor(360 / baseResolution)); // 720+ points for smooth 2D
       
       const options: PatternOptions = {
         numTheta: Math.min(numTheta, 361), // Cap at reasonable max
-        numPhi: Math.min(numPhi, 721), // Cap at reasonable max
-        efficiency: 1.0, // Can be made configurable
+        numPhi: Math.min(numPhi, 721), // Cap at reasonable max but ensure 720+ for 2D
+        efficiency: 1.0,
         dBFloor: -80,
         normalize: true,
         fastPreview: computeMode === "fast"
       };
 
-      const result = computePattern(antennaTypeName, frequencyHz, geometry, options);
+      // Use registry-based computation
+      const result = computePatternFromRegistry(selectedAntenna.id, frequencyHz, geometry, options);
       
-      // Override sampling with suggested if available
+      // Validate result
+      if (!validatePatternResult(result)) {
+        console.error("Invalid pattern result from computePatternFromRegistry");
+        return null;
+      }
+      
+      // Override sampling with suggested if available and better
       if (result.metadata.suggestedSampling) {
         const suggested = result.metadata.suggestedSampling;
-        const adjustedOptions: PatternOptions = {
-          ...options,
-          numTheta: computeMode === "fast" ? Math.min(suggested.numTheta, 181) : suggested.numTheta,
-          numPhi: computeMode === "fast" ? Math.min(suggested.numPhi, 361) : suggested.numPhi,
-        };
-        return computePattern(antennaTypeName, frequencyHz, geometry, adjustedOptions);
+        // Only use suggested if it's better (more points or more appropriate)
+        if (suggested.numPhi >= numPhi && suggested.numTheta >= numTheta) {
+          const adjustedOptions: PatternOptions = {
+            ...options,
+            numTheta: computeMode === "fast" ? Math.min(suggested.numTheta, 181) : Math.min(suggested.numTheta, 361),
+            numPhi: computeMode === "fast" ? Math.min(suggested.numPhi, 361) : Math.min(suggested.numPhi, 721),
+          };
+          const adjustedResult = computePatternFromRegistry(selectedAntenna.id, frequencyHz, geometry, adjustedOptions);
+          if (validatePatternResult(adjustedResult)) {
+            return adjustedResult;
+          }
+        }
       }
       
       return result;
     } catch (error) {
       console.error("Error computing pattern:", error);
-      // Fallback: try to use old pattern function if available
+      toast({
+        title: "Pattern Calculation Error",
+        description: error instanceof Error ? error.message : "Failed to compute antenna pattern",
+        variant: "destructive",
+      });
       return null;
     }
-  }, [selectedAntenna, antennaParams, frequencyHz, resolution, computeMode]);
+  }, [selectedAntenna, antennaParams, frequencyHz, resolution, computeMode, toast]);
 
-  // Generate pattern data for 2D charts from slices
+  // Generate pattern data for 2D charts from slices with validation
   const generatedPattern = useMemo(() => {
-    if (!patternResult) return [];
+    if (!patternResult || !validatePatternResult(patternResult)) return [];
 
     const data: PatternPoint[] = [];
     
@@ -311,23 +320,44 @@ const AntennaPatternAnalyzer = () => {
     const ePlane = patternResult.slices.E_plane;
     const hPlane = patternResult.slices.H_plane;
     
-    // Combine E-plane and H-plane data
+    // Validate slices have matching lengths
+    if (ePlane.angleDeg.length !== ePlane.power.length || 
+        ePlane.angleDeg.length !== ePlane.power_db.length ||
+        hPlane.angleDeg.length !== hPlane.power.length ||
+        hPlane.angleDeg.length !== hPlane.power_db.length) {
+      console.warn("Pattern slices have mismatched lengths");
+      return [];
+    }
+    
+    // Combine E-plane and H-plane data with validation
     ePlane.angleDeg.forEach((angle, i) => {
-      data.push({
-        theta: angle,
-        phi: 0,
-        gainLinear: ePlane.power[i],
-        gainDbi: ePlane.power_db[i],
-      });
+      const gainLinear = ePlane.power[i];
+      const gainDbi = ePlane.power_db[i];
+      
+      // Validate values are finite
+      if (isFinite(angle) && isFinite(gainLinear) && isFinite(gainDbi)) {
+        data.push({
+          theta: angle,
+          phi: 0,
+          gainLinear: Math.max(0, gainLinear), // Ensure non-negative
+          gainDbi: Math.max(-80, gainDbi), // Clamp to dB floor
+        });
+      }
     });
     
     hPlane.angleDeg.forEach((angle, i) => {
-      data.push({
-        theta: angle,
-        phi: 90,
-        gainLinear: hPlane.power[i],
-        gainDbi: hPlane.power_db[i],
-      });
+      const gainLinear = hPlane.power[i];
+      const gainDbi = hPlane.power_db[i];
+      
+      // Validate values are finite
+      if (isFinite(angle) && isFinite(gainLinear) && isFinite(gainDbi)) {
+        data.push({
+          theta: angle,
+          phi: 90,
+          gainLinear: Math.max(0, gainLinear), // Ensure non-negative
+          gainDbi: Math.max(-80, gainDbi), // Clamp to dB floor
+        });
+      }
     });
 
     return data;
@@ -454,13 +484,115 @@ const AntennaPatternAnalyzer = () => {
     }
   }, [calculatedResults, generatedPattern, selectedAntenna, frequency, frequencyUnit, transmitPower, polarization, resolution, computeMode, lambda, patternResult, sendCalculationEvent, updateToolContext]);
 
-  // Initialize and update 3D visualization
+  // Memoize 3D geometry to avoid rebuilding on every render
+  const three3DGeometry = useMemo(() => {
+    if (!patternResult || !validatePatternResult(patternResult)) return null;
+
+    try {
+      const cartesianMesh = patternResult.cartesianMesh;
+      const pattern = patternResult.pattern;
+      const numTheta = pattern.length;
+      const numPhi = pattern[0]?.length || 1;
+
+      if (numTheta === 0 || numPhi === 0) return null;
+
+      // Create geometry from pattern matrix
+      const geometry = new THREE.BufferGeometry();
+      const vertices: number[] = [];
+      const colors: number[] = [];
+      const indices: number[] = [];
+
+      // Find max value for normalization
+      let maxValue = 0;
+      for (let i = 0; i < numTheta; i++) {
+        for (let j = 0; j < numPhi; j++) {
+          const val = pattern[i]?.[j];
+          if (isFinite(val) && val > 0) {
+            maxValue = Math.max(maxValue, val);
+          }
+        }
+      }
+
+      if (maxValue === 0) return null;
+
+      // Create vertices from cartesian mesh or compute from pattern
+      for (let i = 0; i < numTheta; i++) {
+        for (let j = 0; j < numPhi; j++) {
+          const power = pattern[i]?.[j] || 0;
+          const normalizedPower = Math.max(0, Math.min(1, power / maxValue));
+          
+          // Use cartesian mesh if available, otherwise compute from spherical
+          let x: number, y: number, z: number;
+          if (cartesianMesh && cartesianMesh.x[i] && cartesianMesh.y[i] && cartesianMesh.z[i] && 
+              cartesianMesh.x[i][j] !== undefined && cartesianMesh.y[i][j] !== undefined && cartesianMesh.z[i][j] !== undefined) {
+            x = cartesianMesh.x[i][j];
+            y = cartesianMesh.y[i][j];
+            z = cartesianMesh.z[i][j];
+          } else {
+            // Fallback: compute from spherical coordinates
+            const theta = (i / Math.max(1, numTheta - 1)) * Math.PI;
+            const phi = (j / numPhi) * 2 * Math.PI;
+            const r = 1 + normalizedPower * 0.5; // Scale by pattern
+            x = r * Math.sin(theta) * Math.cos(phi);
+            y = r * Math.sin(theta) * Math.sin(phi);
+            z = r * Math.cos(theta);
+          }
+
+          if (isFinite(x) && isFinite(y) && isFinite(z)) {
+            vertices.push(x, y, z);
+
+            // Color based on power (cyan for high, dark blue for low)
+            const gainDbi = normalizedPower > 1e-10 ? 10 * Math.log10(normalizedPower) : -80;
+            const normalizedGain = Math.min(1, Math.max(0, (gainDbi + 30) / 60));
+            const color = new THREE.Color();
+            color.setHSL(0.5 - normalizedGain * 0.3, 1, 0.3 + normalizedGain * 0.5);
+            colors.push(color.r, color.g, color.b);
+          }
+        }
+      }
+
+      if (vertices.length === 0) return null;
+
+      // Create indices for triangular faces
+      for (let i = 0; i < numTheta - 1; i++) {
+        for (let j = 0; j < numPhi - 1; j++) {
+          const a = i * numPhi + j;
+          const b = i * numPhi + (j + 1);
+          const c = (i + 1) * numPhi + j;
+          const d = (i + 1) * numPhi + (j + 1);
+
+          // Validate indices
+          const maxIdx = vertices.length / 3 - 1;
+          if (a <= maxIdx && b <= maxIdx && c <= maxIdx && d <= maxIdx) {
+            // Two triangles per quad
+            indices.push(a, b, c);
+            indices.push(b, d, c);
+          }
+        }
+      }
+
+      if (indices.length === 0) return null;
+
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+
+      return geometry;
+    } catch (error) {
+      console.error("Error creating 3D geometry:", error);
+      return null;
+    }
+  }, [patternResult]);
+
+  // Initialize Three.js scene (only once)
   useEffect(() => {
-    if (!show3D || !canvas3DRef.current || !patternResult) {
+    if (!show3D || !canvas3DRef.current) {
       // Cleanup if 3D is disabled
       if (three3DRef.current) {
         if (three3DRef.current.animationId) {
           cancelAnimationFrame(three3DRef.current.animationId);
+          three3DRef.current.animationId = null;
         }
         if (three3DRef.current.patternMesh) {
           three3DRef.current.scene.remove(three3DRef.current.patternMesh);
@@ -470,22 +602,33 @@ const AntennaPatternAnalyzer = () => {
           } else {
             three3DRef.current.patternMesh.material.dispose();
           }
+          three3DRef.current.patternMesh = null;
         }
+        // Clean up lights
+        const lightsToRemove: THREE.Light[] = [];
+        three3DRef.current.scene.traverse((child) => {
+          if (child instanceof THREE.Light) {
+            lightsToRemove.push(child);
+          }
+        });
+        lightsToRemove.forEach(light => three3DRef.current!.scene.remove(light));
+        
         three3DRef.current.renderer.dispose();
+        three3DRef.current.controls.dispose();
         three3DRef.current = null;
       }
       return;
     }
 
-    // Initialize Three.js scene
-    if (!three3DRef.current) {
+    // Initialize Three.js scene (only if not already initialized)
+    if (!three3DRef.current && canvas3DRef.current) {
       const canvas = canvas3DRef.current;
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x020617);
 
       const camera = new THREE.PerspectiveCamera(
         50,
-        canvas.clientWidth / canvas.clientHeight,
+        canvas.clientWidth / canvas.clientHeight || 1,
         0.1,
         1000
       );
@@ -493,11 +636,18 @@ const AntennaPatternAnalyzer = () => {
 
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
+
+      // Add lights (only once)
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0x22d3ee, 1);
+      directionalLight.position.set(5, 5, 5);
+      scene.add(directionalLight);
 
       three3DRef.current = {
         scene,
@@ -507,9 +657,31 @@ const AntennaPatternAnalyzer = () => {
         patternMesh: null,
         animationId: null,
       };
+
+      // Start animation loop (only once)
+      const animate = () => {
+        if (!three3DRef.current) return;
+        three3DRef.current.animationId = requestAnimationFrame(animate);
+        three3DRef.current.controls.update();
+        three3DRef.current.renderer.render(three3DRef.current.scene, three3DRef.current.camera);
+      };
+      animate();
     }
 
-    const { scene, camera, renderer, controls } = three3DRef.current;
+    // Cleanup on unmount or when 3D is disabled
+    return () => {
+      if (three3DRef.current?.animationId) {
+        cancelAnimationFrame(three3DRef.current.animationId);
+        three3DRef.current.animationId = null;
+      }
+    };
+  }, [show3D]);
+
+  // Update 3D mesh when geometry changes (decoupled from scene initialization)
+  useEffect(() => {
+    if (!show3D || !three3DRef.current || !three3DGeometry) return;
+
+    const { scene } = three3DRef.current;
 
     // Remove old pattern mesh if exists
     if (three3DRef.current.patternMesh) {
@@ -520,80 +692,10 @@ const AntennaPatternAnalyzer = () => {
       } else {
         three3DRef.current.patternMesh.material.dispose();
       }
+      three3DRef.current.patternMesh = null;
     }
 
-    // Use cartesianMesh from patternResult for 3D visualization
-    const cartesianMesh = patternResult.cartesianMesh;
-    const pattern = patternResult.pattern;
-    const numTheta = pattern.length;
-    const numPhi = pattern[0]?.length || 1;
-
-    // Create geometry from pattern matrix
-    const geometry = new THREE.BufferGeometry();
-    const vertices: number[] = [];
-    const colors: number[] = [];
-    const indices: number[] = [];
-
-    // Find max value for normalization
-    let maxValue = 0;
-    for (let i = 0; i < numTheta; i++) {
-      for (let j = 0; j < numPhi; j++) {
-        maxValue = Math.max(maxValue, pattern[i][j]);
-      }
-    }
-
-    // Create vertices from cartesian mesh or compute from pattern
-    for (let i = 0; i < numTheta; i++) {
-      for (let j = 0; j < numPhi; j++) {
-        const power = pattern[i][j];
-        const normalizedPower = maxValue > 0 ? power / maxValue : 0;
-        
-        // Use cartesian mesh if available, otherwise compute from spherical
-        let x: number, y: number, z: number;
-        if (cartesianMesh && cartesianMesh.x[i] && cartesianMesh.y[i] && cartesianMesh.z[i]) {
-          x = cartesianMesh.x[i][j];
-          y = cartesianMesh.y[i][j];
-          z = cartesianMesh.z[i][j];
-        } else {
-          // Fallback: compute from spherical coordinates
-          const theta = (i / (numTheta - 1)) * Math.PI;
-          const phi = (j / numPhi) * 2 * Math.PI;
-          const r = 1 + normalizedPower * 0.5; // Scale by pattern
-          x = r * Math.sin(theta) * Math.cos(phi);
-          y = r * Math.sin(theta) * Math.sin(phi);
-          z = r * Math.cos(theta);
-        }
-
-        vertices.push(x, y, z);
-
-        // Color based on power (cyan for high, dark blue for low)
-        const gainDbi = 10 * Math.log10(Math.max(1e-10, normalizedPower));
-        const normalizedGain = Math.min(1, Math.max(0, (gainDbi + 30) / 60));
-        const color = new THREE.Color();
-        color.setHSL(0.5 - normalizedGain * 0.3, 1, 0.3 + normalizedGain * 0.5);
-        colors.push(color.r, color.g, color.b);
-      }
-    }
-
-    // Create indices for triangular faces
-    for (let i = 0; i < numTheta - 1; i++) {
-      for (let j = 0; j < numPhi - 1; j++) {
-        const a = i * numPhi + j;
-        const b = i * numPhi + (j + 1);
-        const c = (i + 1) * numPhi + j;
-        const d = (i + 1) * numPhi + (j + 1);
-
-        // Two triangles per quad
-        indices.push(a, b, c);
-        indices.push(b, d, c);
-      }
-    }
-
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-
+    // Create new mesh with memoized geometry
     const material = new THREE.MeshPhongMaterial({
       vertexColors: true,
       side: THREE.DoubleSide,
@@ -601,31 +703,12 @@ const AntennaPatternAnalyzer = () => {
       opacity: 0.8,
     });
 
-    const patternMesh = new THREE.Mesh(geometry, material);
+    const patternMesh = new THREE.Mesh(three3DGeometry, material);
     scene.add(patternMesh);
     three3DRef.current.patternMesh = patternMesh;
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0x22d3ee, 1);
-    directionalLight.position.set(5, 5, 5);
-    scene.add(directionalLight);
-
-    // Animation loop
-    const animate = () => {
-      if (!three3DRef.current) return;
-      three3DRef.current.animationId = requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    };
-    animate();
-
-    // Cleanup
+    // Cleanup on geometry change
     return () => {
-      if (three3DRef.current?.animationId) {
-        cancelAnimationFrame(three3DRef.current.animationId);
-      }
       if (three3DRef.current?.patternMesh) {
         three3DRef.current.scene.remove(three3DRef.current.patternMesh);
         three3DRef.current.patternMesh.geometry.dispose();
@@ -634,13 +717,28 @@ const AntennaPatternAnalyzer = () => {
         } else {
           three3DRef.current.patternMesh.material.dispose();
         }
-      }
-      if (three3DRef.current) {
-        three3DRef.current.renderer.dispose();
-        three3DRef.current = null;
+        three3DRef.current.patternMesh = null;
       }
     };
-  }, [show3D, patternResult]);
+  }, [show3D, three3DGeometry]);
+
+  // Handle window resize
+  useEffect(() => {
+    if (!show3D || !three3DRef.current || !canvas3DRef.current) return;
+
+    const handleResize = () => {
+      if (!three3DRef.current || !canvas3DRef.current) return;
+      const canvas = canvas3DRef.current;
+      const { camera, renderer } = three3DRef.current;
+
+      camera.aspect = canvas.clientWidth / canvas.clientHeight || 1;
+      camera.updateProjectionMatrix();
+      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [show3D]);
 
   // Load custom presets on mount
   useEffect(() => {
@@ -661,12 +759,22 @@ const AntennaPatternAnalyzer = () => {
     }
   }, [customPresets]);
 
-  // Handle antenna selection
+  // Handle antenna selection with registry support
   const handleAntennaChange = (id: string) => {
     setSelectedAntennaId(id);
-    const antenna = getAntennaById(id);
-    if (antenna) {
-      setAntennaParams({ ...antenna.defaultParams });
+    
+    // Try registry first, then fallback to old system
+    const registryEntry = getAntennaRegistryEntry(id);
+    if (registryEntry) {
+      setAntennaParams({ ...registryEntry.defaultParams });
+    } else {
+      const antenna = getAntennaById(id);
+      if (antenna) {
+        setAntennaParams({ ...antenna.defaultParams });
+      } else {
+        // Fallback to empty params
+        setAntennaParams({});
+      }
     }
   };
 
@@ -718,21 +826,69 @@ const AntennaPatternAnalyzer = () => {
   };
 
 
-  // Prepare chart data for polar plot
+  // Prepare chart data for polar plot with smooth interpolation (720+ points)
   const chartData = useMemo(() => {
     // Separate E-plane and H-plane data
-    const ePlane = generatedPattern.filter((p) => p.phi === 0);
-    const hPlane = generatedPattern.filter((p) => p.phi === 90);
+    const ePlane = generatedPattern.filter((p) => Math.abs(p.phi - 0) < 1); // Allow small tolerance
+    const hPlane = generatedPattern.filter((p) => Math.abs(p.phi - 90) < 1);
+
+    // Sort by angle for proper plotting
+    const sortedEPlane = [...ePlane].sort((a, b) => a.theta - b.theta);
+    const sortedHPlane = [...hPlane].sort((a, b) => a.theta - b.theta);
+
+    // Ensure we have at least 180 points (0.5° resolution) for smooth curves
+    // If we have fewer, interpolate
+    const interpolateData = (data: PatternPoint[], targetPoints: number = 361) => {
+      if (data.length === 0) return [];
+      if (data.length >= targetPoints) return data;
+
+      const interpolated: Array<{ angle: number; gain: number; gainLinear: number }> = [];
+      const step = 180 / (targetPoints - 1);
+
+      for (let i = 0; i < targetPoints; i++) {
+        const angle = i * step;
+        
+        // Find surrounding points for interpolation
+        let lowerIdx = 0;
+        let upperIdx = data.length - 1;
+        
+        for (let j = 0; j < data.length - 1; j++) {
+          if (data[j].theta <= angle && data[j + 1].theta >= angle) {
+            lowerIdx = j;
+            upperIdx = j + 1;
+            break;
+          }
+        }
+
+        // Linear interpolation
+        const lower = data[lowerIdx];
+        const upper = data[upperIdx];
+        const ratio = upperIdx > lowerIdx 
+          ? (angle - lower.theta) / (upper.theta - lower.theta)
+          : 0;
+        
+        const gainDbi = lower.gainDbi + (upper.gainDbi - lower.gainDbi) * ratio;
+        const gainLinear = lower.gainLinear + (upper.gainLinear - lower.gainLinear) * ratio;
+
+        interpolated.push({
+          angle,
+          gain: isFinite(gainDbi) ? gainDbi : -80,
+          gainLinear: Math.max(0, isFinite(gainLinear) ? gainLinear : 0),
+        });
+      }
+
+      return interpolated;
+    };
 
     return {
-      ePlane: ePlane.map((p) => ({
-        angle: p.theta,
-        gain: p.gainDbi,
+      ePlane: interpolateData(sortedEPlane, 361).map((p) => ({
+        angle: p.angle,
+        gain: p.gain,
         gainLinear: p.gainLinear,
       })),
-      hPlane: hPlane.map((p) => ({
-        angle: p.theta,
-        gain: p.gainDbi,
+      hPlane: interpolateData(sortedHPlane, 361).map((p) => ({
+        angle: p.angle,
+        gain: p.gain,
         gainLinear: p.gainLinear,
       })),
     };
