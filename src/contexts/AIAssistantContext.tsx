@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 
 export interface Message {
   id: string;
@@ -31,10 +32,13 @@ interface AIAssistantContextType {
   toolContext: ToolContext | null;
   notificationMessage: string | null;
   currentSessionId: string;
+  currentPayload: AeroverseAIPayload | null; // Current AI payload for assistant
   setIsOpen: (isOpen: boolean) => void;
   setMode: (mode: 'chat' | 'summarize') => void;
   setLanguage: (language: string) => void;
   setToolContext: (context: ToolContext | null) => void;
+  setCurrentPayload: (payload: AeroverseAIPayload | null) => void;
+  openAssistantWithPayload: (requestId: string, payload?: AeroverseAIPayload) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
   clearChat: () => void;
   loadChatSession: (sessionId: string) => void;
@@ -76,6 +80,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [currentSessionId, setCurrentSessionId] = useState<string>(() => Date.now().toString());
   const [toolContext, setToolContext] = useState<ToolContext | null>(null);
   const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
+  const [currentPayload, setCurrentPayload] = useState<AeroverseAIPayload | null>(null);
 
   // Save language preference
   useEffect(() => {
@@ -156,9 +161,36 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
       const requestId = extractRequestId(content);
       console.log('Extracted requestId from message:', requestId, 'from:', content);
       
-      // Try to fetch calculation context from localStorage if requestId is present
+      // PRIORITY 1: Use currentPayload from context if available (most reliable)
+      // PRIORITY 2: Try to fetch calculation context from localStorage if requestId is present
       let calculationContext = null;
-      if (requestId) {
+      
+      if (currentPayload) {
+        // Use the payload that was set via openAssistantWithPayload
+        console.log('✅ Using currentPayload from context:', {
+          toolName: currentPayload.toolName,
+          hasInputs: Object.keys(currentPayload.inputs).length > 0,
+          hasResults: Object.keys(currentPayload.results).length > 0,
+          stepsCount: currentPayload.metadata.steps?.length || 0,
+        });
+        
+        calculationContext = {
+          requestId: requestId || `calc-${Date.now()}`,
+          toolId: currentPayload.toolName,
+          toolName: currentPayload.toolName,
+          inputs: currentPayload.inputs,
+          results: currentPayload.results,
+          steps: currentPayload.metadata.steps || [],
+          metadata: {
+            ...currentPayload.metadata,
+            units: currentPayload.units || {},
+            charts: currentPayload.charts || [],
+            configuration: currentPayload.configuration || {},
+          },
+          timestamp: currentPayload.metadata.timestamp,
+        };
+      } else if (requestId) {
+        // Fallback: Load from localStorage
         try {
           const storageKey = `calc-${requestId}`;
           console.log('Looking for calculation data in localStorage with key:', storageKey);
@@ -181,7 +213,7 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
                 metadata: parsed.metadata || {},
                 timestamp: parsed.timestamp || new Date().toISOString(),
               };
-              console.log('✅ Calculation context loaded successfully:', {
+              console.log('✅ Calculation context loaded from localStorage:', {
                 toolName: calculationContext.toolName,
                 hasInputs: Object.keys(calculationContext.inputs).length > 0,
                 hasResults: Object.keys(calculationContext.results).length > 0,
@@ -202,23 +234,30 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
           console.error('❌ Error reading calculation context from localStorage:', error);
         }
       } else {
-        console.log('⚠️ No requestId found in message:', content);
+        console.log('⚠️ No requestId found in message and no currentPayload available');
       }
 
       const requestBody = { 
         messages: apiMessages, 
         mode, 
         language, 
-        toolContext, 
+        toolContext: currentPayload ? {
+          tool: currentPayload.toolName,
+          inputs: currentPayload.inputs,
+          results: currentPayload.results
+        } : toolContext, 
         requestId,
-        calculationContext // Pass the full context from localStorage
+        calculationContext, // Pass the full context (from payload or localStorage)
+        aeroversePayload: currentPayload // Also pass the structured payload if available
       };
       
       console.log('Sending AI chat request:', {
         hasRequestId: !!requestId,
         hasCalculationContext: !!calculationContext,
+        hasCurrentPayload: !!currentPayload,
         calculationContextKeys: calculationContext ? Object.keys(calculationContext) : null,
         messageCount: apiMessages.length,
+        toolName: currentPayload?.toolName || calculationContext?.toolName || 'N/A',
       });
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -334,6 +373,8 @@ Error: ${data.error}`;
     // Clear current messages but keep history
     setMessages([]);
     localStorage.removeItem(STORAGE_KEY);
+    // Clear payload when clearing chat
+    setCurrentPayload(null);
   };
 
   const loadChatSession = (sessionId: string) => {
@@ -381,6 +422,7 @@ Error: ${data.error}`;
     setMessages([]);
     setCurrentSessionId(newSessionId);
     setToolContext(null);
+    setCurrentPayload(null); // Clear payload when starting new chat
     localStorage.removeItem(STORAGE_KEY);
   };
 
@@ -411,6 +453,79 @@ Error: ${data.error}`;
     setNotificationMessage(null);
   };
 
+  /**
+   * Opens AI assistant with a complete payload from a calculation
+   * This ensures the assistant ALWAYS has full context before opening
+   * 
+   * @param requestId - Unique request ID from calculation event
+   * @param payload - Optional pre-built payload (if not provided, loads from localStorage)
+   */
+  const openAssistantWithPayload = async (requestId: string, payload?: AeroverseAIPayload) => {
+    try {
+      let finalPayload = payload;
+
+      // If payload not provided, load from localStorage using requestId
+      if (!finalPayload) {
+        const storageKey = `calc-${requestId}`;
+        const storedData = localStorage.getItem(storageKey);
+        
+        if (!storedData) {
+          throw new Error(`No calculation data found for request ID: ${requestId}`);
+        }
+
+        const parsed = JSON.parse(storedData);
+        
+        // Check if data hasn't expired
+        if (parsed.expiresAt && parsed.expiresAt < Date.now()) {
+          throw new Error('Calculation data has expired');
+        }
+
+        // Convert stored calculation event to AeroverseAIPayload format
+        finalPayload = {
+          toolName: parsed.toolName || parsed.toolId || 'Unknown Tool',
+          inputs: parsed.inputs || {},
+          results: parsed.results || {},
+          units: parsed.units || {},
+          charts: parsed.attachments?.charts?.map((c: any, idx: number) => ({
+            id: `chart-${idx}`,
+            title: c.title || `Chart ${idx + 1}`
+          })) || [],
+          configuration: parsed.configuration || {},
+          metadata: {
+            timestamp: parsed.timestamp || new Date().toISOString(),
+            version: parsed.version || '1.0.0',
+            steps: parsed.steps || [],
+            unitsSystem: parsed.metadata?.units || 'SI',
+            approxLevel: parsed.metadata?.approxLevel || 'numeric',
+            confidence: parsed.metadata?.confidence || 'medium',
+            warnings: parsed.metadata?.warnings || [],
+          }
+        };
+      }
+
+      // Set payload in context FIRST (before opening)
+      setCurrentPayload(finalPayload);
+      
+      // Update tool context for backward compatibility
+      setToolContext({
+        tool: finalPayload.toolName,
+        inputs: finalPayload.inputs,
+        results: finalPayload.results
+      });
+
+      // Open assistant UI
+      setIsOpen(true);
+
+      // Send initial explanation request with full context
+      // The sendMessage function will use currentPayload from context
+      const explanationPrompt = `Please explain this ${finalPayload.toolName} calculation in detail. Request ID: ${requestId}`;
+      await sendMessage(explanationPrompt);
+    } catch (error) {
+      console.error('Error opening assistant with payload:', error);
+      throw error;
+    }
+  };
+
   return (
     <AIAssistantContext.Provider
       value={{
@@ -423,10 +538,13 @@ Error: ${data.error}`;
         toolContext,
         notificationMessage,
         currentSessionId,
+        currentPayload,
         setIsOpen,
         setMode,
         setLanguage,
         setToolContext,
+        setCurrentPayload,
+        openAssistantWithPayload,
         sendMessage,
         clearChat,
         loadChatSession,

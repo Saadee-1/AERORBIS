@@ -19,7 +19,7 @@ export function AskAIButton({
   disabled,
   className 
 }: AskAIButtonProps) {
-  const { setIsOpen, sendMessage } = useAIAssistant();
+  const { openAssistantWithPayload } = useAIAssistant();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -35,26 +35,18 @@ export function AskAIButton({
 
     setIsLoading(true);
     try {
-      // Check if calculation data exists in localStorage
-      const storedData = localStorage.getItem(`calc-${requestId}`);
-      if (!storedData) {
-        toast({
-          title: 'Warning',
-          description: 'Calculation data not found. The AI may not have full context.',
-          variant: 'destructive',
-        });
-      }
-
-      // Open AI assistant first
-      setIsOpen(true);
-      
-      // Send a message with the explanation request and requestId
-      // The assistant will use the requestId to fetch context from localStorage
-      await sendMessage(`Please explain this calculation in detail. Request ID: ${requestId}`);
+      // Use openAssistantWithPayload which ensures payload is loaded BEFORE opening
+      // This function will:
+      // 1. Load calculation data from localStorage using requestId
+      // 2. Convert to AeroverseAIPayload format
+      // 3. Set payload in context FIRST
+      // 4. Open assistant UI
+      // 5. Send explanation request with full context
+      await openAssistantWithPayload(requestId);
       
       toast({
         title: 'Success',
-        description: 'AI Assistant opened with calculation context.',
+        description: 'AI Assistant opened with full calculation context.',
       });
     } catch (error) {
       console.error('Error opening AI assistant:', error);
