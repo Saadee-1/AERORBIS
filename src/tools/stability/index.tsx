@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { calculateStability, sweepCGPosition, StabilityInputs, StabilityResults } from './utils/calcStability';
 import { validateStabilityInputs } from './validation/schema';
 import { buildStabilityPayload, ExtendedStabilityResults } from './utils/payloadBuilder';
-import { A0_THEORETICAL, DEFAULT_WING_EFFICIENCY, DEFAULT_TAIL_EFFICIENCY, DEFAULT_ELEVATOR_EFFECTIVENESS } from './utils/constants';
+import { A0_THEORETICAL, DEFAULT_AIRFOIL_LIFT_SLOPE, DEFAULT_WING_EFFICIENCY, DEFAULT_TAIL_EFFICIENCY, DEFAULT_ELEVATOR_EFFECTIVENESS } from './utils/constants';
 import { AIRCRAFT_PRESETS, AircraftPreset } from './data/presets';
 import { InputPanel } from './components/InputPanel';
 import { ResultsPanel } from './components/ResultsPanel';
@@ -155,15 +155,15 @@ export default function StabilityCalculator() {
   const handleCalculate = useCallback(() => {
     try {
       // Validate inputs
-      const validation = validateStabilityInputs(inputs);
-      if (!validation.valid) {
-        toast({
-          title: 'Validation Error',
+    const validation = validateStabilityInputs(inputs);
+    if (!validation.valid) {
+      toast({
+        title: 'Validation Error',
           description: validation.errors.join(', '),
-          variant: 'destructive',
-        });
-        return;
-      }
+        variant: 'destructive',
+      });
+      return;
+    }
 
       // Perform base stability calculation
       const stabilityResults = calculateStability(inputs);
@@ -563,8 +563,8 @@ export default function StabilityCalculator() {
                         <p className="text-xs text-gray-400">τ_r (Rudder)</p>
                         <p className="text-cyan-400 font-bold">{extendedResults.control.tau_r.toFixed(3)}</p>
                       </div>
-                    </div>
-                  </div>
+          </div>
+        </div>
                 </ToolSection>
               )}
 
@@ -629,8 +629,8 @@ export default function StabilityCalculator() {
                           <p key={i} className="text-xs text-yellow-400">{w}</p>
                         ))}
                       </div>
-                    )}
-                  </div>
+          )}
+        </div>
                 </ToolSection>
               )}
             </>
@@ -642,15 +642,15 @@ export default function StabilityCalculator() {
               inputs={{ S_t: inputs.S_t, l_t: inputs.l_t }}
               tailSizingData={tailSizingData}
             />
-          </ToolSection>
+      </ToolSection>
 
           <ToolSection title="Charts">
-            <ChartsPanel
+        <ChartsPanel
               results={results}
               cgSweepData={cgSweepData}
               downwashData={downwashData}
-            />
-          </ToolSection>
+        />
+      </ToolSection>
         </>
       )}
     </ToolWrapper>

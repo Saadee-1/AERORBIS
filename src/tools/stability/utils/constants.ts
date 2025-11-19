@@ -1,24 +1,26 @@
 /**
- * Physical constants for stability calculations
+ * Physical constants for stability and control calculations
  */
 
 export const PI = Math.PI;
-export const TWO_PI = 2 * PI;
-export const DEG_TO_RAD = PI / 180;
-export const RAD_TO_DEG = 180 / PI;
+export const TWO_PI = 2 * Math.PI;
 
 // Standard airfoil lift curve slope (per radian)
 export const A0_THEORETICAL = TWO_PI; // 2π per radian
 export const DEFAULT_AIRFOIL_LIFT_SLOPE = A0_THEORETICAL; // Alias for compatibility
+
+// Typical efficiency factors
 export const DEFAULT_WING_EFFICIENCY = 0.85;
 export const DEFAULT_TAIL_EFFICIENCY = 0.9;
-export const DEFAULT_ELEVATOR_EFFECTIVENESS = 0.4; // τ_e
 
-// Control surface effectiveness constants (DATCOM-style)
-export const AILERON_EFFECTIVENESS_K = 0.08; // K_a
-export const RUDDER_EFFECTIVENESS_K = 0.12; // K_r
+// Typical control surface effectiveness
+export const DEFAULT_ELEVATOR_EFFECTIVENESS = 0.45; // τ_e
+export const DEFAULT_AILERON_EFFECTIVENESS = 0.6; // K_a
+export const DEFAULT_RUDDER_EFFECTIVENESS = 0.5; // K_r
 
-// Stability limits
+// Typical tail volume coefficient ranges
 export const MIN_TAIL_VOLUME = 0.5;
 export const MAX_TAIL_VOLUME = 1.2;
-export const MIN_STATIC_MARGIN = 0.05; // 5% MAC minimum for stability
+
+// Stability thresholds
+export const MARGINAL_STABILITY_THRESHOLD = 0.05; // |C_mα| < 0.05 is marginal
