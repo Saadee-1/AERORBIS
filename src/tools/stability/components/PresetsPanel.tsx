@@ -44,46 +44,25 @@ export function PresetsPanel({
         {selectedPreset && (
           <div className="p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
             <p className="text-sm text-gray-300 mb-2">{selectedPreset.description}</p>
-            {selectedPreset.id === 'custom' ? (
-              <div className="space-y-3">
-                <p className="text-xs text-gray-400">
-                  Select "Custom Aircraft" to start with default values. You can then edit all parameters in the Geometry, Aerodynamics, and Controls tabs to create your own aircraft configuration.
-                </p>
-                <p className="text-xs text-cyan-400">
-                  Perfect for RC planes, drones, experimental aircraft, or any custom design!
-                </p>
-                <Button
-                  onClick={() => onLoadPreset(selectedPreset)}
-                  className="w-full"
-                  variant="outline"
-                  size="sm"
-                >
-                  Start with Custom Template
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 mb-3">
-                  <div>S_w: {selectedPreset.S_w.toFixed(1)} m²</div>
-                  <div>AR: {selectedPreset.AR.toFixed(1)}</div>
-                  <div>S_t: {selectedPreset.S_t.toFixed(1)} m²</div>
-                  <div>AR_t: {selectedPreset.AR_t.toFixed(1)}</div>
-                  <div>l_t: {selectedPreset.l_t.toFixed(1)} m</div>
-                  <div>V_H: {((selectedPreset.S_t * selectedPreset.l_t) / (selectedPreset.S_w * selectedPreset.c_bar)).toFixed(2)}</div>
-                </div>
-                {selectedPreset.notes && (
-                  <p className="text-xs text-cyan-400 mb-3">{selectedPreset.notes}</p>
-                )}
-                <Button
-                  onClick={() => onLoadPreset(selectedPreset)}
-                  className="w-full"
-                  variant="outline"
-                  size="sm"
-                >
-                  Load Preset
-                </Button>
-              </>
+            <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 mb-3">
+              <div>S_w: {selectedPreset.S_w.toFixed(1)} m²</div>
+              <div>AR: {selectedPreset.AR.toFixed(1)}</div>
+              <div>S_t: {selectedPreset.S_t.toFixed(1)} m²</div>
+              <div>AR_t: {selectedPreset.AR_t.toFixed(1)}</div>
+              <div>l_t: {selectedPreset.l_t.toFixed(1)} m</div>
+              <div>V_H: {((selectedPreset.S_t * selectedPreset.l_t) / (selectedPreset.S_w * selectedPreset.c_bar)).toFixed(2)}</div>
+            </div>
+            {selectedPreset.notes && (
+              <p className="text-xs text-cyan-400 mb-3">{selectedPreset.notes}</p>
             )}
+            <Button
+              onClick={() => onLoadPreset(selectedPreset)}
+              className="w-full"
+              variant="outline"
+              size="sm"
+            >
+              Load Preset
+            </Button>
           </div>
         )}
       </div>
