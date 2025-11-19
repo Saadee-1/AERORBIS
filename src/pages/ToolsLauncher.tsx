@@ -17,7 +17,7 @@ import MaterialsDatabase from "@/components/tools/MaterialsDatabase";
 import DeltaVPlanner from "@/components/tools/deltav/DeltaVPlanner";
 import AntennaPatternAnalyzer from "@/components/tools/AntennaPatternAnalyzer";
 import StandardAtmosphereCalculator from "@/components/tools/StandardAtmosphereCalculator";
-import StabilityCalculator from "@/tools/stability";
+import StabilityCalculator from "@/components/tools/StabilityCalculator";
 
 // Mapping from tool names to tab IDs
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
@@ -102,7 +102,7 @@ const ToolsLauncher = () => {
           >
             <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
               {!hideTabs && (
-                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 lg:grid-cols-9 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 lg:grid-cols-10 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
                 <TabsTrigger 
                   value="thrust"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
