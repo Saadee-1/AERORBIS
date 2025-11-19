@@ -106,9 +106,9 @@ export function StabilityCriteriaPanel({
               Longitudinal: {criteria.longitudinal_rating}
             </p>
           </div>
-          {criteria.phugoid_damping_ratio !== undefined && (
+          {criteria.phugoid_damping_ratio !== undefined && criteria.phugoid_damping_ratio != null && (
             <p className="text-xs text-gray-400 mt-1">
-              Phugoid damping: {criteria.phugoid_damping_ratio.toFixed(3)}
+              Phugoid damping: {(criteria.phugoid_damping_ratio ?? 0).toFixed(3)}
             </p>
           )}
         </div>
@@ -122,11 +122,11 @@ export function StabilityCriteriaPanel({
             </p>
           </div>
           <div className="text-xs text-gray-400 space-y-1 mt-2">
-            {criteria.dutch_roll_damping_ratio !== undefined && (
-              <div>Dutch roll damping: {criteria.dutch_roll_damping_ratio.toFixed(3)}</div>
+            {criteria.dutch_roll_damping_ratio !== undefined && criteria.dutch_roll_damping_ratio != null && (
+              <div>Dutch roll damping: {(criteria.dutch_roll_damping_ratio ?? 0).toFixed(3)}</div>
             )}
-            {criteria.roll_mode_time_constant !== undefined && (
-              <div>Roll time constant: {criteria.roll_mode_time_constant.toFixed(2)} s</div>
+            {criteria.roll_mode_time_constant !== undefined && criteria.roll_mode_time_constant != null && (
+              <div>Roll time constant: {(criteria.roll_mode_time_constant ?? 0).toFixed(2)} s</div>
             )}
             <div>Spiral stability: {criteria.spiral_stability}</div>
           </div>

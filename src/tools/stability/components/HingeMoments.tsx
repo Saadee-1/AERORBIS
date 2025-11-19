@@ -67,19 +67,19 @@ export function HingeMomentsPanel({ hingeMoments, enabled }: HingeMomentsPanelPr
           <div className="p-4 bg-gradient-to-br from-orange-400/10 to-red-400/10 rounded-lg border border-orange-400/20">
             <p className="text-sm text-gray-300 mb-2">Servo Torque Requirements</p>
             <div className="grid grid-cols-2 gap-4">
-              {hingeMoments.T_max !== undefined && (
+              {hingeMoments.T_max !== undefined && hingeMoments.T_max != null && (
                 <div>
                   <p className="text-xs text-gray-400 mb-1">Maximum Torque</p>
                   <p className="text-orange-400 font-bold text-lg">
-                    {hingeMoments.T_max.toFixed(2)} N·m
+                    {(hingeMoments.T_max ?? 0).toFixed(2)} N·m
                   </p>
                 </div>
               )}
-              {hingeMoments.T_at_deflection !== undefined && (
+              {hingeMoments.T_at_deflection !== undefined && hingeMoments.T_at_deflection != null && (
                 <div>
                   <p className="text-xs text-gray-400 mb-1">At 15° Deflection</p>
                   <p className="text-orange-400 font-bold text-lg">
-                    {hingeMoments.T_at_deflection.toFixed(2)} N·m
+                    {(hingeMoments.T_at_deflection ?? 0).toFixed(2)} N·m
                   </p>
                 </div>
               )}

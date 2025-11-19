@@ -591,19 +591,19 @@ export default function StabilityCalculator() {
                       <div>
                         <p className="text-xs text-gray-400">τ_e (Elevator)</p>
                         <p className="text-cyan-400 font-bold">
-                          {extendedResults.control.tau_e != null ? extendedResults.control.tau_e.toFixed(3) : 'N/A'}
+                          {(extendedResults.control.tau_e ?? 0).toFixed(3)}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">τ_a (Aileron)</p>
                         <p className="text-cyan-400 font-bold">
-                          {extendedResults.control.tau_a != null ? extendedResults.control.tau_a.toFixed(3) : 'N/A'}
+                          {(extendedResults.control.tau_a ?? 0).toFixed(3)}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">τ_r (Rudder)</p>
                         <p className="text-cyan-400 font-bold">
-                          {extendedResults.control.tau_r != null ? extendedResults.control.tau_r.toFixed(3) : 'N/A'}
+                          {(extendedResults.control.tau_r ?? 0).toFixed(3)}
                         </p>
                       </div>
                     </div>
@@ -656,19 +656,19 @@ export default function StabilityCalculator() {
                       <div>
                         <p className="text-xs text-gray-400">Elevator Factor</p>
                         <p className="text-cyan-400 font-bold">
-                          {extendedResults.nonlinear.elevator_factor != null ? extendedResults.nonlinear.elevator_factor.toFixed(3) : 'N/A'}
+                          {(extendedResults.nonlinear.elevator_factor ?? 1).toFixed(3)}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Aileron Factor</p>
                         <p className="text-cyan-400 font-bold">
-                          {extendedResults.nonlinear.aileron_factor != null ? extendedResults.nonlinear.aileron_factor.toFixed(3) : 'N/A'}
+                          {(extendedResults.nonlinear.aileron_factor ?? 1).toFixed(3)}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Rudder Factor</p>
                         <p className="text-cyan-400 font-bold">
-                          {extendedResults.nonlinear.rudder_factor != null ? extendedResults.nonlinear.rudder_factor.toFixed(3) : 'N/A'}
+                          {(extendedResults.nonlinear.rudder_factor ?? 1).toFixed(3)}
                         </p>
                       </div>
                     </div>
