@@ -8,42 +8,30 @@ export interface AircraftPreset {
   id: string;
   name: string;
   description: string;
-  category: 'UAV' | 'Trainer' | 'Fighter' | 'Transport' | 'General Aviation';
-  
-  // Geometry
-  S_w: number; // Wing area (m²)
-  AR: number; // Aspect ratio
-  c_bar: number; // Mean aerodynamic chord (m)
-  x_ac_w: number; // Wing AC position (m, fraction of MAC)
-  x_cg: number; // CG position (m, fraction of MAC)
-  
-  // Tail
-  S_t: number; // Tail area (m²)
-  AR_t: number; // Tail aspect ratio
-  l_t: number; // Tail arm (m)
-  
-  // Vertical tail
-  S_v?: number; // Vertical tail area (m²)
-  l_v?: number; // Vertical tail arm (m)
-  b_w?: number; // Wing span (m)
-  
+  category: string;
+  // Wing geometry
+  S_w: number; // m²
+  AR: number;
+  c_bar: number; // m
+  x_ac_w: number; // fraction of MAC
+  // Tail geometry
+  S_t: number; // m²
+  AR_t: number;
+  l_t: number; // m
   // Aerodynamics
-  a0: number; // Airfoil lift curve slope (per rad)
-  e: number; // Wing efficiency
-  e_t: number; // Tail efficiency
-  eta_t: number; // Tail effectiveness
-  
-  // Control
-  S_e?: number; // Elevator area (m²)
-  tau_e?: number; // Elevator effectiveness
-  S_a?: number; // Aileron area (m²)
-  K_a?: number; // Aileron constant
-  S_r?: number; // Rudder area (m²)
-  K_r?: number; // Rudder constant
-  
-  // Lateral
-  dihedralAngle?: number; // Dihedral angle (degrees)
-  
+  a0: number; // per radian
+  e: number;
+  e_t: number;
+  eta: number;
+  // Control surfaces
+  S_e?: number; // m²
+  tau_e?: number;
+  S_a?: number; // m²
+  S_r?: number; // m²
+  S_v?: number; // m²
+  // Typical CG range
+  x_cg_min: number; // fraction of MAC
+  x_cg_max: number; // fraction of MAC
   notes?: string;
 }
 
@@ -54,144 +42,215 @@ export const AIRCRAFT_PRESETS: Record<string, AircraftPreset> = {
     description: 'Typical small unmanned aerial vehicle',
     category: 'UAV',
     S_w: 0.5,
-    AR: 8,
-    c_bar: 0.25,
+    AR: 6.0,
+    c_bar: 0.3,
     x_ac_w: 0.25,
-    x_cg: 0.30,
-    S_t: 0.15,
-    AR_t: 4,
+    S_t: 0.1,
+    AR_t: 4.0,
     l_t: 0.8,
-    S_v: 0.10,
-    l_v: 0.8,
-    b_w: 2.0,
     a0: 2 * Math.PI,
-    e: 0.85,
-    e_t: 0.80,
-    eta_t: 0.90,
-    S_e: 0.05,
-    tau_e: 0.40,
-    S_a: 0.08,
-    K_a: 0.35,
-    S_r: 0.03,
-    K_r: 0.25,
-    dihedralAngle: 3,
-    notes: 'Typical small quadcopter/fixed-wing hybrid',
+    e: 0.8,
+    e_t: 0.85,
+    eta: 0.9,
+    S_e: 0.02,
+    tau_e: 0.4,
+    x_cg_min: 0.20,
+    x_cg_max: 0.35,
+    notes: 'Lightweight, high efficiency',
   },
   'trainer': {
     id: 'trainer',
     name: 'Primary Trainer',
-    description: 'Typical primary flight trainer aircraft',
+    description: 'Typical primary training aircraft',
     category: 'Trainer',
-    S_w: 15,
-    AR: 7,
+    S_w: 15.0,
+    AR: 7.0,
     c_bar: 1.5,
     x_ac_w: 0.25,
-    x_cg: 0.28,
-    S_t: 4,
+    S_t: 3.0,
     AR_t: 4.5,
-    l_t: 4.5,
-    S_v: 2.5,
-    l_v: 4.5,
-    b_w: 10,
+    l_t: 4.0,
     a0: 2 * Math.PI,
-    e: 0.90,
-    e_t: 0.85,
-    eta_t: 0.92,
-    S_e: 1.2,
+    e: 0.85,
+    e_t: 0.88,
+    eta: 0.9,
+    S_e: 0.6,
     tau_e: 0.45,
-    S_a: 2.0,
-    K_a: 0.40,
-    S_r: 0.8,
-    K_r: 0.30,
-    dihedralAngle: 5,
-    notes: 'Typical Cessna 172-like trainer',
+    S_a: 0.8,
+    S_r: 0.5,
+    S_v: 2.5,
+    x_cg_min: 0.20,
+    x_cg_max: 0.30,
+    notes: 'Stable, forgiving handling characteristics',
   },
   'fighter': {
     id: 'fighter',
     name: 'Fighter Aircraft',
     description: 'Typical fighter/combat aircraft',
     category: 'Fighter',
-    S_w: 50,
+    S_w: 50.0,
     AR: 3.5,
     c_bar: 4.0,
     x_ac_w: 0.30,
-    x_cg: 0.35,
-    S_t: 12,
+    S_t: 8.0,
     AR_t: 2.5,
-    l_t: 8,
-    S_v: 8,
-    l_v: 8,
-    b_w: 13,
+    l_t: 6.0,
     a0: 2 * Math.PI,
-    e: 0.80,
-    e_t: 0.75,
-    eta_t: 0.88,
-    S_e: 3.5,
-    tau_e: 0.50,
-    S_a: 6.0,
-    K_a: 0.45,
-    S_r: 2.5,
-    K_r: 0.35,
-    dihedralAngle: -2, // Anhedral for fighters
-    notes: 'Typical fighter configuration with anhedral',
+    e: 0.90,
+    e_t: 0.92,
+    eta: 0.95,
+    S_e: 1.2,
+    tau_e: 0.5,
+    S_a: 2.0,
+    S_r: 1.0,
+    S_v: 6.0,
+    x_cg_min: 0.30,
+    x_cg_max: 0.40,
+    notes: 'High performance, relaxed stability possible',
   },
   'transport': {
     id: 'transport',
     name: 'Transport Aircraft',
-    description: 'Typical transport/airliner configuration',
+    description: 'Typical transport/cargo aircraft',
     category: 'Transport',
-    S_w: 200,
-    AR: 9.5,
-    c_bar: 5.5,
+    S_w: 200.0,
+    AR: 9.0,
+    c_bar: 5.0,
     x_ac_w: 0.25,
-    x_cg: 0.30,
-    S_t: 50,
-    AR_t: 5.5,
-    l_t: 18,
-    S_v: 35,
-    l_v: 18,
-    b_w: 35,
-    a0: 2 * Math.PI,
-    e: 0.95,
-    e_t: 0.90,
-    eta_t: 0.95,
-    S_e: 15,
-    tau_e: 0.55,
-    S_a: 25,
-    K_a: 0.42,
-    S_r: 12,
-    K_r: 0.32,
-    dihedralAngle: 7,
-    notes: 'Typical airliner configuration',
-  },
-  'general-aviation': {
-    id: 'general-aviation',
-    name: 'General Aviation',
-    description: 'Typical general aviation aircraft',
-    category: 'General Aviation',
-    S_w: 20,
-    AR: 7.5,
-    c_bar: 1.8,
-    x_ac_w: 0.25,
-    x_cg: 0.29,
-    S_t: 5,
-    AR_t: 4.5,
-    l_t: 5,
-    S_v: 3,
-    l_v: 5,
-    b_w: 12,
+    S_t: 40.0,
+    AR_t: 5.0,
+    l_t: 15.0,
     a0: 2 * Math.PI,
     e: 0.88,
-    e_t: 0.82,
-    eta_t: 0.90,
-    S_e: 1.5,
-    tau_e: 0.42,
-    S_a: 3.0,
-    K_a: 0.38,
-    S_r: 1.0,
-    K_r: 0.28,
-    dihedralAngle: 6,
-    notes: 'Typical single-engine general aviation',
+    e_t: 0.90,
+    eta: 0.92,
+    S_e: 4.0,
+    tau_e: 0.45,
+    S_a: 6.0,
+    S_r: 3.0,
+    S_v: 25.0,
+    x_cg_min: 0.20,
+    x_cg_max: 0.30,
+    notes: 'High stability, large tail volume',
+  },
+  'glider': {
+    id: 'glider',
+    name: 'Sailplane/Glider',
+    description: 'Typical high-performance glider',
+    category: 'Glider',
+    S_w: 18.0,
+    AR: 20.0,
+    c_bar: 1.0,
+    x_ac_w: 0.25,
+    S_t: 2.5,
+    AR_t: 6.0,
+    l_t: 5.0,
+    a0: 2 * Math.PI,
+    e: 0.95,
+    e_t: 0.95,
+    eta: 0.95,
+    S_e: 0.3,
+    tau_e: 0.4,
+    x_cg_min: 0.25,
+    x_cg_max: 0.35,
+    notes: 'Very high aspect ratio, optimized for efficiency',
+  },
+  'rc-plane': {
+    id: 'rc-plane',
+    name: 'RC Plane',
+    description: 'Typical radio-controlled model aircraft',
+    category: 'RC Aircraft',
+    S_w: 0.8,
+    AR: 6.5,
+    c_bar: 0.35,
+    x_ac_w: 0.25,
+    S_t: 0.15,
+    AR_t: 4.0,
+    l_t: 0.9,
+    a0: 2 * Math.PI,
+    e: 0.82,
+    e_t: 0.85,
+    eta: 0.9,
+    S_e: 0.03,
+    tau_e: 0.4,
+    S_a: 0.05,
+    S_r: 0.02,
+    S_v: 0.12,
+    x_cg_min: 0.20,
+    x_cg_max: 0.30,
+    notes: 'Small scale, lightweight construction',
+  },
+  'drone-quadcopter': {
+    id: 'drone-quadcopter',
+    name: 'Quadcopter Drone',
+    description: 'Typical quadcopter configuration (simplified fixed-wing equivalent)',
+    category: 'Drone',
+    S_w: 0.15,
+    AR: 4.0,
+    c_bar: 0.2,
+    x_ac_w: 0.25,
+    S_t: 0.03,
+    AR_t: 3.0,
+    l_t: 0.3,
+    a0: 2 * Math.PI,
+    e: 0.75,
+    e_t: 0.80,
+    eta: 0.85,
+    S_e: 0.005,
+    tau_e: 0.35,
+    x_cg_min: 0.25,
+    x_cg_max: 0.35,
+    notes: 'Note: Quadcopters use different control mechanisms, this is a simplified approximation',
+  },
+  'drone-fixed-wing': {
+    id: 'drone-fixed-wing',
+    name: 'Fixed-Wing Drone',
+    description: 'Typical fixed-wing UAV/drone',
+    category: 'Drone',
+    S_w: 0.3,
+    AR: 8.0,
+    c_bar: 0.2,
+    x_ac_w: 0.25,
+    S_t: 0.06,
+    AR_t: 5.0,
+    l_t: 0.5,
+    a0: 2 * Math.PI,
+    e: 0.85,
+    e_t: 0.88,
+    eta: 0.9,
+    S_e: 0.01,
+    tau_e: 0.4,
+    S_a: 0.015,
+    S_r: 0.008,
+    S_v: 0.04,
+    x_cg_min: 0.20,
+    x_cg_max: 0.30,
+    notes: 'Long endurance, efficient design',
+  },
+  'custom': {
+    id: 'custom',
+    name: 'Custom Aircraft',
+    description: 'Create your own aircraft configuration',
+    category: 'Custom',
+    S_w: 1.0,
+    AR: 6.0,
+    c_bar: 0.4,
+    x_ac_w: 0.25,
+    S_t: 0.2,
+    AR_t: 4.0,
+    l_t: 1.0,
+    a0: 2 * Math.PI,
+    e: 0.85,
+    e_t: 0.85,
+    eta: 0.9,
+    S_e: 0.04,
+    tau_e: 0.4,
+    S_a: 0.06,
+    S_r: 0.03,
+    S_v: 0.15,
+    x_cg_min: 0.20,
+    x_cg_max: 0.35,
+    notes: 'Edit values in the input panels to customize your aircraft',
   },
 };
 
@@ -207,11 +266,4 @@ export function getAircraftPreset(id: string): AircraftPreset | undefined {
  */
 export function getAircraftPresetIds(): string[] {
   return Object.keys(AIRCRAFT_PRESETS);
-}
-
-/**
- * Get presets by category
- */
-export function getPresetsByCategory(category: AircraftPreset['category']): AircraftPreset[] {
-  return Object.values(AIRCRAFT_PRESETS).filter(p => p.category === category);
 }
