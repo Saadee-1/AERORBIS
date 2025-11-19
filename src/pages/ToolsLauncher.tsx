@@ -17,6 +17,7 @@ import MaterialsDatabase from "@/components/tools/MaterialsDatabase";
 import DeltaVPlanner from "@/components/tools/deltav/DeltaVPlanner";
 import AntennaPatternAnalyzer from "@/components/tools/AntennaPatternAnalyzer";
 import StandardAtmosphereCalculator from "@/components/tools/StandardAtmosphereCalculator";
+import StabilityCalculator from "@/components/tools/StabilityCalculator";
 
 // Mapping from tool names to tab IDs
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
@@ -29,6 +30,18 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "Delta-V Budget Planner": "deltav",
   "Antenna Pattern Analyzer": "antenna",
   "Standard Atmosphere Calculator": "atmosphere",
+  "Stability & Control Derivatives": "stability",
+  // Also support direct tool IDs
+  "thrust": "thrust",
+  "wing": "wing",
+  "orbital": "orbital",
+  "liftdrag": "liftdrag",
+  "reynolds": "reynolds",
+  "materials": "materials",
+  "deltav": "deltav",
+  "antenna": "antenna",
+  "atmosphere": "atmosphere",
+  "stability": "stability",
 };
 
 const ToolsLauncher = () => {
@@ -89,7 +102,7 @@ const ToolsLauncher = () => {
           >
             <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
               {!hideTabs && (
-                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 lg:grid-cols-9 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 lg:grid-cols-10 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
                 <TabsTrigger 
                   value="thrust"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
@@ -153,6 +166,13 @@ const ToolsLauncher = () => {
                   <Cloud className="w-4 h-4 mr-2" />
                   Atmosphere
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="stability"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                >
+                  <Plane className="w-4 h-4 mr-2" />
+                  Stability
+                </TabsTrigger>
                 </TabsList>
               )}
 
@@ -190,6 +210,10 @@ const ToolsLauncher = () => {
 
               <TabsContent value="atmosphere" className="mt-0">
                 <StandardAtmosphereCalculator />
+              </TabsContent>
+
+              <TabsContent value="stability" className="mt-0">
+                <StabilityCalculator />
               </TabsContent>
             </Tabs>
           </motion.div>
