@@ -21,7 +21,17 @@ export function PresetsPanel({
   onPresetChange,
   onLoadPreset,
 }: PresetsPanelProps) {
-  const selectedPreset = AIRCRAFT_PRESETS[selectedPresetId] || AIRCRAFT_PRESETS['custom'];
+  const selectedPreset = AIRCRAFT_PRESETS[selectedPresetId];
+  
+  if (!selectedPreset) {
+    return (
+      <AeroCard title="Aircraft Presets" icon={Database}>
+        <div className="p-4 text-red-400">
+          Error: Preset "{selectedPresetId}" not found
+        </div>
+      </AeroCard>
+    );
+  }
 
   return (
     <AeroCard title="Aircraft Presets" icon={Database}>
