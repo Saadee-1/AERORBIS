@@ -17,7 +17,7 @@ import MaterialsDatabase from "@/components/tools/MaterialsDatabase";
 import DeltaVPlanner from "@/components/tools/deltav/DeltaVPlanner";
 import AntennaPatternAnalyzer from "@/components/tools/AntennaPatternAnalyzer";
 import StandardAtmosphereCalculator from "@/components/tools/StandardAtmosphereCalculator";
-import StabilityCalculator from "@/components/tools/StabilityCalculator";
+import StabilityCalculator from "@/tools/stability";
 
 // Mapping from tool names to tab IDs
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
