@@ -332,9 +332,11 @@ export default function StabilityCalculator() {
         description: stabilityResults.isStable ? 'Aircraft is stable' : 'Aircraft is unstable',
       });
     } catch (error) {
+      console.error('Stability calculation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during calculation';
       toast({
         title: 'Calculation Error',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        description: errorMessage,
         variant: 'destructive',
       });
     }
