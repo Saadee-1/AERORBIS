@@ -37,12 +37,12 @@ export function DynamicDerivativesPanel({ derivatives, enabled }: DynamicDerivat
           <div className="p-4 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-lg border border-cyan-400/20">
             <p className="text-xs text-gray-400 mb-1">C_mq</p>
             <p className="text-cyan-400 font-bold text-xl">
-              {derivatives.C_m_q.toFixed(4)}
+              {(derivatives.C_m_q ?? 0).toFixed(4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Pitch Damping</p>
             {derivatives.pitch_damping_ratio !== undefined && (
               <p className="text-xs text-gray-500">
-                ζ: {derivatives.pitch_damping_ratio.toFixed(3)}
+                ζ: {(derivatives.pitch_damping_ratio ?? 0).toFixed(3)}
               </p>
             )}
           </div>
@@ -51,12 +51,12 @@ export function DynamicDerivativesPanel({ derivatives, enabled }: DynamicDerivat
           <div className="p-4 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-lg border border-purple-400/20">
             <p className="text-xs text-gray-400 mb-1">C_lp</p>
             <p className="text-purple-400 font-bold text-xl">
-              {derivatives.C_l_p.toFixed(4)}
+              {(derivatives.C_l_p ?? 0).toFixed(4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Roll Damping</p>
             {derivatives.roll_damping_ratio !== undefined && (
               <p className="text-xs text-gray-500">
-                ζ: {derivatives.roll_damping_ratio.toFixed(3)}
+                ζ: {(derivatives.roll_damping_ratio ?? 0).toFixed(3)}
               </p>
             )}
           </div>
@@ -65,12 +65,12 @@ export function DynamicDerivativesPanel({ derivatives, enabled }: DynamicDerivat
           <div className="p-4 bg-gradient-to-br from-green-400/10 to-emerald-400/10 rounded-lg border border-green-400/20">
             <p className="text-xs text-gray-400 mb-1">C_nr</p>
             <p className="text-green-400 font-bold text-xl">
-              {derivatives.C_n_r.toFixed(4)}
+              {(derivatives.C_n_r ?? 0).toFixed(4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Yaw Damping</p>
             {derivatives.yaw_damping_ratio !== undefined && (
               <p className="text-xs text-gray-500">
-                ζ: {derivatives.yaw_damping_ratio.toFixed(3)}
+                ζ: {(derivatives.yaw_damping_ratio ?? 0).toFixed(3)}
               </p>
             )}
           </div>
@@ -79,7 +79,7 @@ export function DynamicDerivativesPanel({ derivatives, enabled }: DynamicDerivat
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">C_lr</p>
             <p className="text-white font-bold text-lg">
-              {derivatives.C_l_r.toFixed(4)}
+              {(derivatives.C_l_r ?? 0).toFixed(4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Roll due to Yaw</p>
           </div>
@@ -87,7 +87,7 @@ export function DynamicDerivativesPanel({ derivatives, enabled }: DynamicDerivat
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">C_np</p>
             <p className="text-white font-bold text-lg">
-              {derivatives.C_n_p.toFixed(4)}
+              {(derivatives.C_n_p ?? 0).toFixed(4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Yaw due to Roll</p>
           </div>

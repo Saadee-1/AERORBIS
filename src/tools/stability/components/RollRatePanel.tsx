@@ -86,24 +86,24 @@ export function RollRatePanel({
               <div className="p-4 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-lg border border-cyan-400/20">
                 <p className="text-xs text-gray-400 mb-1">Roll Rate</p>
                 <p className="text-cyan-400 font-bold text-xl">
-                  {rollRateResult.p_deg.toFixed(1)} deg/s
+                  {(rollRateResult.p_deg ?? 0).toFixed(1)} deg/s
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {rollRateResult.p.toFixed(3)} rad/s
+                  {(rollRateResult.p ?? 0).toFixed(3)} rad/s
                 </p>
               </div>
 
               <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
                 <p className="text-xs text-gray-400 mb-1">Time Constant</p>
                 <p className="text-white font-bold text-lg">
-                  {rollRateResult.roll_time_constant.toFixed(2)} s
+                  {(rollRateResult.roll_time_constant ?? 0).toFixed(2)} s
                 </p>
               </div>
 
               <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
                 <p className="text-xs text-gray-400 mb-1">Rate per Degree</p>
                 <p className="text-white font-bold text-lg">
-                  {rollRateResult.roll_rate_per_degree.toFixed(1)}
+                  {(rollRateResult.roll_rate_per_degree ?? 0).toFixed(1)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">deg/s per deg</p>
               </div>
@@ -111,12 +111,12 @@ export function RollRatePanel({
               <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
                 <p className="text-xs text-gray-400 mb-1">360° Roll Time</p>
                 <p className="text-white font-bold text-lg">
-                  {Math.abs(rollRateResult.p_deg) > 0 ? (360 / Math.abs(rollRateResult.p_deg)).toFixed(2) : '∞'} s
+                  {Math.abs(rollRateResult.p_deg ?? 0) > 0 ? (360 / Math.abs(rollRateResult.p_deg ?? 1)).toFixed(2) : '∞'} s
                 </p>
               </div>
             </div>
 
-            {rollRateResult.warnings.length > 0 && (
+            {rollRateResult.warnings && rollRateResult.warnings.length > 0 && (
               <Alert className="bg-yellow-400/10 border-yellow-400/30">
                 <AlertTriangle className="h-4 w-4 text-yellow-400" />
                 <AlertDescription className="text-yellow-400">

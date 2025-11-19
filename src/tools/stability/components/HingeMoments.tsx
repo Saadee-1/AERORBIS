@@ -29,7 +29,7 @@ export function HingeMomentsPanel({ hingeMoments, enabled }: HingeMomentsPanelPr
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">C_h0</p>
             <p className="text-white font-bold text-lg">
-              {hingeMoments.C_h_0.toFixed(4)}
+              {(hingeMoments.C_h_0 ?? 0).toFixed(4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Zero-lift</p>
           </div>
@@ -38,7 +38,7 @@ export function HingeMomentsPanel({ hingeMoments, enabled }: HingeMomentsPanelPr
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">C_hα</p>
             <p className="text-white font-bold text-lg">
-              {hingeMoments.C_h_alpha.toFixed(4)}
+              {(hingeMoments.C_h_alpha ?? 0).toFixed(4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Due to α</p>
           </div>
@@ -47,7 +47,7 @@ export function HingeMomentsPanel({ hingeMoments, enabled }: HingeMomentsPanelPr
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">C_hδ</p>
             <p className="text-white font-bold text-lg">
-              {hingeMoments.C_h_delta.toFixed(4)}
+              {(hingeMoments.C_h_delta ?? 0).toFixed(4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Due to δ</p>
           </div>
@@ -56,7 +56,7 @@ export function HingeMomentsPanel({ hingeMoments, enabled }: HingeMomentsPanelPr
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">C_hq</p>
             <p className="text-white font-bold text-lg">
-              {hingeMoments.C_h_q.toFixed(4)}
+              {(hingeMoments.C_h_q ?? 0).toFixed(4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Due to q</p>
           </div>
@@ -88,7 +88,7 @@ export function HingeMomentsPanel({ hingeMoments, enabled }: HingeMomentsPanelPr
         )}
 
         {/* Warnings */}
-        {hingeMoments.warnings.length > 0 && (
+        {hingeMoments.warnings && hingeMoments.warnings.length > 0 && (
           <Alert className="bg-yellow-400/10 border-yellow-400/30">
             <AlertTriangle className="h-4 w-4 text-yellow-400" />
             <AlertDescription className="text-yellow-400">
