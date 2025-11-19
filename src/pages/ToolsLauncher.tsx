@@ -191,6 +191,10 @@ const ToolsLauncher = () => {
               <TabsContent value="atmosphere" className="mt-0">
                 <StandardAtmosphereCalculator />
               </TabsContent>
+
+              <TabsContent value="stability" className="mt-0">
+                <StabilityCalculator />
+              </TabsContent>
             </Tabs>
           </motion.div>
         </div>
