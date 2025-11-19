@@ -13,37 +13,42 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { TrendingUp, Gauge, BarChart3 } from 'lucide-react';
+import { TrendingUp, BarChart3, Wind } from 'lucide-react';
+import { StabilityResults } from '../utils/calcStability';
 
 interface ChartsPanelProps {
-  cmAlphaData?: Array<{ alpha: number; Cm: number }>;
-  stabilityMarginData?: Array<{ x_cg: number; SM: number; C_m_alpha: number }>;
-  tailVolumeData?: Array<{ V_H: number; SM: number; C_m_alpha: number }>;
+  results: StabilityResults | null;
+  cgSweepData?: Array<{ x_cg: number; SM: number; C_m_alpha: number }>;
   downwashData?: Array<{ AR: number; epsilon_alpha: number }>;
 }
 
-export function ChartsPanel({
-  cmAlphaData,
-  stabilityMarginData,
-  tailVolumeData,
-  downwashData,
-}: ChartsPanelProps) {
+export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelProps) {
+  // Generate Cm vs α curve data
+  const cmAlphaData = results ? (() => {
+    const data = [];
+    for (let alpha = -10; alpha <= 10; alpha += 0.5) {
+      const alphaRad = alpha * Math.PI / 180;
+      const Cm = results.C_m_alpha * alphaRad;
+      data.push({ alpha, Cm });
+    }
+    return data;
+  })() : null;
+
   return (
     <div className="space-y-6">
-      {/* Cm vs Alpha */}
+      {/* Cm vs α Curve */}
       {cmAlphaData && cmAlphaData.length > 0 && (
         <ChartCard
-          title="Pitching Moment vs Angle of Attack"
-          description="Cm vs α curve showing static stability"
+          title="Cm vs Angle of Attack"
+          description="Pitching moment coefficient variation with angle of attack"
           icon={TrendingUp}
         >
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={300}>
             <LineChart data={cmAlphaData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
                 dataKey="alpha"
                 stroke="#94a3b8"
-                tickFormatter={(value) => `${(value * 180 / Math.PI).toFixed(1)}°`}
                 label={{ value: 'Angle of Attack (deg)', position: 'insideBottom', offset: -5 }}
               />
               <YAxis
@@ -53,7 +58,7 @@ export function ChartsPanel({
               <Tooltip
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155' }}
                 formatter={(value: number) => [value.toFixed(4), 'C_m']}
-                labelFormatter={(label) => `α: ${(label * 180 / Math.PI).toFixed(2)}°`}
+                labelFormatter={(label) => `α: ${label}°`}
               />
               <Legend />
               <Line
@@ -69,29 +74,30 @@ export function ChartsPanel({
         </ChartCard>
       )}
 
-      {/* Stability Margin vs CG */}
-      {stabilityMarginData && stabilityMarginData.length > 0 && (
+      {/* Static Margin vs CG Position */}
+      {cgSweepData && cgSweepData.length > 0 && (
         <ChartCard
-          title="Stability Margin vs CG Position"
-          description="Static margin variation with center of gravity"
-          icon={Gauge}
+          title="Static Margin vs CG Position"
+          description="Stability margin variation with center of gravity position"
+          icon={BarChart3}
         >
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={stabilityMarginData}>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={cgSweepData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
                 dataKey="x_cg"
                 stroke="#94a3b8"
-                tickFormatter={(value) => `${(value * 100).toFixed(1)}%`}
+                tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
                 label={{ value: 'CG Position (% MAC)', position: 'insideBottom', offset: -5 }}
               />
               <YAxis
                 stroke="#94a3b8"
-                label={{ value: 'Static Margin', angle: -90, position: 'insideLeft' }}
+                tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+                label={{ value: 'Static Margin (% MAC)', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155' }}
-                formatter={(value: number) => [value.toFixed(3), 'SM']}
+                formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'SM']}
                 labelFormatter={(label) => `CG: ${(label * 100).toFixed(1)}% MAC`}
               />
               <Legend />
@@ -108,52 +114,14 @@ export function ChartsPanel({
         </ChartCard>
       )}
 
-      {/* Tail Volume Sizing */}
-      {tailVolumeData && tailVolumeData.length > 0 && (
-        <ChartCard
-          title="Tail Volume Sizing Curves"
-          description="Static margin vs tail volume coefficient"
-          icon={BarChart3}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={tailVolumeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis
-                dataKey="V_H"
-                stroke="#94a3b8"
-                label={{ value: 'Tail Volume Coefficient (V_H)', position: 'insideBottom', offset: -5 }}
-              />
-              <YAxis
-                stroke="#94a3b8"
-                label={{ value: 'Static Margin', angle: -90, position: 'insideLeft' }}
-              />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155' }}
-                formatter={(value: number) => [value.toFixed(3), 'SM']}
-                labelFormatter={(label) => `V_H: ${label.toFixed(3)}`}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="SM"
-                stroke="#10b981"
-                strokeWidth={2}
-                dot={false}
-                name="Static Margin"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      )}
-
-      {/* Downwash vs AR */}
+      {/* Downwash vs Aspect Ratio */}
       {downwashData && downwashData.length > 0 && (
         <ChartCard
-          title="Downwash Gradient vs Aspect Ratio"
-          description="Downwash variation with wing aspect ratio"
-          icon={TrendingUp}
+          title="Downwash vs Aspect Ratio"
+          description="Downwash gradient variation with wing aspect ratio"
+          icon={Wind}
         >
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={300}>
             <LineChart data={downwashData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
@@ -168,25 +136,25 @@ export function ChartsPanel({
               <Tooltip
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155' }}
                 formatter={(value: number) => [value.toFixed(4), 'ε_α']}
-                labelFormatter={(label) => `AR: ${label.toFixed(2)}`}
+                labelFormatter={(label) => `AR: ${label.toFixed(1)}`}
               />
               <Legend />
               <Line
                 type="monotone"
                 dataKey="epsilon_alpha"
-                stroke="#f59e0b"
+                stroke="#10b981"
                 strokeWidth={2}
                 dot={false}
-                name="Downwash Gradient"
+                name="Downwash"
               />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
       )}
 
-      {!cmAlphaData && !stabilityMarginData && !tailVolumeData && !downwashData && (
+      {!cmAlphaData && !cgSweepData && !downwashData && (
         <div className="text-center text-gray-400 py-8">
-          Run calculations and enable sweeps to see charts
+          Run calculations to see charts
         </div>
       )}
     </div>

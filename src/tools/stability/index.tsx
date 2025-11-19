@@ -155,15 +155,15 @@ export default function StabilityCalculator() {
   const handleCalculate = useCallback(() => {
     try {
       // Validate inputs
-      const validation = validateStabilityInputs(inputs);
-      if (!validation.valid) {
-        toast({
-          title: 'Validation Error',
+    const validation = validateStabilityInputs(inputs);
+    if (!validation.valid) {
+      toast({
+        title: 'Validation Error',
           description: validation.errors.join(', '),
-          variant: 'destructive',
-        });
-        return;
-      }
+        variant: 'destructive',
+      });
+      return;
+    }
 
       // Perform base stability calculation
       const stabilityResults = calculateStability(inputs);
@@ -211,9 +211,9 @@ export default function StabilityCalculator() {
           e: inputs.e,
           b: Math.sqrt(inputs.S_w * inputs.AR),
           S_v: inputs.S_v,
-          elevator_geometry: elevatorGeometry as ControlGeometry,
-          aileron_geometry: aileronGeometry as ControlGeometry,
-          rudder_geometry: rudderGeometry as ControlGeometry,
+          elevator_geometry: elevatorGeometry as ControlGeometry | undefined,
+          aileron_geometry: aileronGeometry as ControlGeometry | undefined,
+          rudder_geometry: rudderGeometry as ControlGeometry | undefined,
         };
         extended.control = calculateControlDerivatives(controlInputs);
       }
@@ -257,7 +257,7 @@ export default function StabilityCalculator() {
       if (enableRollRate) {
         const q = 0.5 * 1.225 * velocity * velocity; // Dynamic pressure at sea level
         const rollRateInputs: RollRateInputs = {
-          delta_a,
+          delta_a: deltaA,
           C_l_delta_a: extended.mixing?.C_l_delta_a_effective || stabilityResults.C_l_delta_a || 0.1,
           q,
           S_w: inputs.S_w,
@@ -289,9 +289,9 @@ export default function StabilityCalculator() {
       // Calculate nonlinear control if enabled
       if (enableNonlinear) {
         const nonlinearInputs: NonlinearControlInputs = {
-          delta_e,
-          delta_a,
-          delta_r,
+          delta_e: deltaE,
+          delta_a: deltaA,
+          delta_r: deltaR,
           alpha,
           C_m_delta_e_base: extended.control?.C_m_delta_e || stabilityResults.C_m_delta_e || 0,
           C_l_delta_a_base: extended.control?.C_l_delta_a || extended.mixing?.C_l_delta_a_effective || stabilityResults.C_l_delta_a || 0,
@@ -333,7 +333,37 @@ export default function StabilityCalculator() {
         variant: 'destructive',
       });
     }
-  }, [inputs, toast, sendCalculationEvent, updateToolContext]);
+  }, [
+    inputs,
+    toast,
+    sendCalculationEvent,
+    updateToolContext,
+    enableDynamicDerivatives,
+    enableControlGeometry,
+    enableHingeMoments,
+    enableControlMixing,
+    enableHighLift,
+    enableRollRate,
+    enableStabilityCriteria,
+    enableNonlinear,
+    elevatorGeometry,
+    aileronGeometry,
+    rudderGeometry,
+    mixingType,
+    aileronDifferentialRatio,
+    flaperonMix,
+    spoileronMix,
+    motorMixingPreset,
+    highLiftDevices,
+    deltaA,
+    velocity,
+    I_x,
+    aircraftCategory,
+    flightPhase,
+    deltaE,
+    deltaR,
+    alpha,
+  ]);
 
   // Generate downwash vs AR data
   const downwashData = useMemo(() => {
@@ -553,15 +583,21 @@ export default function StabilityCalculator() {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-gray-400">τ_e (Elevator)</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.control.tau_e.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.control.tau_e != null ? extendedResults.control.tau_e.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">τ_a (Aileron)</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.control.tau_a.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.control.tau_a != null ? extendedResults.control.tau_a.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">τ_r (Rudder)</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.control.tau_r.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.control.tau_r != null ? extendedResults.control.tau_r.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -612,18 +648,24 @@ export default function StabilityCalculator() {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-gray-400">Elevator Factor</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.nonlinear.elevator_factor.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.nonlinear.elevator_factor != null ? extendedResults.nonlinear.elevator_factor.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Aileron Factor</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.nonlinear.aileron_factor.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.nonlinear.aileron_factor != null ? extendedResults.nonlinear.aileron_factor.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Rudder Factor</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.nonlinear.rudder_factor.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.nonlinear.rudder_factor != null ? extendedResults.nonlinear.rudder_factor.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                     </div>
-                    {extendedResults.nonlinear.warnings.length > 0 && (
+                    {extendedResults.nonlinear.warnings && extendedResults.nonlinear.warnings.length > 0 && (
                       <div className="mt-4 p-3 bg-yellow-400/10 border border-yellow-400/30 rounded">
                         {extendedResults.nonlinear.warnings.map((w, i) => (
                           <p key={i} className="text-xs text-yellow-400">{w}</p>
@@ -642,15 +684,15 @@ export default function StabilityCalculator() {
               inputs={{ S_t: inputs.S_t, l_t: inputs.l_t }}
               tailSizingData={tailSizingData}
             />
-          </ToolSection>
+      </ToolSection>
 
           <ToolSection title="Charts">
-            <ChartsPanel
+        <ChartsPanel
               results={results}
               cgSweepData={cgSweepData}
               downwashData={downwashData}
-            />
-          </ToolSection>
+        />
+      </ToolSection>
         </>
       )}
     </ToolWrapper>
