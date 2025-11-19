@@ -3,11 +3,13 @@
  */
 
 export const PI = Math.PI;
+export const TWO_PI = 2 * PI;
 export const DEG_TO_RAD = PI / 180;
 export const RAD_TO_DEG = 180 / PI;
 
-// Typical values
-export const DEFAULT_AIRFOIL_LIFT_SLOPE = 2 * PI; // per radian
+// Standard airfoil lift curve slope (per radian)
+export const A0_THEORETICAL = TWO_PI; // 2π per radian
+export const DEFAULT_AIRFOIL_LIFT_SLOPE = A0_THEORETICAL; // Alias for compatibility
 export const DEFAULT_WING_EFFICIENCY = 0.85;
 export const DEFAULT_TAIL_EFFICIENCY = 0.9;
 export const DEFAULT_ELEVATOR_EFFECTIVENESS = 0.4; // τ_e
