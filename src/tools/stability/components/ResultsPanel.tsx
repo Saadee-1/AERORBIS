@@ -46,11 +46,53 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
           {/* Lift Curve Slopes */}
           <div className="p-4 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-lg border border-cyan-400/20">
             <p className="text-xs text-gray-400 mb-1">Wing Lift Curve Slope</p>
-          <AlertDescription className="text-green-400">
-            Aircraft is statically stable (SM = {(results.SM ?? 0).toFixed(3)})
-          </AlertDescription>
+            <p className="text-cyan-400 font-bold text-xl">
+              {(results.a_w ?? 0).toFixed(3)} rad⁻¹
+            </p>
+          </div>
+
+          <div className="p-4 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-lg border border-purple-400/20">
+            <p className="text-xs text-gray-400 mb-1">Tail Lift Curve Slope</p>
+            <p className="text-purple-400 font-bold text-xl">
+              {(results.a_t ?? 0).toFixed(3)} rad⁻¹
+            </p>
+          </div>
+
+          {/* Downwash */}
+          <div className="p-4 bg-gradient-to-br from-green-400/10 to-emerald-400/10 rounded-lg border border-green-400/20">
+            <p className="text-xs text-gray-400 mb-1">Downwash Gradient</p>
+            <p className="text-green-400 font-bold text-xl">
+              {(results.epsilon_alpha ?? 0).toFixed(4)}
+            </p>
+          </div>
+
+          {/* Tail Volume */}
+          <div className="p-4 bg-gradient-to-br from-orange-400/10 to-red-400/10 rounded-lg border border-orange-400/20">
+            <p className="text-xs text-gray-400 mb-1">Tail Volume Coefficient</p>
+            <p className="text-orange-400 font-bold text-xl">
+              {(results.V_H ?? 0).toFixed(3)}
+            </p>
+          </div>
+
+          {/* Pitching Moment */}
+          <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-blue-400/10 rounded-lg border border-indigo-400/20">
+            <p className="text-xs text-gray-400 mb-1">C_mα (Total)</p>
+            <p className="text-indigo-400 font-bold text-xl">
+              {(results.C_m_alpha ?? 0).toFixed(4)} rad⁻¹
+            </p>
             <p className="text-xs text-gray-500 mt-1">
-              {results.SM > 0 ? 'Stable' : 'Unstable'}
+              Wing: {(results.C_m_alpha_w ?? 0).toFixed(4)}, Tail: {(results.C_m_alpha_t ?? 0).toFixed(4)}
+            </p>
+          </div>
+
+          {/* Static Margin */}
+          <div className="p-4 bg-gradient-to-br from-yellow-400/10 to-amber-400/10 rounded-lg border border-yellow-400/20">
+            <p className="text-xs text-gray-400 mb-1">Static Margin</p>
+            <p className={`font-bold text-xl ${(results.SM ?? 0) > 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {(results.SM ?? 0).toFixed(3)}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {(results.SM ?? 0) > 0 ? 'Stable' : 'Unstable'}
             </p>
           </div>
         </div>
