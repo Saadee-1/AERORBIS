@@ -75,7 +75,8 @@ export function buildAeroversePayload({
   const finalRequestId = requestId || `calc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
   // Get app version from env or use default
-  const appVersion = process.env.APP_VERSION || import.meta.env.VITE_APP_VERSION || APP_VERSION;
+  // Note: process.env is not available in browser, use import.meta.env (Vite) instead
+  const appVersion = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_APP_VERSION) || APP_VERSION;
   
   // Get user ID from localStorage if available
   const userId = metadata.userId ?? (typeof localStorage !== 'undefined' ? localStorage.getItem('userId') || null : null);
