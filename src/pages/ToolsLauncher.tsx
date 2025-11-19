@@ -18,6 +18,7 @@ import DeltaVPlanner from "@/components/tools/deltav/DeltaVPlanner";
 import AntennaPatternAnalyzer from "@/components/tools/AntennaPatternAnalyzer";
 import StandardAtmosphereCalculator from "@/components/tools/StandardAtmosphereCalculator";
 import StabilityCalculator from "@/components/tools/StabilityCalculator";
+import RocketEngineCalculator from "@/components/tools/RocketEngineCalculator";
 
 // Mapping from tool names to tab IDs
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
@@ -31,6 +32,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "Antenna Pattern Analyzer": "antenna",
   "Standard Atmosphere Calculator": "atmosphere",
   "Stability & Control Derivatives": "stability",
+  "Rocket Engine Performance": "rocketengine",
   // Also support direct tool IDs
   "thrust": "thrust",
   "wing": "wing",
@@ -42,6 +44,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "antenna": "antenna",
   "atmosphere": "atmosphere",
   "stability": "stability",
+  "rocketengine": "rocketengine",
 };
 
 const ToolsLauncher = () => {
@@ -173,6 +176,13 @@ const ToolsLauncher = () => {
                   <Plane className="w-4 h-4 mr-2" />
                   Stability
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="rocketengine"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                >
+                  <Rocket className="w-4 h-4 mr-2" />
+                  Rocket Engine
+                </TabsTrigger>
                 </TabsList>
               )}
 
@@ -214,6 +224,10 @@ const ToolsLauncher = () => {
 
               <TabsContent value="stability" className="mt-0">
                 <StabilityCalculator />
+              </TabsContent>
+
+              <TabsContent value="rocketengine" className="mt-0">
+                <RocketEngineCalculator />
               </TabsContent>
             </Tabs>
           </motion.div>
