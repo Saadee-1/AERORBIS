@@ -125,6 +125,7 @@ export default function StabilityCalculator() {
 
   // Load preset
   const handleLoadPreset = useCallback((preset: AircraftPreset) => {
+    setSelectedPresetId(preset.id);
     setInputs({
       S_w: preset.S_w,
       AR: preset.AR,
@@ -139,15 +140,19 @@ export default function StabilityCalculator() {
       e_t: preset.e_t,
       eta: preset.eta,
       useRoskamDownwash: false,
-      S_e: preset.S_e,
-      tau_e: preset.tau_e,
-      S_a: preset.S_a,
-      S_r: preset.S_r,
-      S_v: preset.S_v,
+      S_e: preset.S_e ?? 0.1,
+      tau_e: preset.tau_e ?? DEFAULT_ELEVATOR_EFFECTIVENESS,
+      S_a: preset.S_a ?? 0.1,
+      S_r: preset.S_r ?? 0.1,
+      S_v: preset.S_v ?? preset.S_t * 0.8, // Default to 80% of tail area if not specified
     });
+    // Clear previous results when loading new preset
+    setResults(null);
+    setExtendedResults(null);
+    setCgSweepData([]);
     toast({
       title: 'Preset loaded',
-      description: `${preset.name} configuration loaded`,
+      description: `${preset.name} configuration loaded successfully`,
     });
   }, [toast]);
 
@@ -155,15 +160,15 @@ export default function StabilityCalculator() {
   const handleCalculate = useCallback(() => {
     try {
       // Validate inputs
-    const validation = validateStabilityInputs(inputs);
-    if (!validation.valid) {
-      toast({
-        title: 'Validation Error',
+      const validation = validateStabilityInputs(inputs);
+      if (!validation.valid) {
+        toast({
+          title: 'Validation Error',
           description: validation.errors.join(', '),
-        variant: 'destructive',
-      });
-      return;
-    }
+          variant: 'destructive',
+        });
+        return;
+      }
 
       // Perform base stability calculation
       const stabilityResults = calculateStability(inputs);
