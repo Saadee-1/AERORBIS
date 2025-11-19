@@ -125,31 +125,39 @@ export default function StabilityCalculator() {
 
   // Load preset
   const handleLoadPreset = useCallback((preset: AircraftPreset) => {
+    console.log('Loading preset:', preset);
     setSelectedPresetId(preset.id);
-    setInputs({
-      S_w: preset.S_w,
-      AR: preset.AR,
-      c_bar: preset.c_bar,
-      x_ac_w: preset.x_ac_w,
-      x_cg: (preset.x_cg_min + preset.x_cg_max) / 2, // Use midpoint
-      S_t: preset.S_t,
-      AR_t: preset.AR_t,
-      l_t: preset.l_t,
-      a0: preset.a0,
-      e: preset.e,
-      e_t: preset.e_t,
-      eta: preset.eta,
+    
+    // Ensure all values are numbers, not undefined
+    const presetInputs: StabilityInputs = {
+      S_w: Number(preset.S_w) || 0,
+      AR: Number(preset.AR) || 0,
+      c_bar: Number(preset.c_bar) || 0,
+      x_ac_w: Number(preset.x_ac_w) || 0,
+      x_cg: Number((preset.x_cg_min + preset.x_cg_max) / 2) || 0, // Use midpoint
+      S_t: Number(preset.S_t) || 0,
+      AR_t: Number(preset.AR_t) || 0,
+      l_t: Number(preset.l_t) || 0,
+      a0: Number(preset.a0) || DEFAULT_AIRFOIL_LIFT_SLOPE,
+      e: Number(preset.e) || DEFAULT_WING_EFFICIENCY,
+      e_t: Number(preset.e_t) || DEFAULT_WING_EFFICIENCY,
+      eta: Number(preset.eta) || DEFAULT_TAIL_EFFICIENCY,
       useRoskamDownwash: false,
-      S_e: preset.S_e ?? 0.1,
-      tau_e: preset.tau_e ?? DEFAULT_ELEVATOR_EFFECTIVENESS,
-      S_a: preset.S_a ?? 0.1,
-      S_r: preset.S_r ?? 0.1,
-      S_v: preset.S_v ?? preset.S_t * 0.8, // Default to 80% of tail area if not specified
-    });
+      S_e: preset.S_e !== undefined ? Number(preset.S_e) : undefined,
+      tau_e: preset.tau_e !== undefined ? Number(preset.tau_e) : DEFAULT_ELEVATOR_EFFECTIVENESS,
+      S_a: preset.S_a !== undefined ? Number(preset.S_a) : undefined,
+      S_r: preset.S_r !== undefined ? Number(preset.S_r) : undefined,
+      S_v: preset.S_v !== undefined ? Number(preset.S_v) : (preset.S_t ? Number(preset.S_t) * 0.8 : undefined),
+    };
+    
+    console.log('Preset inputs to set:', presetInputs);
+    setInputs(presetInputs);
+    
     // Clear previous results when loading new preset
     setResults(null);
     setExtendedResults(null);
     setCgSweepData([]);
+    
     toast({
       title: 'Preset loaded',
       description: `${preset.name} configuration loaded successfully`,
@@ -159,8 +167,34 @@ export default function StabilityCalculator() {
   // Calculate stability
   const handleCalculate = useCallback(() => {
     try {
+      console.log('Calculate called with inputs:', inputs);
+      
+      // Ensure all required inputs are numbers (not strings or undefined)
+      const safeInputs: StabilityInputs = {
+        S_w: Number(inputs.S_w) || 0,
+        AR: Number(inputs.AR) || 0,
+        c_bar: Number(inputs.c_bar) || 0,
+        x_cg: Number(inputs.x_cg) || 0,
+        x_ac_w: Number(inputs.x_ac_w) || 0,
+        S_t: Number(inputs.S_t) || 0,
+        AR_t: Number(inputs.AR_t) || 0,
+        l_t: Number(inputs.l_t) || 0,
+        a0: Number(inputs.a0) || DEFAULT_AIRFOIL_LIFT_SLOPE,
+        e: Number(inputs.e) || DEFAULT_WING_EFFICIENCY,
+        e_t: Number(inputs.e_t) || DEFAULT_WING_EFFICIENCY,
+        eta: Number(inputs.eta) || DEFAULT_TAIL_EFFICIENCY,
+        useRoskamDownwash: inputs.useRoskamDownwash || false,
+        S_e: inputs.S_e !== undefined ? Number(inputs.S_e) : undefined,
+        tau_e: inputs.tau_e !== undefined ? Number(inputs.tau_e) : DEFAULT_ELEVATOR_EFFECTIVENESS,
+        S_a: inputs.S_a !== undefined ? Number(inputs.S_a) : undefined,
+        S_r: inputs.S_r !== undefined ? Number(inputs.S_r) : undefined,
+        S_v: inputs.S_v !== undefined ? Number(inputs.S_v) : undefined,
+      };
+      
+      console.log('Safe inputs for calculation:', safeInputs);
+      
       // Validate inputs
-      const validation = validateStabilityInputs(inputs);
+      const validation = validateStabilityInputs(safeInputs);
       if (!validation.valid) {
         toast({
           title: 'Validation Error',
@@ -171,11 +205,12 @@ export default function StabilityCalculator() {
       }
 
       // Perform base stability calculation
-      const stabilityResults = calculateStability(inputs);
+      const stabilityResults = calculateStability(safeInputs);
+      console.log('Stability results:', stabilityResults);
       setResults(stabilityResults);
 
       // Generate CG sweep data
-      const sweepData = sweepCGPosition(inputs, 0.15, 0.40, 50);
+      const sweepData = sweepCGPosition(safeInputs, 0.15, 0.40, 50);
       setCgSweepData(sweepData);
 
       // Build extended results
@@ -186,17 +221,17 @@ export default function StabilityCalculator() {
       // Calculate dynamic derivatives if enabled
       if (enableDynamicDerivatives) {
         const dynamicInputs: DynamicDerivativesInputs = {
-          S_w: inputs.S_w,
-          AR: inputs.AR,
-          b: Math.sqrt(inputs.S_w * inputs.AR), // Estimate span
-          c_bar: inputs.c_bar,
-          l_t: inputs.l_t,
-          a0: inputs.a0,
-          e: inputs.e,
-          S_t: inputs.S_t,
-          AR_t: inputs.AR_t,
-          e_t: inputs.e_t,
-          eta: inputs.eta,
+          S_w: safeInputs.S_w,
+          AR: safeInputs.AR,
+          b: Math.sqrt(safeInputs.S_w * safeInputs.AR), // Estimate span
+          c_bar: safeInputs.c_bar,
+          l_t: safeInputs.l_t,
+          a0: safeInputs.a0,
+          e: safeInputs.e,
+          S_t: safeInputs.S_t,
+          AR_t: safeInputs.AR_t,
+          e_t: safeInputs.e_t,
+          eta: safeInputs.eta,
         };
         extended.dynamic = calculateDynamicDerivatives(dynamicInputs);
       }
@@ -204,18 +239,18 @@ export default function StabilityCalculator() {
       // Calculate enhanced control derivatives if geometry enabled
       if (enableControlGeometry) {
         const controlInputs: ControlDerivativesInputs = {
-          S_t: inputs.S_t,
-          AR_t: inputs.AR_t,
-          l_t: inputs.l_t,
-          c_bar: inputs.c_bar,
-          S_w: inputs.S_w,
-          a0: inputs.a0,
-          e_t: inputs.e_t,
-          eta: inputs.eta,
-          AR: inputs.AR,
-          e: inputs.e,
-          b: Math.sqrt(inputs.S_w * inputs.AR),
-          S_v: inputs.S_v,
+          S_t: safeInputs.S_t,
+          AR_t: safeInputs.AR_t,
+          l_t: safeInputs.l_t,
+          c_bar: safeInputs.c_bar,
+          S_w: safeInputs.S_w,
+          a0: safeInputs.a0,
+          e_t: safeInputs.e_t,
+          eta: safeInputs.eta,
+          AR: safeInputs.AR,
+          e: safeInputs.e,
+          b: Math.sqrt(safeInputs.S_w * safeInputs.AR),
+          S_v: safeInputs.S_v,
           elevator_geometry: elevatorGeometry as ControlGeometry | undefined,
           aileron_geometry: aileronGeometry as ControlGeometry | undefined,
           rudder_geometry: rudderGeometry as ControlGeometry | undefined,
@@ -229,10 +264,10 @@ export default function StabilityCalculator() {
           chord_fraction: elevatorGeometry.chord_fraction || 0.3,
           hinge_line_position: elevatorGeometry.hinge_line_position || 0.7,
           balance_type: elevatorGeometry.balance_type || 'horn',
-          a0: inputs.a0,
+          a0: safeInputs.a0,
           alpha_0: 0,
-          S_control: inputs.S_e || 0.1,
-          c_control: inputs.c_bar * (elevatorGeometry.chord_fraction || 0.3),
+          S_control: safeInputs.S_e || 0.1,
+          c_control: safeInputs.c_bar * (elevatorGeometry.chord_fraction || 0.3),
         };
         extended.hingeMoments = calculateHingeMoments(hingeInputs);
       }
@@ -265,8 +300,8 @@ export default function StabilityCalculator() {
           delta_a: deltaA,
           C_l_delta_a: extended.mixing?.C_l_delta_a_effective || stabilityResults.C_l_delta_a || 0.1,
           q,
-          S_w: inputs.S_w,
-          b: Math.sqrt(inputs.S_w * inputs.AR),
+          S_w: safeInputs.S_w,
+          b: Math.sqrt(safeInputs.S_w * safeInputs.AR),
           I_x,
           V: velocity,
         };
@@ -311,7 +346,7 @@ export default function StabilityCalculator() {
       // Generate AI payload
       const requestId = `stability-${Date.now()}`;
       setLastRequestId(requestId);
-      const payload = buildStabilityPayload(inputs, extended, requestId);
+      const payload = buildStabilityPayload(safeInputs, extended, requestId);
 
       // Update tool context
       updateToolContext({

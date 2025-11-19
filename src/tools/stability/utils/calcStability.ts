@@ -47,10 +47,10 @@ export interface StabilityInputs {
   a0: number; // Airfoil lift curve slope (per rad, default 2π)
   e: number; // Wing efficiency factor (0.7-0.95)
   e_t: number; // Tail efficiency factor
-  eta_t: number; // Tail effectiveness factor (default 0.9)
+  eta: number; // Tail effectiveness factor (default 0.9) - note: alias for eta_t
   
   // Downwash model
-  downwashModel: 'DATCOM' | 'Roskam';
+  useRoskamDownwash?: boolean; // If true, use Roskam; if false/undefined, use DATCOM
   
   // Control surfaces
   S_e?: number; // Elevator area (m²)
@@ -135,13 +135,13 @@ export function calculateStability(inputs: StabilityInputs): StabilityResults {
     inputs.a0,
     inputs.AR_t,
     inputs.e_t,
-    inputs.eta_t
+    inputs.eta || 0.9 // Use eta, fallback to 0.9
   );
   
   // Calculate downwash gradient
-  const epsilon_alpha = inputs.downwashModel === 'DATCOM'
-    ? calculateDownwashDATCOM(a_w, inputs.AR)
-    : calculateDownwashRoskam(a_w, inputs.AR);
+  const epsilon_alpha = inputs.useRoskamDownwash
+    ? calculateDownwashRoskam(a_w, inputs.AR)
+    : calculateDownwashDATCOM(a_w, inputs.AR);
   
   // Validate downwash
   if (epsilon_alpha < 0 || epsilon_alpha > 1) {
