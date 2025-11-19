@@ -7,6 +7,7 @@ export const TWO_PI = 2 * Math.PI;
 
 // Standard airfoil lift curve slope (per radian)
 export const A0_THEORETICAL = TWO_PI; // 2π per radian
+export const DEFAULT_AIRFOIL_LIFT_SLOPE = A0_THEORETICAL; // Alias for compatibility
 
 // Typical efficiency factors
 export const DEFAULT_WING_EFFICIENCY = 0.85;
@@ -23,4 +24,3 @@ export const MAX_TAIL_VOLUME = 1.2;
 
 // Stability thresholds
 export const MARGINAL_STABILITY_THRESHOLD = 0.05; // |C_mα| < 0.05 is marginal
-
