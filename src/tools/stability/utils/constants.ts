@@ -18,6 +18,10 @@ export const DEFAULT_ELEVATOR_EFFECTIVENESS = 0.45; // τ_e
 export const DEFAULT_AILERON_EFFECTIVENESS = 0.6; // K_a
 export const DEFAULT_RUDDER_EFFECTIVENESS = 0.5; // K_r
 
+// Control surface effectiveness constants (DATCOM-style)
+export const AILERON_EFFECTIVENESS_K = 0.08; // K_a for aileron effectiveness calculation
+export const RUDDER_EFFECTIVENESS_K = 0.12; // K_r for rudder effectiveness calculation
+
 // Typical tail volume coefficient ranges
 export const MIN_TAIL_VOLUME = 0.5;
 export const MAX_TAIL_VOLUME = 1.2;

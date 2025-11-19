@@ -211,9 +211,9 @@ export default function StabilityCalculator() {
           e: inputs.e,
           b: Math.sqrt(inputs.S_w * inputs.AR),
           S_v: inputs.S_v,
-          elevator_geometry: elevatorGeometry as ControlGeometry,
-          aileron_geometry: aileronGeometry as ControlGeometry,
-          rudder_geometry: rudderGeometry as ControlGeometry,
+          elevator_geometry: elevatorGeometry as ControlGeometry | undefined,
+          aileron_geometry: aileronGeometry as ControlGeometry | undefined,
+          rudder_geometry: rudderGeometry as ControlGeometry | undefined,
         };
         extended.control = calculateControlDerivatives(controlInputs);
       }
@@ -257,7 +257,7 @@ export default function StabilityCalculator() {
       if (enableRollRate) {
         const q = 0.5 * 1.225 * velocity * velocity; // Dynamic pressure at sea level
         const rollRateInputs: RollRateInputs = {
-          delta_a,
+          delta_a: deltaA,
           C_l_delta_a: extended.mixing?.C_l_delta_a_effective || stabilityResults.C_l_delta_a || 0.1,
           q,
           S_w: inputs.S_w,
@@ -289,9 +289,9 @@ export default function StabilityCalculator() {
       // Calculate nonlinear control if enabled
       if (enableNonlinear) {
         const nonlinearInputs: NonlinearControlInputs = {
-          delta_e,
-          delta_a,
-          delta_r,
+          delta_e: deltaE,
+          delta_a: deltaA,
+          delta_r: deltaR,
           alpha,
           C_m_delta_e_base: extended.control?.C_m_delta_e || stabilityResults.C_m_delta_e || 0,
           C_l_delta_a_base: extended.control?.C_l_delta_a || extended.mixing?.C_l_delta_a_effective || stabilityResults.C_l_delta_a || 0,
@@ -333,7 +333,37 @@ export default function StabilityCalculator() {
         variant: 'destructive',
       });
     }
-  }, [inputs, toast, sendCalculationEvent, updateToolContext]);
+  }, [
+    inputs,
+    toast,
+    sendCalculationEvent,
+    updateToolContext,
+    enableDynamicDerivatives,
+    enableControlGeometry,
+    enableHingeMoments,
+    enableControlMixing,
+    enableHighLift,
+    enableRollRate,
+    enableStabilityCriteria,
+    enableNonlinear,
+    elevatorGeometry,
+    aileronGeometry,
+    rudderGeometry,
+    mixingType,
+    aileronDifferentialRatio,
+    flaperonMix,
+    spoileronMix,
+    motorMixingPreset,
+    highLiftDevices,
+    deltaA,
+    velocity,
+    I_x,
+    aircraftCategory,
+    flightPhase,
+    deltaE,
+    deltaR,
+    alpha,
+  ]);
 
   // Generate downwash vs AR data
   const downwashData = useMemo(() => {
