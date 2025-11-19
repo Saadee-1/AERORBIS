@@ -583,18 +583,24 @@ export default function StabilityCalculator() {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-gray-400">τ_e (Elevator)</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.control.tau_e.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.control.tau_e != null ? extendedResults.control.tau_e.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">τ_a (Aileron)</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.control.tau_a.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.control.tau_a != null ? extendedResults.control.tau_a.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">τ_r (Rudder)</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.control.tau_r.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.control.tau_r != null ? extendedResults.control.tau_r.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
-          </div>
-        </div>
+                    </div>
+                  </div>
                 </ToolSection>
               )}
 
@@ -642,25 +648,31 @@ export default function StabilityCalculator() {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-gray-400">Elevator Factor</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.nonlinear.elevator_factor.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.nonlinear.elevator_factor != null ? extendedResults.nonlinear.elevator_factor.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Aileron Factor</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.nonlinear.aileron_factor.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.nonlinear.aileron_factor != null ? extendedResults.nonlinear.aileron_factor.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Rudder Factor</p>
-                        <p className="text-cyan-400 font-bold">{extendedResults.nonlinear.rudder_factor.toFixed(3)}</p>
+                        <p className="text-cyan-400 font-bold">
+                          {extendedResults.nonlinear.rudder_factor != null ? extendedResults.nonlinear.rudder_factor.toFixed(3) : 'N/A'}
+                        </p>
                       </div>
                     </div>
-                    {extendedResults.nonlinear.warnings.length > 0 && (
+                    {extendedResults.nonlinear.warnings && extendedResults.nonlinear.warnings.length > 0 && (
                       <div className="mt-4 p-3 bg-yellow-400/10 border border-yellow-400/30 rounded">
                         {extendedResults.nonlinear.warnings.map((w, i) => (
                           <p key={i} className="text-xs text-yellow-400">{w}</p>
                         ))}
                       </div>
-          )}
-        </div>
+                    )}
+                  </div>
                 </ToolSection>
               )}
             </>
