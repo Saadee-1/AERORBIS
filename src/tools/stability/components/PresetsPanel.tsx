@@ -21,7 +21,7 @@ export function PresetsPanel({
   onPresetChange,
   onLoadPreset,
 }: PresetsPanelProps) {
-  const selectedPreset = AIRCRAFT_PRESETS[selectedPresetId];
+  const selectedPreset = AIRCRAFT_PRESETS[selectedPresetId] || AIRCRAFT_PRESETS['custom'];
 
   return (
     <AeroCard title="Aircraft Presets" icon={Database}>
