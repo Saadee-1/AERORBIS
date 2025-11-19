@@ -30,6 +30,18 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "Delta-V Budget Planner": "deltav",
   "Antenna Pattern Analyzer": "antenna",
   "Standard Atmosphere Calculator": "atmosphere",
+  "Stability & Control Derivatives": "stability",
+  // Also support direct tool IDs
+  "thrust": "thrust",
+  "wing": "wing",
+  "orbital": "orbital",
+  "liftdrag": "liftdrag",
+  "reynolds": "reynolds",
+  "materials": "materials",
+  "deltav": "deltav",
+  "antenna": "antenna",
+  "atmosphere": "atmosphere",
+  "stability": "stability",
 };
 
 const ToolsLauncher = () => {
