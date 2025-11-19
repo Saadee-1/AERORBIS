@@ -26,7 +26,8 @@ export function validateStabilityInputs(inputs: {
   a0?: number;
   e?: number;
   e_t?: number;
-  eta_t?: number;
+  eta?: number;
+  eta_t?: number; // Alias for eta
   S_e?: number;
   tau_e?: number;
   S_a?: number;
@@ -87,8 +88,9 @@ export function validateStabilityInputs(inputs: {
     warnings.push('Tail efficiency (e_t) outside typical range (0.5-1)');
   }
 
-  if (inputs.eta_t !== undefined && (inputs.eta_t < 0.7 || inputs.eta_t > 1)) {
-    warnings.push('Tail effectiveness (η_t) outside typical range (0.7-1)');
+  const eta = inputs.eta ?? inputs.eta_t;
+  if (eta !== undefined && (eta < 0.7 || eta > 1)) {
+    warnings.push('Tail effectiveness (η) outside typical range (0.7-1)');
   }
 
   // Control surfaces

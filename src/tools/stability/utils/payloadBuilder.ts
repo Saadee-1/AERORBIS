@@ -21,7 +21,7 @@ export function buildStabilityPayload(
   const steps = [
     `Wing lift curve slope: a_w = a₀/(1 + a₀/(πeAR)) = ${results.a_w.toFixed(3)} rad⁻¹`,
     `Tail lift curve slope: a_t = η·a₀/(1 + a₀/(πe_tAR_t)) = ${results.a_t.toFixed(3)} rad⁻¹`,
-    `Downwash gradient: ε_α = ${results.epsilon_alpha.toFixed(4)} (${inputs.downwashModel} model)`,
+    `Downwash gradient: ε_α = ${results.epsilon_alpha.toFixed(4)} (${inputs.useRoskamDownwash ? 'Roskam' : 'DATCOM'} model)`,
     `Tail volume coefficient: V_H = (S_t·l_t)/(S_w·c̄) = ${results.V_H.toFixed(3)}`,
     `Wing pitching moment: C_mα,w = a_w·(x_cg - x_ac,w)/c̄ = ${results.C_m_alpha_w.toFixed(4)} rad⁻¹`,
     `Tail pitching moment: C_mα,t = -a_t·(1-ε_α)·(S_t/S_w)·(l_t/c̄) = ${results.C_m_alpha_t.toFixed(4)} rad⁻¹`,
@@ -55,7 +55,7 @@ export function buildStabilityPayload(
     'Wing AC': `${(inputs.x_ac_w * 100).toFixed(1)}% MAC`,
     'Tail Area': `${inputs.S_t.toFixed(2)} m²`,
     'Tail Arm': `${inputs.l_t.toFixed(2)} m`,
-    'Downwash Model': inputs.downwashModel,
+    'Downwash Model': inputs.useRoskamDownwash ? 'Roskam' : 'DATCOM',
   };
 
   // Format results for display
@@ -97,7 +97,7 @@ export function buildStabilityPayload(
     },
     charts: [], // Charts will be added by the UI component
     configuration: {
-      downwashModel: inputs.downwashModel,
+      downwashModel: inputs.useRoskamDownwash ? 'Roskam' : 'DATCOM',
     },
     metadata: {
       steps,
