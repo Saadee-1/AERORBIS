@@ -103,6 +103,9 @@ export function buildWeightEstimatorPayload(
   
   if (inertia) {
     steps.push(`Moments of inertia: Ixx = ${inertia.Ixx.toFixed(1)} kg·m², Iyy = ${inertia.Iyy.toFixed(1)} kg·m², Izz = ${inertia.Izz.toFixed(1)} kg·m²`);
+    formattedResults['Ixx (Roll)'] = `${inertia.Ixx.toFixed(1)} kg·m²`;
+    formattedResults['Iyy (Pitch)'] = `${inertia.Iyy.toFixed(1)} kg·m²`;
+    formattedResults['Izz (Yaw)'] = `${inertia.Izz.toFixed(1)} kg·m²`;
   }
   
   // Format inputs for display

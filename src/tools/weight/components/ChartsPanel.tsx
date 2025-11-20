@@ -3,9 +3,9 @@
  */
 
 import { AeroCard } from '@/components/common/AeroCard';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { ComponentWeights } from '../utils/weightEngine';
-import { IterationResult } from '../utils/iteration';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ScatterChart, Scatter } from 'recharts';
+import { ComponentWeights, WeightEstimationInputs } from '../utils/weightEngine';
+import { IterationResult, MissionProfile } from '../utils/iteration';
 
 interface ChartsPanelProps {
   components: ComponentWeights;
@@ -13,6 +13,8 @@ interface ChartsPanelProps {
   W_fuel: number;
   W_to: number;
   iteration: IterationResult;
+  inputs?: WeightEstimationInputs;
+  missionProfile?: MissionProfile;
   cg?: {
     x_cg: number;
     x_cg_MAC: number;
@@ -22,7 +24,7 @@ interface ChartsPanelProps {
 
 const COLORS = ['#22d3ee', '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63', '#0891b2', '#06b6d4', '#22d3ee', '#67e8f9'];
 
-export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, cg }: ChartsPanelProps) {
+export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inputs, missionProfile, cg }: ChartsPanelProps) {
   // Component weights bar chart data
   const componentData = [
     { name: 'Wing', weight: components.wing / 9.81 },
@@ -51,8 +53,30 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, cg }
     error: h.error * 100,
   }));
 
-  // Wing loading vs W_TO (if we have wing area)
-  const wingLoading = W_to / (components.wing > 0 ? components.wing : 1); // N/m²
+  // Mission fuel fraction chart data
+  const missionFuelData = missionProfile?.phases.map((phase, i) => {
+    const cumulativeFraction = missionProfile.phases.slice(0, i + 1).reduce((prod, p) => prod * p.weightFraction, 1);
+    const fuelUsed = (1 - cumulativeFraction) * 100;
+    return {
+      phase: phase.name,
+      fuelUsed: fuelUsed,
+      weightFraction: phase.weightFraction,
+    };
+  }) || [];
+
+  // Wing loading vs W_TO chart data (from iteration history)
+  const wingLoadingData = inputs ? iteration.history.map(h => {
+    const S_w = inputs.geometry.S_w || 1;
+    const wingLoading_kgm2 = (h.W_to / 9.81) / S_w;
+    return {
+      W_to: h.W_to / 9.81,
+      wingLoading: wingLoading_kgm2,
+    };
+  }) : [];
+
+  // Current wing loading
+  const S_w = inputs?.geometry.S_w || 1;
+  const wingLoading = W_to / (S_w * 9.81); // kg/m²
 
   return (
     <div className="space-y-6">
@@ -140,19 +164,52 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, cg }
         </AeroCard>
       )}
 
-      {/* Wing Loading */}
-      <AeroCard title="Wing Loading">
-        <div className="p-4">
-          <div className="text-center">
-            <p className="text-3xl font-bold text-cyan-400">
-              {(wingLoading / 9.81).toFixed(1)} kg/m²
+      {/* Mission Fuel Fractions */}
+      {missionProfile && missionFuelData.length > 0 && (
+        <AeroCard title="Mission Fuel Fractions">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={missionFuelData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <XAxis dataKey="phase" stroke="#94a3b8" fontSize={12} angle={-45} textAnchor="end" height={80} />
+              <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Fuel Used (%)', angle: -90, position: 'insideLeft' }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+                formatter={(value: number) => `${value.toFixed(2)}%`}
+              />
+              <Legend />
+              <Bar dataKey="fuelUsed" fill="#06b6d4" name="Cumulative Fuel Used (%)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </AeroCard>
+      )}
+
+      {/* Wing Loading vs W_TO */}
+      {wingLoadingData.length > 0 && (
+        <AeroCard title="Wing Loading vs W_TO">
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={wingLoadingData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <XAxis dataKey="W_to" stroke="#94a3b8" fontSize={12} label={{ value: 'Takeoff Weight (kg)', position: 'insideBottom', offset: -5 }} />
+              <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Wing Loading (kg/m²)', angle: -90, position: 'insideLeft' }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+                formatter={(value: number) => `${value.toFixed(1)} kg/m²`}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} name="Wing Loading (kg/m²)" dot={{ fill: '#22d3ee', r: 3 }} />
+            </LineChart>
+          </ResponsiveContainer>
+          <div className="p-4 text-center border-t border-cyan-400/20">
+            <p className="text-sm text-gray-400">Current Wing Loading</p>
+            <p className="text-2xl font-bold text-cyan-400 mt-1">
+              {wingLoading.toFixed(1)} kg/m²
             </p>
-            <p className="text-sm text-gray-400 mt-2">
-              Wing Loading = W_TO / S_w
+            <p className="text-xs text-gray-500 mt-1">
+              W_TO = {(W_to / 9.81).toFixed(1)} kg, S_w = {S_w.toFixed(2)} m²
             </p>
           </div>
-        </div>
-      </AeroCard>
+        </AeroCard>
+      )}
     </div>
   );
 }
