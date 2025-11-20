@@ -38,6 +38,11 @@ function generatePDFFromLocalStorage(requestId: string, options: PDFExportOption
     const results = data.results || {};
     const steps = data.steps || [];
     const metadata = data.metadata || {};
+    const attachments = data.attachments || {};
+
+    // Extract chart data if available
+    const charts = attachments.charts || [];
+    const chartImages = charts.map((chart: any) => chart.data || '').filter(Boolean);
 
     // Generate HTML
     const html = `
@@ -47,41 +52,107 @@ function generatePDFFromLocalStorage(requestId: string, options: PDFExportOption
   <meta charset="UTF-8">
   <title>${toolName} Report</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
-    h1 { color: #22d3ee; border-bottom: 2px solid #22d3ee; padding-bottom: 10px; }
-    h2 { color: #06b6d4; margin-top: 30px; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-    th { background-color: #0f172a; color: #22d3ee; }
-    .step { margin: 10px 0; padding: 10px; background-color: #f8f9fa; border-left: 3px solid #22d3ee; }
-    .result { font-size: 1.2em; font-weight: bold; color: #06b6d4; }
-    .metadata { color: #666; font-size: 0.9em; }
+    @media print {
+      @page { margin: 1cm; size: A4; }
+      body { margin: 0; }
+    }
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; color: #333; line-height: 1.6; }
+    h1 { color: #22d3ee; border-bottom: 3px solid #22d3ee; padding-bottom: 10px; margin-bottom: 20px; }
+    h2 { color: #06b6d4; margin-top: 30px; margin-bottom: 15px; border-bottom: 1px solid #06b6d4; padding-bottom: 5px; }
+    h3 { color: #0891b2; margin-top: 20px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; page-break-inside: avoid; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #0f172a; color: #22d3ee; font-weight: 600; }
+    tr:nth-child(even) { background-color: #f8f9fa; }
+    .step { margin: 10px 0; padding: 12px; background-color: #f8f9fa; border-left: 4px solid #22d3ee; page-break-inside: avoid; }
+    .result { font-size: 1.1em; font-weight: bold; color: #06b6d4; }
+    .metadata { color: #666; font-size: 0.9em; margin: 5px 0; }
+    .warning { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 10px; margin: 10px 0; }
+    .error { background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 10px; margin: 10px 0; }
+    .chart-container { margin: 20px 0; text-align: center; page-break-inside: avoid; }
+    .chart-container img { max-width: 100%; height: auto; border: 1px solid #ddd; }
+    .summary-box { background-color: #ecfeff; border: 2px solid #22d3ee; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    .summary-box h3 { margin-top: 0; }
   </style>
 </head>
 <body>
   <h1>${toolName} - Calculation Report</h1>
-  <p class="metadata">Generated: ${new Date().toLocaleString()}</p>
-  <p class="metadata">Request ID: ${requestId}</p>
+  <div class="metadata">Generated: ${new Date().toLocaleString()}</div>
+  <div class="metadata">Request ID: ${requestId}</div>
 
-  <h2>Inputs</h2>
+  ${metadata.warnings && metadata.warnings.length > 0 ? `
+    <div class="warning">
+      <h3>⚠️ Warnings</h3>
+      <ul>
+        ${metadata.warnings.map((w: string) => `<li>${w}</li>`).join('')}
+      </ul>
+    </div>
+  ` : ''}
+
+  ${metadata.recommendations && metadata.recommendations.length > 0 ? `
+    <div class="summary-box">
+      <h3>💡 Recommendations</h3>
+      <ul>
+        ${metadata.recommendations.map((r: string) => `<li>${r}</li>`).join('')}
+      </ul>
+    </div>
+  ` : ''}
+
+  <h2>Input Parameters</h2>
   <table>
-    ${Object.entries(inputs).map(([key, value]) => `
+    <thead>
       <tr>
-        <th>${key}</th>
-        <td>${typeof value === 'object' ? JSON.stringify(value) : value}</td>
+        <th>Parameter</th>
+        <th>Value</th>
+        <th>Unit</th>
       </tr>
-    `).join('')}
+    </thead>
+    <tbody>
+      ${Object.entries(inputs).map(([key, value]) => {
+        const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+        return `
+          <tr>
+            <td><strong>${key}</strong></td>
+            <td>${displayValue}</td>
+            <td>${metadata.units?.[key] || '-'}</td>
+          </tr>
+        `;
+      }).join('')}
+    </tbody>
   </table>
 
   <h2>Results</h2>
   <table>
-    ${Object.entries(results).map(([key, value]) => `
+    <thead>
       <tr>
-        <th>${key}</th>
-        <td class="result">${typeof value === 'object' ? JSON.stringify(value) : value}</td>
+        <th>Result</th>
+        <th>Value</th>
+        <th>Unit</th>
       </tr>
-    `).join('')}
+    </thead>
+    <tbody>
+      ${Object.entries(results).map(([key, value]) => {
+        const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+        return `
+          <tr>
+            <td><strong>${key}</strong></td>
+            <td class="result">${displayValue}</td>
+            <td>${metadata.units?.[key] || '-'}</td>
+          </tr>
+        `;
+      }).join('')}
+    </tbody>
   </table>
+
+  ${chartImages.length > 0 && options.includeCharts !== false ? `
+    <h2>Charts & Visualizations</h2>
+    ${chartImages.map((img: string, idx: number) => `
+      <div class="chart-container">
+        <h3>Chart ${idx + 1}</h3>
+        <img src="${img}" alt="Chart ${idx + 1}" />
+      </div>
+    `).join('')}
+  ` : ''}
 
   ${steps.length > 0 ? `
     <h2>Calculation Steps</h2>
@@ -92,9 +163,12 @@ function generatePDFFromLocalStorage(requestId: string, options: PDFExportOption
     `).join('')}
   ` : ''}
 
-  ${metadata.units ? `<p class="metadata">Units: ${metadata.units}</p>` : ''}
-  ${metadata.approxLevel ? `<p class="metadata">Approximation Level: ${metadata.approxLevel}</p>` : ''}
-  ${metadata.confidence ? `<p class="metadata">Confidence: ${metadata.confidence}</p>` : ''}
+  <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; color: #666; font-size: 0.85em;">
+    <p><strong>Metadata:</strong></p>
+    ${metadata.units ? `<p>Units: ${JSON.stringify(metadata.units)}</p>` : ''}
+    ${metadata.approxLevel ? `<p>Approximation Level: ${metadata.approxLevel}</p>` : ''}
+    ${metadata.confidence ? `<p>Confidence: ${metadata.confidence}</p>` : ''}
+  </div>
 </body>
 </html>
     `;

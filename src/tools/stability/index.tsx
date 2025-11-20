@@ -127,29 +127,38 @@ export default function StabilityCalculator() {
 
   // Load preset
   const handleLoadPreset = useCallback((preset: AircraftPreset) => {
-    setInputs({
-      S_w: preset.S_w,
-      AR: preset.AR,
-      c_bar: preset.c_bar,
-      x_ac_w: preset.x_ac_w,
-      x_cg: (preset.x_cg_min + preset.x_cg_max) / 2, // Use midpoint
-      S_t: preset.S_t,
-      AR_t: preset.AR_t,
-      l_t: preset.l_t,
-      a0: preset.a0,
-      e: preset.e,
-      e_t: preset.e_t,
-      eta: preset.eta,
+    // Ensure all values are numbers, not undefined
+    const presetInputs: StabilityInputs = {
+      S_w: Number(preset.S_w) || 0,
+      AR: Number(preset.AR) || 0,
+      c_bar: Number(preset.c_bar) || 0,
+      x_ac_w: Number(preset.x_ac_w) || 0,
+      x_cg: Number((preset.x_cg_min + preset.x_cg_max) / 2) || 0, // Use midpoint
+      S_t: Number(preset.S_t) || 0,
+      AR_t: Number(preset.AR_t) || 0,
+      l_t: Number(preset.l_t) || 0,
+      a0: Number(preset.a0) || DEFAULT_AIRFOIL_LIFT_SLOPE,
+      e: Number(preset.e) || DEFAULT_WING_EFFICIENCY,
+      e_t: Number(preset.e_t) || DEFAULT_WING_EFFICIENCY,
+      eta: Number(preset.eta) || DEFAULT_TAIL_EFFICIENCY,
       useRoskamDownwash: false,
-      S_e: preset.S_e,
-      tau_e: preset.tau_e,
-      S_a: preset.S_a,
-      S_r: preset.S_r,
-      S_v: preset.S_v,
-    });
+      S_e: preset.S_e !== undefined ? Number(preset.S_e) : undefined,
+      tau_e: preset.tau_e !== undefined ? Number(preset.tau_e) : DEFAULT_ELEVATOR_EFFECTIVENESS,
+      S_a: preset.S_a !== undefined ? Number(preset.S_a) : undefined,
+      S_r: preset.S_r !== undefined ? Number(preset.S_r) : undefined,
+      S_v: preset.S_v !== undefined ? Number(preset.S_v) : (preset.S_t ? Number(preset.S_t) * 0.8 : undefined),
+    };
+    
+    setInputs(presetInputs);
+    
+    // Clear previous results when loading new preset
+    setResults(null);
+    setExtendedResults(null);
+    setCgSweepData([]);
+    
     toast({
       title: 'Preset loaded',
-      description: `${preset.name} configuration loaded`,
+      description: `${preset.name} configuration loaded successfully`,
     });
   }, [toast]);
 
