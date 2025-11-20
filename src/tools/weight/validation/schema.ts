@@ -59,6 +59,16 @@ export const WeightEstimationInputsSchema = z.object({
     fuselage: z.enum(['raymer', 'torenbeek']),
   }),
   W_to: z.number().positive('Takeoff weight must be positive'),
+  materials: z.object({
+    wing: z.string().optional(),
+    fuselage: z.string().optional(),
+    htail: z.string().optional(),
+    vtail: z.string().optional(),
+    spars: z.string().optional(),
+    ribs: z.string().optional(),
+    gear: z.string().optional(),
+    nacelle: z.string().optional(),
+  }).optional(),
 });
 
 export type WeightEstimationInputsType = z.infer<typeof WeightEstimationInputsSchema>;

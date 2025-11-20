@@ -4,6 +4,7 @@
  */
 
 import { WeightEstimationInputs } from '../utils/weightEngine';
+import { DEFAULT_MATERIALS } from './materials';
 
 export interface AircraftPreset {
   id: string;
@@ -69,6 +70,7 @@ export const AIRCRAFT_PRESETS: Record<string, AircraftPreset> = {
         fuselage: 'raymer',
       },
       W_to: 50 * 9.81, // Initial guess: 50 N
+      materials: DEFAULT_MATERIALS['rc-plane'],
     },
   },
   
@@ -120,6 +122,7 @@ export const AIRCRAFT_PRESETS: Record<string, AircraftPreset> = {
         fuselage: 'raymer',
       },
       W_to: 30 * 9.81,
+      materials: DEFAULT_MATERIALS['fpv-wing'],
     },
   },
   
@@ -175,6 +178,7 @@ export const AIRCRAFT_PRESETS: Record<string, AircraftPreset> = {
         fuselage: 'raymer',
       },
       W_to: 150 * 9.81,
+      materials: DEFAULT_MATERIALS['small-uav'],
     },
   },
   
@@ -231,6 +235,7 @@ export const AIRCRAFT_PRESETS: Record<string, AircraftPreset> = {
         fuselage: 'torenbeek',
       },
       W_to: 3000 * 9.81,
+      materials: DEFAULT_MATERIALS['large-uav'],
     },
   },
   
@@ -285,6 +290,7 @@ export const AIRCRAFT_PRESETS: Record<string, AircraftPreset> = {
         fuselage: 'raymer',
       },
       W_to: 1100 * 9.81,
+      materials: DEFAULT_MATERIALS['ga-aircraft'],
     },
   },
   
@@ -339,6 +345,7 @@ export const AIRCRAFT_PRESETS: Record<string, AircraftPreset> = {
         fuselage: 'raymer',
       },
       W_to: 7000 * 9.81,
+      materials: DEFAULT_MATERIALS['business-jet'],
     },
   },
   
@@ -393,6 +400,7 @@ export const AIRCRAFT_PRESETS: Record<string, AircraftPreset> = {
         fuselage: 'torenbeek',
       },
       W_to: 16000 * 9.81,
+      materials: DEFAULT_MATERIALS['fighter'],
     },
   },
   
@@ -447,6 +455,7 @@ export const AIRCRAFT_PRESETS: Record<string, AircraftPreset> = {
         fuselage: 'torenbeek',
       },
       W_to: 80000 * 9.81,
+      materials: DEFAULT_MATERIALS['transport'],
     },
   },
 };

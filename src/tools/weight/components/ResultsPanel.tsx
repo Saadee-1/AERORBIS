@@ -5,9 +5,10 @@
 import { AeroCard } from '@/components/common/AeroCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
-import { ComponentWeights } from '../utils/weightEngine';
+import { ComponentWeights, WeightEstimationInputs } from '../utils/weightEngine';
 import { IterationResult } from '../utils/iteration';
 import { AircraftClassification } from '../utils/classification';
+import { MATERIALS } from '../data/materials';
 
 interface ResultsPanelProps {
   components: ComponentWeights;
@@ -16,6 +17,7 @@ interface ResultsPanelProps {
   W_to: number;
   iteration: IterationResult;
   classification: AircraftClassification;
+  inputs?: WeightEstimationInputs;
   cg?: {
     x_cg: number;
     x_cg_MAC: number;
@@ -30,6 +32,7 @@ export function ResultsPanel({
   W_to, 
   iteration,
   classification,
+  inputs,
   cg 
 }: ResultsPanelProps) {
   const formatWeight = (weightN: number) => {
@@ -173,6 +176,83 @@ export function ResultsPanel({
           </div>
         </div>
       </AeroCard>
+
+      {/* Material Summary */}
+      {inputs?.materials && (
+        <AeroCard title="Material Summary">
+          <div className="space-y-3">
+            {inputs.materials.wing && (
+              <div className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
+                <span className="text-sm text-gray-300">Wing</span>
+                <div className="text-right">
+                  <span className="text-cyan-400 font-semibold">{MATERIALS[inputs.materials.wing]?.name || inputs.materials.wing}</span>
+                  {MATERIALS[inputs.materials.wing] && (
+                    <span className={`text-xs ml-2 ${MATERIALS[inputs.materials.wing].wingCoeff < 1 ? 'text-green-400' : MATERIALS[inputs.materials.wing].wingCoeff > 1 ? 'text-red-400' : 'text-gray-400'}`}>
+                      ({((MATERIALS[inputs.materials.wing].wingCoeff - 1) * 100).toFixed(0)}%)
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {inputs.materials.fuselage && (
+              <div className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
+                <span className="text-sm text-gray-300">Fuselage</span>
+                <div className="text-right">
+                  <span className="text-cyan-400 font-semibold">{MATERIALS[inputs.materials.fuselage]?.name || inputs.materials.fuselage}</span>
+                  {MATERIALS[inputs.materials.fuselage] && (
+                    <span className={`text-xs ml-2 ${MATERIALS[inputs.materials.fuselage].fuseCoeff < 1 ? 'text-green-400' : MATERIALS[inputs.materials.fuselage].fuseCoeff > 1 ? 'text-red-400' : 'text-gray-400'}`}>
+                      ({((MATERIALS[inputs.materials.fuselage].fuseCoeff - 1) * 100).toFixed(0)}%)
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {inputs.materials.htail && (
+              <div className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
+                <span className="text-sm text-gray-300">Horizontal Tail</span>
+                <div className="text-right">
+                  <span className="text-cyan-400 font-semibold">{MATERIALS[inputs.materials.htail]?.name || inputs.materials.htail}</span>
+                  {MATERIALS[inputs.materials.htail] && (
+                    <span className={`text-xs ml-2 ${MATERIALS[inputs.materials.htail].tailCoeff < 1 ? 'text-green-400' : MATERIALS[inputs.materials.htail].tailCoeff > 1 ? 'text-red-400' : 'text-gray-400'}`}>
+                      ({((MATERIALS[inputs.materials.htail].tailCoeff - 1) * 100).toFixed(0)}%)
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {inputs.materials.vtail && (
+              <div className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
+                <span className="text-sm text-gray-300">Vertical Tail</span>
+                <div className="text-right">
+                  <span className="text-cyan-400 font-semibold">{MATERIALS[inputs.materials.vtail]?.name || inputs.materials.vtail}</span>
+                  {MATERIALS[inputs.materials.vtail] && (
+                    <span className={`text-xs ml-2 ${MATERIALS[inputs.materials.vtail].tailCoeff < 1 ? 'text-green-400' : MATERIALS[inputs.materials.vtail].tailCoeff > 1 ? 'text-red-400' : 'text-gray-400'}`}>
+                      ({((MATERIALS[inputs.materials.vtail].tailCoeff - 1) * 100).toFixed(0)}%)
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {(inputs.materials.spars || inputs.materials.ribs || inputs.materials.gear || inputs.materials.nacelle) && (
+              <div className="border-t border-cyan-400/20 pt-3 mt-3">
+                <p className="text-xs text-gray-400 mb-2">Additional Components:</p>
+                {inputs.materials.spars && (
+                  <div className="text-xs text-gray-300">Spars: {MATERIALS[inputs.materials.spars]?.name || inputs.materials.spars}</div>
+                )}
+                {inputs.materials.ribs && (
+                  <div className="text-xs text-gray-300">Ribs: {MATERIALS[inputs.materials.ribs]?.name || inputs.materials.ribs}</div>
+                )}
+                {inputs.materials.gear && (
+                  <div className="text-xs text-gray-300">Landing Gear: {MATERIALS[inputs.materials.gear]?.name || inputs.materials.gear}</div>
+                )}
+                {inputs.materials.nacelle && (
+                  <div className="text-xs text-gray-300">Nacelles: {MATERIALS[inputs.materials.nacelle]?.name || inputs.materials.nacelle}</div>
+                )}
+              </div>
+            )}
+          </div>
+        </AeroCard>
+      )}
 
       {/* CG Position */}
       {cg && (

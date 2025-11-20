@@ -7,6 +7,7 @@ import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { WeightEstimationInputs, ComponentWeights } from './weightEngine';
 import { AircraftClassification } from './classification';
 import { IterationResult } from './iteration';
+import { MATERIALS } from '../data/materials';
 
 export interface WeightEstimationResults {
   inputs: WeightEstimationInputs;
@@ -38,14 +39,51 @@ export function buildWeightEstimatorPayload(
   const { inputs, components, W_empty, W_fuel, W_to, iteration, classification, cg, inertia } = results;
   
   // Format calculation steps
-  const steps = [
+  const steps: string[] = [
     'Wing weight: Raymer/Torenbeek model based on area, AR, taper ratio, and t/c',
+  ];
+  
+  if (inputs.materials?.wing) {
+    steps.push(`Wing material: ${MATERIALS[inputs.materials.wing]?.name || inputs.materials.wing} (coefficient: ${MATERIALS[inputs.materials.wing]?.wingCoeff.toFixed(2) || '1.00'})`);
+  }
+  
+  steps.push(
     `Wing weight = ${(components.wing / 9.81).toFixed(1)} kg`,
     'Fuselage weight: Raymer/Torenbeek model based on wetted area',
+  );
+  
+  if (inputs.materials?.fuselage) {
+    steps.push(`Fuselage material: ${MATERIALS[inputs.materials.fuselage]?.name || inputs.materials.fuselage} (coefficient: ${MATERIALS[inputs.materials.fuselage]?.fuseCoeff.toFixed(2) || '1.00'})`);
+  }
+  
+  steps.push(
     `Fuselage weight = ${(components.fuselage / 9.81).toFixed(1)} kg`,
     'Tail weights: Raymer model for horizontal and vertical tails',
+  );
+  
+  if (inputs.materials?.htail || inputs.materials?.vtail) {
+    const tailMaterials: string[] = [];
+    if (inputs.materials.htail) {
+      tailMaterials.push(`HT: ${MATERIALS[inputs.materials.htail]?.name || inputs.materials.htail}`);
+    }
+    if (inputs.materials.vtail) {
+      tailMaterials.push(`VT: ${MATERIALS[inputs.materials.vtail]?.name || inputs.materials.vtail}`);
+    }
+    if (tailMaterials.length > 0) {
+      steps.push(`Tail materials: ${tailMaterials.join(', ')}`);
+    }
+  }
+  
+  steps.push(
     `Horizontal tail = ${(components.horizontalTail / 9.81).toFixed(1)} kg, Vertical tail = ${(components.verticalTail / 9.81).toFixed(1)} kg`,
     'Landing gear: Raymer model (main + nose gear)',
+  );
+  
+  if (inputs.materials?.gear) {
+    steps.push(`Landing gear material: ${MATERIALS[inputs.materials.gear]?.name || inputs.materials.gear} (coefficient: ${MATERIALS[inputs.materials.gear]?.lgCoeff.toFixed(2) || '1.00'})`);
+  }
+  
+  steps.push(
     `Landing gear = ${(components.landingGear.total / 9.81).toFixed(1)} kg`,
     'Engine weight: Nicolai model based on power/thrust and type',
     `Engine weight = ${(components.engine / 9.81).toFixed(1)} kg`,
@@ -57,7 +95,7 @@ export function buildWeightEstimatorPayload(
     'Takeoff weight iteration: Fixed-point iteration',
     `Final W_TO = ${(W_to / 9.81).toFixed(1)} kg (converged in ${iteration.iterations} iterations)`,
     `Aircraft classification: ${classification.aircraftClass}`,
-  ];
+  );
   
   if (cg) {
     steps.push(`CG position: ${cg.x_cg.toFixed(2)} m from nose, ${(cg.x_cg_MAC * 100).toFixed(1)}% MAC`);
@@ -87,6 +125,34 @@ export function buildWeightEstimatorPayload(
     'Weight method (wing)': inputs.method.wing,
     'Weight method (fuselage)': inputs.method.fuselage,
   };
+  
+  // Add material information
+  if (inputs.materials) {
+    if (inputs.materials.wing) {
+      formattedInputs['Wing material'] = MATERIALS[inputs.materials.wing]?.name || inputs.materials.wing;
+    }
+    if (inputs.materials.fuselage) {
+      formattedInputs['Fuselage material'] = MATERIALS[inputs.materials.fuselage]?.name || inputs.materials.fuselage;
+    }
+    if (inputs.materials.htail) {
+      formattedInputs['Horizontal tail material'] = MATERIALS[inputs.materials.htail]?.name || inputs.materials.htail;
+    }
+    if (inputs.materials.vtail) {
+      formattedInputs['Vertical tail material'] = MATERIALS[inputs.materials.vtail]?.name || inputs.materials.vtail;
+    }
+    if (inputs.materials.spars) {
+      formattedInputs['Spars material'] = MATERIALS[inputs.materials.spars]?.name || inputs.materials.spars;
+    }
+    if (inputs.materials.ribs) {
+      formattedInputs['Ribs material'] = MATERIALS[inputs.materials.ribs]?.name || inputs.materials.ribs;
+    }
+    if (inputs.materials.gear) {
+      formattedInputs['Landing gear material'] = MATERIALS[inputs.materials.gear]?.name || inputs.materials.gear;
+    }
+    if (inputs.materials.nacelle) {
+      formattedInputs['Nacelle material'] = MATERIALS[inputs.materials.nacelle]?.name || inputs.materials.nacelle;
+    }
+  }
   
   // Format results for display
   const formattedResults: Record<string, any> = {
@@ -162,6 +228,13 @@ export function buildWeightEstimatorPayload(
         wing: inputs.method.wing,
         fuselage: inputs.method.fuselage,
       },
+      materials: inputs.materials || {},
+      materialEffects: inputs.materials ? {
+        wing: inputs.materials.wing ? MATERIALS[inputs.materials.wing]?.wingCoeff : 1.0,
+        fuselage: inputs.materials.fuselage ? MATERIALS[inputs.materials.fuselage]?.fuseCoeff : 1.0,
+        tail: inputs.materials.htail ? MATERIALS[inputs.materials.htail]?.tailCoeff : 1.0,
+        gear: inputs.materials.gear ? MATERIALS[inputs.materials.gear]?.lgCoeff : 1.0,
+      } : {},
     },
     metadata: {
       steps,

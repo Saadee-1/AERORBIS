@@ -34,6 +34,7 @@ import { ResultsPanel } from './components/ResultsPanel';
 import { ChartsPanel } from './components/ChartsPanel';
 import { PresetsPanel } from './components/PresetsPanel';
 import { MissionFuelPanel } from './components/MissionFuelPanel';
+import { MaterialsPanel } from './components/MaterialsPanel';
 import { MissionProfile } from './utils/iteration';
 
 // Default inputs
@@ -152,6 +153,7 @@ export default function StructuralWeightEstimator() {
           controls: { ...prev.systems.controls, ...preset.inputs.systems?.controls },
           fixedEquipment: { ...prev.systems.fixedEquipment, ...preset.inputs.systems?.fixedEquipment },
         },
+        materials: preset.inputs.materials || prev.materials,
       }));
       
       toast({
@@ -294,12 +296,13 @@ export default function StructuralWeightEstimator() {
       </ToolSection>
 
       <Tabs defaultValue="geometry" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 bg-slate-800/50 mb-6">
+        <TabsList className="grid w-full grid-cols-7 bg-slate-800/50 mb-6">
           <TabsTrigger value="geometry">Geometry</TabsTrigger>
           <TabsTrigger value="propulsion">Propulsion</TabsTrigger>
           <TabsTrigger value="flight">Flight</TabsTrigger>
           <TabsTrigger value="systems">Systems</TabsTrigger>
           <TabsTrigger value="payload">Payload</TabsTrigger>
+          <TabsTrigger value="materials">Materials</TabsTrigger>
           <TabsTrigger value="mission">Mission</TabsTrigger>
         </TabsList>
 
@@ -330,6 +333,12 @@ export default function StructuralWeightEstimator() {
         <TabsContent value="payload">
           <ToolSection>
             <PayloadPanel inputs={inputs} onInputChange={handleInputChange} />
+          </ToolSection>
+        </TabsContent>
+
+        <TabsContent value="materials">
+          <ToolSection>
+            <MaterialsPanel inputs={inputs} onInputChange={handleInputChange} />
           </ToolSection>
         </TabsContent>
 
@@ -384,6 +393,7 @@ export default function StructuralWeightEstimator() {
                   W_to={results.W_to}
                   iteration={results.iteration}
                   classification={results.classification}
+                  inputs={inputs}
                   cg={results.cg}
                 />
               </ToolSection>
@@ -398,6 +408,7 @@ export default function StructuralWeightEstimator() {
                   W_to={results.W_to}
                   iteration={results.iteration}
                   classification={results.classification}
+                  inputs={inputs}
                   cg={results.cg}
                 />
               </ToolSection>

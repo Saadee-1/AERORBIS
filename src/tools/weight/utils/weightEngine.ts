@@ -25,6 +25,7 @@ import {
   calculateNicolaiEngineWeight,
   NicolaiFixedEquipmentInputs,
 } from './nicolai';
+import { applyMaterialFactor } from '../data/materials';
 
 export interface WeightEstimationInputs {
   // Geometry
@@ -94,6 +95,18 @@ export interface WeightEstimationInputs {
   
   // Current takeoff weight estimate (for iteration)
   W_to: number; // Takeoff weight (N)
+  
+  // Material selections
+  materials?: {
+    wing?: string;
+    fuselage?: string;
+    htail?: string;
+    vtail?: string;
+    spars?: string;
+    ribs?: string;
+    gear?: string;
+    nacelle?: string;
+  };
 }
 
 export interface ComponentWeights {
@@ -127,10 +140,10 @@ export interface WeightEstimationResults {
  * Calculate all component weights
  */
 export function calculateComponentWeights(inputs: WeightEstimationInputs): ComponentWeights {
-  const { geometry, flight, propulsion, systems, W_payload, method, W_to } = inputs;
+  const { geometry, flight, propulsion, systems, W_payload, method, W_to, materials } = inputs;
   
   // Wing weight
-  let W_wing: number;
+  let W_wing_base: number;
   if (method.wing === 'raymer') {
     const wingInputs: RaymerWingInputs = {
       S_w: geometry.S_w,
@@ -140,7 +153,7 @@ export function calculateComponentWeights(inputs: WeightEstimationInputs): Compo
       lambda: geometry.lambda,
       t_c: geometry.t_c,
     };
-    W_wing = calculateRaymerWingWeight(wingInputs);
+    W_wing_base = calculateRaymerWingWeight(wingInputs);
   } else {
     const wingInputs: TorenbeekWingInputs = {
       S_w: geometry.S_w,
@@ -150,25 +163,31 @@ export function calculateComponentWeights(inputs: WeightEstimationInputs): Compo
       N_ult: flight.N_ult,
       hasThrustRelief: flight.hasThrustRelief,
     };
-    W_wing = calculateTorenbeekWingWeight(wingInputs);
+    W_wing_base = calculateTorenbeekWingWeight(wingInputs);
   }
   
+  // Apply material factor to wing
+  const W_wing = applyMaterialFactor(W_wing_base, materials?.wing, 'wing');
+  
   // Fuselage weight
-  let W_fuselage: number;
+  let W_fuselage_base: number;
   if (method.fuselage === 'raymer') {
     const fuseInputs: RaymerFuselageInputs = {
       S_fuse: geometry.S_fuse,
       W_to,
     };
-    W_fuselage = calculateRaymerFuselageWeight(fuseInputs);
+    W_fuselage_base = calculateRaymerFuselageWeight(fuseInputs);
   } else {
-    W_fuselage = calculateTorenbeekFuselageWeight(
+    W_fuselage_base = calculateTorenbeekFuselageWeight(
       geometry.S_fuse,
       geometry.L_fuse,
       W_to,
       systems.fixedEquipment.isPressurized
     );
   }
+  
+  // Apply material factor to fuselage
+  const W_fuselage = applyMaterialFactor(W_fuselage_base, materials?.fuselage, 'fuse');
   
   // Tail weights
   const tailInputs: RaymerTailInputs = {
@@ -177,20 +196,42 @@ export function calculateComponentWeights(inputs: WeightEstimationInputs): Compo
     W_to,
     AR_ht: geometry.AR_ht,
   };
-  const W_ht = calculateRaymerHorizontalTailWeight(tailInputs);
-  const W_vt = calculateRaymerVerticalTailWeight(tailInputs);
+  const W_ht_base = calculateRaymerHorizontalTailWeight(tailInputs);
+  const W_vt_base = calculateRaymerVerticalTailWeight(tailInputs);
+  
+  // Apply material factors to tails
+  const W_ht = applyMaterialFactor(W_ht_base, materials?.htail, 'tail');
+  const W_vt = applyMaterialFactor(W_vt_base, materials?.vtail, 'tail');
   
   // Landing gear
-  const landingGear = calculateRaymerLandingGearWeight(W_to);
+  const landingGear_base = calculateRaymerLandingGearWeight(W_to);
+  
+  // Apply material factor to landing gear
+  const landingGear = {
+    main: applyMaterialFactor(landingGear_base.main, materials?.gear, 'lg'),
+    nose: applyMaterialFactor(landingGear_base.nose, materials?.gear, 'lg'),
+    total: 0, // Will be calculated below
+  };
+  landingGear.total = landingGear.main + landingGear.nose;
   
   // Engine weight
-  const W_engine_single = calculateNicolaiEngineWeight(
+  const W_engine_single_base = calculateNicolaiEngineWeight(
     propulsion.power,
     propulsion.type,
     propulsion.includeNacelle,
     propulsion.includePylon,
     propulsion.includeMounts
   );
+  
+  // Apply material factor to nacelle if included
+  let W_engine_single = W_engine_single_base;
+  if (propulsion.includeNacelle && materials?.nacelle) {
+    // Only apply to nacelle portion (estimate ~10% of engine weight)
+    const nacelleWeight = W_engine_single_base * 0.1;
+    const nacelleWeightAdjusted = applyMaterialFactor(nacelleWeight, materials.nacelle, 'nacelle');
+    W_engine_single = W_engine_single_base - nacelleWeight + nacelleWeightAdjusted;
+  }
+  
   const W_engine_total = W_engine_single * propulsion.n_engines;
   
   // Fuel system (will be updated after fuel calculation)
