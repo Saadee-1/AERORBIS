@@ -7,7 +7,7 @@ import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackg
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud } from "lucide-react";
+import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale } from "lucide-react";
 import ThrustCalculator from "@/components/tools/ThrustCalculator";
 import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
 import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
@@ -18,6 +18,7 @@ import DeltaVPlanner from "@/components/tools/deltav/DeltaVPlanner";
 import AntennaPatternAnalyzer from "@/components/tools/AntennaPatternAnalyzer";
 import StandardAtmosphereCalculator from "@/components/tools/StandardAtmosphereCalculator";
 import StabilityCalculator from "@/tools/stability";
+import StructuralWeightEstimator from "@/tools/weight";
 
 // Mapping from tool names to tab IDs
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
@@ -31,6 +32,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "Antenna Pattern Analyzer": "antenna",
   "Standard Atmosphere Calculator": "atmosphere",
   "Stability & Control Derivatives": "stability",
+  "Structural Weight Estimator": "weight",
   // Also support direct tool IDs
   "thrust": "thrust",
   "wing": "wing",
@@ -42,6 +44,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "antenna": "antenna",
   "atmosphere": "atmosphere",
   "stability": "stability",
+  "weight": "weight",
 };
 
 const ToolsLauncher = () => {
@@ -102,7 +105,7 @@ const ToolsLauncher = () => {
           >
             <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
               {!hideTabs && (
-                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-6 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-7 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
                 <TabsTrigger 
                   value="thrust"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
@@ -173,6 +176,13 @@ const ToolsLauncher = () => {
                   <Plane className="w-4 h-4 mr-2" />
                   Stability
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="weight"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                >
+                  <Scale className="w-4 h-4 mr-2" />
+                  Weight Estimator
+                </TabsTrigger>
                 </TabsList>
               )}
 
@@ -214,6 +224,10 @@ const ToolsLauncher = () => {
 
               <TabsContent value="stability" className="mt-0">
                 <StabilityCalculator />
+              </TabsContent>
+
+              <TabsContent value="weight" className="mt-0">
+                <StructuralWeightEstimator />
               </TabsContent>
             </Tabs>
           </motion.div>

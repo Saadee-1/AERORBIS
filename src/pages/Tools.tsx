@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database, Zap, Radio, Cloud, Plane } from "lucide-react";
+import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database, Zap, Radio, Cloud, Plane, Scale } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,7 @@ const getToolUrl = (toolName: string): string => {
     "Standard Atmosphere Calculator": "atmosphere",
     "Rocket Engine Performance": "rocketengine",
     "Stability & Control Derivatives": "stability",
+    "Structural Weight Estimator": "weight",
   };
   const toolId = toolMap[toolName];
   return toolId ? `/tools/launch?tool=${toolId}` : "/tools/launch";
@@ -98,6 +99,12 @@ const Tools = () => {
       description: "Comprehensive stability analysis based on Raymer, Roskam, Anderson, and DATCOM. Calculate neutral point, static margin, control derivatives, and tail sizing.",
       category: "Aircraft Design",
     },
+    {
+      icon: Scale,
+      name: "Structural Weight Estimator",
+      description: "Professional-grade weight estimation using Raymer, Torenbeek, and Nicolai models. Calculate component weights, mission fuel, W_TO iteration, CG, and aircraft classification.",
+      category: "Aircraft Design",
+    },
   ];
 
   return (
@@ -155,10 +162,10 @@ const Tools = () => {
                     <Button 
                       className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300"
                       asChild
-                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives"].includes(tool.name)}
+                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Structural Weight Estimator"].includes(tool.name)}
                     >
-                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
-                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
+                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Structural Weight Estimator"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
+                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Structural Weight Estimator"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
                       </a>
                     </Button>
                   </CardFooter>
