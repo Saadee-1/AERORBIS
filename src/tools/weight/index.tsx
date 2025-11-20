@@ -35,7 +35,9 @@ import { ChartsPanel } from './components/ChartsPanel';
 import { PresetsPanel } from './components/PresetsPanel';
 import { MissionFuelPanel } from './components/MissionFuelPanel';
 import { MaterialsPanel } from './components/MaterialsPanel';
+import { CGInertiaPanel } from './components/CGInertiaPanel';
 import { MissionProfile } from './utils/iteration';
+import { ComponentLocation, calculateCG, calculateMAC, calculateCGonMAC, calculateMomentOfInertia } from './utils/cg';
 
 // Default inputs
 const DEFAULT_INPUTS: WeightEstimationInputs = {
@@ -107,6 +109,9 @@ export default function StructuralWeightEstimator() {
     createStandardMissionProfile({ range: 1000, includeAlternate: true, reserve: 0.05 })
   );
 
+  // Component locations for CG calculation
+  const [componentLocations, setComponentLocations] = useState<ComponentLocation[]>([]);
+
   // Results state
   const [results, setResults] = useState<{
     components: ReturnType<typeof calculateComponentWeights>;
@@ -119,6 +124,11 @@ export default function StructuralWeightEstimator() {
       x_cg: number;
       x_cg_MAC: number;
       MAC: number;
+    };
+    inertia?: {
+      Ixx: number;
+      Iyy: number;
+      Izz: number;
     };
   } | null>(null);
 
@@ -220,17 +230,46 @@ export default function StructuralWeightEstimator() {
         isPressurized: inputs.systems.fixedEquipment.isPressurized,
       });
 
-      // Calculate CG (simplified - user would input component locations)
-      // For now, estimate based on typical positions
-      const MAC = inputs.geometry.S_w / inputs.geometry.b; // Simplified MAC
-      const x_cg_estimate = inputs.geometry.L_fuse * 0.4; // Typical 40% of fuselage length
-      const x_cg_MAC = 0.25; // Typical 25% MAC
+      // Calculate CG (if component locations are provided, otherwise estimate)
+      let cg;
+      if (componentLocations.length > 0) {
+        const W_total = iteration.W_to;
+        const x_cg = calculateCG(componentLocations, W_total);
+        const macResult = calculateMAC(inputs.geometry.S_w, inputs.geometry.b, inputs.geometry.lambda, inputs.geometry.L_fuse * 0.4);
+        const x_cg_MAC = calculateCGonMAC(x_cg, macResult.x_MAC, macResult.MAC);
+        cg = {
+          x_cg,
+          x_cg_MAC,
+          MAC: macResult.MAC,
+        };
+      } else {
+        // Estimate based on typical positions
+        const macResult = calculateMAC(inputs.geometry.S_w, inputs.geometry.b, inputs.geometry.lambda, inputs.geometry.L_fuse * 0.4);
+        const x_cg_estimate = inputs.geometry.L_fuse * 0.4; // Typical 40% of fuselage length
+        const x_cg_MAC = calculateCGonMAC(x_cg_estimate, macResult.x_MAC, macResult.MAC);
+        cg = {
+          x_cg: x_cg_estimate,
+          x_cg_MAC,
+          MAC: macResult.MAC,
+        };
+      }
 
-      const cg = {
-        x_cg: x_cg_estimate,
-        x_cg_MAC,
-        MAC,
-      };
+      // Calculate moment of inertia if component locations are available
+      let inertia;
+      if (componentLocations.length > 0 && cg) {
+        inertia = calculateMomentOfInertia(
+          {
+            components: componentLocations,
+            geometry: {
+              S_w: inputs.geometry.S_w,
+              b: inputs.geometry.b,
+              L_fuse: inputs.geometry.L_fuse,
+              S_fuse: inputs.geometry.S_fuse,
+            },
+          },
+          cg.x_cg
+        );
+      }
 
       // Set results
       const finalResults = {
@@ -241,6 +280,7 @@ export default function StructuralWeightEstimator() {
         iteration,
         classification,
         cg,
+        inertia,
       };
       
       setResults(finalResults);
@@ -296,7 +336,7 @@ export default function StructuralWeightEstimator() {
       </ToolSection>
 
       <Tabs defaultValue="geometry" className="w-full">
-        <TabsList className="grid w-full grid-cols-7 bg-slate-800/50 mb-6">
+        <TabsList className="grid w-full grid-cols-8 bg-slate-800/50 mb-6">
           <TabsTrigger value="geometry">Geometry</TabsTrigger>
           <TabsTrigger value="propulsion">Propulsion</TabsTrigger>
           <TabsTrigger value="flight">Flight</TabsTrigger>
@@ -304,6 +344,7 @@ export default function StructuralWeightEstimator() {
           <TabsTrigger value="payload">Payload</TabsTrigger>
           <TabsTrigger value="materials">Materials</TabsTrigger>
           <TabsTrigger value="mission">Mission</TabsTrigger>
+          <TabsTrigger value="cg-inertia">CG & Inertia</TabsTrigger>
         </TabsList>
 
         <TabsContent value="geometry">
@@ -345,6 +386,73 @@ export default function StructuralWeightEstimator() {
         <TabsContent value="mission">
           <ToolSection>
             <MissionFuelPanel profile={missionProfile} onProfileChange={setMissionProfile} />
+          </ToolSection>
+        </TabsContent>
+
+        <TabsContent value="cg-inertia">
+          <ToolSection>
+            <CGInertiaPanel
+              componentWeights={results?.components || {
+                wing: 0,
+                fuselage: 0,
+                horizontalTail: 0,
+                verticalTail: 0,
+                landingGear: { main: 0, nose: 0, total: 0 },
+                engine: 0,
+                fuelSystem: 0,
+                controls: 0,
+                avionics: 0,
+                fixedEquipment: 0,
+                payload: 0,
+                empty: 0,
+              }}
+              componentLocations={componentLocations}
+              onLocationsChange={setComponentLocations}
+              onCalculateCG={() => {
+                if (results && componentLocations.length > 0) {
+                  const W_total = results.W_to;
+                  const x_cg = calculateCG(componentLocations, W_total);
+                  const macResult = calculateMAC(inputs.geometry.S_w, inputs.geometry.b, inputs.geometry.lambda, inputs.geometry.L_fuse * 0.4);
+                  const x_cg_MAC = calculateCGonMAC(x_cg, macResult.x_MAC, macResult.MAC);
+                  
+                  const inertia = calculateMomentOfInertia(
+                    {
+                      components: componentLocations,
+                      geometry: {
+                        S_w: inputs.geometry.S_w,
+                        b: inputs.geometry.b,
+                        L_fuse: inputs.geometry.L_fuse,
+                        S_fuse: inputs.geometry.S_fuse,
+                      },
+                    },
+                    x_cg
+                  );
+
+                  setResults({
+                    ...results,
+                    cg: {
+                      x_cg,
+                      x_cg_MAC,
+                      MAC: macResult.MAC,
+                    },
+                    inertia,
+                  });
+
+                  toast({
+                    title: 'CG & Inertia Calculated',
+                    description: `CG: ${x_cg.toFixed(2)} m (${(x_cg_MAC * 100).toFixed(1)}% MAC)`,
+                  });
+                } else {
+                  toast({
+                    title: 'Calculation Required',
+                    description: 'Please calculate weights first, then enter component locations',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              cg={results?.cg}
+              inertia={results?.inertia}
+            />
           </ToolSection>
         </TabsContent>
       </Tabs>
@@ -395,6 +503,7 @@ export default function StructuralWeightEstimator() {
                   classification={results.classification}
                   inputs={inputs}
                   cg={results.cg}
+                  inertia={results.inertia}
                 />
               </ToolSection>
             </TabsContent>
@@ -410,6 +519,7 @@ export default function StructuralWeightEstimator() {
                   classification={results.classification}
                   inputs={inputs}
                   cg={results.cg}
+                  inertia={results.inertia}
                 />
               </ToolSection>
             </TabsContent>
@@ -465,6 +575,8 @@ export default function StructuralWeightEstimator() {
               W_fuel={results.W_fuel}
               W_to={results.W_to}
               iteration={results.iteration}
+              inputs={inputs}
+              missionProfile={missionProfile}
               cg={results.cg}
             />
           </ToolSection>

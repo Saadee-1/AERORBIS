@@ -23,6 +23,11 @@ interface ResultsPanelProps {
     x_cg_MAC: number;
     MAC: number;
   };
+  inertia?: {
+    Ixx: number;
+    Iyy: number;
+    Izz: number;
+  };
 }
 
 export function ResultsPanel({ 
@@ -33,7 +38,8 @@ export function ResultsPanel({
   iteration,
   classification,
   inputs,
-  cg 
+  cg,
+  inertia
 }: ResultsPanelProps) {
   const formatWeight = (weightN: number) => {
     const kg = weightN / 9.81;
@@ -276,6 +282,26 @@ export function ResultsPanel({
                 </AlertDescription>
               </Alert>
             ) : null}
+          </div>
+        </AeroCard>
+      )}
+
+      {/* Moments of Inertia */}
+      {inertia && (
+        <AeroCard title="Moments of Inertia">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
+              <p className="text-xs text-gray-400 mb-1">Ixx (Roll)</p>
+              <p className="text-cyan-400 font-semibold">{inertia.Ixx.toFixed(1)} kg·m²</p>
+            </div>
+            <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
+              <p className="text-xs text-gray-400 mb-1">Iyy (Pitch)</p>
+              <p className="text-cyan-400 font-semibold">{inertia.Iyy.toFixed(1)} kg·m²</p>
+            </div>
+            <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
+              <p className="text-xs text-gray-400 mb-1">Izz (Yaw)</p>
+              <p className="text-cyan-400 font-semibold">{inertia.Izz.toFixed(1)} kg·m²</p>
+            </div>
           </div>
         </AeroCard>
       )}
