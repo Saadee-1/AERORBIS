@@ -9,6 +9,18 @@ import { Stage } from '../utils/physics/staging';
 import { GuidanceProfile } from '../utils/solver/run2d';
 import { Guidance3D } from '../utils/solver/run3d';
 
+export interface AdvancedFeatures {
+  performanceMode?: 'fast' | 'accurate' | 'high-fidelity';
+  enableJ2?: boolean;
+  enableAerobraking?: boolean;
+  enableMissileMode?: boolean;
+  enableGuidedMode?: boolean;
+  enableKepler?: boolean;
+  enable3D?: boolean;
+  engineDatabaseUsed?: boolean;
+  downsampleOutput?: boolean;
+}
+
 export interface TrajectoryResults {
   mode: '1D' | '2D' | '3D';
   planet: Planet;
@@ -17,6 +29,7 @@ export interface TrajectoryResults {
   result1D?: any;
   result2D?: any;
   result3D?: any;
+  advancedFeatures?: AdvancedFeatures;
 }
 
 /**
@@ -26,7 +39,7 @@ export function buildTrajectoryPayload(
   results: TrajectoryResults,
   requestId?: string
 ): AeroverseAIPayload {
-  const { mode, planet, stages, guidance, result1D, result2D, result3D } = results;
+  const { mode, planet, stages, guidance, result1D, result2D, result3D, advancedFeatures } = results;
   const result = mode === '1D' ? result1D : mode === '2D' ? result2D : result3D;
 
   // Format calculation steps
@@ -142,6 +155,7 @@ export function buildTrajectoryPayload(
       planet: planet.id,
       numberOfStages: stages.length,
       guidance: guidance ? (mode === '2D' ? (guidance as GuidanceProfile).type : '3D') : undefined,
+      advancedFeatures: advancedFeatures || {},
     },
     metadata: {
       steps,

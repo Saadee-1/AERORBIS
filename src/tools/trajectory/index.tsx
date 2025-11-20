@@ -39,6 +39,7 @@ import { GuidanceConfig } from './components/GuidanceConfig';
 import { ResultsPanel } from './components/ResultsPanel';
 import { ChartsPanel } from './components/ChartsPanel';
 import { ThreeDVisualizer } from './components/ThreeDVisualizer';
+import { AdvancedSettingsPanel, AdvancedSettings } from './components/AdvancedSettingsPanel';
 
 export default function TrajectorySimulator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
@@ -83,6 +84,24 @@ export default function TrajectorySimulator() {
   // Simulation state
   const [isRunning, setIsRunning] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+
+  // Advanced settings
+  const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettings>({
+    enable2D: true,
+    enable3D: false,
+    enableAtmosphericDrag: true,
+    enableHeating: false,
+    enableTVC: false,
+    performanceMode: 'fast',
+    downsampleOutput: false,
+    enableKepler: false,
+    enableJ2: false,
+    enableAerobraking: false,
+    enableMissileBallistic: false,
+    enableGuidedMissile: false,
+    enableOrbitalLaunch: false,
+    engineSelectionMode: 'manual',
+  });
 
   // Validation
   const validateInputs = useCallback((): string[] => {
@@ -129,6 +148,24 @@ export default function TrajectorySimulator() {
       errs.push('Max time must be positive');
     }
     
+    // Advanced validation rules
+    if (advancedSettings.enableMissileBallistic && advancedSettings.enableKepler) {
+      errs.push('Missile mode cannot use orbital propagation');
+    }
+    
+    if (advancedSettings.enableJ2 && selectedPlanet.id !== 'earth') {
+      errs.push('J2 perturbation only applicable for Earth-like bodies');
+    }
+    
+    if (advancedSettings.enableAerobraking && !selectedPlanet.hasAtmosphere) {
+      errs.push('Aerobraking requires an atmosphere');
+    }
+    
+    if (advancedSettings.enableGuidedMissile && !advancedSettings.enableMissileBallistic) {
+      // Guided mode requires some target - this is a soft warning
+      // Could add target position validation here
+    }
+    
     // Check T/W ratio
     if (stages.length > 0) {
       const firstStage = stages[0];
@@ -145,7 +182,7 @@ export default function TrajectorySimulator() {
     }
     
     return errs;
-  }, [stages, timeStep, maxTime, selectedPlanet]);
+  }, [stages, timeStep, maxTime, selectedPlanet, advancedSettings]);
 
   // Run simulation
   const runSimulation = useCallback(() => {
@@ -242,8 +279,19 @@ export default function TrajectorySimulator() {
       result1D,
       result2D,
       result3D,
+      advancedFeatures: {
+        performanceMode: advancedSettings.performanceMode,
+        enableJ2: advancedSettings.enableJ2,
+        enableAerobraking: advancedSettings.enableAerobraking,
+        enableMissileMode: advancedSettings.enableMissileBallistic,
+        enableGuidedMode: advancedSettings.enableGuidedMissile,
+        enableKepler: advancedSettings.enableKepler,
+        enable3D: advancedSettings.enable3D,
+        engineDatabaseUsed: advancedSettings.engineSelectionMode === 'database',
+        downsampleOutput: advancedSettings.downsampleOutput,
+      },
     }, lastRequestId || undefined);
-  }, [mode, selectedPlanet, stages, guidance2D, guidance3D, result1D, result2D, result3D, lastRequestId]);
+  }, [mode, selectedPlanet, stages, guidance2D, guidance3D, result1D, result2D, result3D, lastRequestId, advancedSettings]);
 
   // Handle AI request
   const handleAIRequest = useCallback(async () => {
@@ -334,10 +382,11 @@ export default function TrajectorySimulator() {
       )}
 
       <Tabs defaultValue="config" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="config">Configuration</TabsTrigger>
           <TabsTrigger value="stages">Stages</TabsTrigger>
           <TabsTrigger value="guidance">Guidance</TabsTrigger>
+          <TabsTrigger value="advanced">Advanced</TabsTrigger>
           <TabsTrigger value="results">Results</TabsTrigger>
           <TabsTrigger value="charts">Charts</TabsTrigger>
         </TabsList>
@@ -420,6 +469,15 @@ export default function TrajectorySimulator() {
               guidance3D={guidance3D}
               onGuidance2DChange={setGuidance2D}
               onGuidance3DChange={setGuidance3D}
+            />
+          </ToolSection>
+        </TabsContent>
+
+        <TabsContent value="advanced">
+          <ToolSection>
+            <AdvancedSettingsPanel
+              settings={advancedSettings}
+              onSettingsChange={setAdvancedSettings}
             />
           </ToolSection>
         </TabsContent>
