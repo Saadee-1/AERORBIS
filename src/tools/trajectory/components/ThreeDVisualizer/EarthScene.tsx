@@ -6,7 +6,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Mesh, SphereGeometry } from 'three';
-import { useTexture, Stars } from '@react-three/drei';
+import { Stars } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface EarthSceneProps {
@@ -27,46 +27,29 @@ export function EarthScene({
   const earthRef = useRef<Mesh>(null);
   const cloudRef = useRef<Mesh>(null);
 
-  // Load textures with fallback
-  const earthTexture = useTexture('/textures/earth_day.jpg', (texture) => {
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  }).catch(() => null);
-
-  const nightTexture = useTexture('/textures/earth_night.jpg').catch(() => null);
-  const cloudTexture = useTexture('/textures/earth_clouds.png').catch(() => null);
+  // Texture loading - use simple mode by default, textures can be added later
+  // For now, use procedural materials
 
   // Create materials
   const earthMaterial = useMemo(() => {
-    if (simpleMode) {
-      return new THREE.MeshStandardMaterial({
-        color: 0x4a90e2,
-        roughness: 0.8,
-        metalness: 0.2,
-      });
-    }
-
-    const material = new THREE.MeshStandardMaterial({
-      map: earthTexture || null,
-      emissiveMap: nightTexture || null,
-      emissive: new THREE.Color(0x000000),
-      emissiveIntensity: 0.1,
+    // Use procedural material - textures can be added later via useTexture hook
+    return new THREE.MeshStandardMaterial({
+      color: 0x4a90e2,
       roughness: 0.8,
       metalness: 0.2,
     });
-
-    return material;
-  }, [simpleMode, earthTexture, nightTexture]);
+  }, [simpleMode]);
 
   const cloudMaterial = useMemo(() => {
     if (!showClouds || simpleMode) return null;
 
     return new THREE.MeshStandardMaterial({
-      map: cloudTexture || null,
+      color: 0xffffff,
       transparent: true,
       opacity: 0.4,
       depthWrite: false,
     });
-  }, [showClouds, simpleMode, cloudTexture]);
+  }, [showClouds, simpleMode]);
 
   // Rotate Earth
   useFrame(() => {
@@ -89,15 +72,11 @@ export function EarthScene({
       <Stars radius={radius * 100} depth={50} count={5000} factor={4} fade speed={1} />
 
       {/* Earth sphere */}
-      <mesh ref={earthRef} geometry={geometry} material={earthMaterial}>
-        <primitive object={geometry} />
-      </mesh>
+      <mesh ref={earthRef} geometry={geometry} material={earthMaterial} />
 
       {/* Clouds layer */}
       {showClouds && cloudMaterial && (
-        <mesh ref={cloudRef} geometry={geometry} material={cloudMaterial} scale={1.01}>
-          <primitive object={geometry} />
-        </mesh>
+        <mesh ref={cloudRef} geometry={geometry} material={cloudMaterial} scale={1.01} />
       )}
 
       {/* Atmosphere glow */}

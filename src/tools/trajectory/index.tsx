@@ -38,7 +38,7 @@ import { StageEditor } from './components/StageEditor';
 import { GuidanceConfig } from './components/GuidanceConfig';
 import { ResultsPanel } from './components/ResultsPanel';
 import { ChartsPanel } from './components/ChartsPanel';
-import { ThreeDVisualizer } from './components/ThreeDVisualizer';
+import { ThreeDVisualizer } from './components/ThreeDVisualizerWrapper';
 import { AdvancedSettingsPanel, AdvancedSettings } from './components/AdvancedSettingsPanel';
 
 export default function TrajectorySimulator() {

@@ -62,8 +62,6 @@ export function TrajectoryPath({
   }
 
   return (
-    <mesh geometry={geometry} material={material}>
-      <primitive object={geometry} />
-    </mesh>
+    <mesh geometry={geometry} material={material} />
   );
 }
