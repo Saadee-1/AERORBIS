@@ -35,6 +35,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
     "Standard Atmosphere Calculator": "atmosphere",
     "Rocket Engine Performance": "rocketengine",
     "Stability & Control Derivatives": "stability",
+    "Battery & Solar Power System": "power",
     "Structural Weight Estimator": "weight",
     "Rocket Trajectory Simulator": "trajectory",
     // Also support direct tool IDs
@@ -49,6 +50,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
     "atmosphere": "atmosphere",
     "rocketengine": "rocketengine",
     "stability": "stability",
+    "power": "power",
     "weight": "weight",
     "trajectory": "trajectory",
 };
@@ -255,6 +257,10 @@ const ToolsLauncher = () => {
 
               <TabsContent value="stability" className="mt-0">
                 <StabilityCalculator />
+              </TabsContent>
+
+              <TabsContent value="power" className="mt-0">
+                <PowerSystemCalculator />
               </TabsContent>
 
               <TabsContent value="weight" className="mt-0">

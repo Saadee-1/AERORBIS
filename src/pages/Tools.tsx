@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database, Zap, Radio, Cloud, Plane, Scale, Target } from "lucide-react";
+import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database, Zap, Radio, Cloud, Plane, Scale, Target, Battery } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,7 @@ const getToolUrl = (toolName: string): string => {
     "Standard Atmosphere Calculator": "atmosphere",
     "Rocket Engine Performance": "rocketengine",
     "Stability & Control Derivatives": "stability",
+    "Battery & Solar Power System": "power",
     "Structural Weight Estimator": "weight",
     "Rocket Trajectory Simulator": "trajectory",
   };
