@@ -7,7 +7,7 @@ import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackg
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale } from "lucide-react";
+import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale, Target } from "lucide-react";
 import ThrustCalculator from "@/components/tools/ThrustCalculator";
 import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
 import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
@@ -19,6 +19,7 @@ import AntennaPatternAnalyzer from "@/components/tools/AntennaPatternAnalyzer";
 import StandardAtmosphereCalculator from "@/components/tools/StandardAtmosphereCalculator";
 import StabilityCalculator from "@/tools/stability";
 import StructuralWeightEstimator from "@/tools/weight";
+import TrajectorySimulator from "@/tools/trajectory";
 
 // Mapping from tool names to tab IDs
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
@@ -30,10 +31,11 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "Material Density Database": "materials",
   "Delta-V Budget Planner": "deltav",
   "Antenna Pattern Analyzer": "antenna",
-  "Standard Atmosphere Calculator": "atmosphere",
-  "Stability & Control Derivatives": "stability",
-  "Structural Weight Estimator": "weight",
-  // Also support direct tool IDs
+    "Standard Atmosphere Calculator": "atmosphere",
+    "Stability & Control Derivatives": "stability",
+    "Structural Weight Estimator": "weight",
+    "Rocket Trajectory Simulator": "trajectory",
+    // Also support direct tool IDs
   "thrust": "thrust",
   "wing": "wing",
   "orbital": "orbital",
@@ -42,9 +44,10 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "materials": "materials",
   "deltav": "deltav",
   "antenna": "antenna",
-  "atmosphere": "atmosphere",
-  "stability": "stability",
-  "weight": "weight",
+    "atmosphere": "atmosphere",
+    "stability": "stability",
+    "weight": "weight",
+    "trajectory": "trajectory",
 };
 
 const ToolsLauncher = () => {
@@ -105,7 +108,7 @@ const ToolsLauncher = () => {
           >
             <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
               {!hideTabs && (
-                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-7 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
                 <TabsTrigger 
                   value="thrust"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
@@ -183,6 +186,13 @@ const ToolsLauncher = () => {
                   <Scale className="w-4 h-4 mr-2" />
                   Weight Estimator
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="trajectory"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                >
+                  <Target className="w-4 h-4 mr-2" />
+                  Trajectory
+                </TabsTrigger>
                 </TabsList>
               )}
 
@@ -228,6 +238,10 @@ const ToolsLauncher = () => {
 
               <TabsContent value="weight" className="mt-0">
                 <StructuralWeightEstimator />
+              </TabsContent>
+
+              <TabsContent value="trajectory" className="mt-0">
+                <TrajectorySimulator />
               </TabsContent>
             </Tabs>
           </motion.div>
