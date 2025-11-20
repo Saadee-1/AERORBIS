@@ -3,6 +3,8 @@
  * Tracks FPS, simulation time, memory usage, and rendering performance
  */
 
+import React from 'react';
+
 export interface PerformanceMetrics {
   fps: number;
   frameTime: number;
@@ -138,9 +140,6 @@ export function usePerformanceMonitor(enabled: boolean = false) {
 
   return metrics;
 }
-
-// Import React for the hook
-import React from 'react';
 
 /**
  * Measure function execution time
