@@ -56,12 +56,15 @@ export function CameraController({
   const currentLookAtRef = useRef(new Vector3());
 
   // Smooth camera movement
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (!enabled || mode === 'free') return;
 
     if (currentFrame) {
       const rocketPos = new Vector3(...currentFrame.pos);
-      const rocketVel = new Vector3(...currentFrame.vel).normalize();
+      const rocketVel = new Vector3(...currentFrame.vel);
+      if (rocketVel.length() > 0) {
+        rocketVel.normalize();
+      }
 
       // Calculate camera position based on mode
       let desiredPos: Vector3;

@@ -56,13 +56,15 @@ export function useVisualizerState(totalFrames: number, duration: number) {
   });
 
   const [settings, setSettings] = useState<VisualizerSettings>(() => {
-    // Load from localStorage
-    const saved = localStorage.getItem('trajectoryVisualizerSettings');
-    if (saved) {
-      try {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
-      } catch {
-        return DEFAULT_SETTINGS;
+    // Load from localStorage (only in browser)
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('trajectoryVisualizerSettings');
+      if (saved) {
+        try {
+          return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+        } catch {
+          return DEFAULT_SETTINGS;
+        }
       }
     }
     return DEFAULT_SETTINGS;
@@ -71,9 +73,11 @@ export function useVisualizerState(totalFrames: number, duration: number) {
   const animationFrameRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
 
-  // Save settings to localStorage
+  // Save settings to localStorage (only in browser)
   useEffect(() => {
-    localStorage.setItem('trajectoryVisualizerSettings', JSON.stringify(settings));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('trajectoryVisualizerSettings', JSON.stringify(settings));
+    }
   }, [settings]);
 
   const play = useCallback(() => {

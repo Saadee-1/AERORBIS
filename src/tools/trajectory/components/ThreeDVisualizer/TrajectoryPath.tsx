@@ -23,9 +23,9 @@ export function TrajectoryPath({
   showPath = true,
   colorByPhase = true,
 }: TrajectoryPathProps) {
-  const { curve, geometry, material } = useMemo(() => {
+  const { geometry, material } = useMemo(() => {
     if (frames.length < 2) {
-      return { curve: null, geometry: null, material: null };
+      return { geometry: null, material: null };
     }
 
     // Build curve from positions
@@ -54,7 +54,7 @@ export function TrajectoryPath({
       });
     }
 
-    return { curve, geometry, material };
+    return { geometry, material };
   }, [frames, radius, segments, colorByPhase]);
 
   if (!showPath || !geometry || !material) {

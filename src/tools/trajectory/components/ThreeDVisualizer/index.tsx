@@ -72,13 +72,6 @@ function VisualizerScene({
     return downsampleFrames(trajectoryData.frames, 1000);
   }, [trajectoryData]);
 
-  const handleScreenshot = () => {
-    captureScreenshot().then((base64) => {
-      onScreenshot();
-      // Could trigger download or pass to parent
-    });
-  };
-
   return (
     <>
       {/* Lighting */}
