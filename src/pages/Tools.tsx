@@ -102,6 +102,12 @@ const Tools = () => {
       category: "Aircraft Design",
     },
     {
+      icon: Battery,
+      name: "Battery & Solar Power System",
+      description: "Ultra-high-fidelity energy modeling for UAVs, aircraft, rockets, and CubeSats. Compute endurance, solar generation, power budgets, and mission feasibility.",
+      category: "Power Systems",
+    },
+    {
       icon: Scale,
       name: "Structural Weight Estimator",
       description: "Professional-grade weight estimation using Raymer, Torenbeek, and Nicolai models. Calculate component weights, mission fuel, W_TO iteration, CG, and aircraft classification.",
