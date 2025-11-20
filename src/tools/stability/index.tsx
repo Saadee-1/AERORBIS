@@ -681,8 +681,10 @@ export default function StabilityCalculator() {
           <ToolSection title="Tail Sizing Analysis">
             <TailSizingPanel 
               results={results} 
-              inputs={{ S_t: inputs.S_t, l_t: inputs.l_t }}
-              tailSizingData={tailSizingData}
+              S_t={inputs.S_t}
+              S_w={inputs.S_w}
+              l_t={inputs.l_t}
+              c_bar={inputs.c_bar}
             />
       </ToolSection>
 
