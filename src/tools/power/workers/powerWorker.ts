@@ -3,10 +3,10 @@
  * Offloads heavy mission timeline calculations to background thread
  */
 
-import { simulateMission, MissionPhase } from '../utils/missionEngine';
+import { simulateMission, MissionPhase, PowerLoad } from '../utils/missionEngine';
 import { BatteryPack } from '../utils/batteryModel';
 import { SolarConfig } from '../utils/solarModel';
-import { PowerLoad } from '../utils/missionEngine';
+import { Location } from '../utils/sunVector';
 
 export interface PowerWorkerMessage {
   type: 'simulate' | 'cancel';
@@ -15,7 +15,7 @@ export interface PowerWorkerMessage {
   solarConfig?: SolarConfig;
   loads?: PowerLoad;
   phases?: MissionPhase[];
-  location?: { latitude: number; longitude: number; altitude: number };
+  location?: Location;
   dayOfYear?: number;
   timeStep?: number;
 }
