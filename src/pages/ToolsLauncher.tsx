@@ -20,6 +20,7 @@ import StandardAtmosphereCalculator from "@/components/tools/StandardAtmosphereC
 import StabilityCalculator from "@/tools/stability";
 import StructuralWeightEstimator from "@/tools/weight";
 import TrajectorySimulator from "@/tools/trajectory";
+import RocketEngineCalculator from "@/tools/rocketEngine";
 
 // Mapping from tool names to tab IDs
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
@@ -32,6 +33,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "Delta-V Budget Planner": "deltav",
   "Antenna Pattern Analyzer": "antenna",
     "Standard Atmosphere Calculator": "atmosphere",
+    "Rocket Engine Performance": "rocketengine",
     "Stability & Control Derivatives": "stability",
     "Structural Weight Estimator": "weight",
     "Rocket Trajectory Simulator": "trajectory",
@@ -45,6 +47,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "deltav": "deltav",
   "antenna": "antenna",
     "atmosphere": "atmosphere",
+    "rocketengine": "rocketengine",
     "stability": "stability",
     "weight": "weight",
     "trajectory": "trajectory",
@@ -173,6 +176,13 @@ const ToolsLauncher = () => {
                   Atmosphere
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="rocketengine"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                >
+                  <Rocket className="w-4 h-4 mr-2" />
+                  Rocket Engine
+                </TabsTrigger>
+                <TabsTrigger 
                   value="stability"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
                 >
@@ -230,6 +240,10 @@ const ToolsLauncher = () => {
 
               <TabsContent value="atmosphere" className="mt-0">
                 <StandardAtmosphereCalculator />
+              </TabsContent>
+
+              <TabsContent value="rocketengine" className="mt-0">
+                <RocketEngineCalculator />
               </TabsContent>
 
               <TabsContent value="stability" className="mt-0">
