@@ -31,8 +31,8 @@ export function TailSizingPanel({
   const required_x_np = results.x_np; // Current neutral point
   // For sizing: V_H_req = (targetSM * c_bar + x_cg - x_ac_w) / (a_t/a_w * (1-ε_α) * l_t/c_bar)
   // Simplified: estimate based on current V_H and SM
-  const V_H_current = results.V_H;
-  const SM_current = results.SM;
+  const V_H_current = results.V_H ?? 0;
+  const SM_current = results.SM ?? 0;
   const V_H_target = V_H_current * (targetSM / Math.max(SM_current, 0.01));
 
   return (
@@ -48,11 +48,11 @@ export function TailSizingPanel({
             </div>
             <div>
               <span className="text-gray-400">Tail Volume:</span>
-              <span className="text-white ml-2">{results.V_H.toFixed(3)}</span>
+              <span className="text-white ml-2">{(results.V_H ?? 0).toFixed(3)}</span>
             </div>
             <div>
               <span className="text-gray-400">Static Margin:</span>
-              <span className="text-white ml-2">{results.SM.toFixed(3)}</span>
+              <span className="text-white ml-2">{(results.SM ?? 0).toFixed(3)}</span>
             </div>
             <div>
               <span className="text-gray-400">Tail Arm:</span>
@@ -65,27 +65,27 @@ export function TailSizingPanel({
         <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
           <h4 className="text-sm font-semibold text-cyan-400 mb-2">Recommendations</h4>
           <div className="space-y-2 text-sm text-gray-300">
-            {results.V_H < 0.5 && (
+            {results.V_H != null && results.V_H < 0.5 && (
               <p className="text-yellow-400">
                 ⚠ Tail volume coefficient is low (&lt;0.5). Consider increasing tail area or tail arm.
               </p>
             )}
-            {results.V_H > 1.2 && (
+            {results.V_H != null && results.V_H > 1.2 && (
               <p className="text-yellow-400">
                 ⚠ Tail volume coefficient is high (&gt;1.2). Tail may be oversized.
               </p>
             )}
-            {results.SM < 0.05 && results.SM > 0 && (
+            {results.SM != null && results.SM < 0.05 && results.SM > 0 && (
               <p className="text-yellow-400">
                 ⚠ Static margin is marginal (&lt;0.05). Consider increasing tail size for better stability.
               </p>
             )}
-            {results.SM < 0 && (
+            {results.SM != null && results.SM < 0 && (
               <p className="text-red-400">
                 ✗ Aircraft is unstable. Increase tail area or move CG forward.
               </p>
             )}
-            {results.SM >= 0.05 && results.SM <= 0.15 && results.V_H >= 0.5 && results.V_H <= 1.2 && (
+            {results.SM != null && results.V_H != null && results.SM >= 0.05 && results.SM <= 0.15 && results.V_H >= 0.5 && results.V_H <= 1.2 && (
               <p className="text-green-400">
                 ✓ Tail sizing appears appropriate for stable flight.
               </p>
