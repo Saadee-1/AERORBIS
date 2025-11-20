@@ -157,15 +157,15 @@ export default function StabilityCalculator() {
   const handleCalculate = useCallback(async () => {
     try {
       // Validate inputs
-    const validation = validateStabilityInputs(inputs);
-    if (!validation.valid) {
-      toast({
-        title: 'Validation Error',
+      const validation = validateStabilityInputs(inputs);
+      if (!validation.valid) {
+        toast({
+          title: 'Validation Error',
           description: validation.errors.join(', '),
-        variant: 'destructive',
-      });
-      return;
-    }
+          variant: 'destructive',
+        });
+        return;
+      }
 
       // Perform base stability calculation
       const stabilityResults = calculateStability(inputs);
