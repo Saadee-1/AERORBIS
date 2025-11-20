@@ -24,6 +24,7 @@ interface AeroFormFieldProps {
   error?: string;
   required?: boolean;
   className?: string;
+  htmlFor?: string; // Optional htmlFor for label
 }
 
 export function AeroFormField({ 
@@ -32,11 +33,12 @@ export function AeroFormField({
   helperText, 
   error,
   required = false,
-  className = '' 
+  className = '',
+  htmlFor
 }: AeroFormFieldProps) {
   return (
     <div className={`${spacingVertical.S} ${className}`}>
-      <Label htmlFor={label} className={typography.label}>
+      <Label htmlFor={htmlFor || label} className={typography.label}>
         {label}
         {required && <span className="text-red-400 ml-1">*</span>}
       </Label>
