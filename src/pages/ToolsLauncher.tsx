@@ -7,7 +7,7 @@ import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackg
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale, Target } from "lucide-react";
+import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale, Target, Battery } from "lucide-react";
 import ThrustCalculator from "@/components/tools/ThrustCalculator";
 import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
 import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
@@ -21,6 +21,7 @@ import StabilityCalculator from "@/tools/stability";
 import StructuralWeightEstimator from "@/tools/weight";
 import TrajectorySimulator from "@/tools/trajectory";
 import RocketEngineCalculator from "@/tools/rocketEngine";
+import PowerSystemCalculator from "@/tools/power";
 
 // Mapping from tool names to tab IDs
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
