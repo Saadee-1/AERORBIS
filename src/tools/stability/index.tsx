@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import { Plane, Calculator } from 'lucide-react';
 import { ToolWrapper } from '@/components/layout/ToolWrapper';
 import { ToolHeader } from '@/components/layout/ToolHeader';
@@ -17,6 +17,7 @@ import { useToolContext } from '@/hooks/useToolContext';
 import { PDFExportButton } from '@/components/tools/PDFExportButton';
 import { AskAIButton } from '@/components/tools/AskAIButton';
 import { useToast } from '@/hooks/use-toast';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { calculateStability, sweepCGPosition, StabilityInputs, StabilityResults } from './utils/calcStability';
 import { validateStabilityInputs } from './validation/schema';
 import { buildStabilityPayload, ExtendedStabilityResults } from './utils/payloadBuilder';
@@ -697,6 +698,7 @@ export default function StabilityCalculator() {
       </ToolSection>
         </>
       )}
-    </ToolWrapper>
+      </ToolWrapper>
+    </ErrorBoundary>
   );
 }

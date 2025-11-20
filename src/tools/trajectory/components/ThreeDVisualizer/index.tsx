@@ -5,7 +5,7 @@
 
 "use client";
 
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, memo, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { TrajectoryData, convertSimulationToTrajectoryData, extractEventMarkers, downsampleFrames } from '../../utils/three/threeUtils';
@@ -20,6 +20,7 @@ import { TimelineController } from './TimelineController';
 import { ControlsOverlay } from './ControlsOverlay';
 import { useExportSnapshot } from './ExportSnapshot';
 import { Planet } from '../../data/planets';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 interface ThreeDVisualizerProps {
   trajectoryData?: TrajectoryData;
@@ -67,10 +68,12 @@ function VisualizerScene({
     return extractEventMarkers(trajectoryData.frames);
   }, [trajectoryData]);
 
+  // Adaptive downsampling based on performance mode
   const downsampledFrames = useMemo(() => {
     if (!trajectoryData) return [];
-    return downsampleFrames(trajectoryData.frames, 1000);
-  }, [trajectoryData]);
+    const maxFrames = settings.simpleMode || settings.lowPowerMode ? 500 : 1000;
+    return downsampleFrames(trajectoryData.frames, maxFrames);
+  }, [trajectoryData, settings.simpleMode, settings.lowPowerMode]);
 
   return (
     <>
@@ -83,9 +86,9 @@ function VisualizerScene({
       {settings.showEarth && (
         <EarthScene
           radius={planet.radius / 1000} // Scale down for visualization
-          showAtmosphere={settings.showAtmosphere}
-          showClouds={settings.showClouds}
-          simpleMode={settings.simpleMode}
+          showAtmosphere={settings.showAtmosphere && !settings.simpleMode}
+          showClouds={settings.showClouds && !settings.simpleMode}
+          simpleMode={settings.simpleMode || settings.lowPowerMode}
         />
       )}
 
@@ -109,7 +112,7 @@ function VisualizerScene({
         <RocketModel
           position={currentFrame.pos.map((p) => p / 1000) as [number, number, number]} // Scale down
           rotation={currentFrame.attitude}
-          showExhaust={settings.showExhaust}
+          showExhaust={settings.showExhaust && !settings.simpleMode}
           thrustLevel={currentFrame.mass ? 1.0 : 0}
         />
       )}
@@ -148,7 +151,7 @@ export async function exportVisualizerSnapshot(canvasElement: HTMLCanvasElement)
   }
 }
 
-export function ThreeDVisualizer({
+export const ThreeDVisualizer = memo(function ThreeDVisualizer({
   trajectoryData,
   planet,
   result,
@@ -182,9 +185,11 @@ export function ThreeDVisualizer({
 
   if (!data || data.frames.length === 0) {
     return (
-      <div className="h-[600px] w-full bg-slate-900 rounded-lg flex items-center justify-center text-gray-400">
-        <p>Run a simulation to see 3D visualization</p>
-      </div>
+      <ErrorBoundary toolName="3D Trajectory Visualizer">
+        <div className="h-[600px] w-full bg-slate-900 rounded-lg flex items-center justify-center text-gray-400">
+          <p>Run a simulation to see 3D visualization</p>
+        </div>
+      </ErrorBoundary>
     );
   }
 
@@ -243,6 +248,7 @@ export function ThreeDVisualizer({
           pause();
         }}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
-}
+});

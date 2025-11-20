@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import { Battery, Calculator } from 'lucide-react';
 import { ToolWrapper } from '@/components/layout/ToolWrapper';
 import { ToolHeader } from '@/components/layout/ToolHeader';
@@ -17,6 +17,7 @@ import { useToolContext } from '@/hooks/useToolContext';
 import { PDFExportButton } from '@/components/tools/PDFExportButton';
 import { AskAIButton } from '@/components/tools/AskAIButton';
 import { useToast } from '@/hooks/use-toast';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BatteryPack, BatteryState } from './utils/batteryModel';
 import { SolarConfig } from './utils/solarModel';
@@ -101,6 +102,12 @@ export default function PowerSystemCalculator() {
   // Results state
   const [result, setResult] = useState<MissionResult | null>(null);
   
+  // Memoize expensive calculations
+  const missionResult = useMemo(() => {
+    if (!result) return null;
+    return result;
+  }, [result]);
+
   // Calculate mission
   const handleCalculate = useCallback(() => {
     try {
@@ -272,12 +279,13 @@ export default function PowerSystemCalculator() {
   }, [pack, solarConfig, loads, phases, location, dayOfYear, toast, sendCalculationEvent, updateToolContext]);
   
   return (
-    <ToolWrapper>
-      <ToolHeader
-        title="Battery & Solar Power System"
-        description="Ultra-high-fidelity energy modeling for UAVs, aircraft, rockets, and CubeSats"
-        icon={Battery}
-      />
+    <ErrorBoundary toolName="Battery & Solar Power System">
+      <ToolWrapper>
+        <ToolHeader
+          title="Battery & Solar Power System"
+          description="Ultra-high-fidelity energy modeling for UAVs, aircraft, rockets, and CubeSats"
+          icon={Battery}
+        />
       
       <Tabs defaultValue="battery" className="w-full">
         <TabsList className="grid w-full grid-cols-6 bg-slate-800/50">
@@ -429,6 +437,7 @@ export default function PowerSystemCalculator() {
           </>
         )}
       </ToolActions>
-    </ToolWrapper>
+      </ToolWrapper>
+    </ErrorBoundary>
   );
 }

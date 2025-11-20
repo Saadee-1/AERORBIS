@@ -6,6 +6,7 @@ import { AeroCard } from '@/components/common/AeroCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { StabilityResults } from '../utils/calcStability';
+import { safeToFixed } from '@/lib/validation';
 
 interface ResultsPanelProps {
   results: StabilityResults | null;
@@ -27,7 +28,7 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
         )}
         <AlertDescription className={results.isStable ? "text-green-400" : "text-red-400"}>
           {results.isStable 
-            ? `Aircraft is statically stable (SM = ${(results.SM * 100).toFixed(1)}% MAC)`
+            ? `Aircraft is statically stable (SM = ${safeToFixed((results.SM ?? 0) * 100, 1)}% MAC)`
             : 'Aircraft is statically unstable (SM < 0)'
           }
         </AlertDescription>
@@ -51,13 +52,13 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">Wing (a_w)</p>
             <p className="text-white font-bold text-lg">
-              {results.a_w.toFixed(3)} /rad
+              {safeToFixed(results.a_w, 3)} /rad
             </p>
           </div>
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">Tail (a_t)</p>
             <p className="text-white font-bold text-lg">
-              {results.a_t.toFixed(3)} /rad
+              {safeToFixed(results.a_t, 3)} /rad
             </p>
           </div>
         </div>
@@ -69,41 +70,41 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
           <div className="p-4 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-lg border border-cyan-400/20">
             <p className="text-xs text-gray-400 mb-1">C_mα</p>
             <p className="text-cyan-400 font-bold text-xl">
-              {results.C_m_alpha.toFixed(4)}
+              {safeToFixed(results.C_m_alpha, 4)}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Wing: {results.C_m_alpha_w.toFixed(4)}
+              Wing: {safeToFixed(results.C_m_alpha_w, 4)}
             </p>
             <p className="text-xs text-gray-500">
-              Tail: {results.C_m_alpha_t.toFixed(4)}
+              Tail: {safeToFixed(results.C_m_alpha_t, 4)}
             </p>
           </div>
 
           <div className="p-4 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-lg border border-purple-400/20">
             <p className="text-xs text-gray-400 mb-1">Neutral Point</p>
             <p className="text-purple-400 font-bold text-xl">
-              {(results.x_np * 100).toFixed(1)}% MAC
+              {safeToFixed((results.x_np ?? 0) * 100, 1)}% MAC
             </p>
           </div>
 
           <div className="p-4 bg-gradient-to-br from-green-400/10 to-emerald-400/10 rounded-lg border border-green-400/20">
             <p className="text-xs text-gray-400 mb-1">Static Margin</p>
             <p className="text-green-400 font-bold text-xl">
-              {(results.SM * 100).toFixed(1)}% MAC
+              {safeToFixed((results.SM ?? 0) * 100, 1)}% MAC
             </p>
           </div>
 
           <div className="p-4 bg-gradient-to-br from-orange-400/10 to-red-400/10 rounded-lg border border-orange-400/20">
             <p className="text-xs text-gray-400 mb-1">Tail Volume</p>
             <p className="text-orange-400 font-bold text-xl">
-              {results.V_H.toFixed(3)}
+              {safeToFixed(results.V_H, 3)}
             </p>
           </div>
 
           <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-blue-400/10 rounded-lg border border-indigo-400/20">
             <p className="text-xs text-gray-400 mb-1">Downwash (ε_α)</p>
             <p className="text-indigo-400 font-bold text-xl">
-              {results.epsilon_alpha.toFixed(4)}
+              {safeToFixed(results.epsilon_alpha, 4)}
             </p>
           </div>
         </div>
@@ -117,7 +118,7 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
               <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
                 <p className="text-xs text-gray-400 mb-1">C_mδe</p>
                 <p className="text-white font-bold text-lg">
-                  {results.C_m_delta_e.toFixed(4)}
+                  {safeToFixed(results.C_m_delta_e, 4)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Elevator</p>
               </div>
@@ -126,7 +127,7 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
               <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
                 <p className="text-xs text-gray-400 mb-1">C_lδa</p>
                 <p className="text-white font-bold text-lg">
-                  {results.C_l_delta_a.toFixed(4)}
+                  {safeToFixed(results.C_l_delta_a, 4)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Aileron</p>
               </div>
@@ -135,7 +136,7 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
               <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
                 <p className="text-xs text-gray-400 mb-1">C_nδr</p>
                 <p className="text-white font-bold text-lg">
-                  {results.C_n_delta_r.toFixed(4)}
+                  {safeToFixed(results.C_n_delta_r, 4)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Rudder</p>
               </div>
@@ -152,7 +153,7 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
               <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
                 <p className="text-xs text-gray-400 mb-1">C_lβ</p>
                 <p className="text-white font-bold text-lg">
-                  {results.C_l_beta.toFixed(4)}
+                  {safeToFixed(results.C_l_beta, 4)}
                 </p>
               </div>
             )}
@@ -160,20 +161,20 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
               <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
                 <p className="text-xs text-gray-400 mb-1">C_nβ</p>
                 <p className="text-white font-bold text-lg">
-                  {results.C_n_beta.toFixed(4)}
+                  {safeToFixed(results.C_n_beta, 4)}
                 </p>
               </div>
             )}
             <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
               <p className="text-xs text-gray-400 mb-1">C_lp</p>
               <p className="text-white font-bold text-lg">
-                {results.C_l_p.toFixed(4)}
+                {safeToFixed(results.C_l_p, 4)}
               </p>
             </div>
             <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
               <p className="text-xs text-gray-400 mb-1">C_nr</p>
               <p className="text-white font-bold text-lg">
-                {results.C_n_r.toFixed(4)}
+                {safeToFixed(results.C_n_r, 4)}
               </p>
             </div>
           </div>

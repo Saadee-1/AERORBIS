@@ -27,7 +27,7 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
   }
 
   const formatNumber = (value: number | undefined | null, decimals: number = 1) => {
-    if (value === undefined || value === null || isNaN(value) || typeof value !== 'number') {
+    if (value === undefined || value === null || isNaN(value) || typeof value !== 'number' || !isFinite(value)) {
       return 'N/A';
     }
     if (value >= 1000000) return `${(value / 1000000).toFixed(decimals)}M`;

@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import { Rocket, Play, Square } from 'lucide-react';
 import { ToolWrapper } from '@/components/layout/ToolWrapper';
 import { ToolHeader } from '@/components/layout/ToolHeader';
@@ -17,6 +17,7 @@ import { useToolContext } from '@/hooks/useToolContext';
 import { PDFExportButton } from '@/components/tools/PDFExportButton';
 import { AskAIButton } from '@/components/tools/AskAIButton';
 import { useToast } from '@/hooks/use-toast';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -345,9 +346,10 @@ export default function TrajectorySimulator() {
   }, [mode, result3D]);
 
   return (
-    <ToolWrapper>
-      <ToolHeader
-        icon={Rocket}
+    <ErrorBoundary toolName="Rocket Trajectory Simulator">
+      <ToolWrapper>
+        <ToolHeader
+          icon={Rocket}
         title="Rocket Trajectory Simulator"
         description="High-fidelity 1D, 2D, and 3D trajectory simulation with atmospheric flight, staging, and orbital mechanics"
       />
@@ -554,6 +556,7 @@ export default function TrajectorySimulator() {
           disabled={!currentResult}
         />
       </ToolActions>
-    </ToolWrapper>
+      </ToolWrapper>
+    </ErrorBoundary>
   );
 }
