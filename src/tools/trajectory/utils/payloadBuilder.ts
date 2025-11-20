@@ -129,6 +129,36 @@ export function buildTrajectoryPayload(
     warnings.push('Burnout velocity below orbital velocity - may not reach orbit');
   }
 
+  // Extract event markers for visualization
+  const eventFrames: Array<{ name: string; t: number; pos: [number, number, number] }> = [];
+  if (result?.maxQ) {
+    eventFrames.push({
+      name: 'maxQ',
+      t: result.maxQ.time,
+      pos: [0, 0, result.maxQ.altitude] as [number, number, number], // Simplified
+    });
+  }
+  if (result?.burnout) {
+    eventFrames.push({
+      name: 'MECO',
+      t: result.burnout.time,
+      pos: mode === '2D' 
+        ? [result.burnout.downrange || 0, 0, result.burnout.altitude] as [number, number, number]
+        : [0, 0, result.burnout.altitude] as [number, number, number],
+    });
+  }
+  if (result?.stagingEvents) {
+    result.stagingEvents.forEach((event: any) => {
+      eventFrames.push({
+        name: 'stageSep',
+        t: event.time,
+        pos: mode === '2D'
+          ? [event.downrange || 0, 0, event.altitude] as [number, number, number]
+          : [0, 0, event.altitude] as [number, number, number],
+      });
+    });
+  }
+
   return buildAeroversePayload({
     requestId,
     toolName: 'Rocket Trajectory Simulator',
@@ -156,6 +186,12 @@ export function buildTrajectoryPayload(
       numberOfStages: stages.length,
       guidance: guidance ? (mode === '2D' ? (guidance as GuidanceProfile).type : '3D') : undefined,
       advancedFeatures: advancedFeatures || {},
+      visualization: {
+        cameraMode: advancedFeatures?.enable3D ? 'follow' : undefined,
+        showMarkers: true,
+        eventFrames,
+        enabled: advancedFeatures?.enable3D || false,
+      },
     },
     metadata: {
       steps,

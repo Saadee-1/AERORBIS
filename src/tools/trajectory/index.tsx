@@ -496,6 +496,18 @@ export default function TrajectorySimulator() {
                   planet={selectedPlanet}
                   trajectory={trajectory3D}
                   currentState={currentState3D}
+                  result={result3D}
+                  mode={mode}
+                />
+              </div>
+            )}
+            {/* Show visualizer for all modes if enabled */}
+            {advancedSettings.enable3D && currentResult && (
+              <div className="mt-6">
+                <ThreeDVisualizer
+                  planet={selectedPlanet}
+                  result={currentResult}
+                  mode={mode}
                 />
               </div>
             )}
