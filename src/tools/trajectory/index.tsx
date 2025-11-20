@@ -490,12 +490,10 @@ export default function TrajectorySimulator() {
               result2D={result2D}
               result3D={result3D}
             />
-            {mode === '3D' && (
+            {mode === '3D' && result3D && (
               <div className="mt-6">
                 <ThreeDVisualizer
                   planet={selectedPlanet}
-                  trajectory={trajectory3D}
-                  currentState={currentState3D}
                   result={result3D}
                   mode={mode}
                 />

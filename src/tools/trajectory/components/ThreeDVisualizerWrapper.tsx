@@ -19,12 +19,13 @@ interface ThreeDVisualizerProps {
 }
 
 export function ThreeDVisualizer({ planet, trajectory, currentState, result, mode = '3D' }: ThreeDVisualizerProps) {
+  // The visualizer will convert result internally, so we just pass it through
   return (
     <AeroCard title="Cinematic 3D Visualization">
       <CinematicVisualizer
         planet={planet}
         result={result}
-        mode={mode}
+        mode={mode || '3D'}
         onSnapshot={(base64) => {
           // Handle snapshot for PDF export
           console.log('Snapshot captured:', base64 ? 'Base64 data' : 'Empty');
