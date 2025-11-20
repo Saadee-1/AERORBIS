@@ -307,25 +307,52 @@ export default function StabilityCalculator() {
       // Generate AI payload
       const requestId = `stability-${Date.now()}`;
       setLastRequestId(requestId);
-      const payload = buildStabilityPayload(inputs, extended, requestId);
+      const payload = buildStabilityPayload(safeInputs, extended, requestId);
+
+      // Collect all warnings
+      const allWarnings = [...stabilityResults.warnings];
+      if (extended.control?.warnings) {
+        allWarnings.push(...extended.control.warnings);
+      }
+      if (extended.hingeMoments?.warnings) {
+        allWarnings.push(...extended.hingeMoments.warnings);
+      }
+      if (extended.mixing?.warnings) {
+        allWarnings.push(...extended.mixing.warnings);
+      }
+      if (extended.highLift?.warnings) {
+        allWarnings.push(...extended.highLift.warnings);
+      }
+      if (extended.rollRate?.warnings) {
+        allWarnings.push(...extended.rollRate.warnings);
+      }
+      if (extended.criteria?.warnings) {
+        allWarnings.push(...extended.criteria.warnings);
+      }
+      if (extended.nonlinear?.warnings) {
+        allWarnings.push(...extended.nonlinear.warnings);
+      }
 
       // Update tool context
       updateToolContext({
-        toolName: 'Stability & Control Derivatives',
         lastCalculation: payload,
       });
 
       // Send calculation event
       sendCalculationEvent({
-        type: 'calculation',
+        toolId: 'stability',
         toolName: 'Stability & Control Derivatives',
-        requestId,
-        payload,
+        inputs: safeInputs,
+        results: payload.results,
+        steps: payload.metadata?.steps || [],
+        metadata: {
+          warnings: allWarnings,
+        },
       });
 
       toast({
         title: 'Calculation complete',
-        description: stabilityResults.isStable ? 'Aircraft is stable' : 'Aircraft is unstable',
+        description: stabilityResults.SM > 0 ? 'Aircraft is stable' : 'Aircraft is unstable',
       });
     } catch (error) {
       toast({
@@ -406,12 +433,13 @@ export default function StabilityCalculator() {
   }, [inputs, results]);
 
   return (
-    <ToolWrapper>
-      <ToolHeader
-        title="Stability & Control Derivatives"
-        description="Comprehensive aircraft stability analysis based on Raymer, Roskam, Anderson, and DATCOM"
-        icon={Plane}
-      />
+    <ErrorBoundary toolName="Stability & Control Derivatives">
+      <ToolWrapper>
+        <ToolHeader
+          title="Stability & Control Derivatives"
+          description="Comprehensive aircraft stability analysis based on Raymer, Roskam, Anderson, and DATCOM"
+          icon={Plane}
+        />
 
       <ToolSection title="Configuration">
         <div className="grid lg:grid-cols-2 gap-6">
@@ -431,7 +459,7 @@ export default function StabilityCalculator() {
         {results && (
           <>
             <AskAIButton requestId={lastRequestId} />
-            <PDFExportButton toolName="Stability & Control Derivatives" />
+            <PDFExportButton toolName="Stability & Control Derivatives" requestId={lastRequestId || undefined} />
           </>
         )}
       </ToolActions>
