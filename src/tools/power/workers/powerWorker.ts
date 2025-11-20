@@ -52,7 +52,7 @@ self.onmessage = (e: MessageEvent<PowerWorkerMessage>) => {
         phases,
         location,
         dayOfYear,
-        timeStep || 1
+        timeStep || 1 // timeStep_min in minutes
       );
 
       if (currentJobId === id) {
