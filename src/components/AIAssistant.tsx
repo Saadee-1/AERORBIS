@@ -223,9 +223,9 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-4 right-4 z-50 w-[320px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[600px] min-h-[450px] flex flex-col
-                     bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
-                     border border-cyan-400/40 rounded-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
+              className="fixed bottom-4 right-4 z-50 w-[320px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[600px] min-h-[450px] flex flex-col min-h-0
+                       bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
+                       border border-cyan-400/15 rounded-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)]"
           >
             {/* Minimal Header - Always Visible */}
             <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
@@ -357,7 +357,7 @@ const AIAssistant: React.FC = () => {
                   initial={{ width: 0, opacity: 0 }}
                   animate={{ width: 260, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
-                  className="border-r border-cyan-400/20 bg-slate-900/50 overflow-hidden flex-shrink-0"
+                  className="border-r border-slate-800/60 bg-slate-900/50 overflow-hidden flex-shrink-0"
                 >
                   <div className="p-2 border-b border-cyan-400/10 flex-shrink-0">
                     <p className="text-xs font-semibold text-cyan-400">Recent Chats</p>
@@ -412,8 +412,7 @@ const AIAssistant: React.FC = () => {
             </AnimatePresence>
 
             {/* Messages Area - Maximum Space with proper flex */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 
-                          scrollbar-track-transparent min-h-0 flex flex-col">
+              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 scrollbar-track-transparent">
               {messages.length === 0 && (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center space-y-3">
@@ -522,7 +521,7 @@ const AIAssistant: React.FC = () => {
             </div>
 
             {/* Input Area - Always Visible */}
-            <div className="p-3 border-t border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
+              <div className="p-3 border-t border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky bottom-0">
               <div className="flex gap-2">
                 <Input
                   ref={inputRef}
