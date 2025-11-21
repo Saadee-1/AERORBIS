@@ -247,8 +247,7 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
           setTime(0);
           pause();
         }}
-      />
+        />
       </div>
-    </ErrorBoundary>
-  );
-});
+    );
+  });
