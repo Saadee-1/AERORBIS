@@ -1,10 +1,15 @@
 "use client";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import * as THREE from "three";
+import { globalAudioController } from "@/lib/audio/globalAudioController";
 
-const AudioVisualizer: React.FC = () => {
-    useEffect(() => {
-    // Scene setup
+const AudioVisualizer = () => {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const audioElement = globalAudioController.getAudioElement();
+    if (!audioElement) return;
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -12,6 +17,8 @@ const AudioVisualizer: React.FC = () => {
       0.1,
       1000
     );
+    camera.position.z = 4;
+
     const renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.domElement.style.position = "fixed";
@@ -20,7 +27,6 @@ const AudioVisualizer: React.FC = () => {
     renderer.domElement.style.zIndex = "-1";
     document.body.appendChild(renderer.domElement);
 
-    // Simple rotating shape
     const geometry = new THREE.IcosahedronGeometry(1, 1);
     const material = new THREE.MeshStandardMaterial({
       color: 0x00ffff,
@@ -36,49 +42,68 @@ const AudioVisualizer: React.FC = () => {
     light.position.set(5, 5, 5);
     scene.add(light);
 
-    camera.position.z = 4;
+    const audioContext = new (window.AudioContext ||
+      (window as any).webkitAudioContext)();
+    const source = audioContext.createMediaElementSource(audioElement);
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    const frequencyData = new Uint8Array(analyser.frequencyBinCount);
 
-      // Animate
-      let frameId: number | null = null;
-      const animate = (): void => {
-        mesh.rotation.x += 0.005;
-        mesh.rotation.y += 0.008;
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+
+    let frameId: number | null = null;
+
+    const animate = () => {
+      if (!document.hidden) {
+        analyser.getByteFrequencyData(frequencyData);
+        const average =
+          frequencyData.reduce((sum, value) => sum + value, 0) /
+          frequencyData.length;
+
+        const scale = 1 + average / 255;
+        mesh.scale.setScalar(scale);
+        mesh.rotation.x += 0.003 + average / 20000;
+        mesh.rotation.y += 0.004 + average / 20000;
         renderer.render(scene, camera);
-        frameId = requestAnimationFrame(animate);
-      };
+      }
       frameId = requestAnimationFrame(animate);
+    };
 
-    // Resize handler
-    const handleResize = (): void => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && frameId) {
+        cancelAnimationFrame(frameId);
+        frameId = null;
+      } else if (!document.hidden && !frameId) {
+        frameId = requestAnimationFrame(animate);
+      }
+    };
+
+    const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     };
-    window.addEventListener("resize", handleResize);
 
-      // Cleanup
-      return () => {
-        window.removeEventListener("resize", handleResize);
-        if (frameId) {
-          cancelAnimationFrame(frameId);
-        }
-        renderer.dispose();
-        if (renderer.domElement.parentElement)
-          renderer.domElement.parentElement.removeChild(renderer.domElement);
-      };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("resize", handleResize);
+    frameId = requestAnimationFrame(animate);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("resize", handleResize);
+      if (frameId) cancelAnimationFrame(frameId);
+      source.disconnect();
+      analyser.disconnect();
+      audioContext.close().catch(() => undefined);
+      renderer.dispose();
+      if (renderer.domElement.parentElement) {
+        renderer.domElement.parentElement.removeChild(renderer.domElement);
+      }
+    };
   }, []);
 
-  return (
-    <audio
-      id="globalAudio"
-        src="/audio/tools-ambient.mp3"
-      autoPlay
-      loop
-      style={{
-        display: "none", // hides it completely
-      }}
-    />
-  );
+  return null;
 };
 
 export default AudioVisualizer;
