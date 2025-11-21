@@ -1,23 +1,20 @@
 // scripts/testToolContexts.ts
-
 /**
- * AI CONTEXT SELF-TEST SCRIPT
- * -------------------------------------
- * This script validates that EVERY tool in Aeroverse
- * provides a clean and canonical AI context:
+ * AI CONTEXT SELF-TEST SCRIPT (Windows-friendly)
  *
+ * Scans src/tools/**/index.tsx and calls each tool handler (handleCalculate)
+ * while intercepting updateToolContext to make sure the tool sends:
  *    { tool, inputs, results }
  *
- * It dynamically imports each calculator,
- * calls its calculation handler with synthetic inputs,
- * intercepts updateToolContext,
- * and reports PASS/FAIL for all tools.
+ * Usage:
+ *   npx ts-node scripts/testToolContexts.ts
  */
 
 import fs from "fs";
 import path from "path";
+import { pathToFileURL } from "url";
 
-const TOOL_DIR = path.join(process.cwd(), "src/tools");
+const TOOL_DIR = path.join(process.cwd(), "src", "tools");
 
 interface TestResult {
   toolName: string;
@@ -28,7 +25,6 @@ interface TestResult {
 
 const results: TestResult[] = [];
 
-/** Fake updateToolContext to capture what tools send */
 const fakeUpdateToolContext = (toolName: string, context: any) => {
   if (!context) {
     throw new Error("No context received.");
@@ -44,7 +40,6 @@ const fakeUpdateToolContext = (toolName: string, context: any) => {
   return context;
 };
 
-/** Synthetic test inputs for most tools */
 const sampleInputs = {
   massFlow: 5,
   exhaustVelocity: 1500,
@@ -56,16 +51,20 @@ const sampleInputs = {
   CLmax: 1.4,
   CD0: 0.02,
   e: 0.8,
-  weight: 600,
-  pressureAmbient: 101325,
-  pressureExit: 95000,
+  weight: 500,
+  exitPressure: 90000,
+  ambientPressure: 101325,
 };
 
-/** Main test runner */
 (async () => {
   console.log("====================================");
   console.log("🔍 AI CONTEXT SELF-TEST STARTED");
   console.log("====================================\n");
+
+  if (!fs.existsSync(TOOL_DIR) || !fs.statSync(TOOL_DIR).isDirectory()) {
+    console.error("Tool directory not found:", TOOL_DIR);
+    process.exit(1);
+  }
 
   const toolFolders = fs.readdirSync(TOOL_DIR);
 
@@ -75,12 +74,23 @@ const sampleInputs = {
     if (!fs.statSync(toolPath).isDirectory()) continue;
 
     const indexFile = path.join(toolPath, "index.tsx");
-    if (!fs.existsSync(indexFile)) continue;
+    if (!fs.existsSync(indexFile)) {
+      results.push({
+        toolName: toolFolder,
+        passed: false,
+        message: "❌ index.tsx not found.",
+      });
+      continue;
+    }
 
     try {
-      const toolModule = await import(indexFile);
+      // Convert the absolute file path to a file:// URL so import() works on Windows
+      const fileUrl = pathToFileURL(indexFile).href;
 
-      // Find handler (most tools export handleCalculate or similar)
+      // Dynamically import the module (ESM loader wants file:// URLs on Windows)
+      const toolModule: any = await import(fileUrl);
+
+      // Detect a handler to call
       const handler =
         toolModule.handleCalculate ||
         toolModule.default?.handleCalculate ||
@@ -95,18 +105,73 @@ const sampleInputs = {
         continue;
       }
 
-      // Wrap updateToolContext to intercept output
+      // Interceptor to capture the context the tool sends
       let capturedContext: any = null;
       const wrappedUpdate = (ctx: any) => {
-        capturedContext = fakeUpdateToolContext(toolFolder, ctx);
+        capturedContext = ctx;
       };
 
-      // Call handler
-      await handler({
-        ...sampleInputs,
-        updateToolContext: wrappedUpdate,
-      });
+      // Some handlers expect parameters object; call defensively
+      try {
+        // If handler expects a single object argument, pass an object; otherwise best-effort.
+        const maybePromise = handler({
+          ...sampleInputs,
+          updateToolContext: wrappedUpdate,
+        });
 
+        if (maybePromise && typeof maybePromise.then === "function") {
+          await maybePromise;
+        }
+      } catch (invokeErr: any) {
+        results.push({
+          toolName: toolFolder,
+          passed: false,
+          message: "❌ Error executing handler: " + (invokeErr?.message || String(invokeErr)),
+        });
+        continue;
+      }
+
+      // Validate the captured context
+      if (!capturedContext) {
+        results.push({
+          toolName: toolFolder,
+          passed: false,
+          message: "❌ No context sent via updateToolContext().",
+        });
+        continue;
+      }
+
+      if (!capturedContext.tool) {
+        results.push({
+          toolName: toolFolder,
+          passed: false,
+          message: "❌ Missing field: tool",
+          context: capturedContext,
+        });
+        continue;
+      }
+
+      if (!capturedContext.inputs) {
+        results.push({
+          toolName: toolFolder,
+          passed: false,
+          message: "❌ Missing field: inputs",
+          context: capturedContext,
+        });
+        continue;
+      }
+
+      if (!capturedContext.results) {
+        results.push({
+          toolName: toolFolder,
+          passed: false,
+          message: "❌ Missing field: results",
+          context: capturedContext,
+        });
+        continue;
+      }
+
+      // All checks passed for this tool
       results.push({
         toolName: toolFolder,
         passed: true,
@@ -117,7 +182,7 @@ const sampleInputs = {
       results.push({
         toolName: toolFolder,
         passed: false,
-        message: "❌ Error: " + err.message,
+        message: "❌ Error: " + (err?.message || String(err)),
       });
     }
   }
