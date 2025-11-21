@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import * as THREE from "three";
 
 const AudioVisualizer: React.FC = () => {
-  useEffect(() => {
+    useEffect(() => {
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -38,14 +38,15 @@ const AudioVisualizer: React.FC = () => {
 
     camera.position.z = 4;
 
-    // Animate
-    const animate = (): void => {
-      requestAnimationFrame(animate);
-      mesh.rotation.x += 0.005;
-      mesh.rotation.y += 0.008;
-      renderer.render(scene, camera);
-    };
-    animate();
+      // Animate
+      let frameId: number | null = null;
+      const animate = (): void => {
+        mesh.rotation.x += 0.005;
+        mesh.rotation.y += 0.008;
+        renderer.render(scene, camera);
+        frameId = requestAnimationFrame(animate);
+      };
+      frameId = requestAnimationFrame(animate);
 
     // Resize handler
     const handleResize = (): void => {
@@ -55,19 +56,22 @@ const AudioVisualizer: React.FC = () => {
     };
     window.addEventListener("resize", handleResize);
 
-    // Cleanup
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      renderer.dispose();
-      if (renderer.domElement.parentElement)
-        renderer.domElement.parentElement.removeChild(renderer.domElement);
-    };
+      // Cleanup
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        if (frameId) {
+          cancelAnimationFrame(frameId);
+        }
+        renderer.dispose();
+        if (renderer.domElement.parentElement)
+          renderer.domElement.parentElement.removeChild(renderer.domElement);
+      };
   }, []);
 
   return (
     <audio
       id="globalAudio"
-      src="/audio/interstellar.mp3"
+        src="/audio/tools-ambient.mp3"
       autoPlay
       loop
       style={{

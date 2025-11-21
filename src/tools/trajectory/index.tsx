@@ -32,6 +32,7 @@ import { run1D, Trajectory1DResult } from './utils/solver/run1d';
 import { run2D, Trajectory2DResult } from './utils/solver/run2d';
 import { run3D, Trajectory3DResult } from './utils/solver/run3d';
 import { buildTrajectoryPayload } from './utils/payloadBuilder';
+import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
 import { STAGE_PRESETS, getStage } from './data/stagePresets';
 
 import { PlanetSelector } from './components/PlanetSelector';
@@ -295,7 +296,7 @@ export default function TrajectorySimulator() {
   }, [mode, selectedPlanet, stages, guidance2D, guidance3D, result1D, result2D, result3D, lastRequestId, advancedSettings]);
 
   // Handle AI request
-  const handleAIRequest = useCallback(async () => {
+    const handleAIRequest = useCallback(async () => {
     const payload = buildAIPayload();
     if (!payload) {
       toast({
@@ -309,18 +310,27 @@ export default function TrajectorySimulator() {
     const requestId = `trajectory-${Date.now()}`;
     setLastRequestId(requestId);
     
-    sendCalculationEvent({
-      type: 'calculation',
-      toolName: 'Rocket Trajectory Simulator',
-      payload,
-      requestId,
-    });
-    
-    updateToolContext({
-      toolName: 'Rocket Trajectory Simulator',
-      lastCalculation: payload,
-    });
-  }, [buildAIPayload, sendCalculationEvent, updateToolContext, toast]);
+      const eventPayload = buildCalculationEvent({
+        toolId: 'rocket-trajectory',
+        toolName: 'Rocket Trajectory Simulator',
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata?.steps || [],
+        metadata: payload.metadata,
+      });
+
+      const eventResponse = await sendCalculationEvent(eventPayload);
+
+      if (eventResponse?.requestId) {
+        setLastRequestId(eventResponse.requestId);
+      }
+      
+      updateToolContext({
+        tool: 'Rocket Trajectory Simulator',
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+    }, [buildAIPayload, sendCalculationEvent, updateToolContext, toast]);
 
   // Get current result for visualization
   const currentResult = useMemo(() => {

@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WeightEstimationInputs, calculateComponentWeights, updateFuelSystemWeight } from './utils/weightEngine';
 import { validateWeightEstimationInputs } from './validation/schema';
 import { buildWeightEstimatorPayload } from './utils/payloadBuilder';
+import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
 import { AIRCRAFT_PRESETS, AircraftPreset } from './data/presets';
 import { classifyAircraft } from './utils/classification';
 import { iterateTakeoffWeight, createStandardMissionProfile, calculateMissionFuelFraction, calculateFuelWeight } from './utils/iteration';
@@ -173,8 +174,8 @@ export default function StructuralWeightEstimator() {
     }
   }, [toast]);
 
-  // Calculate weights
-  const handleCalculate = useCallback(() => {
+    // Calculate weights
+    const handleCalculate = useCallback(async () => {
     try {
       // Validate inputs
       const validation = validateWeightEstimationInputs(inputs);
@@ -296,19 +297,26 @@ export default function StructuralWeightEstimator() {
         requestId
       );
 
-      // Update tool context
-      updateToolContext({
-        toolName: 'Structural Weight Estimator',
-        lastCalculation: payload,
-      });
+        updateToolContext({
+          tool: 'Structural Weight Estimator',
+          inputs: payload.inputs,
+          results: payload.results,
+        });
 
-      // Send calculation event
-      sendCalculationEvent({
-        type: 'calculation',
-        toolName: 'Structural Weight Estimator',
-        requestId,
-        payload,
-      });
+        const eventPayload = buildCalculationEvent({
+          toolId: 'structural-weight',
+          toolName: 'Structural Weight Estimator',
+          inputs: payload.inputs,
+          results: payload.results,
+          steps: payload.metadata?.steps || [],
+          metadata: payload.metadata,
+        });
+
+        const eventResponse = await sendCalculationEvent(eventPayload);
+
+        if (eventResponse?.requestId) {
+          setLastRequestId(eventResponse.requestId);
+        }
 
       toast({
         title: 'Calculation complete',
@@ -321,7 +329,7 @@ export default function StructuralWeightEstimator() {
         variant: 'destructive',
       });
     }
-  }, [inputs, missionProfile, toast, sendCalculationEvent, updateToolContext]);
+    }, [inputs, missionProfile, toast, sendCalculationEvent, updateToolContext]);
 
   return (
     <ToolWrapper>

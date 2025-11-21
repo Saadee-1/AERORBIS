@@ -28,6 +28,7 @@ import {
 } from './utils/calcEngine';
 import { validateRocketEngineInputs } from './validation/schema';
 import { buildRocketEnginePayload } from './utils/payloadBuilder';
+import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
 import { PROPELLANT_PRESETS, ENGINE_PRESETS, PropellantPreset, EnginePreset } from './data/propellantPresets';
 import { InputPanel } from './components/InputPanel';
 import { ResultsPanel } from './components/ResultsPanel';
@@ -112,7 +113,7 @@ export default function RocketEngineCalculator() {
   }, [toast]);
 
   // Calculate engine performance
-  const handleCalculate = useCallback(() => {
+  const handleCalculate = useCallback(async () => {
     try {
       // Validate inputs
       const validation = validateRocketEngineInputs(inputs);
@@ -145,19 +146,26 @@ export default function RocketEngineCalculator() {
       setLastRequestId(requestId);
       const payload = buildRocketEnginePayload(inputs, engineResults, requestId);
 
-      // Update tool context
-      updateToolContext({
-        toolName: 'Rocket Engine Performance',
-        lastCalculation: payload,
-      });
+        updateToolContext({
+          tool: 'Rocket Engine Performance',
+          inputs: payload.inputs,
+          results: payload.results,
+        });
 
-      // Send calculation event
-      sendCalculationEvent({
-        type: 'calculation',
-        toolName: 'Rocket Engine Performance',
-        requestId,
-        payload,
-      });
+        const eventPayload = buildCalculationEvent({
+          toolId: 'rocket-engine',
+          toolName: 'Rocket Engine Performance',
+          inputs: payload.inputs,
+          results: payload.results,
+          steps: payload.metadata?.steps || [],
+          metadata: payload.metadata,
+        });
+
+        const eventResponse = await sendCalculationEvent(eventPayload);
+
+        if (eventResponse?.requestId) {
+          setLastRequestId(eventResponse.requestId);
+        }
 
       toast({
         title: 'Calculation complete',
