@@ -187,34 +187,33 @@ export default function StandardAtmosphereCalculator() {
           : []),
       ];
 
-        const toolInputs = {
-          altitude: altitudeSI,
-          altitudeDisplay: `${altitudeValue} ${altitudeUnit}`,
-          velocity: velocitySI,
-          velocityDisplay: velocitySI ? `${parseFloat(velocity)} ${velocityUnit}` : undefined,
-          unitSystem,
-        };
-        const toolResults = {
-          geopotentialAltitude: atmosphereResult.geopotentialAltitude,
-          geometricAltitude: atmosphereResult.geometricAltitude,
-          temperature: atmosphereResult.temperature,
-          pressure: atmosphereResult.pressure,
-          density: atmosphereResult.density,
-          speedOfSound: atmosphereResult.speedOfSound,
-          viscosity: atmosphereResult.viscosity,
-          gravity: atmosphereResult.gravity,
-          dynamicPressure: atmosphereResult.dynamicPressure,
-          pressureRatio: atmosphereResult.pressureRatio,
-          densityRatio: atmosphereResult.densityRatio,
-          temperatureRatio: atmosphereResult.temperatureRatio,
-          layerName: atmosphereResult.layerName,
-        };
-
         const eventResponse = await sendCalculationEvent({
           toolId: "standard-atmosphere",
           toolName: "Standard Atmosphere Calculator",
-          inputs: toolInputs,
-          results: toolResults,
+          inputs: {
+            altitude: altitudeSI,
+            altitudeDisplay: `${altitudeValue} ${altitudeUnit}`,
+            velocity: velocitySI,
+            velocityDisplay: velocitySI
+              ? `${parseFloat(velocity)} ${velocityUnit}`
+              : undefined,
+            unitSystem,
+          },
+          results: {
+            geopotentialAltitude: atmosphereResult.geopotentialAltitude,
+            geometricAltitude: atmosphereResult.geometricAltitude,
+            temperature: atmosphereResult.temperature,
+            pressure: atmosphereResult.pressure,
+            density: atmosphereResult.density,
+            speedOfSound: atmosphereResult.speedOfSound,
+            viscosity: atmosphereResult.viscosity,
+            gravity: atmosphereResult.gravity,
+            dynamicPressure: atmosphereResult.dynamicPressure,
+            pressureRatio: atmosphereResult.pressureRatio,
+            densityRatio: atmosphereResult.densityRatio,
+            temperatureRatio: atmosphereResult.temperatureRatio,
+            layerName: atmosphereResult.layerName,
+          },
           steps: calculationSteps,
           metadata: {
             units: unitSystem,
@@ -227,8 +226,30 @@ export default function StandardAtmosphereCalculator() {
         syncRequestId(eventResponse);
         applyToolPayload({
           tool: "Standard Atmosphere Calculator",
-          inputs: toolInputs,
-          results: toolResults,
+          inputs: {
+            altitude: altitudeSI,
+            altitudeDisplay: `${altitudeValue} ${altitudeUnit}`,
+            velocity: velocitySI,
+            velocityDisplay: velocitySI
+              ? `${parseFloat(velocity)} ${velocityUnit}`
+              : undefined,
+            unitSystem,
+          },
+          results: {
+            geopotentialAltitude: atmosphereResult.geopotentialAltitude,
+            geometricAltitude: atmosphereResult.geometricAltitude,
+            temperature: atmosphereResult.temperature,
+            pressure: atmosphereResult.pressure,
+            density: atmosphereResult.density,
+            speedOfSound: atmosphereResult.speedOfSound,
+            viscosity: atmosphereResult.viscosity,
+            gravity: atmosphereResult.gravity,
+            dynamicPressure: atmosphereResult.dynamicPressure,
+            pressureRatio: atmosphereResult.pressureRatio,
+            densityRatio: atmosphereResult.densityRatio,
+            temperatureRatio: atmosphereResult.temperatureRatio,
+            layerName: atmosphereResult.layerName,
+          },
         });
 
       toast({

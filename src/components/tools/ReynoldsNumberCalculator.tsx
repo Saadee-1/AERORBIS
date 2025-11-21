@@ -530,6 +530,12 @@ const ReynoldsNumberCalculator = () => {
         results: toolResults,
       });
 
+      applyToolPayload({
+        tool: "Reynolds Number Calculator",
+        inputs: toolInputs,
+        results: toolResults,
+      });
+
       setResult({
         reynoldsNumber,
         flowRegime,
