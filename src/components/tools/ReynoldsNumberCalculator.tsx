@@ -61,6 +61,12 @@ type UnitSystem = "SI" | "Imperial" | "Custom";
 
 type FlowRegime = "Laminar" | "Transitional" | "Turbulent";
 
+type ToolPayload = {
+  tool: string;
+  inputs: Record<string, any>;
+  results: Record<string, any>;
+};
+
 interface PresetScenario {
   name: string;
   density: number; // in SI (kg/m³)
@@ -148,6 +154,7 @@ const ReynoldsNumberCalculator = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
+  const [lastPayload, setLastPayload] = useState<ToolPayload | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<string>("");
   const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -182,6 +189,23 @@ const ReynoldsNumberCalculator = () => {
     steps: CalculationStep[];
     warnings: string[];
   } | null>(null);
+
+  const applyToolPayload = (payload: ToolPayload) => {
+    setLastPayload(payload);
+    updateToolContext(payload);
+  };
+
+  const syncRequestId = (response?: { requestId?: string } | null) => {
+    if (response?.requestId) {
+      setLastRequestId(response.requestId);
+    } else {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith("calc-"));
+      if (storedKeys.length > 0) {
+        const latestKey = storedKeys.sort().reverse()[0];
+        setLastRequestId(latestKey.replace("calc-", ""));
+      }
+    }
+  };
 
   // --- Effects for LocalStorage ---
   useEffect(() => {
@@ -468,60 +492,42 @@ const ReynoldsNumberCalculator = () => {
         warnings.push("Extreme flow regime detected (Re > 10⁸)");
       }
 
-      // Send calculation event to assistant
+      const toolInputs = {
+        densityInput: parseFloat(inputs.density),
+        velocityInput: parseFloat(inputs.velocity),
+        lengthInput: parseFloat(inputs.length),
+        viscosityInput: parseFloat(inputs.viscosity),
+        densitySI,
+        velocitySI,
+        lengthSI,
+        viscositySI,
+        unitSystem,
+      };
+      const toolResults = {
+        reynoldsNumber,
+        flowRegime,
+        warnings,
+      };
+
       const eventResponse = await sendCalculationEvent({
         toolId: "reynolds-calculator",
         toolName: "Reynolds Number Calculator",
-        inputs: {
-          density: parseFloat(inputs.density),
-          velocity: parseFloat(inputs.velocity),
-          length: parseFloat(inputs.length),
-          viscosity: parseFloat(inputs.viscosity),
-          unitSystem
-        },
-        results: {
-          reynoldsNumber,
-          flowRegime,
-          warnings
-        },
+        inputs: toolInputs,
+        results: toolResults,
         steps: calculationSteps,
         metadata: {
           units: unitSystem,
           approxLevel: "exact",
           confidence: "high",
-          warnings
-        }
+          warnings,
+        },
       });
 
-      // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
-      const requestId = eventResponse?.requestId;
-      if (requestId) {
-        setLastRequestId(requestId);
-      } else {
-        // Fallback: try to get the latest requestId from localStorage
-        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
-        if (storedKeys.length > 0) {
-          const latestKey = storedKeys.sort().reverse()[0];
-          const fallbackRequestId = latestKey.replace('calc-', '');
-          setLastRequestId(fallbackRequestId);
-        }
-      }
-
-      // Update AI Assistant context
-      updateToolContext({
-        tool: "Reynolds",
-        inputs: {
-          density: inputs.density,
-          velocity: inputs.velocity,
-          length: inputs.length,
-          viscosity: inputs.viscosity,
-          unitSystem: unitSystem,
-        },
-        results: {
-          reynoldsNumber: reynoldsNumber,
-          flowRegime: flowRegime,
-          warnings: warnings,
-        },
+      syncRequestId(eventResponse);
+      applyToolPayload({
+        tool: "Reynolds Number Calculator",
+        inputs: toolInputs,
+        results: toolResults,
       });
 
       setResult({
@@ -774,46 +780,15 @@ const ReynoldsNumberCalculator = () => {
               <AeroCard
                 title="Results"
                 headerActions={
-                  lastRequestId && result ? (
+                  lastRequestId && lastPayload ? (
                     <div className="flex gap-2">
                       <AskAIButton 
                         requestId={lastRequestId} 
                         payload={buildAeroversePayload({
-                          toolName: "Reynolds Number Calculator",
+                          toolName: lastPayload.tool,
                           requestId: lastRequestId || undefined,
-                          inputs: {
-                            density: parseFloat(inputs.density) || 0,
-                            velocity: parseFloat(inputs.velocity) || 0,
-                            length: parseFloat(inputs.length) || 0,
-                            viscosity: parseFloat(inputs.viscosity) || 0,
-                            unitSystem
-                          },
-                          results: {
-                            reynoldsNumber: result.reynoldsNumber,
-                            flowRegime: result.flowRegime,
-                            warnings: result.warnings || []
-                          },
-                          units: {
-                            density: getUnit("density"),
-                            velocity: getUnit("velocity"),
-                            length: getUnit("length"),
-                            viscosity: getUnit("viscosity")
-                          },
-                          configuration: {
-                            unitSystem
-                          },
-                          charts: chartData && chartData.length > 0 ? [{
-                            id: "reynolds-chart",
-                            title: "Reynolds Number Chart",
-                            dataSummary: `Reynolds number vs characteristic length`
-                          }] : [],
-                          metadata: {
-                            steps: result.steps?.map(s => `${s.equation} - ${s.description}`) || [],
-                            unitsSystem: unitSystem,
-                            approxLevel: "exact",
-                            confidence: "high",
-                            warnings: result.warnings || []
-                          }
+                          inputs: lastPayload.inputs,
+                          results: lastPayload.results,
                         })}
                         disabled={!result}
                       />

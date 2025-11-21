@@ -53,10 +53,17 @@ import { atmosphereInputSchema } from "@/tools/atmosphere/validation/schema";
 
 type UnitSystem = "SI" | "Imperial";
 
+type ToolPayload = {
+  tool: string;
+  inputs: Record<string, any>;
+  results: Record<string, any>;
+};
+
 export default function StandardAtmosphereCalculator() {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<ToolPayload | null>(null);
 
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
@@ -106,6 +113,23 @@ export default function StandardAtmosphereCalculator() {
   const altitudeUnit = unitSystem === "Imperial" ? "ft" : "m";
   const velocityUnit = unitSystem === "Imperial" ? "ft/s" : "m/s";
 
+  const applyToolPayload = (payload: ToolPayload) => {
+    setLastPayload(payload);
+    updateToolContext(payload);
+  };
+
+  const syncRequestId = (response?: { requestId?: string } | null) => {
+    if (response?.requestId) {
+      setLastRequestId(response.requestId);
+    } else {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith("calc-"));
+      if (storedKeys.length > 0) {
+        const latestKey = storedKeys.sort().reverse()[0];
+        setLastRequestId(latestKey.replace("calc-", ""));
+      }
+    }
+  };
+
   // Calculate atmosphere properties
   const calculate = async () => {
     setError("");
@@ -148,7 +172,7 @@ export default function StandardAtmosphereCalculator() {
       setResult(atmosphereResult);
 
       // Generate calculation steps
-      const calculationSteps = [
+        const calculationSteps = [
         `Geopotential altitude: ${atmosphereResult.geopotentialAltitude.toFixed(2)} m`,
         `Geometric altitude: ${atmosphereResult.geometricAltitude.toFixed(2)} m`,
         `Layer: ${atmosphereResult.layerName}`,
@@ -163,20 +187,14 @@ export default function StandardAtmosphereCalculator() {
           : []),
       ];
 
-      // Send calculation event
-      const eventResponse = await sendCalculationEvent({
-        toolId: "standard-atmosphere",
-        toolName: "Standard Atmosphere Calculator",
-        inputs: {
+        const toolInputs = {
           altitude: altitudeSI,
           altitudeDisplay: `${altitudeValue} ${altitudeUnit}`,
           velocity: velocitySI,
-          velocityDisplay: velocitySI
-            ? `${parseFloat(velocity)} ${velocityUnit}`
-            : undefined,
+          velocityDisplay: velocitySI ? `${parseFloat(velocity)} ${velocityUnit}` : undefined,
           unitSystem,
-        },
-        results: {
+        };
+        const toolResults = {
           geopotentialAltitude: atmosphereResult.geopotentialAltitude,
           geometricAltitude: atmosphereResult.geometricAltitude,
           temperature: atmosphereResult.temperature,
@@ -190,48 +208,28 @@ export default function StandardAtmosphereCalculator() {
           densityRatio: atmosphereResult.densityRatio,
           temperatureRatio: atmosphereResult.temperatureRatio,
           layerName: atmosphereResult.layerName,
-        },
-        steps: calculationSteps,
-        metadata: {
-          units: unitSystem,
-          approxLevel: "exact",
-          confidence: "high",
-          warnings: atmosphereResult.warnings,
-        },
-      });
+        };
 
-      if (eventResponse?.requestId) {
-        setLastRequestId(eventResponse.requestId);
-      } else {
-        // Fallback: get from localStorage
-        const storedKeys = Object.keys(localStorage).filter((key) =>
-          key.startsWith("calc-")
-        );
-        if (storedKeys.length > 0) {
-          const latestKey = storedKeys.sort().reverse()[0];
-          const requestId = latestKey.replace("calc-", "");
-          setLastRequestId(requestId);
-        }
-      }
+        const eventResponse = await sendCalculationEvent({
+          toolId: "standard-atmosphere",
+          toolName: "Standard Atmosphere Calculator",
+          inputs: toolInputs,
+          results: toolResults,
+          steps: calculationSteps,
+          metadata: {
+            units: unitSystem,
+            approxLevel: "exact",
+            confidence: "high",
+            warnings: atmosphereResult.warnings,
+          },
+        });
 
-      // Update AI assistant context
-      updateToolContext({
-        tool: "Standard Atmosphere Calculator",
-        inputs: {
-          altitude: `${altitudeValue} ${altitudeUnit}`,
-          velocity: velocitySI ? `${parseFloat(velocity)} ${velocityUnit}` : "Not provided",
-          unitSystem,
-        },
-        results: {
-          temperature: `${atmosphereResult.temperature.toFixed(2)} K`,
-          pressure: `${(atmosphereResult.pressure / 1000).toFixed(2)} kPa`,
-          density: `${atmosphereResult.density.toExponential(4)} kg/m³`,
-          speedOfSound: `${atmosphereResult.speedOfSound.toFixed(2)} m/s`,
-          viscosity: `${atmosphereResult.viscosity.toExponential(4)} Pa·s`,
-          gravity: `${atmosphereResult.gravity.toFixed(4)} m/s²`,
-          layer: atmosphereResult.layerName,
-        },
-      });
+        syncRequestId(eventResponse);
+        applyToolPayload({
+          tool: "Standard Atmosphere Calculator",
+          inputs: toolInputs,
+          results: toolResults,
+        });
 
       toast({
         title: "Success",
@@ -392,73 +390,15 @@ export default function StandardAtmosphereCalculator() {
               <AeroCard
                 title="Atmospheric Properties"
                 headerActions={
-                  lastRequestId ? (
+                  lastRequestId && lastPayload ? (
                     <div className="flex gap-2">
                       <AskAIButton
                         requestId={lastRequestId}
                         payload={buildAeroversePayload({
-                          toolName: "Standard Atmosphere Calculator",
+                          toolName: lastPayload.tool,
                           requestId: lastRequestId || undefined,
-                          inputs: {
-                            altitude: parseFloat(altitude) || 0,
-                            altitudeUnit: altitudeUnit,
-                            velocity: velocity.trim()
-                              ? parseFloat(velocity) || undefined
-                              : undefined,
-                            velocityUnit: velocity.trim() ? velocityUnit : undefined,
-                            unitSystem,
-                          },
-                          results: {
-                            geopotentialAltitude: result.geopotentialAltitude,
-                            geometricAltitude: result.geometricAltitude,
-                            temperature: result.temperature,
-                            pressure: result.pressure,
-                            density: result.density,
-                            speedOfSound: result.speedOfSound,
-                            viscosity: result.viscosity,
-                            gravity: result.gravity,
-                            dynamicPressure: result.dynamicPressure,
-                            pressureRatio: result.pressureRatio,
-                            densityRatio: result.densityRatio,
-                            temperatureRatio: result.temperatureRatio,
-                            layerName: result.layerName,
-                          },
-                          units: {
-                            altitude: altitudeUnit,
-                            velocity: velocityUnit,
-                            temperature: "K",
-                            pressure: "Pa",
-                            density: "kg/m³",
-                            speedOfSound: "m/s",
-                            viscosity: "Pa·s",
-                            gravity: "m/s²",
-                            dynamicPressure: "Pa",
-                          },
-                          configuration: {
-                            unitSystem,
-                          },
-                          charts: chartData.length > 0
-                            ? [
-                                {
-                                  id: "atmosphere-chart",
-                                  title: "Atmospheric Properties vs Altitude",
-                                  dataSummary: `Temperature, pressure, and density from ${convertAltitudeFromSI(Math.max(0, result.geopotentialAltitude - 5000), "km").toFixed(2)} to ${convertAltitudeFromSI(Math.min(86000, result.geopotentialAltitude + 5000), "km").toFixed(2)} km`,
-                                },
-                              ]
-                            : [],
-                          metadata: {
-                            steps: [
-                              `Geopotential altitude: ${result.geopotentialAltitude.toFixed(2)} m`,
-                              `Layer: ${result.layerName}`,
-                              `Temperature: ${result.temperature.toFixed(2)} K`,
-                              `Pressure: ${result.pressure.toFixed(2)} Pa`,
-                              `Density: ${result.density.toExponential(4)} kg/m³`,
-                            ],
-                            unitsSystem: unitSystem,
-                            approxLevel: "exact",
-                            confidence: "high",
-                            warnings: result.warnings || [],
-                          },
+                          inputs: lastPayload.inputs,
+                          results: lastPayload.results,
                         })}
                         disabled={!result}
                       />
