@@ -229,7 +229,7 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed bottom-4 right-4 z-50 w-[320px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[600px] min-h-[450px] flex flex-col min-h-0
+              className="fixed bottom-4 right-4 z-50 w-[320px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[600px] min-h-[450px] flex flex-col min-h-0 overscroll-contain
                        bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
                        border border-cyan-400/15 rounded-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)]"
           >
@@ -363,12 +363,12 @@ const AIAssistant: React.FC = () => {
                   initial={{ width: 0, opacity: 0 }}
                   animate={{ width: 260, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
-                    className="border-r border-slate-800/60 bg-slate-900/50 overflow-hidden flex-shrink-0 flex flex-col"
+                    className="border-r border-slate-800/60 bg-slate-900/50 overflow-hidden flex-shrink-0 flex flex-col overscroll-contain"
                 >
                   <div className="p-2 border-b border-cyan-400/10 flex-shrink-0">
                     <p className="text-xs font-semibold text-cyan-400">Recent Chats</p>
                   </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-2">
+                    <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-2 overscroll-contain">
                       {chatHistory.map((session) => (
                         <button
                           key={session.id}
@@ -418,7 +418,7 @@ const AIAssistant: React.FC = () => {
             </AnimatePresence>
 
             {/* Messages Area - Maximum Space with proper flex */}
-              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 scrollbar-track-transparent">
+              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 scrollbar-track-transparent">
               {messages.length === 0 && (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center space-y-3">
