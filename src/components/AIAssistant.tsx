@@ -119,6 +119,12 @@ const AIAssistant: React.FC = () => {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      startNewChat();
+    }
+  }, [isOpen, messages.length, startNewChat]);
+
   // Typing effect for the last assistant message
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
@@ -352,18 +358,17 @@ const AIAssistant: React.FC = () => {
 
             {/* Chat History Sidebar */}
             <AnimatePresence>
-              {showHistory && chatHistory.length > 0 && (
+                {showHistory && chatHistory.length > 0 && (
                 <motion.div
                   initial={{ width: 0, opacity: 0 }}
                   animate={{ width: 260, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
-                  className="border-r border-slate-800/60 bg-slate-900/50 overflow-hidden flex-shrink-0"
+                    className="border-r border-slate-800/60 bg-slate-900/50 overflow-hidden flex-shrink-0 flex flex-col"
                 >
                   <div className="p-2 border-b border-cyan-400/10 flex-shrink-0">
                     <p className="text-xs font-semibold text-cyan-400">Recent Chats</p>
                   </div>
-                  <ScrollArea className="flex-1 min-h-0">
-                    <div className="p-2 space-y-2">
+                    <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-2">
                       {chatHistory.map((session) => (
                         <button
                           key={session.id}
@@ -372,25 +377,16 @@ const AIAssistant: React.FC = () => {
                             setShowHistory(false);
                           }}
                           className={cn(
-                            "w-full p-3 rounded-lg text-left transition-all group",
+                            "w-full p-3 rounded-lg text-left transition-all group flex flex-col gap-1",
                             session.id === currentSessionId
                               ? "bg-cyan-400/20 border border-cyan-400/50"
                               : "bg-slate-800/50 border border-cyan-400/10 hover:border-cyan-400/30 hover:bg-slate-800/70"
                           )}
                         >
-                          <p className="text-xs text-gray-300 truncate group-hover:text-cyan-400 transition-colors font-medium">
-                            {session.title}
-                          </p>
-                          <p className="text-[10px] text-gray-500 mt-1">
-                            {new Date(session.timestamp).toLocaleDateString()}
-                          </p>
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-[10px] text-gray-600">
-                              {session.messages.length} messages
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs text-gray-300 truncate group-hover:text-cyan-400 transition-colors font-medium">
+                              {session.title}
                             </p>
-                            {session.id === currentSessionId && (
-                              <span className="text-[10px] text-cyan-400 font-semibold">Current</span>
-                            )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -398,15 +394,25 @@ const AIAssistant: React.FC = () => {
                                   deleteChatSession(session.id);
                                 }
                               }}
-                              className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
+                              className="text-red-400 hover:text-red-300 transition-colors"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
+                          <p className="text-[10px] text-gray-500">
+                            {new Date(session.timestamp).toLocaleDateString()}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] text-gray-600">
+                              {session.messages.length} messages
+                            </p>
+                            {session.id === currentSessionId && (
+                              <span className="text-[10px] text-cyan-400 font-semibold">Current</span>
+                            )}
+                          </div>
                         </button>
                       ))}
                     </div>
-                  </ScrollArea>
                 </motion.div>
               )}
             </AnimatePresence>
