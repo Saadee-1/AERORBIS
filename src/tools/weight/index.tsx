@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WeightEstimationInputs, calculateComponentWeights, updateFuelSystemWeight } from './utils/weightEngine';
 import { validateWeightEstimationInputs } from './validation/schema';
+import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { buildWeightEstimatorPayload } from './utils/payloadBuilder';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
 import { AIRCRAFT_PRESETS, AircraftPreset } from './data/presets';
@@ -101,6 +102,7 @@ export default function StructuralWeightEstimator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
 
   // Input state
   const [inputs, setInputs] = useState<WeightEstimationInputs>(DEFAULT_INPUTS);
@@ -147,6 +149,57 @@ export default function StructuralWeightEstimator() {
       return newInputs;
     });
   }, []);
+
+  const getLatestStoredRequestId = useCallback((): string | null => {
+    try {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith('calc-'));
+      if (storedKeys.length === 0) return null;
+      const latestKey = storedKeys.sort().reverse()[0];
+      return latestKey.replace('calc-', '');
+    } catch (error) {
+      console.warn('Unable to read stored calculation IDs:', error);
+      return null;
+    }
+  }, []);
+
+  const applyToolPayload = useCallback(
+    async (payload: AeroverseAIPayload) => {
+      setLastPayload(payload);
+
+      updateToolContext({
+        tool: 'Structural Weight Estimator',
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+
+      const eventPayload = buildCalculationEvent({
+        toolId: 'structural-weight',
+        toolName: payload.toolName,
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata.steps,
+        metadata: {
+          units: payload.metadata.unitsSystem,
+          approxLevel: payload.metadata.approxLevel,
+          confidence: payload.metadata.confidence,
+          warnings: payload.metadata.warnings,
+        },
+      });
+
+      try {
+        const eventResponse = await sendCalculationEvent(eventPayload);
+        const requestId = eventResponse?.requestId ?? getLatestStoredRequestId();
+        setLastRequestId(requestId);
+        return requestId;
+      } catch (error) {
+        console.warn('Failed to send calculation event:', error);
+        const fallbackId = getLatestStoredRequestId();
+        setLastRequestId(fallbackId);
+        return fallbackId;
+      }
+    },
+    [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
+  );
 
   // Load preset
   const handleLoadPreset = useCallback((preset: AircraftPreset) => {
@@ -286,37 +339,13 @@ export default function StructuralWeightEstimator() {
       
       setResults(finalResults);
 
-      // Generate AI payload
-      const requestId = `weight-${Date.now()}`;
-      setLastRequestId(requestId);
-      const payload = buildWeightEstimatorPayload(
-        {
+        // Generate AI payload
+        const payload = buildWeightEstimatorPayload({
           inputs: finalInputs,
           ...finalResults,
-        },
-        requestId
-      );
-
-        updateToolContext({
-          tool: 'Structural Weight Estimator',
-          inputs: payload.inputs,
-          results: payload.results,
         });
 
-        const eventPayload = buildCalculationEvent({
-          toolId: 'structural-weight',
-          toolName: 'Structural Weight Estimator',
-          inputs: payload.inputs,
-          results: payload.results,
-          steps: payload.metadata?.steps || [],
-          metadata: payload.metadata,
-        });
-
-        const eventResponse = await sendCalculationEvent(eventPayload);
-
-        if (eventResponse?.requestId) {
-          setLastRequestId(eventResponse.requestId);
-        }
+        await applyToolPayload(payload);
 
       toast({
         title: 'Calculation complete',
@@ -329,7 +358,7 @@ export default function StructuralWeightEstimator() {
         variant: 'destructive',
       });
     }
-    }, [inputs, missionProfile, toast, sendCalculationEvent, updateToolContext]);
+      }, [applyToolPayload, inputs, missionProfile, toast]);
 
   return (
     <ToolWrapper>
@@ -469,22 +498,17 @@ export default function StructuralWeightEstimator() {
         <AeroButton onClick={handleCalculate} icon={Calculator}>
           Calculate Weights
         </AeroButton>
-        {results && (
+          {results && (
           <>
+              <AskAIButton
+                requestId={lastRequestId}
+                payload={lastPayload || undefined}
+                disabled={!lastPayload}
+              />
             <PDFExportButton
               requestId={lastRequestId}
               toolName="Structural Weight Estimator"
               disabled={!lastRequestId}
-            />
-            <AskAIButton 
-              requestId={lastRequestId || undefined}
-              payload={results ? buildWeightEstimatorPayload(
-                {
-                  inputs,
-                  ...results,
-                },
-                lastRequestId || undefined
-              ) : undefined}
             />
           </>
         )}

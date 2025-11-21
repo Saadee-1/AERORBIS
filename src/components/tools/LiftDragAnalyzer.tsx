@@ -26,6 +26,8 @@ import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
+import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
+import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -129,6 +131,7 @@ interface LiftDragResult {
 const LiftDragAnalyzer = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
     return (localStorage.getItem("liftDragUnitSystem") as UnitSystem) || "SI";
   });
@@ -177,6 +180,57 @@ const LiftDragAnalyzer = () => {
 
   const [result, setResult] = useState<LiftDragResult | null>(null);
   const [error, setError] = useState<string>("");
+
+  const getLatestStoredRequestId = useCallback((): string | null => {
+    try {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith("calc-"));
+      if (storedKeys.length === 0) return null;
+      const latestKey = storedKeys.sort().reverse()[0];
+      return latestKey.replace("calc-", "");
+    } catch (err) {
+      console.warn("Unable to read stored calculation IDs:", err);
+      return null;
+    }
+  }, []);
+
+  const applyToolPayload = useCallback(
+    async (payload: AeroverseAIPayload) => {
+      setLastPayload(payload);
+
+      updateToolContext({
+        tool: "LiftDrag",
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+
+      const eventPayload = buildCalculationEvent({
+        toolId: "liftdrag-analyzer",
+        toolName: payload.toolName,
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata.steps,
+        metadata: {
+          units: payload.metadata.unitsSystem,
+          approxLevel: payload.metadata.approxLevel,
+          confidence: payload.metadata.confidence,
+          warnings: payload.metadata.warnings,
+        },
+      });
+
+      try {
+        const eventResponse = await sendCalculationEvent(eventPayload);
+        const requestId = eventResponse?.requestId ?? getLatestStoredRequestId();
+        setLastRequestId(requestId);
+        return requestId;
+      } catch (err) {
+        console.warn("Failed to send calculation event:", err);
+        const fallbackId = getLatestStoredRequestId();
+        setLastRequestId(fallbackId);
+        return fallbackId;
+      }
+    },
+    [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
+  );
 
   useEffect(() => {
     localStorage.setItem("liftDragUnitSystem", unitSystem);
@@ -364,7 +418,7 @@ const LiftDragAnalyzer = () => {
         setError("");
       }
 
-      const steps = [
+        const steps = [
         `**Airfoil:** ${activeAirfoil.name}`,
         `**Given:** α = ${alpha}°, V = ${V.toFixed(2)} m/s, ρ = ${rho.toFixed(3)} kg/m³, S = ${S.toFixed(2)} m², b = ${b.toFixed(2)} m, e = ${e.toFixed(2)}`,
         ``,
@@ -401,7 +455,7 @@ const LiftDragAnalyzer = () => {
       setResult(resultData);
       
       // Prepare calculation steps for event (machine-friendly format)
-      const calculationSteps = [
+        const calculationSteps = [
         `Lift Coefficient: CL = CL₀ + CL_α × α = ${activeAirfoil.CL_0} + ${activeAirfoil.CL_alpha} × ${alpha}° = ${CL.toFixed(4)}`,
         `Induced Drag Coefficient: CDi = CL² / (π × AR × e) = ${CL.toFixed(4)}² / (π × ${aspectRatio.toFixed(2)} × ${e.toFixed(3)}) = ${CDi.toFixed(4)}`,
         `Drag Coefficient: CD = CD₀ + CDi = ${activeAirfoil.CD_0} + ${CDi.toFixed(4)} = ${CD.toFixed(4)}`,
@@ -411,67 +465,65 @@ const LiftDragAnalyzer = () => {
         `Lift-to-Drag Ratio: L/D = ${CL.toFixed(4)} / ${CD.toFixed(4)} = ${L_D_ratio.toFixed(2)}`
       ];
 
-      // Send calculation event to assistant
-      const eventResponse = await sendCalculationEvent({
-        toolId: "liftdrag-analyzer",
-        toolName: "Lift/Drag Analyzer",
-        inputs: {
-          airfoil: activeAirfoil.name,
-          angleOfAttack: alpha,
-          airspeed: V,
-          airDensity: rho,
-          wingArea: S,
-          wingSpan: b,
-          oswaldEfficiency: e,
-          aspectRatio,
-          unitSystem
-        },
-        results: {
-          liftCoefficient: CL,
-          dragCoefficient: CD,
-          liftToDragRatio: L_D_ratio,
-          liftForce,
-          dragForce,
-          aspectRatio,
-          flowRegime: L_D_ratio > 20 ? "Excellent" : L_D_ratio > 15 ? "Good" : L_D_ratio > 10 ? "Moderate" : "Poor"
-        },
-        steps: calculationSteps,
-        metadata: {
-          units: unitSystem,
-          approxLevel: "analytic",
-          confidence: "high",
-          warnings: alpha >= activeAirfoil.alpha_stall ? [`Angle of attack (${alpha}°) exceeds stall angle (${activeAirfoil.alpha_stall}°)`] : []
-        }
-      });
+        const stallWarning =
+          Math.abs(alpha) >= activeAirfoil.alpha_stall
+            ? [`Angle of attack (${alpha}°) exceeds stall angle (${activeAirfoil.alpha_stall}°)`]
+            : [];
 
-      // Always set lastRequestId (even if event failed, requestId is still generated)
-      if (eventResponse) {
-        setLastRequestId(eventResponse.requestId);
-      }
-      
-      // Update AI assistant context
-      updateToolContext({
-        tool: "LiftDrag",
-        inputs: {
-          airfoil: activeAirfoil.name,
-          angleOfAttack: `${alpha}°`,
-          airspeed: `${convertFromSI(V, "speed").toFixed(2)} ${getUnit("speed")}`,
-          airDensity: `${convertFromSI(rho, "density").toFixed(3)} ${getUnit("density")}`,
-          wingArea: `${convertFromSI(S, "area").toFixed(2)} ${getUnit("area")}`,
-          wingSpan: `${convertFromSI(b, "span").toFixed(2)} ${getUnit("span")}`,
-          oswaldEfficiency: e.toFixed(3),
-          unitSystem
-        },
-        results: {
-          liftCoefficient: CL.toFixed(4),
-          dragCoefficient: CD.toFixed(4),
-          liftToDragRatio: L_D_ratio.toFixed(2),
-          liftForce: `${convertFromSI(liftForce, "force").toFixed(2)} ${getUnit("force")}`,
-          dragForce: `${convertFromSI(dragForce, "force").toFixed(2)} ${getUnit("force")}`,
-          aspectRatio: aspectRatio.toFixed(2),
-          flowRegime: L_D_ratio > 20 ? "Excellent" : L_D_ratio > 15 ? "Good" : L_D_ratio > 10 ? "Moderate" : "Poor"
-        }
-      });
+        const payload = buildAeroversePayload({
+          toolName: "Lift/Drag Analyzer",
+          inputs: {
+            airfoil: activeAirfoil.name,
+            angleOfAttack_deg: alpha,
+            airspeed_mps: V,
+            airDensity_kg_m3: rho,
+            wingArea_m2: S,
+            wingSpan_m: b,
+            oswaldEfficiency: e,
+            aspectRatio,
+            unitSystem,
+          },
+          results: {
+            liftCoefficient: CL,
+            dragCoefficient: CD,
+            inducedDragCoefficient: CDi,
+            liftToDragRatio: L_D_ratio,
+            liftForce_N: liftForce,
+            dragForce_N: dragForce,
+            dynamicPressure_Pa: q,
+            flowRegime:
+              L_D_ratio > 20
+                ? "Excellent"
+                : L_D_ratio > 15
+                ? "Good"
+                : L_D_ratio > 10
+                ? "Moderate"
+                : "Poor",
+          },
+          units: {
+            angleOfAttack_deg: "deg",
+            airspeed_mps: "m/s",
+            airDensity_kg_m3: "kg/m³",
+            wingArea_m2: "m²",
+            wingSpan_m: "m",
+            liftForce_N: "N",
+            dragForce_N: "N",
+            dynamicPressure_Pa: "Pa",
+          },
+          charts: [
+            { id: "polar", title: "Lift/Drag Polar", dataSummary: `CL/CD breakdown at α=${alpha}°` },
+            { id: "forces", title: "Forces Comparison", dataSummary: "Lift vs drag forces" },
+          ],
+          metadata: {
+            steps: calculationSteps,
+            unitsSystem: unitSystem,
+            approxLevel: "analytic",
+            confidence: stallWarning.length ? "medium" : "high",
+            warnings: stallWarning,
+          },
+        });
+
+        await applyToolPayload(payload);
     } catch (err) {
       setError((err as Error).message);
       setResult(null);
@@ -695,69 +747,17 @@ const LiftDragAnalyzer = () => {
           {result ? (
             <AeroCard
               title="Analysis Results"
-              headerActions={
-                lastRequestId && result ? (
-                  <div className="flex gap-2">
-                    <AskAIButton 
-                      requestId={lastRequestId} 
-                      payload={buildAeroversePayload({
-                        toolName: "Lift/Drag Analyzer",
-                        requestId: lastRequestId || undefined,
-                        inputs: {
-                          airfoil: result.airfoilName || inputs.airfoil,
-                          angleOfAttack: parseFloat(inputs.angleOfAttack) || 0,
-                          airspeed: inputs.airspeed,
-                          airDensity: inputs.airDensity,
-                          wingArea: inputs.wingArea,
-                          wingSpan: inputs.wingSpan,
-                          oswaldEfficiency: inputs.oswaldEfficiency,
-                          unitSystem
-                        },
-                        results: {
-                          CL: result.CL,
-                          CD: result.CD,
-                          L_D_ratio: result.L_D_ratio,
-                          liftForce: result.liftForce,
-                          dragForce: result.dragForce,
-                          aspectRatio: result.aspectRatio,
-                          k_factor: result.k_factor
-                        },
-                        units: {
-                          angleOfAttack: "deg",
-                          airspeed: getUnit("speed"),
-                          airDensity: getUnit("density"),
-                          wingArea: getUnit("area"),
-                          wingSpan: getUnit("span"),
-                          liftForce: getUnit("force"),
-                          dragForce: getUnit("force")
-                        },
-                        configuration: {
-                          unitSystem,
-                          airfoil: result.airfoilName || inputs.airfoil
-                        },
-                        charts: result ? [{
-                          id: "lift-drag-chart",
-                          title: "Lift/Drag Comparison Chart",
-                          dataSummary: `CL and CD vs angle of attack`
-                        }] : [],
-                        metadata: {
-                          steps: result.steps || [],
-                          unitsSystem: unitSystem,
-                          approxLevel: "numeric",
-                          confidence: "high",
-                          warnings: error && error.includes("Warning") ? [error] : []
-                        }
-                      })}
-                      disabled={!result}
-                    />
-                    <PDFExportButton 
-                      requestId={lastRequestId} 
-                      toolName="Lift/Drag Analyzer"
-                      disabled={!lastRequestId}
-                    />
-                  </div>
-                ) : null
-              }
+                headerActions={
+                  lastPayload ? (
+                    <div className="flex gap-2">
+                      <AskAIButton
+                        requestId={lastRequestId}
+                        payload={lastPayload}
+                        disabled={!lastPayload}
+                      />
+                    </div>
+                  ) : null
+                }
             >
 
                 <div className="grid grid-cols-3 gap-4">

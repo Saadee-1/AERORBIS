@@ -29,6 +29,7 @@ import {
 import { validateRocketEngineInputs } from './validation/schema';
 import { buildRocketEnginePayload } from './utils/payloadBuilder';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
+import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { PROPELLANT_PRESETS, ENGINE_PRESETS, PropellantPreset, EnginePreset } from './data/propellantPresets';
 import { InputPanel } from './components/InputPanel';
 import { ResultsPanel } from './components/ResultsPanel';
@@ -41,6 +42,7 @@ export default function RocketEngineCalculator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
 
   // Input state
   const [inputs, setInputs] = useState<RocketEngineInputs>({
@@ -64,6 +66,57 @@ export default function RocketEngineCalculator() {
   const [altitudeSweep, setAltitudeSweep] = useState<Array<{ Pa: number; T: number; Isp: number; mdot: number; Pe: number }>>([]);
   const [expansionSweep, setExpansionSweep] = useState<Array<{ epsilon: number; Isp: number; T: number; Cf: number; Me: number }>>([]);
   const [pressureSweep, setPressureSweep] = useState<Array<{ Pc: number; mdot: number; T: number; Isp: number; cStar: number }>>([]);
+
+  const getLatestStoredRequestId = useCallback((): string | null => {
+    try {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith('calc-'));
+      if (storedKeys.length === 0) return null;
+      const latestKey = storedKeys.sort().reverse()[0];
+      return latestKey.replace('calc-', '');
+    } catch (error) {
+      console.warn('Unable to read stored calculation IDs:', error);
+      return null;
+    }
+  }, []);
+
+  const applyToolPayload = useCallback(
+    async (payload: AeroverseAIPayload) => {
+      setLastPayload(payload);
+
+      updateToolContext({
+        tool: 'Rocket Engine Performance',
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+
+      const eventPayload = buildCalculationEvent({
+        toolId: 'rocket-engine',
+        toolName: payload.toolName,
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata.steps,
+        metadata: {
+          units: payload.metadata.unitsSystem,
+          approxLevel: payload.metadata.approxLevel,
+          confidence: payload.metadata.confidence,
+          warnings: payload.metadata.warnings,
+        },
+      });
+
+      try {
+        const eventResponse = await sendCalculationEvent(eventPayload);
+        const requestId = eventResponse?.requestId ?? getLatestStoredRequestId();
+        setLastRequestId(requestId);
+        return requestId;
+      } catch (error) {
+        console.warn('Failed to send calculation event:', error);
+        const fallbackId = getLatestStoredRequestId();
+        setLastRequestId(fallbackId);
+        return fallbackId;
+      }
+    },
+    [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
+  );
 
   // Handle input changes
   const handleInputChange = useCallback((field: keyof RocketEngineInputs, value: any) => {
@@ -141,31 +194,10 @@ export default function RocketEngineCalculator() {
       setExpansionSweep([]);
       setPressureSweep([]);
 
-      // Generate AI payload
-      const requestId = `rocket-${Date.now()}`;
-      setLastRequestId(requestId);
-      const payload = buildRocketEnginePayload(inputs, engineResults, requestId);
+        // Generate AI payload
+        const payload = buildRocketEnginePayload(inputs, engineResults);
 
-        updateToolContext({
-          tool: 'Rocket Engine Performance',
-          inputs: payload.inputs,
-          results: payload.results,
-        });
-
-        const eventPayload = buildCalculationEvent({
-          toolId: 'rocket-engine',
-          toolName: 'Rocket Engine Performance',
-          inputs: payload.inputs,
-          results: payload.results,
-          steps: payload.metadata?.steps || [],
-          metadata: payload.metadata,
-        });
-
-        const eventResponse = await sendCalculationEvent(eventPayload);
-
-        if (eventResponse?.requestId) {
-          setLastRequestId(eventResponse.requestId);
-        }
+        await applyToolPayload(payload);
 
       toast({
         title: 'Calculation complete',
@@ -178,7 +210,7 @@ export default function RocketEngineCalculator() {
         variant: 'destructive',
       });
     }
-  }, [inputs, toast, sendCalculationEvent, updateToolContext]);
+  }, [applyToolPayload, inputs, toast]);
 
   // Sweep altitude (ambient pressure)
   const handleSweepAltitude = useCallback((altitudeMin: number, altitudeMax: number, steps: number) => {
@@ -263,17 +295,14 @@ export default function RocketEngineCalculator() {
         <AeroButton onClick={handleCalculate} icon={Calculator}>
           Calculate Performance
         </AeroButton>
-        {results && (
+          {results && lastPayload && (
           <>
-            <PDFExportButton
-              toolName="Rocket Engine Performance"
-              data={{
-                inputs,
-                results,
-                timestamp: new Date().toISOString(),
-              }}
-            />
-            <AskAIButton requestId={lastRequestId || undefined} />
+              <AskAIButton requestId={lastRequestId} payload={lastPayload} disabled={!lastPayload} />
+              <PDFExportButton
+                requestId={lastRequestId}
+                toolName="Rocket Engine Performance"
+                disabled={!lastRequestId}
+              />
           </>
         )}
       </ToolActions>

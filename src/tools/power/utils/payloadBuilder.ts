@@ -2,55 +2,11 @@
  * AI Payload Builder for Battery & Solar Power System
  */
 
+import { buildAeroversePayload } from '@/ai/buildPayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { BatteryPack } from './batteryModel';
 import { SolarConfig } from './solarModel';
 import { PowerLoad, MissionResult } from './missionEngine';
-
-export interface PowerSystemPayload {
-  toolName: string;
-  timestamp: string;
-  requestId?: string;
-  configuration: {
-    battery: {
-      chemistry: string;
-      capacity_mAh: number;
-      series: number;
-      parallel: number;
-      voltage: number;
-      energy_Wh: number;
-      mass_kg: number;
-    };
-    solar: {
-      area_m2: number;
-      efficiency: number;
-      mpptEfficiency: number;
-      tilt: number;
-      azimuth: number;
-    };
-    loads: PowerLoad;
-    location: {
-      latitude: number;
-      longitude: number;
-      altitude: number;
-    };
-    dayOfYear: number;
-  };
-  results: {
-    endurance_min: number;
-    endurance_hours: number;
-    solarFraction: number;
-    minPowerMargin_W: number;
-    maxVoltage: number;
-    minVoltage: number;
-    totalEnergyUsed_Wh: number;
-    totalSolarGenerated_Wh: number;
-  };
-  warnings: string[];
-  recommendations: string[];
-  visualization?: {
-    charts: string[];
-  };
-}
 
 export function buildPowerSystemPayload(
   pack: BatteryPack,
@@ -60,7 +16,7 @@ export function buildPowerSystemPayload(
   dayOfYear: number,
   result: MissionResult,
   requestId?: string
-): PowerSystemPayload {
+): AeroverseAIPayload {
   const packVoltage = pack.chemistry.nominalVoltage * pack.S_count;
   const packCapacity_mAh = pack.capacity_mAh * pack.P_count;
   const packEnergy_Wh = (packVoltage * packCapacity_mAh) / 1000;
@@ -104,17 +60,37 @@ export function buildPowerSystemPayload(
     recommendations.push('Consider higher efficiency solar cells (22-30%) for better performance');
   }
   
-  return {
-    toolName: 'Battery & Solar Power System',
-    timestamp: new Date().toISOString(),
+  const totalLoad_W = Object.values(baseLoad).reduce(
+    (sum, val) => sum + (typeof val === 'number' ? val : 0),
+    0
+  );
+
+  const steps = [
+    `Battery pack: ${pack.S_count}S${pack.P_count}P ${packCapacity_mAh.toFixed(0)} mAh ${pack.chemistry.name}`,
+    `Pack voltage: ${packVoltage.toFixed(2)} V, energy: ${packEnergy_Wh.toFixed(1)} Wh`,
+    `Estimated pack mass: ${packMass_kg.toFixed(2)} kg`,
+    `Solar array: ${solarConfig.area_m2.toFixed(2)} m² @ ${(solarConfig.efficiency * 100).toFixed(1)}%`,
+    `Mission location: lat ${location.latitude.toFixed(2)}°, lon ${location.longitude.toFixed(
+      2
+    )}°, day ${dayOfYear}`,
+    `Total continuous load: ${totalLoad_W.toFixed(1)} W`,
+    `Simulation length: ${result.frames.length} min, Endurance: ${(result.endurance_min / 60).toFixed(2)} h`,
+    `Solar contribution: ${(result.solarFraction * 100).toFixed(1)}%`,
+    `Power margin range: ${result.minPowerMargin_W.toFixed(1)} W to ${Math.max(
+      ...result.frames.map((f) => f.powerMargin_W)
+    ).toFixed(1)} W`,
+  ];
+
+  return buildAeroversePayload({
     requestId,
-    configuration: {
+    toolName: 'Battery & Solar Power System',
+    inputs: {
       battery: {
         chemistry: pack.chemistry.name,
         capacity_mAh: packCapacity_mAh,
         series: pack.S_count,
         parallel: pack.P_count,
-        voltage: packVoltage,
+        nominalVoltage: packVoltage,
         energy_Wh: packEnergy_Wh,
         mass_kg: packMass_kg,
       },
@@ -122,27 +98,61 @@ export function buildPowerSystemPayload(
         area_m2: solarConfig.area_m2,
         efficiency: solarConfig.efficiency,
         mpptEfficiency: solarConfig.mpptEfficiency,
-        tilt: solarConfig.tilt,
-        azimuth: solarConfig.azimuth,
+        tilt_deg: solarConfig.tilt,
+        azimuth_deg: solarConfig.azimuth,
       },
       loads: baseLoad,
       location,
       dayOfYear,
     },
     results: {
-      endurance_min: result.endurance_min,
+      endurance_minutes: result.endurance_min,
       endurance_hours: result.endurance_min / 60,
       solarFraction: result.solarFraction,
       minPowerMargin_W: result.minPowerMargin_W,
+      maxPowerMargin_W: Math.max(...result.frames.map((f) => f.powerMargin_W)),
       maxVoltage: result.maxVoltage,
       minVoltage: result.minVoltage,
       totalEnergyUsed_Wh,
       totalSolarGenerated_Wh,
+      finalSOC: result.frames.at(-1)?.batteryState.soc ?? null,
+      warnings: result.warnings,
+      recommendations,
     },
-    warnings: result.warnings,
-    recommendations,
-    visualization: {
-      charts: ['soc', 'power', 'voltage', 'solar', 'mission'],
+    units: {
+      capacity_mAh: 'mAh',
+      nominalVoltage: 'V',
+      energy_Wh: 'Wh',
+      mass_kg: 'kg',
+      area_m2: 'm²',
+      efficiency: '%',
+      endurance_minutes: 'min',
+      endurance_hours: 'hr',
+      solarFraction: 'ratio',
+      minPowerMargin_W: 'W',
+      maxPowerMargin_W: 'W',
+      voltage: 'V',
+      totalEnergyUsed_Wh: 'Wh',
+      totalSolarGenerated_Wh: 'Wh',
     },
-  };
+    charts: [
+      { id: 'soc', title: 'State of Charge Timeline', dataSummary: 'Battery SOC vs mission time' },
+      { id: 'power', title: 'Power Balance', dataSummary: 'Load vs solar vs battery output' },
+      { id: 'voltage', title: 'Pack Voltage', dataSummary: 'Voltage limits over mission' },
+      { id: 'solar', title: 'Solar Generation', dataSummary: 'Solar power captured vs time' },
+      { id: 'mission', title: 'Mission Phases', dataSummary: 'Power consumption per phase' },
+    ],
+    configuration: {
+      loads: baseLoad,
+      performanceMode: 'simulation',
+      chemistry: pack.chemistry.name,
+    },
+    metadata: {
+      steps,
+      unitsSystem: 'SI',
+      approxLevel: 'simulation',
+      confidence: recommendations.length > 0 || result.warnings.length > 0 ? 'medium' : 'high',
+      warnings: result.warnings,
+    },
+  });
 }

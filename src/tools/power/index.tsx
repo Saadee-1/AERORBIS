@@ -25,6 +25,7 @@ import { PowerLoad, MissionPhase, simulateMission, MissionResult } from './utils
 import { validatePowerSystemInputs } from './validation/schema';
 import { buildPowerSystemPayload } from './utils/payloadBuilder';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
+import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { getBatteryChemistry } from './data/batteryChemistries';
 import { BatteryPackForm } from './components/BatteryPackForm';
 import { SolarConfig as SolarConfigComponent } from './components/SolarConfig';
@@ -37,7 +38,7 @@ export default function PowerSystemCalculator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
-  const [lastPayload, setLastPayload] = useState<ReturnType<typeof buildPowerSystemPayload> | null>(null);
+  const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
   
   // Battery state
   const [pack, setPack] = useState<BatteryPack>(() => {
@@ -102,6 +103,57 @@ export default function PowerSystemCalculator() {
   
   // Results state
   const [result, setResult] = useState<MissionResult | null>(null);
+
+  const getLatestStoredRequestId = useCallback((): string | null => {
+    try {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith('calc-'));
+      if (storedKeys.length === 0) return null;
+      const latestKey = storedKeys.sort().reverse()[0];
+      return latestKey.replace('calc-', '');
+    } catch (error) {
+      console.warn('Unable to read stored calculation IDs:', error);
+      return null;
+    }
+  }, []);
+
+  const applyToolPayload = useCallback(
+    async (payload: AeroverseAIPayload) => {
+      setLastPayload(payload);
+
+      updateToolContext({
+        tool: 'Battery & Solar Power System',
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+
+      const eventPayload = buildCalculationEvent({
+        toolId: 'power-system',
+        toolName: payload.toolName,
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata.steps,
+        metadata: {
+          units: payload.metadata.unitsSystem,
+          approxLevel: payload.metadata.approxLevel,
+          confidence: payload.metadata.confidence,
+          warnings: payload.metadata.warnings,
+        },
+      });
+
+      try {
+        const eventResponse = await sendCalculationEvent(eventPayload);
+        const requestId = eventResponse?.requestId ?? getLatestStoredRequestId();
+        setLastRequestId(requestId);
+        return requestId;
+      } catch (error) {
+        console.warn('Failed to send calculation event:', error);
+        const fallbackId = getLatestStoredRequestId();
+        setLastRequestId(fallbackId);
+        return fallbackId;
+      }
+    },
+    [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
+  );
   
   // Memoize expensive calculations
   const missionResult = useMemo(() => {
@@ -161,109 +213,17 @@ export default function PowerSystemCalculator() {
       
       setResult(missionResult);
       
-      // Build AI payload
-      const requestId = `power-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      setLastRequestId(requestId);
-      const payload = buildPowerSystemPayload(
+        // Build AI payload
+        const payload = buildPowerSystemPayload(
         pack,
         solarConfig,
         loads,
         location,
         dayOfYear,
-        missionResult,
-        requestId
+          missionResult
       );
-      
-      // Format inputs for sendCalculationEvent
-      const inputs = {
-        battery: {
-          chemistry: pack.chemistry.name,
-          capacity_mAh: pack.capacity_mAh,
-          series: pack.S_count,
-          parallel: pack.P_count,
-          cycles: pack.cycles,
-          temperature: pack.temperature,
-        },
-        solar: solarConfig,
-        loads,
-        location,
-        dayOfYear,
-        phases: phases.map(p => ({
-          name: p.name,
-          startTime: p.startTime,
-          duration: p.duration,
-          loadMultiplier: p.loadMultiplier,
-          solarAvailable: p.solarAvailable,
-          altitude: p.altitude,
-        })),
-      };
-      
-      // Format results for sendCalculationEvent
-      const results = {
-        endurance_min: missionResult.endurance_min,
-        endurance_hours: missionResult.endurance_min / 60,
-        solarFraction: missionResult.solarFraction,
-        minPowerMargin_W: missionResult.minPowerMargin_W,
-        maxVoltage: missionResult.maxVoltage,
-        minVoltage: missionResult.minVoltage,
-        totalEnergyUsed_Wh: payload.results.totalEnergyUsed_Wh,
-        totalSolarGenerated_Wh: payload.results.totalSolarGenerated_Wh,
-        finalSOC: missionResult.frames.length > 0 
-          ? missionResult.frames[missionResult.frames.length - 1].batteryState.soc 
-          : 0,
-      };
-      
-      // Build calculation steps
-      const steps: string[] = [
-        `Battery Pack Configuration: ${pack.S_count}S${pack.P_count}P, ${pack.capacity_mAh}mAh cells, ${pack.chemistry.name} chemistry`,
-        `Pack Voltage: ${(pack.chemistry.nominalVoltage * pack.S_count).toFixed(2)}V`,
-        `Pack Capacity: ${(pack.capacity_mAh * pack.P_count).toFixed(0)}mAh`,
-        `Pack Energy: ${payload.configuration.battery.energy_Wh.toFixed(2)}Wh`,
-        `Solar Panel: ${solarConfig.area_m2.toFixed(2)}m², ${(solarConfig.efficiency * 100).toFixed(1)}% efficiency, ${(solarConfig.mpptEfficiency * 100).toFixed(1)}% MPPT efficiency`,
-        `Total Load: ${Object.values(loads).reduce((sum, val) => sum + (typeof val === 'number' ? val : 0), 0).toFixed(1)}W`,
-        `Mission Duration: ${phases.reduce((sum, p) => sum + p.duration, 0)} minutes`,
-        `Simulated ${missionResult.frames.length} time steps (1 minute each)`,
-        `Endurance: ${(missionResult.endurance_min / 60).toFixed(2)} hours`,
-        `Solar Fraction: ${(missionResult.solarFraction * 100).toFixed(1)}%`,
-        `Power Margin Range: ${missionResult.minPowerMargin_W.toFixed(1)}W to ${Math.max(...missionResult.frames.map(f => f.powerMargin_W)).toFixed(1)}W`,
-      ];
-      
-        const eventPayload = buildCalculationEvent({
-          toolId: 'power-system',
-          toolName: 'Battery & Solar Power System',
-          inputs,
-          results,
-          steps,
-          metadata: {
-            units: {
-              capacity: 'mAh',
-              voltage: 'V',
-              energy: 'Wh',
-              power: 'W',
-              time: 'minutes',
-              area: 'm²',
-              temperature: '°C',
-            },
-            warnings: payload.warnings,
-            recommendations: payload.recommendations,
-          },
-        });
 
-        const eventResponse = await sendCalculationEvent(eventPayload);
-
-        updateToolContext({
-          tool: 'Battery & Solar Power System',
-          inputs,
-          results,
-        });
-      
-      // Update requestId if generated by sendCalculationEvent
-      if (eventResponse?.requestId) {
-        setLastRequestId(eventResponse.requestId);
-      }
-      
-      // Store payload for AI/PDF export
-      setLastPayload(payload);
+        await applyToolPayload(payload);
       
       toast({
         title: 'Simulation Complete',
@@ -278,7 +238,7 @@ export default function PowerSystemCalculator() {
         variant: 'destructive',
       });
     }
-  }, [pack, solarConfig, loads, phases, location, dayOfYear, toast, sendCalculationEvent, updateToolContext]);
+  }, [applyToolPayload, pack, solarConfig, loads, phases, location, dayOfYear, toast]);
   
   return (
     <ErrorBoundary toolName="Battery & Solar Power System">
@@ -400,40 +360,11 @@ export default function PowerSystemCalculator() {
         <AeroButton onClick={handleCalculate} icon={Calculator}>
           Run Simulation
         </AeroButton>
-        {result && lastRequestId && lastPayload && (
+          {result && lastRequestId && lastPayload && (
           <>
             <AskAIButton 
               requestId={lastRequestId} 
-              payload={{
-                requestId: lastRequestId,
-                toolName: 'Battery & Solar Power System',
-                inputs: {
-                  battery: {
-                    chemistry: pack.chemistry.name,
-                    capacity_mAh: pack.capacity_mAh,
-                    series: pack.S_count,
-                    parallel: pack.P_count,
-                    cycles: pack.cycles,
-                    temperature: pack.temperature,
-                  },
-                  solar: solarConfig,
-                  loads,
-                  location,
-                  dayOfYear,
-                },
-                results: {
-                  endurance_min: result.endurance_min,
-                  endurance_hours: result.endurance_min / 60,
-                  solarFraction: result.solarFraction,
-                  minPowerMargin_W: result.minPowerMargin_W,
-                  maxVoltage: result.maxVoltage,
-                  minVoltage: result.minVoltage,
-                },
-                metadata: {
-                  warnings: lastPayload.warnings,
-                  recommendations: lastPayload.recommendations,
-                },
-              }}
+                payload={lastPayload}
             />
             <PDFExportButton toolName="Battery & Solar Power System" requestId={lastRequestId} />
           </>

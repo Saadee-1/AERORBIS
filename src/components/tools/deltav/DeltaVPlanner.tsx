@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
 import { MissionParameters, Stage, MissionResult } from "./types";
 import {
   calculateDeltaVBreakdown,
@@ -53,7 +52,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
-import { buildAeroversePayload } from "@/ai/buildPayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -61,15 +59,18 @@ import { ToolActions } from "@/components/layout/ToolActions";
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
-import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
+import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
+import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
+import { buildDeltaVPayload, DeltaVUnitSystem } from "./payloadBuilder";
 
-type UnitSystem = "SI" | "Imperial" | "Custom";
+type UnitSystem = DeltaVUnitSystem;
 
 const DeltaVPlanner = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
   const [customUnitName, setCustomUnitName] = useState("Unit-Δv");
   const [customFactor, setCustomFactor] = useState("1.0");
@@ -87,6 +88,57 @@ const DeltaVPlanner = () => {
   const [result, setResult] = useState<MissionResult | null>(null);
   const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
+
+  const getLatestStoredRequestId = useCallback((): string | null => {
+    try {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith("calc-"));
+      if (storedKeys.length === 0) return null;
+      const latestKey = storedKeys.sort().reverse()[0];
+      return latestKey.replace("calc-", "");
+    } catch (error) {
+      console.warn("Unable to read stored calculation IDs:", error);
+      return null;
+    }
+  }, []);
+
+  const applyToolPayload = useCallback(
+    async (payload: AeroverseAIPayload) => {
+      setLastPayload(payload);
+
+      updateToolContext({
+        tool: "Delta-V Budget Planner",
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+
+      const eventPayload = buildCalculationEvent({
+        toolId: "deltav-planner",
+        toolName: payload.toolName,
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata.steps,
+        metadata: {
+          units: payload.metadata.unitsSystem,
+          approxLevel: payload.metadata.approxLevel,
+          confidence: payload.metadata.confidence,
+          warnings: payload.metadata.warnings,
+        },
+      });
+
+      try {
+        const eventResponse = await sendCalculationEvent(eventPayload);
+        const requestId = eventResponse?.requestId ?? getLatestStoredRequestId();
+        setLastRequestId(requestId);
+        return requestId;
+      } catch (error) {
+        console.warn("Failed to send calculation event:", error);
+        const fallbackId = getLatestStoredRequestId();
+        setLastRequestId(fallbackId);
+        return fallbackId;
+      }
+    },
+    [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
+  );
 
   // Load last mission on mount
   useEffect(() => {
@@ -170,124 +222,56 @@ const DeltaVPlanner = () => {
     return `${converted.toFixed(1)} ${unit}`;
   };
 
-  // Update result
+  // Update result + AI payload when state changes
   useEffect(() => {
-    if (stageResults.length > 0) {
-      const resultData = {
-        mission,
-        stages: stageResults,
-        breakdown,
-        totalLiftoffMass:
-          stageResults.reduce((sum, r) => sum + r.initialMass, 0) + mission.payloadMass,
-        payloadMass: mission.payloadMass,
-        warnings,
-        recommendations,
-      };
-      
-      // Generate calculation steps for PDF
-      const calculationSteps = [
-        `Mission: ${mission.orbitType} at ${mission.targetOrbitAltitude} km altitude`,
-        `Target inclination: ${mission.targetInclination}°`,
-        `Payload mass: ${mission.payloadMass} kg`,
-        `Number of stages: ${stages.length}`,
-        `Total required Δv: ${breakdown.totalRequired.toFixed(1)} m/s`,
-        `Total achievable Δv: ${totalAchievable.toFixed(1)} m/s`,
-        `Feasibility: ${breakdown.isFeasible ? "Feasible" : "Not Feasible"}`,
-        `Total liftoff mass: ${resultData.totalLiftoffMass.toFixed(1)} kg`,
-        ...stageResults.map((sr, i) => 
-          `Stage ${i + 1}: Δv = ${sr.achievableDeltaV.toFixed(1)} m/s, Initial mass = ${sr.initialMass.toFixed(1)} kg, Final mass = ${sr.finalMass.toFixed(1)} kg`
-        )
-      ];
-      
-      // Send calculation event to assistant
-      sendCalculationEvent({
-        toolId: "deltav-planner",
-        toolName: "Delta-V Budget Planner",
-        inputs: {
-          targetOrbitAltitude: mission.targetOrbitAltitude,
-          orbitType: mission.orbitType,
-          targetInclination: mission.targetInclination,
-          payloadMass: mission.payloadMass,
-          gravityLoss: mission.gravityLoss,
-          dragLoss: mission.dragLoss,
-          steeringLoss: mission.steeringLoss,
-          reserveMargin: mission.reserveMargin,
-          numberOfStages: stages.length,
-          stages: stages.map(s => ({
-            name: s.name,
-            dryMass: s.dryMass,
-            propellantMass: s.propellantMass,
-            ispSeaLevel: s.ispSeaLevel,
-            ispVacuum: s.ispVacuum,
-            useVacuumIsp: s.useVacuumIsp
-          })),
-          unitSystem
-        },
-        results: {
-          totalRequiredDeltaV: breakdown.totalRequired,
-          totalAchievableDeltaV: totalAchievable,
-          feasibility: breakdown.isFeasible,
-          totalLiftoffMass: resultData.totalLiftoffMass,
-          payloadMass: mission.payloadMass,
-          stageResults: stageResults.map(sr => ({
-            stageName: sr.stage.name,
-            achievableDeltaV: sr.achievableDeltaV,
-            initialMass: sr.initialMass,
-            finalMass: sr.finalMass
-          }))
-        },
-        steps: calculationSteps,
-        metadata: {
-          units: unitSystem,
-          approxLevel: "exact",
-          confidence: "high",
-          warnings,
-          recommendations
-        }
-      }).then((eventResponse) => {
-        // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
-        setLastRequestId(eventResponse?.requestId || null);
-      }).catch((error) => {
-        console.warn("Failed to send calculation event:", error);
-        // Even on error, try to get requestId from localStorage
-        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
-        if (storedKeys.length > 0) {
-          const latestKey = storedKeys.sort().reverse()[0];
-          const requestId = latestKey.replace('calc-', '');
-          setLastRequestId(requestId);
-        }
-      });
-      
-      setResult(resultData);
-      
-      // Update AI assistant context
-      updateToolContext({
-        tool: "Delta-V Budget Planner",
-        inputs: {
-          targetOrbitAltitude: `${mission.targetOrbitAltitude} km`,
-          orbitType: mission.orbitType,
-          targetInclination: `${mission.targetInclination}°`,
-          payloadMass: `${mission.payloadMass} kg`,
-          gravityLoss: formatDeltaV(mission.gravityLoss),
-          dragLoss: formatDeltaV(mission.dragLoss),
-          steeringLoss: formatDeltaV(mission.steeringLoss),
-          reserveMargin: `${mission.reserveMargin}%`,
-          numberOfStages: stages.length
-        },
-        results: {
-          totalRequiredDeltaV: formatDeltaV(breakdown.totalRequired),
-          totalAchievableDeltaV: formatDeltaV(totalAchievable),
-          feasibility: breakdown.totalRequired <= totalAchievable ? "Feasible" : "Not Feasible",
-          totalLiftoffMass: `${resultData.totalLiftoffMass.toFixed(1)} kg`,
-          payloadMass: `${mission.payloadMass} kg`,
-          warnings: warnings.length > 0 ? warnings.join("; ") : "None",
-          recommendations: recommendations.length > 0 ? recommendations.join("; ") : "None"
-        }
-      });
-    } else {
+    if (stageResults.length === 0) {
       setResult(null);
+      setLastPayload(null);
+      setLastRequestId(null);
+      return;
     }
-  }, [mission, stageResults, breakdown, warnings, recommendations, totalAchievable, stages, unitSystem, sendCalculationEvent, updateToolContext]);
+
+    const totalLiftoffMass =
+      stageResults.reduce((sum, r) => sum + r.initialMass, 0) + mission.payloadMass;
+
+    const resultData: MissionResult = {
+      mission,
+      stages: stageResults,
+      breakdown,
+      totalLiftoffMass,
+      payloadMass: mission.payloadMass,
+      warnings,
+      recommendations,
+    };
+
+    setResult(resultData);
+
+    const payload = buildDeltaVPayload({
+      mission,
+      stages,
+      stageResults,
+      breakdown,
+      totalLiftoffMass,
+      warnings,
+      recommendations,
+      unitSystem,
+      customUnitName,
+      customFactor,
+    });
+
+    void applyToolPayload(payload);
+  }, [
+    applyToolPayload,
+    breakdown,
+    customFactor,
+    customUnitName,
+    mission,
+    recommendations,
+    stageResults,
+    stages,
+    unitSystem,
+    warnings,
+  ]);
 
   const loadPreset = useCallback((preset: typeof MISSION_PRESETS[0]) => {
     setMission(preset.mission);
@@ -528,101 +512,25 @@ const DeltaVPlanner = () => {
           <div className={spacingVertical.L}>
             {/* Summary Card */}
             {result ? (
-              <AeroCard
-                title="Mission Summary"
-                headerActions={
-                  lastRequestId && result && breakdown && stageResults.length > 0 ? (
-                    <div className="flex gap-2">
-                      <AskAIButton 
-                        requestId={lastRequestId} 
-                        payload={buildAeroversePayload({
-                          toolName: "Delta-V Budget Planner",
-                          requestId: lastRequestId || undefined,
-                          inputs: {
-                            targetOrbitAltitude: mission.targetOrbitAltitude,
-                            orbitType: mission.orbitType,
-                            targetInclination: mission.targetInclination,
-                            payloadMass: mission.payloadMass,
-                            gravityLoss: mission.gravityLoss,
-                            dragLoss: mission.dragLoss,
-                            steeringLoss: mission.steeringLoss,
-                            reserveMargin: mission.reserveMargin,
-                            numberOfStages: stages.length,
-                            stages: stages.map(s => ({
-                              name: s.name,
-                              dryMass: s.dryMass,
-                              propellantMass: s.propellantMass,
-                              ispSeaLevel: s.ispSeaLevel,
-                              ispVacuum: s.ispVacuum,
-                              useVacuumIsp: s.useVacuumIsp
-                            })),
-                            unitSystem
-                          },
-                          results: {
-                            totalRequiredDeltaV: breakdown.totalRequired,
-                            totalAchievableDeltaV: breakdown.totalAchievable || 0,
-                            feasibility: breakdown.isFeasible,
-                            totalLiftoffMass: result.totalLiftoffMass,
-                            payloadMass: mission.payloadMass,
-                            stageResults: stageResults.map(sr => ({
-                              stageName: sr.stage.name,
-                              achievableDeltaV: sr.achievableDeltaV,
-                              initialMass: sr.initialMass,
-                              finalMass: sr.finalMass
-                            }))
-                          },
-                          units: {
-                            targetOrbitAltitude: unitSystem === "Imperial" ? "mi" : "km",
-                            targetInclination: "deg",
-                            payloadMass: unitSystem === "Imperial" ? "lb" : "kg",
-                            gravityLoss: "m/s",
-                            dragLoss: "m/s",
-                            steeringLoss: "m/s",
-                            reserveMargin: "%",
-                            totalRequiredDeltaV: "m/s",
-                            totalAchievableDeltaV: "m/s",
-                            totalLiftoffMass: unitSystem === "Imperial" ? "lb" : "kg"
-                          },
-                          configuration: {
-                            unitSystem,
-                            orbitType: mission.orbitType,
-                            numberOfStages: stages.length
-                          },
-                          charts: [{
-                            id: "deltav-chart",
-                            title: "Delta-V Budget Chart",
-                            dataSummary: `Required vs achievable Δv comparison`
-                          }, {
-                            id: "mass-breakdown-chart",
-                            title: "Mass Breakdown Chart",
-                            dataSummary: `Stage mass distribution`
-                          }],
-                          metadata: {
-                            steps: [
-                              `Mission: ${mission.orbitType} at ${mission.targetOrbitAltitude} km`,
-                              `Total Required Δv: ${breakdown.totalRequired.toFixed(2)} m/s`,
-                              `Total Achievable Δv: ${(breakdown.totalAchievable || 0).toFixed(2)} m/s`,
-                              `Feasibility: ${breakdown.isFeasible ? "Feasible" : "Not Feasible"}`,
-                              ...stageResults.map(sr => `Stage ${sr.stage.name}: ${sr.achievableDeltaV.toFixed(2)} m/s`)
-                            ],
-                            unitsSystem: unitSystem,
-                            approxLevel: "exact",
-                            confidence: "high",
-                            warnings: warnings || [],
-                            recommendations: recommendations || []
-                          }
-                        })}
-                        disabled={!result || !breakdown || stageResults.length === 0}
-                      />
-                      <PDFExportButton 
-                        requestId={lastRequestId} 
-                        toolName="Delta-V Budget Planner"
-                        disabled={!lastRequestId}
-                      />
-                    </div>
-                  ) : null
-                }
-              >
+                <AeroCard
+                  title="Mission Summary"
+                  headerActions={
+                    result && breakdown && stageResults.length > 0 ? (
+                      <div className="flex gap-2">
+                        <AskAIButton
+                          requestId={lastRequestId}
+                          payload={lastPayload || undefined}
+                          disabled={!lastPayload}
+                        />
+                        <PDFExportButton
+                          requestId={lastRequestId}
+                          toolName="Delta-V Budget Planner"
+                          disabled={!lastRequestId}
+                        />
+                      </div>
+                    ) : null
+                  }
+                >
                 <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
                   <p className="text-sm text-gray-400 mb-1">Total Liftoff Mass</p>
                   <p className="text-3xl font-bold text-cyan-400">

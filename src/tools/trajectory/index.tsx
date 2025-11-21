@@ -33,6 +33,7 @@ import { run2D, Trajectory2DResult } from './utils/solver/run2d';
 import { run3D, Trajectory3DResult } from './utils/solver/run3d';
 import { buildTrajectoryPayload } from './utils/payloadBuilder';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
+import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { STAGE_PRESETS, getStage } from './data/stagePresets';
 
 import { PlanetSelector } from './components/PlanetSelector';
@@ -47,6 +48,7 @@ export default function TrajectorySimulator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
 
   // Simulation mode
   const [mode, setMode] = useState<'1D' | '2D' | '3D'>('1D');
@@ -104,6 +106,57 @@ export default function TrajectorySimulator() {
     enableOrbitalLaunch: false,
     engineSelectionMode: 'manual',
   });
+
+  const getLatestStoredRequestId = useCallback((): string | null => {
+    try {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith('calc-'));
+      if (storedKeys.length === 0) return null;
+      const latestKey = storedKeys.sort().reverse()[0];
+      return latestKey.replace('calc-', '');
+    } catch (error) {
+      console.warn('Unable to read stored calculation IDs:', error);
+      return null;
+    }
+  }, []);
+
+  const applyToolPayload = useCallback(
+    async (payload: AeroverseAIPayload) => {
+      setLastPayload(payload);
+
+      updateToolContext({
+        tool: 'Rocket Trajectory Simulator',
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+
+      const eventPayload = buildCalculationEvent({
+        toolId: 'rocket-trajectory',
+        toolName: payload.toolName,
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata.steps,
+        metadata: {
+          units: payload.metadata.unitsSystem,
+          approxLevel: payload.metadata.approxLevel,
+          confidence: payload.metadata.confidence,
+          warnings: payload.metadata.warnings,
+        },
+      });
+
+      try {
+        const eventResponse = await sendCalculationEvent(eventPayload);
+        const requestId = eventResponse?.requestId ?? getLatestStoredRequestId();
+        setLastRequestId(requestId);
+        return requestId;
+      } catch (error) {
+        console.warn('Failed to send calculation event:', error);
+        const fallbackId = getLatestStoredRequestId();
+        setLastRequestId(fallbackId);
+        return fallbackId;
+      }
+    },
+    [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
+  );
 
   // Validation
   const validateInputs = useCallback((): string[] => {
@@ -187,7 +240,7 @@ export default function TrajectorySimulator() {
   }, [stages, timeStep, maxTime, selectedPlanet, advancedSettings]);
 
   // Run simulation
-  const runSimulation = useCallback(() => {
+  const runSimulation = useCallback(async () => {
     const validationErrors = validateInputs();
     setErrors(validationErrors.filter(e => !e.startsWith('Warning:')));
     
@@ -203,6 +256,10 @@ export default function TrajectorySimulator() {
     setIsRunning(true);
     
     try {
+      let nextResult1D: Trajectory1DResult | null = null;
+      let nextResult2D: Trajectory2DResult | null = null;
+      let nextResult3D: Trajectory3DResult | null = null;
+
       if (mode === '1D') {
         const result = run1D({
           planet: selectedPlanet,
@@ -214,6 +271,7 @@ export default function TrajectorySimulator() {
         setResult1D(result);
         setResult2D(null);
         setResult3D(null);
+        nextResult1D = result;
       } else if (mode === '2D') {
         const result = run2D({
           planet: selectedPlanet,
@@ -226,6 +284,7 @@ export default function TrajectorySimulator() {
         setResult1D(null);
         setResult2D(result);
         setResult3D(null);
+        nextResult2D = result;
       } else if (mode === '3D') {
         const result = run3D({
           planet: selectedPlanet,
@@ -238,7 +297,31 @@ export default function TrajectorySimulator() {
         setResult1D(null);
         setResult2D(null);
         setResult3D(result);
+        nextResult3D = result;
       }
+
+        const payload = buildTrajectoryPayload({
+        mode,
+        planet: selectedPlanet,
+        stages,
+        guidance: mode === '2D' ? guidance2D : mode === '3D' ? guidance3D : undefined,
+        result1D: nextResult1D,
+        result2D: nextResult2D,
+        result3D: nextResult3D,
+        advancedFeatures: {
+          performanceMode: advancedSettings.performanceMode,
+          enableJ2: advancedSettings.enableJ2,
+          enableAerobraking: advancedSettings.enableAerobraking,
+          enableMissileMode: advancedSettings.enableMissileBallistic,
+          enableGuidedMode: advancedSettings.enableGuidedMissile,
+          enableKepler: advancedSettings.enableKepler,
+          enable3D: advancedSettings.enable3D,
+          engineDatabaseUsed: advancedSettings.engineSelectionMode === 'database',
+          downsampleOutput: advancedSettings.downsampleOutput,
+        },
+      });
+
+      await applyToolPayload(payload);
       
       toast({
         title: 'Simulation Complete',
@@ -253,7 +336,7 @@ export default function TrajectorySimulator() {
     } finally {
       setIsRunning(false);
     }
-  }, [mode, selectedPlanet, stages, guidance2D, guidance3D, timeStep, maxTime, maxAltitude, validateInputs, toast]);
+    }, [advancedSettings, applyToolPayload, guidance2D, guidance3D, maxAltitude, maxTime, mode, selectedPlanet, stages, timeStep, toast, validateInputs]);
 
   // Load preset
   const loadPreset = useCallback((presetId: string) => {
@@ -266,71 +349,6 @@ export default function TrajectorySimulator() {
       });
     }
   }, [toast]);
-
-  // Build AI payload
-  const buildAIPayload = useCallback(() => {
-    if (!result1D && !result2D && !result3D) {
-      return null;
-    }
-    
-    return buildTrajectoryPayload({
-      mode,
-      planet: selectedPlanet,
-      stages,
-      guidance: mode === '2D' ? guidance2D : mode === '3D' ? guidance3D : undefined,
-      result1D,
-      result2D,
-      result3D,
-      advancedFeatures: {
-        performanceMode: advancedSettings.performanceMode,
-        enableJ2: advancedSettings.enableJ2,
-        enableAerobraking: advancedSettings.enableAerobraking,
-        enableMissileMode: advancedSettings.enableMissileBallistic,
-        enableGuidedMode: advancedSettings.enableGuidedMissile,
-        enableKepler: advancedSettings.enableKepler,
-        enable3D: advancedSettings.enable3D,
-        engineDatabaseUsed: advancedSettings.engineSelectionMode === 'database',
-        downsampleOutput: advancedSettings.downsampleOutput,
-      },
-    }, lastRequestId || undefined);
-  }, [mode, selectedPlanet, stages, guidance2D, guidance3D, result1D, result2D, result3D, lastRequestId, advancedSettings]);
-
-  // Handle AI request
-    const handleAIRequest = useCallback(async () => {
-    const payload = buildAIPayload();
-    if (!payload) {
-      toast({
-        title: 'No Results',
-        description: 'Run a simulation first',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    const requestId = `trajectory-${Date.now()}`;
-    setLastRequestId(requestId);
-    
-      const eventPayload = buildCalculationEvent({
-        toolId: 'rocket-trajectory',
-        toolName: 'Rocket Trajectory Simulator',
-        inputs: payload.inputs,
-        results: payload.results,
-        steps: payload.metadata?.steps || [],
-        metadata: payload.metadata,
-      });
-
-      const eventResponse = await sendCalculationEvent(eventPayload);
-
-      if (eventResponse?.requestId) {
-        setLastRequestId(eventResponse.requestId);
-      }
-      
-      updateToolContext({
-        tool: 'Rocket Trajectory Simulator',
-        inputs: payload.inputs,
-        results: payload.results,
-      });
-    }, [buildAIPayload, sendCalculationEvent, updateToolContext, toast]);
 
   // Get current result for visualization
   const currentResult = useMemo(() => {
@@ -556,14 +574,15 @@ export default function TrajectorySimulator() {
         </AeroButton>
 
         <PDFExportButton
+          requestId={lastRequestId}
           toolName="Rocket Trajectory Simulator"
-          payload={buildAIPayload()}
-          disabled={!currentResult}
+          disabled={!lastRequestId}
         />
 
         <AskAIButton
-          onClick={handleAIRequest}
-          disabled={!currentResult}
+          requestId={lastRequestId}
+          payload={lastPayload || undefined}
+          disabled={!lastPayload}
         />
       </ToolActions>
       </ToolWrapper>

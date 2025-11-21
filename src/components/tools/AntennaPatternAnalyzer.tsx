@@ -25,7 +25,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -75,7 +74,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
-import { buildAeroversePayload } from "@/ai/buildPayload";
+import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
+import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -89,6 +89,8 @@ import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
+import { buildAntennaPayload } from "./antenna/payloadBuilder";
+import { AntennaResult } from "./antenna/types";
 
 // Import antenna models and math utilities
 import { ANTENNA_TYPES, getAntennaById, AntennaParams } from "@/lib/antenna/models";
@@ -128,24 +130,6 @@ interface SavedAntennaPreset {
 
 const STORAGE_KEY_CUSTOM_PRESETS = "antennaPatternAnalyzer_customPresets";
 
-interface AntennaResult {
-  peakGainDbi: number;
-  peakGainLinear: number;
-  directivity: number;
-  directivityDbi: number;
-  hpbmE: number | null;
-  hpbmH: number | null;
-  sideLobeLevel: number;
-  frontToBackRatio: number;
-  eirp: {
-    eirpWatts: number;
-    eirpDbw: number;
-    eirpDbm: number;
-  };
-  warnings: string[];
-  metadata?: AntennaPatternResult['metadata'];
-}
-
 // ============================================================================
 // Main Component
 // ============================================================================
@@ -154,6 +138,7 @@ const AntennaPatternAnalyzer = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
 
   // State
   const [selectedAntennaId, setSelectedAntennaId] = useState("half-wave-dipole");
@@ -168,7 +153,6 @@ const AntennaPatternAnalyzer = () => {
   const [computeMode, setComputeMode] = useState<"fast" | "accurate">("fast");
   const [show3D, setShow3D] = useState(false);
   const [result, setResult] = useState<AntennaResult | null>(null);
-  const [patternData, setPatternData] = useState<PatternPoint[]>([]);
   const canvas3DRef = useRef<HTMLCanvasElement>(null);
   const three3DRef = useRef<{
     scene: THREE.Scene;
@@ -182,6 +166,57 @@ const AntennaPatternAnalyzer = () => {
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [savePresetName, setSavePresetName] = useState("");
+
+  const getLatestStoredRequestId = useCallback((): string | null => {
+    try {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith("calc-"));
+      if (storedKeys.length === 0) return null;
+      const latestKey = storedKeys.sort().reverse()[0];
+      return latestKey.replace("calc-", "");
+    } catch (error) {
+      console.warn("Unable to read stored calculation IDs:", error);
+      return null;
+    }
+  }, []);
+
+  const applyToolPayload = useCallback(
+    async (payload: AeroverseAIPayload) => {
+      setLastPayload(payload);
+
+      updateToolContext({
+        tool: "Antenna Pattern Analyzer",
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+
+      const eventPayload = buildCalculationEvent({
+        toolId: "antenna-pattern-analyzer",
+        toolName: payload.toolName,
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata.steps,
+        metadata: {
+          units: payload.metadata.unitsSystem,
+          approxLevel: payload.metadata.approxLevel,
+          confidence: payload.metadata.confidence,
+          warnings: payload.metadata.warnings,
+        },
+      });
+
+      try {
+        const eventResponse = await sendCalculationEvent(eventPayload);
+        const requestId = eventResponse?.requestId ?? getLatestStoredRequestId();
+        setLastRequestId(requestId);
+        return requestId;
+      } catch (error) {
+        console.warn("Failed to send calculation event:", error);
+        const fallbackId = getLatestStoredRequestId();
+        setLastRequestId(fallbackId);
+        return fallbackId;
+      }
+    },
+    [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
+  );
 
   // Load custom frequency unit settings
   useEffect(() => {
@@ -364,6 +399,65 @@ const AntennaPatternAnalyzer = () => {
     return data;
   }, [patternResult]);
 
+  const chartData = useMemo(() => {
+    const ePlane = generatedPattern.filter((p) => Math.abs(p.phi - 0) < 1);
+    const hPlane = generatedPattern.filter((p) => Math.abs(p.phi - 90) < 1);
+
+    const sortedEPlane = [...ePlane].sort((a, b) => a.theta - b.theta);
+    const sortedHPlane = [...hPlane].sort((a, b) => a.theta - b.theta);
+
+    const interpolateData = (data: PatternPoint[], targetPoints: number = 361) => {
+      if (data.length === 0) return [];
+      if (data.length >= targetPoints) return data;
+
+      const interpolated: Array<{ angle: number; gain: number; gainLinear: number }> = [];
+      const step = 180 / (targetPoints - 1);
+
+      for (let i = 0; i < targetPoints; i++) {
+        const angle = i * step;
+        let lowerIdx = 0;
+        let upperIdx = data.length - 1;
+
+        for (let j = 0; j < data.length - 1; j++) {
+          if (data[j].theta <= angle && data[j + 1].theta >= angle) {
+            lowerIdx = j;
+            upperIdx = j + 1;
+            break;
+          }
+        }
+
+        const lower = data[lowerIdx];
+        const upper = data[upperIdx];
+        const ratio =
+          upperIdx > lowerIdx ? (angle - lower.theta) / (upper.theta - lower.theta) : 0;
+
+        const gainDbi = lower.gainDbi + (upper.gainDbi - lower.gainDbi) * ratio;
+        const gainLinear = lower.gainLinear + (upper.gainLinear - lower.gainLinear) * ratio;
+
+        interpolated.push({
+          angle,
+          gain: isFinite(gainDbi) ? gainDbi : -80,
+          gainLinear: Math.max(0, isFinite(gainLinear) ? gainLinear : 0),
+        });
+      }
+
+      return interpolated;
+    };
+
+    return {
+      ePlane: interpolateData(sortedEPlane, 361).map((p) => ({
+        angle: p.angle,
+        gain: p.gain,
+        gainLinear: p.gainLinear,
+      })),
+      hPlane: interpolateData(sortedHPlane, 361).map((p) => ({
+        angle: p.angle,
+        gain: p.gain,
+        gainLinear: p.gainLinear,
+      })),
+    };
+  }, [generatedPattern]);
+
   // Calculate results from patternResult
   const calculatedResults = useMemo(() => {
     if (!patternResult) return null;
@@ -402,88 +496,48 @@ const AntennaPatternAnalyzer = () => {
   // Update results when calculations change
   useEffect(() => {
     setResult(calculatedResults);
-    setPatternData(generatedPattern);
-    
-    // Send calculation event and update AI assistant context when results are calculated
-    if (calculatedResults && selectedAntenna && patternResult) {
-      const calculationSteps = [
-        `Antenna Type: ${selectedAntenna.name}`,
-        `Frequency: ${frequency} ${frequencyUnit} (λ = ${(lambda * 1000).toFixed(2)} mm)`,
-        `Peak Gain: ${calculatedResults.peakGainDbi.toFixed(2)} dBi (${calculatedResults.peakGainLinear.toFixed(4)} linear)`,
-        `Directivity: ${calculatedResults.directivityDbi.toFixed(2)} dBi`,
-        `EIRP: ${calculatedResults.eirp.eirpDbw.toFixed(2)} dBW (${calculatedResults.eirp.eirpWatts.toFixed(2)} W)`,
-        `HPBW (E-plane): ${calculatedResults.hpbmE ? calculatedResults.hpbmE.toFixed(2) + '°' : 'N/A'}`,
-        `HPBW (H-plane): ${calculatedResults.hpbmH ? calculatedResults.hpbmH.toFixed(2) + '°' : 'N/A'}`,
-        `Side-lobe Level: ${calculatedResults.sideLobeLevel.toFixed(2)} dB`,
-        `Front-to-Back Ratio: ${calculatedResults.frontToBackRatio.toFixed(2)} dB`
-      ];
-      
-      // Send calculation event to assistant
-      sendCalculationEvent({
-        toolId: "antenna-pattern-analyzer",
-        toolName: "Antenna Pattern Analyzer",
-        inputs: {
-          antennaType: selectedAntenna.name,
-          frequency: `${frequency} ${frequencyUnit}`,
-          transmitPower,
-          polarization,
-          resolution,
-          computeMode
-        },
-        results: {
-          peakGainDbi: calculatedResults.peakGainDbi,
-          directivityDbi: calculatedResults.directivityDbi,
-          eirpDbw: calculatedResults.eirp.eirpDbw,
-          hpbmE: calculatedResults.hpbmE,
-          hpbmH: calculatedResults.hpbmH,
-          sideLobeLevel: calculatedResults.sideLobeLevel,
-          frontToBackRatio: calculatedResults.frontToBackRatio,
-          wavelength: lambda * 1000
-        },
-        steps: calculationSteps,
-        metadata: {
-          units: "SI",
-          approxLevel: computeMode === "fast" ? "approximate" : "numeric",
-          confidence: "high",
-          warnings: calculatedResults.warnings
-        }
-      }).then((eventResponse) => {
-        // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
-        setLastRequestId(eventResponse?.requestId || null);
-      }).catch((error) => {
-        console.warn("Failed to send calculation event:", error);
-        // Even on error, try to get requestId from localStorage
-        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
-        if (storedKeys.length > 0) {
-          const latestKey = storedKeys.sort().reverse()[0];
-          const requestId = latestKey.replace('calc-', '');
-          setLastRequestId(requestId);
-        }
+
+    if (calculatedResults && selectedAntenna) {
+      const payload = buildAntennaPayload({
+        antennaId: selectedAntenna.id,
+        antennaName: selectedAntenna.name,
+        antennaParams,
+        frequency,
+        frequencyUnit,
+        customFrequencyUnitName,
+        customFrequencyFactor,
+        frequencyHz,
+        wavelengthMeters: lambda,
+        transmitPower,
+        polarization,
+        resolution,
+        computeMode,
+        result: calculatedResults,
+        chartData,
       });
-      
-      updateToolContext({
-        tool: "Antenna Pattern Analyzer",
-        inputs: {
-          antennaType: selectedAntenna.name,
-          frequency: `${frequency} ${frequencyUnit}`,
-          transmitPower: `${transmitPower} W`,
-          polarization,
-          resolution: `${resolution}°`,
-          computeMode
-        },
-        results: {
-          peakGain: `${calculatedResults.peakGainDbi.toFixed(2)} dBi`,
-          directivity: `${calculatedResults.directivityDbi.toFixed(2)} dBi`,
-          eirp: `${calculatedResults.eirp.eirpDbw.toFixed(2)} dBW`,
-          hpbmE: calculatedResults.hpbmE ? `${calculatedResults.hpbmE.toFixed(2)}°` : "N/A",
-          hpbmH: calculatedResults.hpbmH ? `${calculatedResults.hpbmH.toFixed(2)}°` : "N/A",
-          sideLobeLevel: `${calculatedResults.sideLobeLevel.toFixed(2)} dB`,
-          frontToBackRatio: `${calculatedResults.frontToBackRatio.toFixed(2)} dB`,
-          wavelength: `${(lambda * 1000).toFixed(2)} mm`
-        }
-      });
+
+      void applyToolPayload(payload);
+    } else {
+      setLastPayload(null);
+      setLastRequestId(null);
     }
-  }, [calculatedResults, generatedPattern, selectedAntenna, frequency, frequencyUnit, transmitPower, polarization, resolution, computeMode, lambda, patternResult, sendCalculationEvent, updateToolContext]);
+  }, [
+    antennaParams,
+    applyToolPayload,
+    calculatedResults,
+    chartData,
+    customFrequencyFactor,
+    customFrequencyUnitName,
+    frequency,
+    frequencyHz,
+    frequencyUnit,
+    lambda,
+    polarization,
+    resolution,
+    selectedAntenna,
+    transmitPower,
+    computeMode,
+  ]);
 
   // Memoize 3D geometry to avoid rebuilding on every render
   const three3DGeometry = useMemo(() => {
@@ -826,75 +880,6 @@ const AntennaPatternAnalyzer = () => {
     setAntennaParams((prev) => ({ ...prev, [key]: value }));
   };
 
-
-  // Prepare chart data for polar plot with smooth interpolation (720+ points)
-  const chartData = useMemo(() => {
-    // Separate E-plane and H-plane data
-    const ePlane = generatedPattern.filter((p) => Math.abs(p.phi - 0) < 1); // Allow small tolerance
-    const hPlane = generatedPattern.filter((p) => Math.abs(p.phi - 90) < 1);
-
-    // Sort by angle for proper plotting
-    const sortedEPlane = [...ePlane].sort((a, b) => a.theta - b.theta);
-    const sortedHPlane = [...hPlane].sort((a, b) => a.theta - b.theta);
-
-    // Ensure we have at least 180 points (0.5° resolution) for smooth curves
-    // If we have fewer, interpolate
-    const interpolateData = (data: PatternPoint[], targetPoints: number = 361) => {
-      if (data.length === 0) return [];
-      if (data.length >= targetPoints) return data;
-
-      const interpolated: Array<{ angle: number; gain: number; gainLinear: number }> = [];
-      const step = 180 / (targetPoints - 1);
-
-      for (let i = 0; i < targetPoints; i++) {
-        const angle = i * step;
-        
-        // Find surrounding points for interpolation
-        let lowerIdx = 0;
-        let upperIdx = data.length - 1;
-        
-        for (let j = 0; j < data.length - 1; j++) {
-          if (data[j].theta <= angle && data[j + 1].theta >= angle) {
-            lowerIdx = j;
-            upperIdx = j + 1;
-            break;
-          }
-        }
-
-        // Linear interpolation
-        const lower = data[lowerIdx];
-        const upper = data[upperIdx];
-        const ratio = upperIdx > lowerIdx 
-          ? (angle - lower.theta) / (upper.theta - lower.theta)
-          : 0;
-        
-        const gainDbi = lower.gainDbi + (upper.gainDbi - lower.gainDbi) * ratio;
-        const gainLinear = lower.gainLinear + (upper.gainLinear - lower.gainLinear) * ratio;
-
-        interpolated.push({
-          angle,
-          gain: isFinite(gainDbi) ? gainDbi : -80,
-          gainLinear: Math.max(0, isFinite(gainLinear) ? gainLinear : 0),
-        });
-      }
-
-      return interpolated;
-    };
-
-    return {
-      ePlane: interpolateData(sortedEPlane, 361).map((p) => ({
-        angle: p.angle,
-        gain: p.gain,
-        gainLinear: p.gainLinear,
-      })),
-      hPlane: interpolateData(sortedHPlane, 361).map((p) => ({
-        angle: p.angle,
-        gain: p.gain,
-        gainLinear: p.gainLinear,
-      })),
-    };
-  }, [generatedPattern]);
-
   return (
     <ToolWrapper>
       <ToolHeader
@@ -1100,70 +1085,20 @@ const AntennaPatternAnalyzer = () => {
             {result && (
               <AeroCard
                 title="Results Summary"
-                headerActions={
-                  <div className="flex gap-2">
-                    <AskAIButton 
-                      requestId={lastRequestId} 
-                      payload={result && selectedAntenna ? buildAeroversePayload({
-                        toolName: "Antenna Pattern Analyzer",
-                        requestId: lastRequestId || undefined,
-                        inputs: {
-                          antennaType: selectedAntenna.name,
-                          frequency: `${frequency} ${frequencyUnit}`,
-                          transmitPower,
-                          polarization,
-                          resolution: `${resolution}°`,
-                          computeMode
-                        },
-                        results: {
-                          peakGainDbi: result.peakGainDbi,
-                          directivityDbi: result.directivityDbi,
-                          eirpDbw: result.eirp.eirpDbw,
-                          hpbmE: result.hpbmE,
-                          hpbmH: result.hpbmH,
-                          sideLobeLevel: result.sideLobeLevel,
-                          frontToBackRatio: result.frontToBackRatio,
-                          wavelength: lambda * 1000
-                        },
-                        units: {
-                          frequency: frequencyUnit,
-                          transmitPower: "W",
-                          peakGainDbi: "dBi",
-                          eirpDbw: "dBW"
-                        },
-                        configuration: {
-                          resolution: `${resolution}°`,
-                          computeMode,
-                          polarization
-                        },
-                        charts: chartData && chartData.ePlane && chartData.ePlane.length > 0 ? [{
-                          id: "polar-pattern",
-                          title: "2D Polar Radiation Pattern",
-                          dataSummary: `${selectedAntenna.name} pattern at ${frequency} ${frequencyUnit}`
-                        }] : [],
-                        metadata: {
-                          steps: result ? [
-                            `Antenna Type: ${selectedAntenna.name}`,
-                            `Frequency: ${frequency} ${frequencyUnit}`,
-                            `Peak Gain: ${result.peakGainDbi.toFixed(2)} dBi`,
-                            `Directivity: ${result.directivityDbi.toFixed(2)} dBi`,
-                            `EIRP: ${result.eirp.eirpDbw.toFixed(2)} dBW`
-                          ] : [],
-                          unitsSystem: "SI",
-                          approxLevel: computeMode === "fast" ? "approximate" : "numeric",
-                          confidence: "high",
-                          warnings: result?.warnings || []
-                        }
-                      }) : null}
-                      disabled={!result || !selectedAntenna}
-                    />
-                    <PDFExportButton 
-                      requestId={lastRequestId} 
-                      toolName="Antenna Pattern Analyzer"
-                      disabled={!lastRequestId}
-                    />
-                  </div>
-                }
+                  headerActions={
+                    <div className="flex gap-2">
+                      <AskAIButton
+                        requestId={lastRequestId}
+                        payload={lastPayload || undefined}
+                        disabled={!lastPayload}
+                      />
+                      <PDFExportButton
+                        requestId={lastRequestId}
+                        toolName="Antenna Pattern Analyzer"
+                        disabled={!lastRequestId}
+                      />
+                    </div>
+                  }
               >
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">

@@ -1,7 +1,7 @@
 "use client";
 
 import { Material, UnitSystem } from "./types";
-import { convertDensityToImperial, formatDensity } from "./unitConversion";
+import { convertDensityToImperial } from "./unitConversion";
 import {
   Sheet,
   SheetContent,
@@ -11,12 +11,17 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Database, Ruler, Info } from "lucide-react";
+import { AskAIButton } from "@/components/tools/AskAIButton";
+import { PDFExportButton } from "@/components/tools/PDFExportButton";
+import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
 
 interface MaterialDetailsDrawerProps {
   material: Material | null;
   unitSystem: UnitSystem;
   isOpen: boolean;
   onClose: () => void;
+  requestId: string | null;
+  payload: AeroverseAIPayload | null;
 }
 
 const MaterialDetailsDrawer = ({
@@ -24,6 +29,8 @@ const MaterialDetailsDrawer = ({
   unitSystem,
   isOpen,
   onClose,
+  requestId,
+  payload,
 }: MaterialDetailsDrawerProps) => {
   if (!material) return null;
 
@@ -89,6 +96,19 @@ const MaterialDetailsDrawer = ({
               internally in SI units (kg/m³). All conversions are calculated dynamically.
             </p>
           </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <AskAIButton
+                requestId={requestId}
+                payload={payload || undefined}
+                disabled={!payload}
+              />
+              <PDFExportButton
+                requestId={requestId}
+                toolName="Materials Density Database"
+                disabled={!requestId}
+              />
+            </div>
         </div>
       </SheetContent>
     </Sheet>

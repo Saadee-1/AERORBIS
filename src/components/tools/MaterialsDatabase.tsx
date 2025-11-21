@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Material, UnitSystem } from "./types";
 import MaterialTable from "./MaterialTable";
@@ -18,8 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Database, Search, Filter, Plus, Ruler, Settings2 } from "lucide-react";
+import { Database, Search, Filter, Plus, Settings2 } from "lucide-react";
 import { useToolContext } from "@/hooks/useToolContext";
+import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
+import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
+import { buildMaterialsPayload } from "./materials/payloadBuilder";
 
 // Full Aerospace Materials Database
 const MATERIALS: Material[] = [
@@ -76,7 +79,7 @@ const CATEGORIES = [
 ];
 
 const MaterialsDatabase = () => {
-  const { updateToolContext } = useToolContext();
+  const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [materials, setMaterials] = useState<Material[]>(MATERIALS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -86,6 +89,59 @@ const MaterialsDatabase = () => {
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
+
+  const getLatestStoredRequestId = useCallback((): string | null => {
+    try {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith("calc-"));
+      if (storedKeys.length === 0) return null;
+      const latestKey = storedKeys.sort().reverse()[0];
+      return latestKey.replace("calc-", "");
+    } catch (error) {
+      console.warn("Unable to read stored calculation IDs:", error);
+      return null;
+    }
+  }, []);
+
+  const applyToolPayload = useCallback(
+    async (payload: AeroverseAIPayload) => {
+      setLastPayload(payload);
+
+      updateToolContext({
+        tool: "Materials Density Database",
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+
+      const eventPayload = buildCalculationEvent({
+        toolId: "materials-density-database",
+        toolName: payload.toolName,
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata.steps,
+        metadata: {
+          units: payload.metadata.unitsSystem,
+          approxLevel: payload.metadata.approxLevel,
+          confidence: payload.metadata.confidence,
+          warnings: payload.metadata.warnings,
+        },
+      });
+
+      try {
+        const eventResponse = await sendCalculationEvent(eventPayload);
+        const requestId = eventResponse?.requestId ?? getLatestStoredRequestId();
+        setLastRequestId(requestId);
+        return requestId;
+      } catch (error) {
+        console.warn("Failed to send calculation event:", error);
+        const fallbackId = getLatestStoredRequestId();
+        setLastRequestId(fallbackId);
+        return fallbackId;
+      }
+    },
+    [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
+  );
 
   // Load custom materials from localStorage on mount
   useEffect(() => {
@@ -163,25 +219,26 @@ const MaterialsDatabase = () => {
   const handleMaterialClick = (material: Material) => {
     setSelectedMaterial(material);
     setIsDrawerOpen(true);
-    
-    // Update AI assistant context
+
     const densitySI = material.density;
     const densityImperial = densitySI * 0.062428;
-    const densityCustom = unitSystem === "Custom" ? convertDensityToCustom(densitySI) : 0;
-    updateToolContext({
-      tool: "Materials Density Database",
-      inputs: {
-        materialName: material.name,
-        category: material.category,
-        unitSystem
-      },
-      results: {
-        densitySI: `${densitySI} kg/m³`,
-        densityImperial: `${densityImperial.toFixed(2)} lb/ft³`,
-        densityCustom: unitSystem === "Custom" ? `${densityCustom.toFixed(2)} ${customUnitName}` : undefined,
-        description: material.description
-      }
+    const densityCustom =
+      unitSystem === "Custom" ? convertDensityToCustom(densitySI) : undefined;
+
+    const payload = buildMaterialsPayload({
+      material,
+      unitSystem,
+      densitySI,
+      densityImperial,
+      densityCustom,
+      customUnitName,
+      searchQuery,
+      selectedCategory,
+      totalCount: materials.length,
+      filteredCount: filteredMaterials.length,
     });
+
+    void applyToolPayload(payload);
   };
 
   const handleAddMaterial = (material: Material) => {
@@ -396,12 +453,14 @@ const MaterialsDatabase = () => {
       </div>
 
       {/* Material Details Drawer */}
-      <MaterialDetailsDrawer
-        material={selectedMaterial}
-        unitSystem={unitSystem}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
+        <MaterialDetailsDrawer
+          material={selectedMaterial}
+          unitSystem={unitSystem}
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          requestId={lastRequestId}
+          payload={lastPayload}
+        />
 
       {/* Add Material Dialog */}
       <AddMaterialDialog

@@ -30,6 +30,8 @@ import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
+import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
+import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -113,6 +115,7 @@ const AdvancedThrustCalculator = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
 
   // --- State ---
@@ -148,6 +151,56 @@ const AdvancedThrustCalculator = () => {
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [savePresetName, setSavePresetName] = useState("");
+  const getLatestStoredRequestId = useCallback((): string | null => {
+    try {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith("calc-"));
+      if (storedKeys.length === 0) return null;
+      const latestKey = storedKeys.sort().reverse()[0];
+      return latestKey.replace("calc-", "");
+    } catch (err) {
+      console.warn("Unable to read stored calculation IDs:", err);
+      return null;
+    }
+  }, []);
+
+  const applyToolPayload = useCallback(
+    async (payload: AeroverseAIPayload) => {
+      setLastPayload(payload);
+
+      updateToolContext({
+        tool: "Thrust",
+        inputs: payload.inputs,
+        results: payload.results,
+      });
+
+      const eventPayload = buildCalculationEvent({
+        toolId: "thrust-calculator",
+        toolName: payload.toolName,
+        inputs: payload.inputs,
+        results: payload.results,
+        steps: payload.metadata.steps,
+        metadata: {
+          units: payload.metadata.unitsSystem,
+          approxLevel: payload.metadata.approxLevel,
+          confidence: payload.metadata.confidence,
+          warnings: payload.metadata.warnings,
+        },
+      });
+
+      try {
+        const eventResponse = await sendCalculationEvent(eventPayload);
+        const requestId = eventResponse?.requestId ?? getLatestStoredRequestId();
+        setLastRequestId(requestId);
+        return requestId;
+      } catch (err) {
+        console.warn("Failed to send calculation event:", err);
+        const fallbackId = getLatestStoredRequestId();
+        setLastRequestId(fallbackId);
+        return fallbackId;
+      }
+    },
+    [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
+  );
 
   // --- Effects for LocalStorage ---
   useEffect(() => {
@@ -274,7 +327,7 @@ const AdvancedThrustCalculator = () => {
 
   // --- Calculation Functions ---
 
-  const calculatePerformance = () => {
+  const calculatePerformance = async () => {
     try {
       const g0 = getG0(); // Get unit-specific g0
       const rawValues = {
@@ -307,23 +360,38 @@ const AdvancedThrustCalculator = () => {
         setInputs(prev => ({ ...prev, isp: isp.toFixed(1) }));
       }
       
+      const calculationSteps = steps.map(step => `${step.description}: ${step.equation}`);
+
       setPerformanceResult({ ...resultData, steps, solvedFor: solveFor });
       setThrustResult(null); // Clear thrust results
       setChartData([]);
       
-      // Update AI Assistant context
-      updateToolContext({
-        tool: "Thrust",
+      const payload = buildAeroversePayload({
+        toolName: "Thrust Calculator",
         inputs: {
-          isp: inputs.isp || undefined,
-          exhaustVelocity: inputs.exhaustVelocity || undefined,
-          unitSystem: unitSystem,
+          unitSystem,
+          solveMode: "performance",
+          isp_input: inputs.isp || null,
+          exhaustVelocity_input: inputs.exhaustVelocity || null,
         },
         results: {
-          ...resultData,
+          isp_s: resultData.isp ?? null,
+          exhaustVelocity_m_s: resultData.exhaustVelocity ?? null,
           solvedFor: solveFor,
         },
+        units: {
+          isp_s: "s",
+          exhaustVelocity_m_s: "m/s",
+        },
+        metadata: {
+          steps: calculationSteps,
+          unitsSystem: unitSystem,
+          approxLevel: "analytic",
+          confidence: "high",
+        },
       });
+
+      await applyToolPayload(payload);
 
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -450,56 +518,43 @@ const AdvancedThrustCalculator = () => {
         `${step.description}: ${step.equation}`
       );
       
-      // Send calculation event to assistant
-      const eventResponse = await sendCalculationEvent({
-        toolId: "thrust-calculator",
+      const payload = buildAeroversePayload({
         toolName: "Thrust Calculator",
         inputs: {
-          massFlowRate: validated.massFlowRate,
-          exhaustVelocity: validated.exhaustVelocity,
-          exitArea: validated.exitArea,
-          exitPressure: validated.exitPressure,
-          ambientPressure: validated.ambientPressure,
-          thrust: validated.thrust,
+          massFlowRate_kg_s: validated.massFlowRate ?? null,
+          exhaustVelocity_m_s: validated.exhaustVelocity ?? null,
+          exitArea_m2: validated.exitArea ?? null,
+          exitPressure_Pa: validated.exitPressure ?? null,
+          ambientPressure_Pa: validated.ambientPressure ?? null,
+          thrust_N: validated.thrust ?? null,
           solvedFor: solveFor,
-          unitSystem
+          unitSystem,
         },
         results: {
           ...resultData,
-          solvedFor: solveFor
-        },
-        steps: calculationSteps,
-        metadata: {
-          units: unitSystem,
-          approxLevel: "analytic",
-          confidence: "high"
-        }
-      });
-
-      // Always set lastRequestId (even if event failed, requestId is still generated)
-      if (eventResponse) {
-        setLastRequestId(eventResponse.requestId);
-      }
-      
-      // Update AI Assistant context
-      updateToolContext({
-        tool: "Thrust",
-        inputs: {
-          massFlowRate: inputs.massFlowRate || undefined,
-          exhaustVelocity: inputs.exhaustVelocity || undefined,
-          exitArea: inputs.exitArea || undefined,
-          exitPressure: inputs.exitPressure || undefined,
-          ambientPressure: inputs.ambientPressure || undefined,
-          unitSystem: unitSystem,
-        },
-        results: {
-          thrust: resultData.thrust,
-          momentumThrust: resultData.momentumThrust,
-          pressureThrust: resultData.pressureThrust,
-          isp: resultData.isp,
           solvedFor: solveFor,
         },
+        units: {
+          massFlowRate_kg_s: "kg/s",
+          exhaustVelocity_m_s: "m/s",
+          exitArea_m2: "m²",
+          exitPressure_Pa: "Pa",
+          ambientPressure_Pa: "Pa",
+          thrust_N: "N",
+          isp: "s",
+        },
+        charts: [
+          { id: "thrust-vs-pressure", title: "Thrust vs Ambient Pressure", dataSummary: "Sweep results" },
+        ],
+        metadata: {
+          steps: calculationSteps,
+          unitsSystem: unitSystem,
+          approxLevel: "analytic",
+          confidence: "high",
+        },
       });
+
+      await applyToolPayload(payload);
       
       // FIXED: Generate Chart with simplified loop and proper validation
       if (validated.massFlowRate && validated.exhaustVelocity && validated.exitArea && validated.exitPressure) {
@@ -676,56 +731,12 @@ const AdvancedThrustCalculator = () => {
             <AeroCard
               title="Results"
               headerActions={
-                lastRequestId && (thrustResult || performanceResult) ? (
+                lastPayload ? (
                   <div className="flex gap-2">
                     <AskAIButton 
                       requestId={lastRequestId} 
-                      payload={buildAeroversePayload({
-                        toolName: "Thrust Calculator",
-                        requestId: lastRequestId || undefined,
-                        inputs: {
-                          massFlowRate: inputs.massFlowRate || undefined,
-                          exhaustVelocity: inputs.exhaustVelocity || undefined,
-                          exitArea: inputs.exitArea || undefined,
-                          exitPressure: inputs.exitPressure || undefined,
-                          ambientPressure: inputs.ambientPressure || undefined,
-                          thrust: inputs.thrust || undefined,
-                          isp: performanceResult?.isp || undefined,
-                          unitSystem
-                        },
-                        results: {
-                          ...(thrustResult || {}),
-                          ...(performanceResult || {}),
-                          solvedFor: thrustResult?.solvedFor || performanceResult?.solvedFor || undefined
-                        },
-                        units: {
-                          massFlowRate: unitSystem === "SI" ? "kg/s" : "lb/s",
-                          exhaustVelocity: unitSystem === "SI" ? "m/s" : "ft/s",
-                          exitArea: unitSystem === "SI" ? "m²" : "ft²",
-                          exitPressure: unitSystem === "SI" ? "Pa" : "psi",
-                          ambientPressure: unitSystem === "SI" ? "Pa" : "psi",
-                          thrust: unitSystem === "SI" ? "N" : "lbf",
-                          isp: "s"
-                        },
-                        configuration: {
-                          unitSystem,
-                          solvedFor: thrustResult?.solvedFor || performanceResult?.solvedFor || undefined
-                        },
-                        charts: chartData && chartData.length > 0 ? [{
-                          id: "thrust-chart",
-                          title: "Thrust vs Ambient Pressure",
-                          dataSummary: `Thrust variation with ambient pressure`
-                        }] : [],
-                        metadata: {
-                          steps: thrustResult?.steps?.map((s: any) => `${s.equation} - ${s.description}`) || 
-                                 performanceResult?.steps?.map((s: any) => `${s.equation} - ${s.description}`) || [],
-                          unitsSystem: unitSystem,
-                          approxLevel: "analytic",
-                          confidence: "high",
-                          warnings: []
-                        }
-                      })}
-                      disabled={!thrustResult && !performanceResult}
+                      payload={lastPayload}
+                      disabled={!lastPayload}
                     />
                     <PDFExportButton 
                       requestId={lastRequestId} 
