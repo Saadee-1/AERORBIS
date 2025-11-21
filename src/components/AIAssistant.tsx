@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Minimize2, Trash2, Send, History, Plus, Globe, Menu, Settings, Rocket } from 'lucide-react';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useToolContext } from '@/hooks/useToolContext';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -104,6 +105,7 @@ const AIAssistant: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { clearToolContext } = useToolContext();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -119,13 +121,7 @@ const AIAssistant: React.FC = () => {
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      startNewChat();
-    }
-  }, [isOpen, messages.length, startNewChat]);
-
-  // Typing effect for the last assistant message
+    // Typing effect for the last assistant message
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === 'assistant' && !isTyping) {
@@ -162,6 +158,13 @@ const AIAssistant: React.FC = () => {
       handleSend();
     }
   };
+
+  const hasToolData = useMemo(() => {
+    if (!toolContext) return false;
+    const hasInputs = toolContext.inputs && Object.keys(toolContext.inputs).length > 0;
+    const hasResults = toolContext.results && Object.keys(toolContext.results).length > 0;
+    return hasInputs && hasResults;
+  }, [toolContext]);
 
   return (
     <>
@@ -207,7 +210,11 @@ const AIAssistant: React.FC = () => {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            onClick={() => setIsOpen(true)}
+              onClick={() => {
+                clearToolContext();
+                startNewChat();
+                setIsOpen(true);
+              }}
             className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
                      shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
                      flex items-center justify-center transition-all duration-300 hover:scale-110 group"
@@ -269,7 +276,13 @@ const AIAssistant: React.FC = () => {
                       <History className="w-4 h-4 mr-2" />
                       {showHistory ? 'Hide' : 'Show'} History
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={startNewChat} className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-400/10">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          clearToolContext();
+                          startNewChat();
+                        }}
+                        className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-400/10"
+                      >
                       <Plus className="w-4 h-4 mr-2" />
                       New Chat
                     </DropdownMenuItem>
@@ -419,40 +432,26 @@ const AIAssistant: React.FC = () => {
 
             {/* Messages Area - Maximum Space with proper flex */}
               <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 scrollbar-track-transparent">
-              {messages.length === 0 && (
+                {messages.length === 0 && (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center space-y-3">
                     <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20 
                                   flex items-center justify-center shadow-[0_0_30px_rgba(34,211,238,0.5)]">
                       <AstronautIcon className="w-10 h-10 text-cyan-400" />
                     </div>
-                    <p className="text-gray-400 text-sm">
-                      {mode === 'chat' 
-                        ? (toolContext || currentPayload
-                          ? `Analyzing ${toolContext?.tool || currentPayload?.toolName || 'calculation'} results. Ask anything!`
-                          : 'Ask me anything about aerospace!')
-                        : 'Paste text for a concise summary'}
-                    </p>
-                    {(toolContext || currentPayload) && mode === 'chat' && (
-                      <div className="mt-4 p-3 bg-cyan-400/10 border border-cyan-400/30 rounded-lg text-left max-w-xs mx-auto">
+                      <p className="text-gray-400 text-sm">
+                        {mode === 'chat'
+                          ? 'Ask me anything about aerospace!'
+                          : 'Paste text to summarize…'}
+                      </p>
+                      {hasToolData && mode === 'chat' && (
+                        <div className="mt-4 p-3 bg-cyan-400/10 border border-cyan-400/30 rounded-lg text-left max-w-xs mx-auto">
                         <div className="flex items-center gap-2 mb-2">
                           <Rocket className="w-4 h-4 text-cyan-400" />
                           <span className="text-xs font-semibold text-cyan-400">Tool Context Active</span>
                         </div>
                         <p className="text-xs text-gray-400">
-                          I can explain results, perform calculations, and provide insights.
-                        </p>
-                        {currentPayload && (!currentPayload.results || Object.keys(currentPayload.results).length === 0) && (
-                          <div className="mt-2 p-2 bg-red-400/10 border border-red-400/30 rounded text-xs text-red-400">
-                            ⚠️ No calculation data found. Please compute first, then click "Ask AI Explain".
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {!currentPayload && !toolContext && mode === 'chat' && (
-                      <div className="mt-4 p-3 bg-yellow-400/10 border border-yellow-400/30 rounded-lg text-left max-w-xs mx-auto">
-                        <p className="text-xs text-yellow-400">
-                          No calculation data found. Please compute first, then click "Ask AI Explain".
+                            I can explain results from {toolContext?.tool}. Ask follow-up questions to dive deeper.
                         </p>
                       </div>
                     )}

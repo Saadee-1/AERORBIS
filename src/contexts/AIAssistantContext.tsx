@@ -91,15 +91,9 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }, [language]);
 
-  // Load messages and history from localStorage on mount
+    // Load chat history from localStorage on mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setMessages(parsed.slice(-MAX_STORED_MESSAGES));
-      }
-      
       const historyStored = localStorage.getItem(HISTORY_KEY);
       if (historyStored) {
         const parsedHistory = JSON.parse(historyStored);
@@ -389,7 +383,7 @@ Error: ${data.error}`;
     }
   };
 
-  const clearChat = () => {
+    const clearChat = () => {
     // Save current session to history before clearing (if it has messages)
     if (messages.length > 0) {
       const sessionTitle = messages[0]?.content.slice(0, 50) || 'New Chat';
@@ -407,9 +401,10 @@ Error: ${data.error}`;
     
     // Clear current messages but keep history
     setMessages([]);
-    localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEY);
     // Clear payload when clearing chat
-    setCurrentPayload(null);
+      setCurrentPayload(null);
+      setToolContext(null);
   };
 
   const loadChatSession = (sessionId: string) => {
@@ -469,6 +464,8 @@ Error: ${data.error}`;
     // If deleting current session, clear messages
     if (sessionId === currentSessionId) {
       setMessages([]);
+      setToolContext(null);
+      setCurrentPayload(null);
       localStorage.removeItem(STORAGE_KEY);
       // Start a new session
       const newSessionId = Date.now().toString();
