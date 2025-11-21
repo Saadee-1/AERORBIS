@@ -54,16 +54,25 @@ export const useAudioController = () => {
       setState((prev) => ({ ...prev, isPlaying: false }));
     };
 
+    const handleLoadedMetadata = () => {
+      setState((prev) => ({
+        ...prev,
+        track: globalAudioController.getCurrentTrack(),
+      }));
+    };
+
     audio.addEventListener("volumechange", handleVolumeChange);
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
     audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
 
     return () => {
       audio.removeEventListener("volumechange", handleVolumeChange);
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
       audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
     };
   }, []);
 
