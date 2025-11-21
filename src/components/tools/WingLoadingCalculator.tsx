@@ -81,6 +81,12 @@ interface SavedPreset {
 
 const STORAGE_KEY_CUSTOM_PRESETS = "wingLoadingCalculator_customPresets";
 
+type ToolPayload = {
+  tool: string;
+  inputs: Record<string, any>;
+  results: Record<string, any>;
+};
+
 // --- Zod Schemas ---
 const basicSchema = z.object({
   weight: z.number().finite("Weight must be a valid number").optional(),
@@ -122,6 +128,7 @@ const AdvancedWingLoadingCalculator = () => {
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [savePresetName, setSavePresetName] = useState("");
+  const [lastPayload, setLastPayload] = useState<ToolPayload | null>(null);
   
   // FIXED: Use useMemo for chart data to avoid unnecessary recalculations
   const memoizedChartData = useMemo(() => {
@@ -407,32 +414,33 @@ const AdvancedWingLoadingCalculator = () => {
       // Generate calculation steps for PDF
       const calculationSteps = steps.map(s => `${s.equation} - ${s.description}`);
       
-      // Send calculation event to assistant
-      const eventResponse = await sendCalculationEvent({
-        toolId: "wing-loading-calculator",
-        toolName: "Wing Loading Calculator",
-        inputs: {
+        const toolInputs = {
           weight: validated.weight,
           wingArea: validated.wingArea,
           wingLoading: validated.wingLoading,
-          unitSystem
-        },
-        results: {
+          unitSystem,
+        };
+        const toolResults = {
           solvedFor: solveFor,
           wingLoading: final_wl,
           interpretation: interpretation.category,
           feasibility: {
             feasible: feasibility.feasible,
-            message: feasibility.message
-          }
-        },
-        steps: calculationSteps,
-        metadata: {
-          units: unitSystem,
-          approxLevel: "exact",
-          confidence: "high"
-        }
-      });
+            message: feasibility.message,
+          },
+        };
+        const eventResponse = await sendCalculationEvent({
+          toolId: "wing-loading-calculator",
+          toolName: "Wing Loading Calculator",
+          inputs: toolInputs,
+          results: toolResults,
+          steps: calculationSteps,
+          metadata: {
+            units: unitSystem,
+            approxLevel: "exact",
+            confidence: "high",
+          },
+        });
 
       // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
       if (eventResponse?.requestId) {
@@ -451,24 +459,17 @@ const AdvancedWingLoadingCalculator = () => {
       setAdvancedResult(null); // Clear advanced results as basic inputs changed
       
       // Update AI assistant context
-      updateToolContext({
-        tool: "Wing Loading Calculator",
-        inputs: {
-          weight: basicInputs.weight ? `${convertFromSI(validated.weight || 0, "weight").toFixed(2)} ${getUnit("weight")}` : "Not provided",
-          wingArea: basicInputs.wingArea ? `${convertFromSI(validated.wingArea || 0, "wingArea").toFixed(2)} ${getUnit("wingArea")}` : "Not provided",
-          wingLoading: advInputs.wingLoading ? `${convertFromSI(validated.wingLoading || 0, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}` : "Not provided",
-          unitSystem
-        },
-        results: {
-          solvedFor: solveFor,
-          wingLoading: `${convertFromSI(final_wl, "wingLoading").toFixed(2)} ${getUnit("wingLoading")}`,
-          interpretation: interpretation.category,
-          feasibility: {
-            feasible: feasibility.feasible,
-            message: feasibility.message
-          }
-        }
-      });
+        setLastPayload({
+          tool: "Wing Loading Calculator",
+          inputs: toolInputs,
+          results: toolResults,
+        });
+
+        updateToolContext({
+          tool: "Wing Loading Calculator",
+          inputs: toolInputs,
+          results: toolResults,
+        });
 
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -552,32 +553,33 @@ const AdvancedWingLoadingCalculator = () => {
       // Generate calculation steps for PDF
       const calculationSteps = steps.map(s => `${s.equation} - ${s.description}`);
       
-      // Send calculation event to assistant
-      const eventResponse = await sendCalculationEvent({
-        toolId: "wing-loading-calculator",
-        toolName: "Wing Loading Calculator",
-        inputs: {
+        const toolInputs = {
           wingLoading: validated.wingLoading,
           airDensity: validated.airDensity,
           clMax: validated.clMax,
           stallSpeed: validated.stallSpeed,
-          unitSystem
-        },
-        results: {
+          unitSystem,
+        };
+        const toolResults = {
           solvedFor: solveFor,
           ...resultData,
           feasibility: {
             feasible: feasibility.feasible,
-            message: feasibility.message
-          }
-        },
-        steps: calculationSteps,
-        metadata: {
-          units: unitSystem,
-          approxLevel: "exact",
-          confidence: "high"
-        }
-      });
+            message: feasibility.message,
+          },
+        };
+        const eventResponse = await sendCalculationEvent({
+          toolId: "wing-loading-calculator",
+          toolName: "Wing Loading Calculator",
+          inputs: toolInputs,
+          results: toolResults,
+          steps: calculationSteps,
+          metadata: {
+            units: unitSystem,
+            approxLevel: "exact",
+            confidence: "high",
+          },
+        });
 
       // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
       if (eventResponse?.requestId) {
@@ -592,7 +594,13 @@ const AdvancedWingLoadingCalculator = () => {
         }
       }
       
-      setAdvancedResult({ ...resultData, steps, solvedFor: solveFor, feasibility });
+        setLastPayload({
+          tool: "Wing Loading Calculator",
+          inputs: toolInputs,
+          results: toolResults,
+        });
+
+        setAdvancedResult({ ...resultData, steps, solvedFor: solveFor, feasibility });
       setBasicResult(null); // Clear basic results
       setChartData([]); // Clear chart
 
@@ -756,70 +764,27 @@ const AdvancedWingLoadingCalculator = () => {
             {/* --- Results Card --- */}
             <AeroCard
               title="Results"
-              headerActions={
-                lastRequestId && (basicResult || advancedResult) ? (
-                  <div className="flex gap-2">
-                    <AskAIButton 
-                      requestId={lastRequestId} 
-                      payload={buildAeroversePayload({
-                        toolName: "Wing Loading Calculator",
-                        requestId: lastRequestId || undefined,
-                        inputs: {
-                          ...(basicResult ? {
-                            weight: basicInputs.weight || undefined,
-                            wingArea: basicInputs.wingArea || undefined,
-                            wingLoading: advInputs.wingLoading || undefined
-                          } : {}),
-                          ...(advancedResult ? {
-                            wingLoading: advInputs.wingLoading || undefined,
-                            airDensity: advInputs.airDensity || undefined,
-                            clMax: advInputs.clMax || undefined,
-                            stallSpeed: advInputs.stallSpeed || undefined
-                          } : {}),
-                          unitSystem
-                        },
-                        results: {
-                          ...(basicResult || {}),
-                          ...(advancedResult || {}),
-                          ...(basicResult?.feasibility ? { feasibility: basicResult.feasibility } : {}),
-                          ...(advancedResult?.feasibility ? { feasibility: advancedResult.feasibility } : {})
-                        },
-                        units: {
-                          weight: getUnit("weight"),
-                          wingArea: getUnit("wingArea"),
-                          wingLoading: getUnit("wingLoading"),
-                          airDensity: getUnit("airDensity"),
-                          stallSpeed: getUnit("stallSpeed"),
-                          clMax: ""
-                        },
-                        configuration: {
-                          unitSystem,
-                          solvedFor: basicResult?.solvedFor || advancedResult?.solvedFor || "unknown"
-                        },
-                        charts: chartData && chartData.length > 0 ? [{
-                          id: "wing-loading-chart",
-                          title: "Wing Loading Chart",
-                          dataSummary: `Wing loading vs wing area`
-                        }] : [],
-                        metadata: {
-                          steps: basicResult?.steps?.map(s => `${s.equation} - ${s.description}`) || 
-                                 advancedResult?.steps?.map(s => `${s.equation} - ${s.description}`) || [],
-                          unitsSystem: unitSystem,
-                          approxLevel: "exact",
-                          confidence: "high",
-                          warnings: []
-                        }
-                      })}
-                      disabled={!basicResult && !advancedResult}
-                    />
-                    <PDFExportButton 
-                      requestId={lastRequestId} 
-                      toolName="Wing Loading Calculator"
-                      disabled={!lastRequestId}
-                    />
-                  </div>
-                ) : null
-              }
+                headerActions={
+                  lastRequestId && lastPayload ? (
+                    <div className="flex gap-2">
+                      <AskAIButton
+                        requestId={lastRequestId}
+                        payload={buildAeroversePayload({
+                          toolName: lastPayload.tool,
+                          requestId: lastRequestId || undefined,
+                          inputs: lastPayload.inputs,
+                          results: lastPayload.results,
+                        })}
+                        disabled={!lastPayload}
+                      />
+                      <PDFExportButton
+                        requestId={lastRequestId}
+                        toolName="Wing Loading Calculator"
+                        disabled={!lastRequestId}
+                      />
+                    </div>
+                  ) : null
+                }
             >
               {/* Basic Result */}
               {basicResult && (
