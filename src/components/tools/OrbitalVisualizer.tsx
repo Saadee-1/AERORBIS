@@ -74,10 +74,17 @@ interface SavedOrbit {
 
 const STORAGE_KEY_CUSTOM_ORBITS = "orbitalVisualizer_customOrbits";
 
+type ToolPayload = {
+  tool: string;
+  inputs: Record<string, any>;
+  results: Record<string, any>;
+};
+
 const OrbitalVisualizer = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { toast } = useToast();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [lastPayload, setLastPayload] = useState<ToolPayload | null>(null);
   const [customUnitNames, setCustomUnitNames] = useState({
     dist: "Unit-D",
     vel: "Unit-V",
@@ -96,6 +103,21 @@ const OrbitalVisualizer = () => {
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [saveOrbitName, setSaveOrbitName] = useState("");
+  const applyToolPayload = (payload: ToolPayload) => {
+    setLastPayload(payload);
+    updateToolContext(payload);
+  };
+  const syncRequestId = (response?: { requestId?: string } | null) => {
+    if (response?.requestId) {
+      setLastRequestId(response.requestId);
+    } else {
+      const storedKeys = Object.keys(localStorage).filter((key) => key.startsWith("calc-"));
+      if (storedKeys.length > 0) {
+        const latestKey = storedKeys.sort().reverse()[0];
+        setLastRequestId(latestKey.replace("calc-", ""));
+      }
+    }
+  };
 
   const [inputs, setInputs] = useState<OrbitalInputs>(() => {
     const saved = localStorage.getItem("orbitalInputs");
@@ -648,17 +670,18 @@ const OrbitalVisualizer = () => {
       // Send calculation event to assistant
       const convert = (val: number) => unitSystem === "Imperial" ? val * KM_TO_MI : val;
       const unit = unitSystem === "Imperial" ? "mi" : "km";
+      const toolInputs = {
+        periapsisAltitude: periapsisAlt_SI,
+        inclination,
+        eccentricity,
+        centralBodyRadius: radius_SI,
+        gm: GM,
+        unitSystem,
+      };
       const eventResponse = await sendCalculationEvent({
         toolId: "orbital-visualizer",
         toolName: "Orbital Visualizer",
-        inputs: {
-          periapsisAltitude: parseFloat(currentInputs.periapsisAltitude),
-          inclination,
-          eccentricity,
-          centralBodyRadius: parseFloat(currentInputs.centralBodyRadius),
-          gm: GM,
-          unitSystem
-        },
+        inputs: toolInputs,
         results: resultData,
         steps: calculationSteps,
         metadata: {
@@ -668,42 +691,14 @@ const OrbitalVisualizer = () => {
         }
       });
 
-      // Always set lastRequestId (sendCalculationEvent always returns a response with requestId)
-      if (eventResponse?.requestId) {
-        setLastRequestId(eventResponse.requestId);
-      } else {
-        // Fallback: try to get the latest requestId from localStorage
-        const storedKeys = Object.keys(localStorage).filter(key => key.startsWith('calc-'));
-        if (storedKeys.length > 0) {
-          const latestKey = storedKeys.sort().reverse()[0];
-          const requestId = latestKey.replace('calc-', '');
-          setLastRequestId(requestId);
-        }
-      }
-      
+      syncRequestId(eventResponse);
       setOrbitResult(resultData);
-      
-      // Update AI assistant context
-      updateToolContext({
+      applyToolPayload({
         tool: "Orbital Visualizer",
-        inputs: {
-          periapsisAltitude: `${convert(parseFloat(currentInputs.periapsisAltitude)).toFixed(2)} ${unit}`,
-          inclination: `${inclination.toFixed(2)}°`,
-          eccentricity: eccentricity.toFixed(4),
-          centralBodyRadius: `${convert(parseFloat(currentInputs.centralBodyRadius)).toFixed(2)} ${unit}`,
-          unitSystem
-        },
-        results: {
-          semiMajorAxis: `${convert(semiMajorAxis).toFixed(2)} ${unit}`,
-          orbitalPeriod: `${orbitalPeriodMinutes.toFixed(2)} minutes`,
-          periapsisAltitude: `${convert(apoapsisAltitude).toFixed(2)} ${unit}`,
-          apoapsisAltitude: `${convert(apoapsisAltitude).toFixed(2)} ${unit}`,
-          periapsisVelocity: `${periapsisVelocity.toFixed(2)} km/s`,
-          apoapsisVelocity: `${apoapsisVelocity.toFixed(2)} km/s`,
-          orbitType: eccentricity < 0.01 ? "Circular" : eccentricity < 0.5 ? "Elliptical" : "Highly Elliptical"
-        }
+        inputs: toolInputs,
+        results: resultData,
       });
-
+      
     } catch (err) {
       setError((err as Error).message);
       setOrbitResult(null);
@@ -1042,68 +1037,25 @@ const OrbitalVisualizer = () => {
               <AeroCard
                 title="Orbit Results"
                 headerActions={
-                  lastRequestId && orbitResult ? (
-                    <div className="flex gap-2">
-                      <AskAIButton 
-                        requestId={lastRequestId} 
-                        payload={buildAeroversePayload({
-                          toolName: "Orbital Visualizer",
-                          requestId: lastRequestId || undefined,
-                          inputs: {
-                            periapsisAltitude: parseFloat(inputs.periapsisAltitude) || 0,
-                            inclination: parseFloat(inputs.inclination) || 0,
-                            eccentricity: parseFloat(inputs.eccentricity) || 0,
-                            centralBodyRadius: parseFloat(inputs.centralBodyRadius) || 0,
-                            gm: parseFloat(inputs.gm) || 0,
-                            unitSystem
-                          },
-                          results: {
-                            ...orbitResult
-                          },
-                          units: {
-                            periapsisAltitude: unitSystem === "Imperial" ? "mi" : "km",
-                            inclination: "deg",
-                            eccentricity: "",
-                            centralBodyRadius: unitSystem === "Imperial" ? "mi" : "km",
-                            gm: unitSystem === "Imperial" ? "mi³/s²" : "km³/s²",
-                            semiMajorAxis: unitSystem === "Imperial" ? "mi" : "km",
-                            orbitalPeriod: "minutes",
-                            periapsisVelocity: "km/s",
-                            apoapsisVelocity: "km/s"
-                          },
-                          configuration: {
-                            unitSystem
-                          },
-                          charts: [{
-                            id: "orbital-3d",
-                            title: "3D Orbital Visualization",
-                            dataSummary: `Orbit with ${orbitResult.eccentricity?.toFixed(4)} eccentricity`
-                          }],
-                          metadata: {
-                            steps: [
-                              `Periapsis radius: r_p = R + h_p`,
-                              `Semi-major axis: a = r_p / (1 - e)`,
-                              `Apoapsis radius: r_a = a(1 + e)`,
-                              `Periapsis velocity: v_p = sqrt(μ(2/r_p - 1/a))`,
-                              `Apoapsis velocity: v_a = sqrt(μ(2/r_a - 1/a))`,
-                              `Orbital period: T = 2π√(a³/μ)`
-                            ],
-                            unitsSystem: unitSystem,
-                            approxLevel: "exact",
-                            confidence: "high",
-                            warnings: error ? [error] : []
-                          }
-                        })}
-                        disabled={!orbitResult}
-                      />
-                      <PDFExportButton 
-                        requestId={lastRequestId} 
-                        toolName="Orbital Visualizer"
-                        disabled={!lastRequestId}
-                      />
-                    </div>
-                  ) : null
-                }
+                lastRequestId && lastPayload ? (
+                  <div className="flex gap-2">
+                    <AskAIButton 
+                      requestId={lastRequestId} 
+                      payload={buildAeroversePayload({
+                        toolName: lastPayload.tool,
+                        requestId: lastRequestId || undefined,
+                        inputs: lastPayload.inputs,
+                        results: lastPayload.results,
+                      })}
+                    />
+                    <PDFExportButton 
+                      requestId={lastRequestId || undefined}
+                      toolName="Orbital Visualizer"
+                      disabled={!lastRequestId}
+                    />
+                  </div>
+                ) : null
+              }
               >
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
