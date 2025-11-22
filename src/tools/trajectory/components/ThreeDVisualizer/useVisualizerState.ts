@@ -3,6 +3,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { isDevEnv } from '@/lib/env';
 
 export interface VisualizerState {
   isPlaying: boolean;
@@ -45,14 +46,31 @@ const DEFAULT_SETTINGS: VisualizerSettings = {
   cameraMode: 'follow',
 };
 
-export function useVisualizerState(totalFrames: number, duration: number) {
+const clampFrameIndex = (index: number, frames: number): number => {
+  if (!Number.isFinite(frames) || frames <= 0) return 0;
+  return Math.min(Math.max(Math.floor(index), 0), frames - 1);
+};
+
+const computeFrameIndexFromTime = (time: number, frames: number, duration: number): number => {
+  if (!Number.isFinite(time)) return 0;
+  if (!Number.isFinite(frames) || frames <= 1) return 0;
+  if (!Number.isFinite(duration) || duration <= 0) {
+    return clampFrameIndex(time, frames);
+  }
+  return clampFrameIndex((time / duration) * (frames - 1), frames);
+};
+
+export function useVisualizerState(inputTotalFrames: number, inputDuration: number) {
+  const safeTotalFrames = Number.isFinite(inputTotalFrames) ? Math.max(0, inputTotalFrames) : 0;
+  const safeDuration = Number.isFinite(inputDuration) ? Math.max(0, inputDuration) : 0;
+
   const [state, setState] = useState<VisualizerState>({
     isPlaying: false,
     currentTime: 0,
     playbackSpeed: 1.0,
     currentFrameIndex: 0,
-    totalFrames,
-    duration,
+    totalFrames: safeTotalFrames,
+    duration: safeDuration,
   });
 
   const [settings, setSettings] = useState<VisualizerSettings>(() => {
@@ -80,7 +98,7 @@ export function useVisualizerState(totalFrames: number, duration: number) {
     }
   }, [settings]);
 
-  const play = useCallback(() => {
+    const play = useCallback(() => {
     setState((prev) => ({ ...prev, isPlaying: true }));
     lastTimeRef.current = performance.now();
   }, []);
@@ -92,15 +110,19 @@ export function useVisualizerState(totalFrames: number, duration: number) {
     }
   }, []);
 
-  const setTime = useCallback((time: number) => {
-    const clampedTime = Math.max(0, Math.min(time, duration));
-    const frameIndex = Math.floor((clampedTime / duration) * (totalFrames - 1));
-    setState((prev) => ({
-      ...prev,
-      currentTime: clampedTime,
-      currentFrameIndex: frameIndex,
-    }));
-  }, [duration, totalFrames]);
+    const setTime = useCallback((time: number) => {
+      setState((prev) => {
+        const nextDuration = Math.max(0, prev.duration);
+        const nextFrames = Math.max(0, prev.totalFrames);
+        const clampedTime = Math.max(0, Math.min(time, nextDuration > 0 ? nextDuration : time));
+        const nextFrameIndex = computeFrameIndexFromTime(clampedTime, nextFrames, nextDuration);
+        return {
+          ...prev,
+          currentTime: clampedTime,
+          currentFrameIndex: nextFrameIndex,
+        };
+      });
+    }, []);
 
   const setSpeed = useCallback((speed: number) => {
     setState((prev) => ({ ...prev, playbackSpeed: speed }));
@@ -121,17 +143,19 @@ export function useVisualizerState(totalFrames: number, duration: number) {
       const delta = (currentTime - lastTimeRef.current) / 1000; // seconds
       lastTimeRef.current = currentTime;
 
-      setState((prev) => {
-        const newTime = Math.min(prev.currentTime + delta * prev.playbackSpeed, duration);
-        const newFrameIndex = Math.floor((newTime / duration) * (totalFrames - 1));
+        setState((prev) => {
+          const nextDuration = Math.max(0, prev.duration);
+          const nextFrames = Math.max(0, prev.totalFrames);
+          const newTime = Math.min(prev.currentTime + delta * prev.playbackSpeed, nextDuration || prev.currentTime + delta);
+          const newFrameIndex = computeFrameIndexFromTime(newTime, nextFrames, nextDuration);
 
-        if (newTime >= duration) {
+          if (nextDuration > 0 && newTime >= nextDuration) {
           // Reached end
           return {
             ...prev,
             isPlaying: false,
-            currentTime: duration,
-            currentFrameIndex: totalFrames - 1,
+              currentTime: nextDuration,
+              currentFrameIndex: nextFrames > 0 ? nextFrames - 1 : 0,
           };
         }
 
@@ -152,14 +176,42 @@ export function useVisualizerState(totalFrames: number, duration: number) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [state.isPlaying, duration, totalFrames]);
+    }, [state.isPlaying]);
 
-  const updateSetting = useCallback(<K extends keyof VisualizerSettings>(
+    const updateSetting = useCallback(<K extends keyof VisualizerSettings>(
     key: K,
     value: VisualizerSettings[K]
   ) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   }, []);
+
+    // Keep derived totals in sync with upstream values
+    useEffect(() => {
+      setState((prev) => {
+        const nextFrames = Number.isFinite(inputTotalFrames) ? Math.max(0, inputTotalFrames) : 0;
+        const nextDuration = Number.isFinite(inputDuration) ? Math.max(0, inputDuration) : 0;
+        return {
+          ...prev,
+          totalFrames: nextFrames,
+          duration: nextDuration,
+          currentFrameIndex: clampFrameIndex(prev.currentFrameIndex, nextFrames),
+          currentTime: Math.max(0, Math.min(prev.currentTime, nextDuration || prev.currentTime)),
+        };
+      });
+    }, [inputTotalFrames, inputDuration]);
+
+    useEffect(() => {
+      if (!isDevEnv()) {
+        return;
+      }
+      console.debug('VisualizerState: OK', {
+        totalFrames: state.totalFrames,
+        duration: state.duration,
+        currentFrameIndex: state.currentFrameIndex,
+        currentTime: state.currentTime,
+        isPlaying: state.isPlaying,
+      });
+    }, [state]);
 
   return {
     state,

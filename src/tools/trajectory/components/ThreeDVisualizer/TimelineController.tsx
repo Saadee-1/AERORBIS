@@ -33,6 +33,9 @@ export function TimelineController({
   onStepBack,
   onReset,
 }: TimelineControllerProps) {
+  const safeDuration = Math.max(duration, 0.0001);
+  const safeCurrentTime = Math.max(0, Math.min(currentTime, safeDuration));
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -81,17 +84,17 @@ export function TimelineController({
         </div>
 
         {/* Time display */}
-        <div className="text-sm text-cyan-400 font-mono min-w-[100px]">
-          {formatTime(currentTime)} / {formatTime(duration)}
+          <div className="text-sm text-cyan-400 font-mono min-w-[120px]">
+            {formatTime(safeCurrentTime)} / {formatTime(safeDuration)}
         </div>
 
         {/* Scrubber */}
         <div className="flex-1">
-          <input
+            <input
             type="range"
             min="0"
-            max={duration}
-            value={currentTime}
+              max={safeDuration}
+              value={safeCurrentTime}
             step={0.1}
             onChange={(e) => onSetTime(parseFloat(e.target.value))}
             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"

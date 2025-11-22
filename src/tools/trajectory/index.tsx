@@ -42,7 +42,9 @@ import { GuidanceConfig } from './components/GuidanceConfig';
 import { ResultsPanel } from './components/ResultsPanel';
 import { ChartsPanel } from './components/ChartsPanel';
 import { ThreeDVisualizer } from './components/ThreeDVisualizerWrapper';
+import { TwoDVisualizer } from './components/TwoDVisualizer';
 import { AdvancedSettingsPanel, AdvancedSettings } from './components/AdvancedSettingsPanel';
+import { convertSimulationToTrajectoryData } from './utils/convertSimulationToTrajectoryData';
 
 export default function TrajectorySimulator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
@@ -373,6 +375,11 @@ export default function TrajectorySimulator() {
     };
   }, [mode, result3D]);
 
+  const trajectoryData = useMemo(() => {
+    if (!currentResult) return undefined;
+    return convertSimulationToTrajectoryData(currentResult, mode, selectedPlanet);
+  }, [currentResult, mode, selectedPlanet]);
+
   return (
     <ErrorBoundary toolName="Rocket Trajectory Simulator">
       <ToolWrapper>
@@ -520,12 +527,18 @@ export default function TrajectorySimulator() {
               result2D={result2D}
               result3D={result3D}
             />
+              {trajectoryData && (
+                <div className="mt-6">
+                  <TwoDVisualizer trajectoryData={trajectoryData} mode={mode} />
+                </div>
+              )}
             {mode === '3D' && result3D && (
               <div className="mt-6">
                 <ThreeDVisualizer
                   planet={selectedPlanet}
                   result={result3D}
                   mode={mode}
+                    trajectoryData={trajectoryData}
                 />
               </div>
             )}
@@ -536,6 +549,7 @@ export default function TrajectorySimulator() {
                   planet={selectedPlanet}
                   result={currentResult}
                   mode={mode}
+                    trajectoryData={trajectoryData}
                 />
               </div>
             )}

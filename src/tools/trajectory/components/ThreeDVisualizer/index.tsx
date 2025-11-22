@@ -5,22 +5,17 @@
 
 "use client";
 
-import { Suspense, useMemo, memo, useCallback } from 'react';
+import { Suspense, useMemo, memo, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import { TrajectoryData, convertSimulationToTrajectoryData, extractEventMarkers, downsampleFrames } from '../../utils/three/threeUtils';
-import { useVisualizerState, VisualizerSettings } from './useVisualizerState';
-import { EarthScene } from './EarthScene';
-import { RocketModel } from './RocketModel';
-import { TrajectoryPath } from './TrajectoryPath';
-import { Markers } from './Markers';
-import { CameraController } from './CameraController';
-import { EffectsStack } from './EffectsStack';
+import { TrajectoryData } from '../../utils/three/threeUtils';
+import { convertSimulationToTrajectoryData } from '../../utils/convertSimulationToTrajectoryData';
+import { useVisualizerState } from './useVisualizerState';
 import { TimelineController } from './TimelineController';
 import { ControlsOverlay } from './ControlsOverlay';
-import { useExportSnapshot } from './ExportSnapshot';
 import { Planet } from '../../data/planets';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { isDevEnv, isVisualizerDebug } from '@/lib/env';
+import { VisualizerScene } from './VisualizerScene';
 
 interface ThreeDVisualizerProps {
   trajectoryData?: TrajectoryData;
@@ -28,117 +23,6 @@ interface ThreeDVisualizerProps {
   result?: any;
   mode: '1D' | '2D' | '3D';
   onSnapshot?: (base64: string) => void;
-}
-
-function VisualizerScene({
-  trajectoryData,
-  planet,
-  settings,
-  currentFrameIndex,
-  onMarkerClick,
-  onUpdateSetting,
-  onScreenshot,
-}: {
-  trajectoryData?: TrajectoryData;
-  planet: Planet;
-  settings: VisualizerSettings;
-  currentFrameIndex: number;
-  onMarkerClick: (marker: any) => void;
-  onUpdateSetting: <K extends keyof VisualizerSettings>(
-    key: K,
-    value: VisualizerSettings[K]
-  ) => void;
-  onScreenshot: () => void;
-}) {
-  const { captureScreenshot } = useExportSnapshot();
-
-  const handleScreenshot = async () => {
-    const base64 = await captureScreenshot();
-    onScreenshot();
-    return base64;
-  };
-
-  const currentFrame = useMemo(() => {
-    if (!trajectoryData || trajectoryData.frames.length === 0) return undefined;
-    return trajectoryData.frames[Math.min(currentFrameIndex, trajectoryData.frames.length - 1)];
-  }, [trajectoryData, currentFrameIndex]);
-
-  const markers = useMemo(() => {
-    if (!trajectoryData) return [];
-    return extractEventMarkers(trajectoryData.frames);
-  }, [trajectoryData]);
-
-  // Adaptive downsampling based on performance mode
-  const downsampledFrames = useMemo(() => {
-    if (!trajectoryData) return [];
-    const maxFrames = settings.simpleMode || settings.lowPowerMode ? 500 : 1000;
-    return downsampleFrames(trajectoryData.frames, maxFrames);
-  }, [trajectoryData, settings.simpleMode, settings.lowPowerMode]);
-
-  return (
-    <>
-      {/* Lighting */}
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={1} />
-      <pointLight position={[-10, -10, -5]} intensity={0.5} />
-
-      {/* Earth */}
-      {settings.showEarth && (
-        <EarthScene
-          radius={planet.radius / 1000} // Scale down for visualization
-          showAtmosphere={settings.showAtmosphere && !settings.simpleMode}
-          showClouds={settings.showClouds && !settings.simpleMode}
-          simpleMode={settings.simpleMode || settings.lowPowerMode}
-        />
-      )}
-
-      {/* Trajectory Path */}
-      {settings.showTrajectory && (
-        <TrajectoryPath
-          frames={downsampledFrames}
-          showPath={settings.showTrajectory}
-        />
-      )}
-
-      {/* Markers */}
-      <Markers
-        markers={markers}
-        showMarkers={settings.showMarkers}
-        onMarkerClick={onMarkerClick}
-      />
-
-      {/* Rocket */}
-      {currentFrame && (
-        <RocketModel
-          position={currentFrame.pos.map((p) => p / 1000) as [number, number, number]} // Scale down
-          rotation={currentFrame.attitude}
-          showExhaust={settings.showExhaust && !settings.simpleMode}
-          thrustLevel={currentFrame.mass ? 1.0 : 0}
-        />
-      )}
-
-      {/* Camera */}
-      <CameraController
-        mode={settings.cameraMode}
-        currentFrame={currentFrame}
-        enabled={settings.cameraMode !== 'free'}
-      />
-
-      {/* Free camera controls */}
-      {settings.cameraMode === 'free' && (
-        <OrbitControls
-          enablePan={true}
-          enableZoom={true}
-          enableRotate={true}
-          minDistance={1}
-          maxDistance={100}
-        />
-      )}
-
-      {/* Effects */}
-      <EffectsStack settings={settings} />
-    </>
-  );
 }
 
 // Export snapshot function for external use
@@ -151,6 +35,37 @@ export async function exportVisualizerSnapshot(canvasElement: HTMLCanvasElement)
   }
 }
 
+const DEBUG_VIS = isVisualizerDebug();
+const IS_DEV = isDevEnv();
+
+const SuspenseFallback = () => {
+  useEffect(() => {
+    if (IS_DEV) {
+      console.debug('ThreeDVisualizer suspense fallback active');
+    }
+  }, []);
+  return <group />;
+};
+
+const Placeholder = ({
+  reason,
+  details,
+}: {
+  reason: string;
+  details?: Record<string, unknown>;
+}) => (
+  <ErrorBoundary toolName="3D Trajectory Visualizer">
+    <div className="relative w-full min-h-[600px] bg-slate-900 rounded-lg border border-slate-800 flex flex-col items-center justify-center text-gray-400 p-6">
+      <p>Run a simulation to see the 3D visualization.</p>
+      {IS_DEV && (
+        <pre className="mt-4 max-w-full overflow-auto text-xs text-left bg-slate-950/60 text-cyan-300 p-3 rounded border border-cyan-400/20">
+          {JSON.stringify({ reason, ...details }, null, 2)}
+        </pre>
+      )}
+    </div>
+  </ErrorBoundary>
+);
+
 export const ThreeDVisualizer = memo(function ThreeDVisualizer({
   trajectoryData,
   planet,
@@ -158,7 +73,10 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
   mode,
   onSnapshot,
 }: ThreeDVisualizerProps) {
-  // Convert result to trajectory data if not provided
+  const [sceneReady, setSceneReady] = useState(false);
+  const [canvasMounted, setCanvasMounted] = useState(false);
+  const [lastSceneError, setLastSceneError] = useState<Error | null>(null);
+
   const data = useMemo(() => {
     if (trajectoryData) return trajectoryData;
     if (result) {
@@ -167,10 +85,14 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
     return undefined;
   }, [trajectoryData, result, mode, planet]);
 
-  const totalFrames = data?.frames.length || 0;
-  const duration = data?.frames.length > 0
-    ? data.frames[data.frames.length - 1].t
-    : 0;
+  useEffect(() => {
+    setSceneReady(false);
+    setLastSceneError(null);
+  }, [data]);
+
+  const totalFrames = data?.frames.length ?? 0;
+  const durationFromData = data?.frames.length ? data.frames[data.frames.length - 1].t : 0;
+  const sanitizedDuration = Number.isFinite(durationFromData) ? Math.max(durationFromData, 0) : 0;
 
   const {
     state,
@@ -181,73 +103,128 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
     setSpeed,
     jumpToEvent,
     updateSetting,
-  } = useVisualizerState(totalFrames, duration);
+  } = useVisualizerState(totalFrames, sanitizedDuration);
 
-  if (!data || data.frames.length === 0) {
-    return (
-      <ErrorBoundary toolName="3D Trajectory Visualizer">
-        <div className="h-[600px] w-full bg-slate-900 rounded-lg flex items-center justify-center text-gray-400">
-          <p>Run a simulation to see 3D visualization</p>
-        </div>
-      </ErrorBoundary>
-    );
+  useEffect(() => {
+    if (IS_DEV) {
+      console.debug('ThreeDVisualizer data summary', {
+        frames: totalFrames,
+        duration: sanitizedDuration,
+        firstFrame: data?.frames[0],
+      });
+    }
+  }, [data, totalFrames, sanitizedDuration]);
+
+    if (!data || totalFrames === 0) {
+      if (IS_DEV) {
+      console.warn('ThreeDVisualizer returning placeholder', {
+        hasData: Boolean(data),
+        frames: totalFrames,
+      });
+    }
+    return <Placeholder reason={!data ? 'no-data' : 'empty-frames'} details={{ frames: totalFrames }} />;
   }
 
-  const handleScreenshot = async () => {
-    // Screenshot functionality - would need to be called from within Canvas context
-    // For now, just trigger the callback
-    onSnapshot?.('');
+  const timelineDuration = Math.max(state.duration, sanitizedDuration, 0.0001);
+
+  const renderCanvas = () => {
+    try {
+      return (
+        <Canvas
+          camera={{ position: [0, 0, 10], fov: 50 }}
+          gl={{ preserveDrawingBuffer: true }}
+          onCreated={() => {
+            setCanvasMounted(true);
+            if (IS_DEV) {
+              console.debug('3D Canvas mounted');
+            }
+          }}
+        >
+          <Suspense fallback={<SuspenseFallback />}>
+            <VisualizerScene
+              trajectoryData={data}
+              planet={planet}
+              settings={settings}
+              currentFrameIndex={state.currentFrameIndex}
+              onMarkerClick={(marker) => jumpToEvent(marker.t)}
+              onSceneError={(error) => {
+                setLastSceneError(error);
+              }}
+              onSceneReady={() => {
+                setSceneReady(true);
+                setLastSceneError(null);
+              }}
+            />
+          </Suspense>
+        </Canvas>
+      );
+    } catch (error) {
+      console.error('ThreeDVisualizer Canvas mount failed', error);
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-red-950/40 text-red-200">
+          Canvas initialization failed: {(error as Error)?.message ?? 'Unknown error'}
+        </div>
+      );
+    }
   };
 
   return (
-    <div className="relative h-[600px] w-full bg-slate-900 rounded-lg overflow-hidden">
-      <Canvas
-        camera={{ position: [0, 0, 10], fov: 50 }}
-        gl={{ preserveDrawingBuffer: true }} // For screenshots
-      >
-        <Suspense fallback={null}>
-          <VisualizerScene
-            trajectoryData={data}
-            planet={planet}
-            settings={settings}
-            currentFrameIndex={state.currentFrameIndex}
-            onMarkerClick={(marker) => jumpToEvent(marker.t)}
-            onUpdateSetting={updateSetting}
-            onScreenshot={handleScreenshot}
-          />
-        </Suspense>
-      </Canvas>
+    <ErrorBoundary toolName="3D Trajectory Visualizer">
+      <div className="relative w-full min-h-[600px] bg-slate-900 rounded-lg overflow-hidden border border-slate-800">
+        <div className="absolute inset-0">{renderCanvas()}</div>
 
-      {/* Controls Overlay */}
-      <ControlsOverlay
-        settings={settings}
-        onUpdateSetting={updateSetting}
-        onScreenshot={handleScreenshot}
-      />
+        {!sceneReady && !lastSceneError && (
+          <div className="absolute inset-0 flex items-center justify-center text-cyan-200 text-sm bg-slate-900/40 backdrop-blur-sm pointer-events-none">
+            Initializing 3D scene...
+          </div>
+        )}
 
-      {/* Timeline Controller */}
-      <TimelineController
-        isPlaying={state.isPlaying}
-        currentTime={state.currentTime}
-        duration={duration}
-        playbackSpeed={state.playbackSpeed}
-        onPlay={play}
-        onPause={pause}
-        onSetTime={setTime}
-        onSetSpeed={setSpeed}
-        onStepForward={() => {
-          const nextTime = Math.min(state.currentTime + 1, duration);
-          setTime(nextTime);
-        }}
-        onStepBack={() => {
-          const prevTime = Math.max(state.currentTime - 1, 0);
-          setTime(prevTime);
-        }}
-        onReset={() => {
-          setTime(0);
-          pause();
-        }}
+        {lastSceneError && (
+          <div className="absolute inset-0 flex items-center justify-center text-red-200 text-sm bg-red-900/30 backdrop-blur-sm p-4 text-center">
+            3D scene error: {lastSceneError.message}
+          </div>
+        )}
+
+        {DEBUG_VIS && (
+          <div className="absolute top-3 left-3 z-20 text-xs bg-slate-950/80 text-cyan-200 px-3 py-2 rounded shadow-lg space-y-0.5">
+            <div>frames: {totalFrames}</div>
+            <div>duration: {timelineDuration.toFixed(2)}s</div>
+            <div>frame index: {state.currentFrameIndex}</div>
+            <div>canvas: {canvasMounted ? 'mounted' : 'pending'}</div>
+            <div>scene ready: {sceneReady ? 'yes' : 'no'}</div>
+            <div>error: {lastSceneError?.message ?? 'none'}</div>
+          </div>
+        )}
+
+        <ControlsOverlay
+          settings={settings}
+          onUpdateSetting={updateSetting}
+          onScreenshot={() => onSnapshot?.('')}
+        />
+
+        <TimelineController
+          isPlaying={state.isPlaying}
+          currentTime={state.currentTime}
+          duration={timelineDuration}
+          playbackSpeed={state.playbackSpeed}
+          onPlay={play}
+          onPause={pause}
+          onSetTime={setTime}
+          onSetSpeed={setSpeed}
+          onStepForward={() => {
+            const nextTime = Math.min(state.currentTime + 1, timelineDuration);
+            setTime(nextTime);
+          }}
+          onStepBack={() => {
+            const prevTime = Math.max(state.currentTime - 1, 0);
+            setTime(prevTime);
+          }}
+          onReset={() => {
+            setTime(0);
+            pause();
+          }}
         />
       </div>
-    );
-  });
+    </ErrorBoundary>
+  );
+});
