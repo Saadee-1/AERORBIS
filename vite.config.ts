@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       host: "::",
-      port: 8080,
+      port: 5173,
       proxy: {
         '/api/assistant-events': {
           target: `${SUPABASE_URL}/functions/v1`,
