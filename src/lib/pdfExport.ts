@@ -188,24 +188,17 @@ export async function exportToPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    
-    // If Supabase URL is not configured, use localStorage fallback
-    if (!supabaseUrl) {
-      console.warn('Supabase URL not configured, generating PDF from localStorage');
-      const html = generatePDFFromLocalStorage(requestId, options);
-      return {
-        status: 'ready',
-        html,
-        requestId,
-      };
-    }
+    // Use hardcoded Supabase endpoint with authentication
+    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
     try {
-      const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/export/pdf`, {
+      const response = await fetch(`${assistantEventsUrl}/export/pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey': supabaseAnonKey,
         },
         mode: 'cors',
         body: JSON.stringify({
@@ -228,7 +221,22 @@ export async function exportToPDF(
         return await response.json();
       } else {
         // If server fails, fall back to localStorage
-        console.warn('PDF export from server failed, using localStorage fallback');
+        try {
+          const errorText = await response.text();
+          console.error('PDF export from server failed:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText,
+            url: `${assistantEventsUrl}/export/pdf`,
+          });
+        } catch (textError) {
+          console.error('PDF export from server failed - failed to read response:', {
+            status: response.status,
+            statusText: response.statusText,
+            textError,
+            url: `${assistantEventsUrl}/export/pdf`,
+          });
+        }
         const html = generatePDFFromLocalStorage(requestId, options);
         return {
           status: 'ready',
@@ -238,7 +246,10 @@ export async function exportToPDF(
       }
     } catch (fetchError) {
       // Network error, use localStorage fallback
-      console.warn('PDF export fetch failed, using localStorage fallback:', fetchError);
+      console.error('PDF export fetch failed, using localStorage fallback:', {
+        error: fetchError,
+        url: `${assistantEventsUrl}/export/pdf`,
+      });
       const html = generatePDFFromLocalStorage(requestId, options);
       return {
         status: 'ready',
@@ -260,15 +271,16 @@ export async function exportBatchPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl) {
-      throw new Error('Supabase URL not configured');
-    }
+    // Use hardcoded Supabase endpoint with authentication
+    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/export/batch`, {
+    const response = await fetch(`${assistantEventsUrl}/export/batch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
       },
       mode: 'cors',
       body: JSON.stringify({
@@ -286,7 +298,24 @@ export async function exportBatchPDF(
     });
 
     if (!response.ok) {
-      throw new Error(`Batch PDF export failed: ${await response.text()}`);
+      try {
+        const errorText = await response.text();
+        console.error('Batch PDF export failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText,
+          url: `${assistantEventsUrl}/export/batch`,
+        });
+        throw new Error(`Batch PDF export failed: ${errorText}`);
+      } catch (textError) {
+        console.error('Batch PDF export failed - failed to read response:', {
+          status: response.status,
+          statusText: response.statusText,
+          textError,
+          url: `${assistantEventsUrl}/export/batch`,
+        });
+        throw new Error(`Batch PDF export failed: ${response.status} ${response.statusText}`);
+      }
     }
 
     return await response.json();
@@ -350,21 +379,39 @@ export async function downloadHTMLAsPDF(
  */
 export async function getCalculationContext(requestId: string) {
   try {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl) {
-      throw new Error('Supabase URL not configured');
-    }
+    // Use hardcoded Supabase endpoint with authentication
+    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/context/${requestId}`, {
+    const response = await fetch(`${assistantEventsUrl}/context/${requestId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
       },
       mode: 'cors',
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get context: ${await response.text()}`);
+      try {
+        const errorText = await response.text();
+        console.error('Failed to get context:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText,
+          url: `${assistantEventsUrl}/context/${requestId}`,
+        });
+        throw new Error(`Failed to get context: ${errorText}`);
+      } catch (textError) {
+        console.error('Failed to get context - failed to read response:', {
+          status: response.status,
+          statusText: response.statusText,
+          textError,
+          url: `${assistantEventsUrl}/context/${requestId}`,
+        });
+        throw new Error(`Failed to get context: ${response.status} ${response.statusText}`);
+      }
     }
 
     return await response.json();
@@ -382,15 +429,16 @@ export async function getExplanation(
   explanationLevel: 'brief' | 'detailed' | 'teaching' = 'detailed'
 ): Promise<string> {
   try {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl) {
-      throw new Error('Supabase URL not configured');
-    }
+    // Use hardcoded Supabase endpoint with authentication
+    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/explain`, {
+    const response = await fetch(`${assistantEventsUrl}/explain`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
       },
       mode: 'cors',
       body: JSON.stringify({
@@ -400,7 +448,24 @@ export async function getExplanation(
     });
 
     if (!response.ok) {
-      throw new Error(`Explanation request failed: ${await response.text()}`);
+      try {
+        const errorText = await response.text();
+        console.error('Explanation request failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText,
+          url: `${assistantEventsUrl}/explain`,
+        });
+        throw new Error(`Explanation request failed: ${errorText}`);
+      } catch (textError) {
+        console.error('Explanation request failed - failed to read response:', {
+          status: response.status,
+          statusText: response.statusText,
+          textError,
+          url: `${assistantEventsUrl}/explain`,
+        });
+        throw new Error(`Explanation request failed: ${response.status} ${response.statusText}`);
+      }
     }
 
     const data = await response.json();

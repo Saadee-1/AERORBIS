@@ -92,22 +92,20 @@ export const useToolContext = () => {
       // Always store locally first (even before trying to send to server)
       const fallbackResponse = createFallbackResponse();
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (!supabaseUrl) {
-        console.warn(
-          "Supabase URL not configured, storing calculation locally only",
-        );
-        return fallbackResponse;
-      }
+      // Use hardcoded Supabase endpoint with authentication
+      const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+      const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
       // Try to send to server, but don't fail if it doesn't work
       try {
         const response = await fetch(
-          `${supabaseUrl}/functions/v1/assistant-events`,
+          assistantEventsUrl,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Authorization": `Bearer ${supabaseAnonKey}`,
+              "apikey": supabaseAnonKey,
             },
             mode: "cors",
             body: JSON.stringify(event),
@@ -148,15 +146,24 @@ export const useToolContext = () => {
           if (response) {
             try {
               const errorText = await response.text();
-              console.warn(
+              console.error(
                 "Server returned error (using local storage):",
-                response.status,
-                errorText,
+                {
+                  status: response.status,
+                  statusText: response.statusText,
+                  error: errorText,
+                  url: assistantEventsUrl,
+                }
               );
-            } catch {
-              console.warn(
-                "Server returned error (using local storage):",
-                response.status,
+            } catch (textError) {
+              console.error(
+                "Server returned error (using local storage) - failed to read response:",
+                {
+                  status: response.status,
+                  statusText: response.statusText,
+                  textError,
+                  url: assistantEventsUrl,
+                }
               );
             }
           }
@@ -197,22 +204,48 @@ export const useToolContext = () => {
           ...payload,
         };
 
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        if (!supabaseUrl) {
-          return false;
-        }
+        // Use hardcoded Supabase endpoint with authentication
+        const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
         const response = await fetch(
-          `${supabaseUrl}/functions/v1/assistant-events`,
+          assistantEventsUrl,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Authorization": `Bearer ${supabaseAnonKey}`,
+              "apikey": supabaseAnonKey,
             },
             mode: "cors",
             body: JSON.stringify(event),
           },
         );
+
+        if (!response.ok) {
+          try {
+            const errorText = await response.text();
+            console.error(
+              "Error sending calculation update:",
+              {
+                status: response.status,
+                statusText: response.statusText,
+                error: errorText,
+                url: assistantEventsUrl,
+              }
+            );
+          } catch (textError) {
+            console.error(
+              "Error sending calculation update - failed to read response:",
+              {
+                status: response.status,
+                statusText: response.statusText,
+                textError,
+                url: assistantEventsUrl,
+              }
+            );
+          }
+        }
 
         return response.ok;
       } catch (error) {
