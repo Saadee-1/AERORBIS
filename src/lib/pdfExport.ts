@@ -4,8 +4,6 @@
  * Functions for exporting calculation results to PDF
  */
 
-import { getSupabaseAnonKey } from '@/lib/supabaseClient';
-
 export interface PDFExportOptions {
   includeAssistantExplanation?: boolean;
   explanationLevel?: 'brief' | 'detailed' | 'teaching';
@@ -190,16 +188,19 @@ export async function exportToPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    // Use unified API endpoint with authentication
-    const supabaseAnonKey = getSupabaseAnonKey();
+    // Use hardcoded Supabase endpoint with authentication
+    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
     try {
-      const response = await fetch("/api/assistant-events/export/pdf", {
+      const response = await fetch(`${assistantEventsUrl}/export/pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey': supabaseAnonKey,
         },
+        mode: 'cors',
         body: JSON.stringify({
           requestId,
           options: {
@@ -226,14 +227,14 @@ export async function exportToPDF(
             status: response.status,
             statusText: response.statusText,
             error: errorText,
-            url: "/api/assistant-events/export/pdf",
+            url: `${assistantEventsUrl}/export/pdf`,
           });
         } catch (textError) {
           console.error('PDF export from server failed - failed to read response:', {
             status: response.status,
             statusText: response.statusText,
             textError,
-            url: "/api/assistant-events/export/pdf",
+            url: `${assistantEventsUrl}/export/pdf`,
           });
         }
         const html = generatePDFFromLocalStorage(requestId, options);
@@ -247,7 +248,7 @@ export async function exportToPDF(
       // Network error, use localStorage fallback
       console.error('PDF export fetch failed, using localStorage fallback:', {
         error: fetchError,
-        url: "/api/assistant-events/export/pdf",
+        url: `${assistantEventsUrl}/export/pdf`,
       });
       const html = generatePDFFromLocalStorage(requestId, options);
       return {
@@ -270,15 +271,18 @@ export async function exportBatchPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    // Use unified API endpoint with authentication
-    const supabaseAnonKey = getSupabaseAnonKey();
+    // Use hardcoded Supabase endpoint with authentication
+    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
-    const response = await fetch("/api/assistant-events/export/batch", {
+    const response = await fetch(`${assistantEventsUrl}/export/batch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
       },
+      mode: 'cors',
       body: JSON.stringify({
         requestIds,
         options: {
@@ -300,7 +304,7 @@ export async function exportBatchPDF(
           status: response.status,
           statusText: response.statusText,
           error: errorText,
-          url: "/api/assistant-events/export/batch",
+          url: `${assistantEventsUrl}/export/batch`,
         });
         throw new Error(`Batch PDF export failed: ${errorText}`);
       } catch (textError) {
@@ -308,7 +312,7 @@ export async function exportBatchPDF(
           status: response.status,
           statusText: response.statusText,
           textError,
-          url: "/api/assistant-events/export/batch",
+          url: `${assistantEventsUrl}/export/batch`,
         });
         throw new Error(`Batch PDF export failed: ${response.status} ${response.statusText}`);
       }
@@ -375,15 +379,18 @@ export async function downloadHTMLAsPDF(
  */
 export async function getCalculationContext(requestId: string) {
   try {
-    // Use unified API endpoint with authentication
-    const supabaseAnonKey = getSupabaseAnonKey();
+    // Use hardcoded Supabase endpoint with authentication
+    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
-    const response = await fetch(`/api/assistant-events/context/${requestId}`, {
+    const response = await fetch(`${assistantEventsUrl}/context/${requestId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
       },
+      mode: 'cors',
     });
 
     if (!response.ok) {
@@ -393,7 +400,7 @@ export async function getCalculationContext(requestId: string) {
           status: response.status,
           statusText: response.statusText,
           error: errorText,
-          url: `/api/assistant-events/context/${requestId}`,
+          url: `${assistantEventsUrl}/context/${requestId}`,
         });
         throw new Error(`Failed to get context: ${errorText}`);
       } catch (textError) {
@@ -401,7 +408,7 @@ export async function getCalculationContext(requestId: string) {
           status: response.status,
           statusText: response.statusText,
           textError,
-          url: `/api/assistant-events/context/${requestId}`,
+          url: `${assistantEventsUrl}/context/${requestId}`,
         });
         throw new Error(`Failed to get context: ${response.status} ${response.statusText}`);
       }
@@ -422,15 +429,18 @@ export async function getExplanation(
   explanationLevel: 'brief' | 'detailed' | 'teaching' = 'detailed'
 ): Promise<string> {
   try {
-    // Use unified API endpoint with authentication
-    const supabaseAnonKey = getSupabaseAnonKey();
+    // Use hardcoded Supabase endpoint with authentication
+    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
-    const response = await fetch("/api/assistant-events/explain", {
+    const response = await fetch(`${assistantEventsUrl}/explain`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
       },
+      mode: 'cors',
       body: JSON.stringify({
         requestId,
         explanationLevel,
@@ -444,7 +454,7 @@ export async function getExplanation(
           status: response.status,
           statusText: response.statusText,
           error: errorText,
-          url: "/api/assistant-events/explain",
+          url: `${assistantEventsUrl}/explain`,
         });
         throw new Error(`Explanation request failed: ${errorText}`);
       } catch (textError) {
@@ -452,7 +462,7 @@ export async function getExplanation(
           status: response.status,
           statusText: response.statusText,
           textError,
-          url: "/api/assistant-events/explain",
+          url: `${assistantEventsUrl}/explain`,
         });
         throw new Error(`Explanation request failed: ${response.status} ${response.statusText}`);
       }

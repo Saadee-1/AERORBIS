@@ -11,9 +11,6 @@ const ThreeBackground = ({ config }: ThreeBackgroundProps) => {
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    
-    // Prevent double initialization
-    if (environmentRef.current) return;
 
     // Initialize space environment
     environmentRef.current = new SpaceEnvironment(canvasRef.current, config);
@@ -41,10 +38,7 @@ const ThreeBackground = ({ config }: ThreeBackgroundProps) => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
-      if (environmentRef.current) {
-        environmentRef.current.dispose();
-        environmentRef.current = null;
-      }
+      environmentRef.current?.dispose();
     };
   }, [config]);
 

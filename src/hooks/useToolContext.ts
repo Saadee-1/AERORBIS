@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { useAIAssistant, ToolContext } from "@/contexts/AIAssistantContext";
-import { getSupabaseAnonKey } from "@/lib/supabaseClient";
 
 export interface CalculationEventPayload {
   toolId: string;
@@ -93,19 +92,22 @@ export const useToolContext = () => {
       // Always store locally first (even before trying to send to server)
       const fallbackResponse = createFallbackResponse();
 
-      // Use unified API endpoint with authentication
-      const supabaseAnonKey = getSupabaseAnonKey();
+      // Use hardcoded Supabase endpoint with authentication
+      const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+      const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
       // Try to send to server, but don't fail if it doesn't work
       try {
         const response = await fetch(
-          "/api/assistant-events",
+          assistantEventsUrl,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${supabaseAnonKey}`,
+              "apikey": supabaseAnonKey,
             },
+            mode: "cors",
             body: JSON.stringify(event),
           },
         ).catch((fetchError) => {
@@ -150,7 +152,7 @@ export const useToolContext = () => {
                   status: response.status,
                   statusText: response.statusText,
                   error: errorText,
-                  url: "/api/assistant-events",
+                  url: assistantEventsUrl,
                 }
               );
             } catch (textError) {
@@ -160,7 +162,7 @@ export const useToolContext = () => {
                   status: response.status,
                   statusText: response.statusText,
                   textError,
-                  url: "/api/assistant-events",
+                  url: assistantEventsUrl,
                 }
               );
             }
@@ -202,17 +204,20 @@ export const useToolContext = () => {
           ...payload,
         };
 
-        // Use unified API endpoint with authentication
-        const supabaseAnonKey = getSupabaseAnonKey();
+        // Use hardcoded Supabase endpoint with authentication
+        const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
 
         const response = await fetch(
-          "/api/assistant-events",
+          assistantEventsUrl,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${supabaseAnonKey}`,
+              "apikey": supabaseAnonKey,
             },
+            mode: "cors",
             body: JSON.stringify(event),
           },
         );
@@ -226,7 +231,7 @@ export const useToolContext = () => {
                 status: response.status,
                 statusText: response.statusText,
                 error: errorText,
-                url: "/api/assistant-events",
+                url: assistantEventsUrl,
               }
             );
           } catch (textError) {
@@ -236,7 +241,7 @@ export const useToolContext = () => {
                 status: response.status,
                 statusText: response.statusText,
                 textError,
-                url: "/api/assistant-events",
+                url: assistantEventsUrl,
               }
             );
           }

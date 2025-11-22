@@ -11,7 +11,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
-import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/supabaseClient";
 
 interface NewsArticle {
   title: string;
@@ -31,14 +30,11 @@ const Research = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["aerospace-news", filter],
     queryFn: async () => {
-      const supabaseUrl = getSupabaseUrl();
-      const supabaseAnonKey = getSupabaseAnonKey();
-      
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/news?filter=${filter}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/news?filter=${filter}`,
         {
           headers: {
-            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
         }
       );

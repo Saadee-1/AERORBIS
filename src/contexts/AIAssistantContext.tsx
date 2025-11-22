@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
-import { getSupabaseUrl, getSupabaseAnonKey } from '@/lib/supabaseClient';
 
 export interface Message {
   id: string;
@@ -290,14 +289,45 @@ Use this context to explain the calculation. Reference specific inputs, results,
         toolName: currentPayload?.toolName || calculationContext?.toolName || 'N/A',
       });
 
-      const supabaseUrl = getSupabaseUrl();
-      const supabaseAnonKey = getSupabaseAnonKey();
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        // If Supabase is not configured, provide a helpful response using the context
+        console.warn('Supabase URL not configured - AI Assistant will work with limited functionality');
+        
+        if (calculationContext) {
+          // Generate a basic explanation from the context
+          const explanation = `Based on your ${calculationContext.toolName || calculationContext.toolId} calculation:
+
+**Inputs:** ${JSON.stringify(calculationContext.inputs, null, 2)}
+
+**Results:** ${JSON.stringify(calculationContext.results, null, 2)}
+
+**Calculation Steps:**
+${calculationContext.steps?.map((step: string, idx: number) => `${idx + 1}. ${step}`).join('\n') || 'No steps available'}
+
+This calculation was performed using the ${calculationContext.toolName || calculationContext.toolId} tool. The results show the computed values based on your input parameters.
+
+Note: Full AI analysis requires Supabase configuration. For detailed explanations, please configure your Supabase URL.`;
+
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: explanation,
+            timestamp: Date.now(),
+          };
+          setMessages(prev => [...prev, assistantMessage]);
+          setIsLoading(false);
+          return;
+        } else {
+          throw new Error('Supabase URL not configured and no calculation context available');
+        }
+      }
 
       const response = await fetch(`${supabaseUrl}/functions/v1/ai-chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify(requestBody),
       });
