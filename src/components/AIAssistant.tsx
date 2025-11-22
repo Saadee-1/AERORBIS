@@ -236,9 +236,9 @@ const AIAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed bottom-4 right-4 z-50 w-[320px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[600px] min-h-[450px] flex flex-col min-h-0 overscroll-contain lg:w-[380px]
+                className="fixed bottom-4 right-4 z-50 w-[320px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[600px] min-h-[450px] flex flex-col min-h-0 overscroll-contain lg:w-[380px]
                        bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
-                       rounded-3xl shadow-[0_0_80px_rgba(34,211,238,0.5)]"
+                       rounded-[32px] shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
           >
             {/* Minimal Header - Always Visible */}
             <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
