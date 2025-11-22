@@ -11,7 +11,7 @@
  * - Added test cases
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
   Card, 
