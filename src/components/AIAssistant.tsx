@@ -260,7 +260,7 @@ const AIAssistant: React.FC = () => {
               
               {/* Minimal Controls - Always Visible */}
               <div className="flex items-center gap-1 flex-shrink-0">
-                <DropdownMenu>
+                  <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
@@ -271,7 +271,7 @@ const AIAssistant: React.FC = () => {
                       <Menu className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-cyan-400/30">
+                      <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-cyan-400/30 rounded-xl">
                     <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-400/10">
                       <History className="w-4 h-4 mr-2" />
                       {showHistory ? 'Hide' : 'Show'} History
@@ -348,13 +348,24 @@ const AIAssistant: React.FC = () => {
                       </Select>
                     </div>
                     <DropdownMenuSeparator className="bg-cyan-400/20" />
-                    <DropdownMenuItem 
-                      onClick={() => setIsOpen(false)} 
-                      className="text-gray-400 focus:text-gray-300 focus:bg-slate-800"
-                    >
-                      <Minimize2 className="w-4 h-4 mr-2" />
-                      Minimize
-                    </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setIsOpen(false)} 
+                        className="text-gray-400 focus:text-gray-300 focus:bg-slate-800"
+                      >
+                        <Minimize2 className="w-4 h-4 mr-2" />
+                        Minimize
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          clearToolContext();
+                          startNewChat();
+                          setIsOpen(false);
+                        }} 
+                        className="text-red-400 focus:text-red-300 focus:bg-red-400/10"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Exit
+                      </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
@@ -376,10 +387,19 @@ const AIAssistant: React.FC = () => {
                   initial={{ width: 0, opacity: 0 }}
                   animate={{ width: 260, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
-                    className="bg-slate-900/60 overflow-hidden flex-shrink-0 flex flex-col overscroll-contain"
+                    className="bg-slate-900/60 overflow-hidden flex-shrink-0 flex flex-col overscroll-contain rounded-2xl ml-2"
                 >
-                  <div className="p-2 border-b border-cyan-400/10 flex-shrink-0">
-                    <p className="text-xs font-semibold text-cyan-400">Recent Chats</p>
+                    <div className="p-2 border-b border-cyan-400/10 flex-shrink-0 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-cyan-400">Recent Chats</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowHistory(false)}
+                        className="h-6 w-6 text-gray-400 hover:text-gray-200 hover:bg-cyan-400/10"
+                        title="Close history"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
                   </div>
                     <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-2 overscroll-contain">
                       {chatHistory.map((session) => (
