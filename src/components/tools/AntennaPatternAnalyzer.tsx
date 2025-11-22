@@ -92,6 +92,13 @@ import { spacingVertical } from "@/styles/spacing";
 import { buildAntennaPayload } from "./antenna/payloadBuilder";
 import { AntennaResult } from "./antenna/types";
 
+const MIN_FREQUENCY_HZ = 1;
+
+const parsePositiveNumber = (value: string) => {
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+};
+
 // Import antenna models and math utilities
 import { ANTENNA_TYPES, getAntennaById, AntennaParams } from "@/lib/antenna/models";
 import { computePattern, AntennaPatternResult, AntennaGeometry, PatternOptions } from "@/lib/antenna/models-enhanced";
@@ -258,18 +265,24 @@ const AntennaPatternAnalyzer = () => {
     return getAntennaById(selectedAntennaId);
   }, [selectedAntennaId]);
 
-  // Calculate wavelength
-  const lambda = useMemo(() => {
-    const customFactor = frequencyUnit === "Custom" ? parseFloat(customFrequencyFactor) : undefined;
-    const freqHz = frequencyToHz(frequency, frequencyUnit, customFactor);
-    return wavelength(freqHz);
-  }, [frequency, frequencyUnit, customFrequencyFactor]);
+  const getCustomFrequencyFactor = useCallback(() => {
+    if (frequencyUnit !== "Custom") return undefined;
+    return parsePositiveNumber(customFrequencyFactor);
+  }, [frequencyUnit, customFrequencyFactor]);
 
-  // Calculate frequency in Hz
+  // Calculate frequency in Hz (sanitized)
   const frequencyHz = useMemo(() => {
-    const customFactor = frequencyUnit === "Custom" ? parseFloat(customFrequencyFactor) : undefined;
-    return frequencyToHz(frequency, frequencyUnit, customFactor);
-  }, [frequency, frequencyUnit, customFrequencyFactor]);
+    const customFactor = getCustomFrequencyFactor();
+    const rawHz = frequencyToHz(
+      Number.isFinite(frequency) ? frequency : 0,
+      frequencyUnit,
+      customFactor
+    );
+    return Math.max(MIN_FREQUENCY_HZ, Math.abs(rawHz || 0));
+  }, [frequency, frequencyUnit, getCustomFrequencyFactor]);
+
+  // Calculate wavelength
+  const lambda = useMemo(() => wavelength(frequencyHz), [frequencyHz]);
 
   // Use registry for antenna type mapping
   const getComputeTypeFromId = (id: string): string => {
