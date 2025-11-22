@@ -45,13 +45,40 @@ serve(async (req) => {
     if (req.method === 'POST' && (path === '/functions/v1/assistant-events' || path.endsWith('/assistant-events'))) {
       try {
         const body = await req.clone().json();
-        if (body.eventType === 'calculation.complete') {
-          return await handleCalculationEvent(req);
-        } else if (body.eventType === 'calculation.update') {
-          return await handleCalculationUpdate(req);
+        
+        // Validate eventType is present
+        if (!body || typeof body.eventType !== 'string') {
+          return new Response(JSON.stringify({ 
+            error: 'Missing or invalid eventType field in request body' 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
         }
-      } catch {
-        // If body parsing fails, fall through to path-based routing
+        
+        // Route based on eventType
+        if (body.eventType === 'calculation.complete') {
+          return await handleCalculationEventWithBody(body);
+        } else if (body.eventType === 'calculation.update') {
+          return await handleCalculationUpdateWithBody(body);
+        } else {
+          // Unknown eventType
+          return new Response(JSON.stringify({ 
+            error: `Unknown eventType: ${body.eventType}. Expected 'calculation.complete' or 'calculation.update'` 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } catch (parseError) {
+        // JSON parsing failed - return 400 Bad Request
+        return new Response(JSON.stringify({ 
+          error: 'Invalid JSON in request body',
+          details: parseError instanceof Error ? parseError.message : 'Unknown parsing error'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
     }
 
@@ -89,6 +116,10 @@ const explanationCache = new Map<string, string>();
 
 async function handleCalculationEvent(req: Request): Promise<Response> {
   const event: CalculationEvent = await req.json();
+  return handleCalculationEventWithBody(event);
+}
+
+async function handleCalculationEventWithBody(event: CalculationEvent): Promise<Response> {
 
   // Validate required fields
   if (!event.requestId || !event.toolId || !event.userId) {
@@ -558,6 +589,10 @@ async function handleGetContext(req: Request): Promise<Response> {
 // Handle calculation.update events (for streaming/partial updates)
 async function handleCalculationUpdate(req: Request): Promise<Response> {
   const event: CalculationEvent = await req.json();
+  return handleCalculationUpdateWithBody(event);
+}
+
+async function handleCalculationUpdateWithBody(event: CalculationEvent): Promise<Response> {
 
   if (!event.requestId || !event.sequenceId) {
     return new Response(JSON.stringify({ error: 'Missing required fields (requestId, sequenceId)' }), {

@@ -36,20 +36,6 @@ export const VisualizerScene = memo(function VisualizerScene({
   const { gl } = useThree();
   const frames = trajectoryData?.frames ?? [];
 
-  // Sanity check: no frames to visualize - report error via useEffect
-  useEffect(() => {
-    if (!frames || frames.length === 0) {
-      if (IS_DEV) {
-        console.debug('3D Visualizer: no frames', {
-          hasTrajectoryData: Boolean(trajectoryData),
-          framesCount: frames?.length ?? 0,
-        });
-      }
-      const error = new Error('No trajectory frames to visualize');
-      onSceneError?.(error);
-    }
-  }, [frames, trajectoryData, onSceneError]);
-
   useEffect(() => {
     if (!gl?.domElement) {
       if (IS_DEV) {

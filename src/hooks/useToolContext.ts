@@ -92,13 +92,18 @@ export const useToolContext = () => {
       // Always store locally first (even before trying to send to server)
       const fallbackResponse = createFallbackResponse();
 
-      // Use the new hardcoded endpoint
-      const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        console.warn(
+          "Supabase URL not configured, storing calculation locally only",
+        );
+        return fallbackResponse;
+      }
 
       // Try to send to server, but don't fail if it doesn't work
       try {
         const response = await fetch(
-          assistantEventsUrl,
+          `${supabaseUrl}/functions/v1/assistant-events`,
           {
             method: "POST",
             headers: {
@@ -192,11 +197,13 @@ export const useToolContext = () => {
           ...payload,
         };
 
-        // Use the new hardcoded endpoint
-        const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        if (!supabaseUrl) {
+          return false;
+        }
 
         const response = await fetch(
-          assistantEventsUrl,
+          `${supabaseUrl}/functions/v1/assistant-events`,
           {
             method: "POST",
             headers: {

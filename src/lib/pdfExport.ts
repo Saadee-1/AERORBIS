@@ -188,11 +188,21 @@ export async function exportToPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    // Use the new hardcoded endpoint
-    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    
+    // If Supabase URL is not configured, use localStorage fallback
+    if (!supabaseUrl) {
+      console.warn('Supabase URL not configured, generating PDF from localStorage');
+      const html = generatePDFFromLocalStorage(requestId, options);
+      return {
+        status: 'ready',
+        html,
+        requestId,
+      };
+    }
 
     try {
-      const response = await fetch(`${assistantEventsUrl}/export/pdf`, {
+      const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/export/pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -250,10 +260,12 @@ export async function exportBatchPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    // Use the new hardcoded endpoint
-    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+      throw new Error('Supabase URL not configured');
+    }
 
-    const response = await fetch(`${assistantEventsUrl}/export/batch`, {
+    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/export/batch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -338,10 +350,12 @@ export async function downloadHTMLAsPDF(
  */
 export async function getCalculationContext(requestId: string) {
   try {
-    // Use the new hardcoded endpoint
-    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+      throw new Error('Supabase URL not configured');
+    }
 
-    const response = await fetch(`${assistantEventsUrl}/context/${requestId}`, {
+    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/context/${requestId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -368,10 +382,12 @@ export async function getExplanation(
   explanationLevel: 'brief' | 'detailed' | 'teaching' = 'detailed'
 ): Promise<string> {
   try {
-    // Use the new hardcoded endpoint
-    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+      throw new Error('Supabase URL not configured');
+    }
 
-    const response = await fetch(`${assistantEventsUrl}/explain`, {
+    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-events/explain`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
