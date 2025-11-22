@@ -26,7 +26,7 @@ import { buildWeightEstimatorPayload } from './utils/payloadBuilder';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
 import { AIRCRAFT_PRESETS, AircraftPreset } from './data/presets';
 import { classifyAircraft } from './utils/classification';
-import { iterateTakeoffWeight, createStandardMissionProfile, calculateMissionFuelFraction, calculateFuelWeight } from './utils/iteration';
+import { iterateTakeoffWeight, calculateMissionFuelFraction, calculateFuelWeight } from './utils/iteration';
 import { GeometryPanel } from './components/GeometryPanel';
 import { PropulsionPanel } from './components/PropulsionPanel';
 import { FlightConditionsPanel } from './components/FlightConditionsPanel';
@@ -40,63 +40,9 @@ import { MaterialsPanel } from './components/MaterialsPanel';
 import { CGInertiaPanel } from './components/CGInertiaPanel';
 import { MissionProfile } from './utils/iteration';
 import { ComponentLocation, calculateCG, calculateMAC, calculateCGonMAC, calculateMomentOfInertia } from './utils/cg';
+import { createDefaultWeightInputs, createDefaultMissionProfile } from './defaults';
 
-// Default inputs
-const DEFAULT_INPUTS: WeightEstimationInputs = {
-  geometry: {
-    S_w: 16.2,
-    AR: 7.5,
-    lambda: 0.6,
-    t_c: 0.15,
-    b: 11.0,
-    S_ht: 3.5,
-    AR_ht: 4.0,
-    S_vt: 1.8,
-    S_fuse: 25.0,
-    L_fuse: 8.0,
-  },
-  flight: {
-    q: 8000,
-    N_ult: 4.4,
-    hasThrustRelief: false,
-  },
-  propulsion: {
-    type: 'piston',
-    power: 120000,
-    n_engines: 1,
-    includeNacelle: true,
-    includePylon: true,
-    includeMounts: true,
-  },
-  systems: {
-    W_crew: 800 * 9.81,
-    avionics: {
-      autopilot: false,
-      uavMissionComputer: false,
-      sensors: false,
-      cameras: false,
-      adsb: true,
-      ifr: true,
-    },
-    controls: {
-      isFBW: false,
-    },
-    fixedEquipment: {
-      n_seats: 4,
-      isPressurized: false,
-      hasOxygen: false,
-      hasHVAC: true,
-      telemetry: false,
-      antennaPackage: false,
-    },
-  },
-  W_payload: 400 * 9.81,
-  method: {
-    wing: 'raymer',
-    fuselage: 'raymer',
-  },
-  W_to: 1100 * 9.81, // Initial guess
-};
+export { handleCalculate } from './handleCalculate';
 
 export default function StructuralWeightEstimator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
@@ -105,12 +51,10 @@ export default function StructuralWeightEstimator() {
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
 
   // Input state
-  const [inputs, setInputs] = useState<WeightEstimationInputs>(DEFAULT_INPUTS);
+  const [inputs, setInputs] = useState<WeightEstimationInputs>(() => createDefaultWeightInputs());
   
   // Mission fuel profile
-  const [missionProfile, setMissionProfile] = useState<MissionProfile>(
-    createStandardMissionProfile({ range: 1000, includeAlternate: true, reserve: 0.05 })
-  );
+  const [missionProfile, setMissionProfile] = useState<MissionProfile>(() => createDefaultMissionProfile());
 
   // Component locations for CG calculation
   const [componentLocations, setComponentLocations] = useState<ComponentLocation[]>([]);
@@ -228,7 +172,7 @@ export default function StructuralWeightEstimator() {
   }, [toast]);
 
     // Calculate weights
-    const handleCalculate = useCallback(async () => {
+    const handleUserCalculate = useCallback(async () => {
     try {
       // Validate inputs
       const validation = validateWeightEstimationInputs(inputs);
@@ -358,7 +302,7 @@ export default function StructuralWeightEstimator() {
         variant: 'destructive',
       });
     }
-      }, [applyToolPayload, inputs, missionProfile, toast]);
+    }, [applyToolPayload, inputs, missionProfile, toast]);
 
   return (
     <ToolWrapper>
@@ -495,7 +439,7 @@ export default function StructuralWeightEstimator() {
       </Tabs>
 
       <ToolActions>
-        <AeroButton onClick={handleCalculate} icon={Calculator}>
+          <AeroButton onClick={handleUserCalculate} icon={Calculator}>
           Calculate Weights
         </AeroButton>
           {results && (

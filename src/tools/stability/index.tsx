@@ -51,6 +51,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { MIXING_PRESETS } from './data/mixingMatrices';
 
+export { handleCalculate } from './handleCalculate';
+
 export default function StabilityCalculator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();
@@ -217,7 +219,7 @@ export default function StabilityCalculator() {
   );
 
   // Calculate stability
-    const handleCalculate = useCallback(async () => {
+    const handleUserCalculate = useCallback(async () => {
     try {
       // Validate inputs
       const validation = validateStabilityInputs(inputs);
@@ -416,7 +418,7 @@ export default function StabilityCalculator() {
         variant: 'destructive',
       });
     }
-  }, [
+    }, [
     applyToolPayload,
     inputs,
     toast,
@@ -509,7 +511,7 @@ export default function StabilityCalculator() {
       </ToolSection>
 
       <ToolActions>
-        <AeroButton onClick={handleCalculate} icon={Calculator}>
+          <AeroButton onClick={handleUserCalculate} icon={Calculator}>
           Calculate Stability
         </AeroButton>
           {results && lastPayload && (

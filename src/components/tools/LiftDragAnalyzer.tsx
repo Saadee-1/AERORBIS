@@ -38,6 +38,9 @@ import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 
+const safeToFixed = (value: number | null | undefined, digits = 2) =>
+  Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
+
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type AirfoilKey = keyof typeof airfoils | "custom";
 type ChartMode = "compareOne" | "compareAll";
@@ -873,9 +876,9 @@ const LiftDragAnalyzer = () => {
             </div>
           }
         >
-          <p className="text-sm text-slate-400 -mt-2 mb-4">
-            Comparing all airfoils using your wing's calculated Aspect Ratio of {result?.aspectRatio.toFixed(2)}
-          </p>
+            <p className="text-sm text-slate-400 -mt-2 mb-4">
+              Comparing all airfoils using your wing's calculated Aspect Ratio of {safeToFixed(result?.aspectRatio, 2)}
+            </p>
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={comparisonData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />

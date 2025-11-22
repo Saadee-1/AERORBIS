@@ -46,6 +46,8 @@ import { TwoDVisualizer } from './components/TwoDVisualizer';
 import { AdvancedSettingsPanel, AdvancedSettings } from './components/AdvancedSettingsPanel';
 import { convertSimulationToTrajectoryData } from './utils/convertSimulationToTrajectoryData';
 
+export { handleCalculate } from './handleCalculate';
+
 export default function TrajectorySimulator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();

@@ -9,6 +9,9 @@ import { AircraftClassification } from './classification';
 import { IterationResult } from './iteration';
 import { MATERIALS } from '../data/materials';
 
+const formatCoefficient = (value?: number): string =>
+  Number.isFinite(value as number) ? (value as number).toFixed(2) : '1.00';
+
 export interface WeightEstimationResults {
   inputs: WeightEstimationInputs;
   components: ComponentWeights;
@@ -43,8 +46,8 @@ export function buildWeightEstimatorPayload(
     'Wing weight: Raymer/Torenbeek model based on area, AR, taper ratio, and t/c',
   ];
   
-  if (inputs.materials?.wing) {
-    steps.push(`Wing material: ${MATERIALS[inputs.materials.wing]?.name || inputs.materials.wing} (coefficient: ${MATERIALS[inputs.materials.wing]?.wingCoeff.toFixed(2) || '1.00'})`);
+    if (inputs.materials?.wing) {
+      steps.push(`Wing material: ${MATERIALS[inputs.materials.wing]?.name || inputs.materials.wing} (coefficient: ${formatCoefficient(MATERIALS[inputs.materials.wing]?.wingCoeff)})`);
   }
   
   steps.push(
@@ -52,8 +55,8 @@ export function buildWeightEstimatorPayload(
     'Fuselage weight: Raymer/Torenbeek model based on wetted area',
   );
   
-  if (inputs.materials?.fuselage) {
-    steps.push(`Fuselage material: ${MATERIALS[inputs.materials.fuselage]?.name || inputs.materials.fuselage} (coefficient: ${MATERIALS[inputs.materials.fuselage]?.fuseCoeff.toFixed(2) || '1.00'})`);
+    if (inputs.materials?.fuselage) {
+      steps.push(`Fuselage material: ${MATERIALS[inputs.materials.fuselage]?.name || inputs.materials.fuselage} (coefficient: ${formatCoefficient(MATERIALS[inputs.materials.fuselage]?.fuseCoeff)})`);
   }
   
   steps.push(
@@ -79,8 +82,8 @@ export function buildWeightEstimatorPayload(
     'Landing gear: Raymer model (main + nose gear)',
   );
   
-  if (inputs.materials?.gear) {
-    steps.push(`Landing gear material: ${MATERIALS[inputs.materials.gear]?.name || inputs.materials.gear} (coefficient: ${MATERIALS[inputs.materials.gear]?.lgCoeff.toFixed(2) || '1.00'})`);
+    if (inputs.materials?.gear) {
+      steps.push(`Landing gear material: ${MATERIALS[inputs.materials.gear]?.name || inputs.materials.gear} (coefficient: ${formatCoefficient(MATERIALS[inputs.materials.gear]?.lgCoeff)})`);
   }
   
   steps.push(
