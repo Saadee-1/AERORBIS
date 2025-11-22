@@ -4,7 +4,7 @@
 
 import { AeroCard } from '@/components/common/AeroCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { RocketEngineResults } from '../utils/calcEngine';
 
 interface ResultsPanelProps {
@@ -16,32 +16,53 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
     return null;
   }
 
+  const hasValidPerformance =
+    Number.isFinite(results.Pe) &&
+    results.Pe > 0 &&
+    Number.isFinite(results.T) &&
+    Number.isFinite(results.mdot) &&
+    results.mdot > 0;
+
+  const showNozzleWarning = hasValidPerformance && (results.isOverExpanded || results.isUnderExpanded);
+
+  const nozzleStatusIcon = showNozzleWarning ? (
+    <AlertTriangle className="h-4 w-4 text-yellow-400" />
+  ) : (
+    <CheckCircle2 className="h-4 w-4 text-green-400" />
+  );
+
+  const nozzleStatusClasses = showNozzleWarning
+    ? "bg-yellow-400/10 border-yellow-400/30"
+    : "bg-green-400/10 border-green-400/30";
+
+  const nozzleStatusTextClasses = showNozzleWarning ? "text-yellow-400" : "text-green-400";
+
+  const nozzleStatusMessage = !hasValidPerformance
+    ? "Awaiting valid performance data"
+    : showNozzleWarning
+    ? results.isOverExpanded
+      ? "Nozzle is overexpanded: Pe > Pa. Internal shock waves may form."
+      : "Nozzle is underexpanded: Pe < Pa. Expansion continues outside the nozzle."
+    : "Nozzle exit pressure matches ambient (Pe ≈ Pa)";
+
+  const displayWarnings = hasValidPerformance ? results.warnings : [];
+
   return (
     <div className="space-y-6">
       {/* Status Alert */}
-      <Alert className={results.isOverExpanded || results.isUnderExpanded 
-        ? "bg-yellow-400/10 border-yellow-400/30" 
-        : "bg-green-400/10 border-green-400/30"}>
-        {results.isOverExpanded || results.isUnderExpanded ? (
-          <AlertTriangle className="h-4 w-4 text-yellow-400" />
-        ) : (
-          <CheckCircle2 className="h-4 w-4 text-green-400" />
-        )}
-        <AlertDescription className={results.isOverExpanded || results.isUnderExpanded ? "text-yellow-400" : "text-green-400"}>
-          {results.isOverExpanded 
-            ? 'Nozzle is overexpanded - flow separation possible'
-            : results.isUnderExpanded
-            ? 'Nozzle is underexpanded - expansion continues outside'
-            : 'Nozzle operating within design range'}
+      <Alert className={nozzleStatusClasses}>
+        {nozzleStatusIcon}
+        <AlertDescription className={nozzleStatusTextClasses}>
+          {nozzleStatusMessage}
         </AlertDescription>
       </Alert>
 
       {/* Warnings */}
-      {results.warnings.length > 0 && (
+      {displayWarnings.length > 0 && (
         <Alert className="bg-yellow-400/10 border-yellow-400/30">
           <AlertTriangle className="h-4 w-4 text-yellow-400" />
           <AlertDescription className="text-yellow-400">
-            {results.warnings.map((w, i) => (
+            {displayWarnings.map((w, i) => (
               <div key={i} className="text-sm">{w}</div>
             ))}
           </AlertDescription>

@@ -2,7 +2,7 @@
 /**
  * AI CONTEXT SELF-TEST SCRIPT (Windows-friendly)
  *
- * Scans src/tools/**/index.tsx and calls each tool handler (handleCalculate)
+ * Scans each src/tools/<tool>/index.tsx file and calls its tool handler (handleCalculate)
  * while intercepting updateToolContext to make sure the tool sends:
  *    { tool, inputs, results }
  *

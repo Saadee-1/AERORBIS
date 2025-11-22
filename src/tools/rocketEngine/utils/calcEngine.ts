@@ -182,7 +182,8 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
   const Me = solverResult.value;
   
   // Calculate exit pressure ratio and static pressure
-  const Pe_Pc = pressureRatioFromMach(Me, inputs.gamma);
+  const Pe_Pc_raw = pressureRatioFromMach(Me, inputs.gamma);
+  const Pe_Pc = clamp(Pe_Pc_raw, 1e-8, 0.999999999);
   const Pe = Pc_effective * Pe_Pc;
   
   if (nozzleEfficiency <= 0) {
@@ -190,9 +191,8 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
   }
   
   // Calculate exit velocity
-  const pressureRatio = clamp(Pe / Pc_effective, 1e-9, 0.999999999);
   const exponent = (inputs.gamma - 1) / inputs.gamma;
-  const velocityTerm = Math.max(1 - Math.pow(pressureRatio, exponent), 0);
+  const velocityTerm = Math.max(1 - Math.pow(Pe_Pc, exponent), 0);
   
   const Ve_ideal = Math.sqrt(
     (2 * inputs.gamma) / (inputs.gamma - 1) *
@@ -218,17 +218,19 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
   
   // Diagnostics
   const isChoked = true; // Always choked at throat for supersonic nozzle
-  const isOverExpanded = Pe < inputs.Pa && Me > 1;
-  const isUnderExpanded = Pe > 1.5 * inputs.Pa; // Threshold for significant underexpansion
+  const ambientPressure = Math.max(inputs.Pa, 0);
+  const evaluateExpansion = ambientPressure > 0;
+  const pressureDelta = Pe - ambientPressure;
+  const pressureTolerance = evaluateExpansion ? Math.max(ambientPressure * 0.02, 500) : 0; // avoid flapping near equality
+  const isOverExpanded = evaluateExpansion && pressureDelta > pressureTolerance;
+  const isUnderExpanded = evaluateExpansion && pressureDelta < -pressureTolerance;
   
   const warnings: string[] = [];
   
   if (isOverExpanded) {
-    warnings.push('Nozzle is overexpanded (Pe < Pa). Flow separation or shock waves may occur.');
-  }
-  
-  if (isUnderExpanded) {
-    warnings.push('Nozzle is underexpanded (Pe >> Pa). Supersonic expansion continues outside nozzle.');
+    warnings.push('Nozzle is overexpanded: Pe > Pa. Internal shock structures may form.');
+  } else if (isUnderExpanded) {
+    warnings.push('Nozzle is underexpanded: Pe < Pa. Expansion continues outside the nozzle.');
   }
   
   if (Me < 1.1) {
@@ -244,16 +246,24 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
   }
   
   if (process.env.NODE_ENV === 'development') {
-    console.log('RocketEngineCheck:', {
+    console.log('DEBUG_ROCKET_ENGINE', {
       Pc: inputs.Pc,
-      Pc_effective,
       Pa: inputs.Pa,
+      Pc_effective,
+      Pa_effective: inputs.Pa,
       At: inputs.At,
       Ae,
+      epsilon,
+      gamma: inputs.gamma,
+      R,
+      Tc: inputs.Tc,
       mdot,
+      mdot_ideal,
+      Pe,
+      Pe_Pa_ratio: ambientPressure > 0 ? Pe / ambientPressure : null,
+      Me,
       Ve,
       thrust: T,
-      Isp,
     });
   }
   
