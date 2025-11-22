@@ -153,6 +153,7 @@ const AntennaPatternAnalyzer = () => {
   const [computeMode, setComputeMode] = useState<"fast" | "accurate">("fast");
   const [show3D, setShow3D] = useState(false);
   const [result, setResult] = useState<AntennaResult | null>(null);
+  const [threeError, setThreeError] = useState<string | null>(null);
   const canvas3DRef = useRef<HTMLCanvasElement>(null);
   const three3DRef = useRef<{
     scene: THREE.Scene;
@@ -642,7 +643,7 @@ const AntennaPatternAnalyzer = () => {
 
   // Initialize Three.js scene (only once)
   useEffect(() => {
-    if (!show3D || !canvas3DRef.current) {
+    if (!show3D) {
       // Cleanup if 3D is disabled
       if (three3DRef.current) {
         if (three3DRef.current.animationId) {
@@ -672,55 +673,74 @@ const AntennaPatternAnalyzer = () => {
         three3DRef.current.controls.dispose();
         three3DRef.current = null;
       }
+      setThreeError(null);
       return;
     }
 
-    // Initialize Three.js scene (only if not already initialized)
-    if (!three3DRef.current && canvas3DRef.current) {
-      const canvas = canvas3DRef.current;
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x020617);
+    if (!canvas3DRef.current) {
+      setThreeError('Canvas unavailable for 3D visualization.');
+      return;
+    }
 
-      const camera = new THREE.PerspectiveCamera(
-        50,
-        canvas.clientWidth / canvas.clientHeight || 1,
-        0.1,
-        1000
-      );
-      camera.position.set(0, 0, 5);
+    try {
+      // Initialize Three.js scene (only if not already initialized)
+      if (!three3DRef.current && canvas3DRef.current) {
+        const canvas = canvas3DRef.current;
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x020617);
 
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
+        const camera = new THREE.PerspectiveCamera(
+          50,
+          canvas.clientWidth / canvas.clientHeight || 1,
+          0.1,
+          1000
+        );
+        camera.position.set(0, 0, 5);
 
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
 
-      // Add lights (only once)
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-      scene.add(ambientLight);
-      const directionalLight = new THREE.DirectionalLight(0x22d3ee, 1);
-      directionalLight.position.set(5, 5, 5);
-      scene.add(directionalLight);
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
 
-      three3DRef.current = {
-        scene,
-        camera,
-        renderer,
-        controls,
-        patternMesh: null,
-        animationId: null,
-      };
+        // Add lights (only once)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0x22d3ee, 1);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
 
-      // Start animation loop (only once)
-      const animate = () => {
-        if (!three3DRef.current) return;
-        three3DRef.current.animationId = requestAnimationFrame(animate);
-        three3DRef.current.controls.update();
-        three3DRef.current.renderer.render(three3DRef.current.scene, three3DRef.current.camera);
-      };
-      animate();
+        three3DRef.current = {
+          scene,
+          camera,
+          renderer,
+          controls,
+          patternMesh: null,
+          animationId: null,
+        };
+
+        // Start animation loop (only once)
+        const animate = () => {
+          if (!three3DRef.current) return;
+          three3DRef.current.animationId = requestAnimationFrame(animate);
+          three3DRef.current.controls.update();
+          three3DRef.current.renderer.render(three3DRef.current.scene, three3DRef.current.camera);
+        };
+        animate();
+      }
+
+      setThreeError(null);
+    } catch (error) {
+      console.error('Failed to initialize antenna 3D visualization:', error);
+      setThreeError(error instanceof Error ? error.message : 'Unknown WebGL error');
+      if (three3DRef.current) {
+        three3DRef.current.renderer?.dispose();
+        three3DRef.current.controls?.dispose();
+        three3DRef.current = null;
+      }
+      return;
     }
 
     // Cleanup on unmount or when 3D is disabled
@@ -1290,16 +1310,24 @@ const AntennaPatternAnalyzer = () => {
             </ChartCard>
 
             {/* 3D Pattern Visualization */}
-            {show3D && (
+              {show3D && (
               <AeroCard
                 title="3D Radiation Pattern"
                 description="Interactive 3D visualization of antenna radiation pattern"
                 icon={Zap}
               >
-                <canvas
-                  ref={canvas3DRef}
-                  className="w-full h-[500px] rounded-lg bg-slate-900"
-                />
+                  <div className="relative w-full h-[500px] rounded-lg bg-slate-900 border border-cyan-400/20">
+                    {threeError && (
+                      <div className="absolute inset-0 flex items-center justify-center text-red-300 text-sm p-4 text-center">
+                        Unable to initialize 3D visualization: {threeError}
+                      </div>
+                    )}
+                    <canvas
+                      ref={canvas3DRef}
+                      className="w-full h-full rounded-lg"
+                      aria-hidden={!!threeError}
+                    />
+                  </div>
               </AeroCard>
             )}
 

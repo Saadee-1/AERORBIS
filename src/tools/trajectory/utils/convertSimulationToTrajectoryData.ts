@@ -23,13 +23,41 @@ const sanitizeVector3 = (value: unknown, fallback: [number, number, number]): [n
 };
 
 const EMPTY_TRAJECTORY = (planet: PlanetLite): TrajectoryData => ({
-  frames: [],
+  frames: [
+    {
+      t: 0,
+      pos: [0, 0, sanitizeNumber(planet?.radius, 6_371_000)],
+      vel: [0, 0, 0],
+      x: 0,
+      y: 0,
+      z: sanitizeNumber(planet?.radius, 6_371_000),
+      vx: 0,
+      vy: 0,
+      vz: 0,
+    },
+  ],
   metadata: {
     planet: planet?.id || 'earth',
     coordFrame: 'ECEF',
     planetRadius: planet?.radius || 6_371_000,
   },
 });
+
+const isValidFrame = (frame: TrajectoryFrame | undefined): frame is TrajectoryFrame => {
+  if (!frame) return false;
+  const values = [
+    frame.t,
+    ...frame.pos,
+    ...frame.vel,
+    frame.x,
+    frame.y,
+    frame.z,
+    frame.vx,
+    frame.vy,
+    frame.vz,
+  ];
+  return values.every((value) => typeof value === 'number' && Number.isFinite(value));
+};
 
 export function convertSimulationToTrajectoryData(
   result: any,
@@ -146,14 +174,20 @@ export function convertSimulationToTrajectoryData(
       });
     }
 
-    return {
-      frames,
-      metadata: {
-        planet: planet?.id || 'earth',
-        coordFrame: mode === '3D' ? 'ECEF' : 'ENU',
-        planetRadius,
-      },
-    };
+      const filteredFrames = frames.filter(isValidFrame);
+
+      if (!filteredFrames.length) {
+        return EMPTY_TRAJECTORY(planet);
+      }
+
+      return {
+        frames: filteredFrames,
+        metadata: {
+          planet: planet?.id || 'earth',
+          coordFrame: mode === '3D' ? 'ECEF' : 'ENU',
+          planetRadius,
+        },
+      };
   } catch (error) {
     console.error('TrajectoryConvert failed', error, { result, mode, planet });
     return EMPTY_TRAJECTORY(planet);

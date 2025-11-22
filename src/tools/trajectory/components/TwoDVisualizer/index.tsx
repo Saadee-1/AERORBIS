@@ -22,6 +22,9 @@ export const TwoDVisualizer = memo(function TwoDVisualizer({
   const frames = trajectoryData?.frames ?? [];
   const metadata = trajectoryData?.metadata;
 
+  const sanitize = (value: number, fallback = 0) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+
   useEffect(() => {
     if (!IS_DEV) return;
     console.debug('TwoDVisualizer', {
@@ -30,10 +33,10 @@ export const TwoDVisualizer = memo(function TwoDVisualizer({
     });
   }, [frames.length, mode]);
 
-  if (frames.length === 0) {
+    if (frames.length === 0) {
     return (
       <AeroCard title={title}>
-        <div className="relative w-full min-h-[360px] flex items-center justify-center text-gray-400">
+          <div className="relative w-full min-h-[360px] flex items-center justify-center text-gray-400">
           <p>No trajectory data. Run a simulation to visualize.</p>
         </div>
       </AeroCard>
@@ -41,38 +44,34 @@ export const TwoDVisualizer = memo(function TwoDVisualizer({
   }
 
   const { polylinePoints, extremes } = useMemo(() => {
-    const planetRadius = metadata?.planetRadius ?? 0;
-    const points = frames.map((frame) => {
-      const xAxis =
-        mode === '1D'
-          ? frame.t
-          : frame.x;
-      const yAxis =
-        mode === '1D'
-          ? frame.z - planetRadius
-          : frame.z - planetRadius;
-      return {
-        xAxis,
-        yAxis,
-      };
-    });
+      const planetRadius = metadata?.planetRadius ?? 0;
+      const points = frames.map((frame) => {
+        const xAxis = mode === '1D' ? sanitize(frame.t) : sanitize(frame.x);
+        const altitude = sanitize(frame.z - planetRadius);
+        return {
+          xAxis,
+          yAxis: altitude,
+        };
+      });
 
-    const xs = points.map((p) => p.xAxis);
-    const ys = points.map((p) => p.yAxis);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
+      const xs = points.map((p) => p.xAxis).filter((value) => Number.isFinite(value));
+      const ys = points.map((p) => p.yAxis).filter((value) => Number.isFinite(value));
+      const minX = xs.length ? Math.min(...xs) : 0;
+      const maxX = xs.length ? Math.max(...xs) : 1;
+      const minY = ys.length ? Math.min(...ys) : 0;
+      const maxY = ys.length ? Math.max(...ys) : 1;
 
     const width = 800;
     const height = 360;
 
     const normalizedPoints = points.map((point) => {
-      const xRange = maxX - minX || 1;
-      const yRange = maxY - minY || 1;
-      const normX = ((point.xAxis - minX) / xRange) * (width - 40) + 20;
-      const normY = height - (((point.yAxis - minY) / yRange) * (height - 40) + 20);
-      return `${normX.toFixed(2)},${normY.toFixed(2)}`;
+        const safeX = sanitize(point.xAxis, minX);
+        const safeY = sanitize(point.yAxis, minY);
+        const xRange = maxX - minX || 1;
+        const yRange = maxY - minY || 1;
+        const normX = ((safeX - minX) / xRange) * (width - 40) + 20;
+        const normY = height - (((safeY - minY) / yRange) * (height - 40) + 20);
+        return `${normX.toFixed(2)},${normY.toFixed(2)}`;
     });
 
     return {
@@ -88,7 +87,7 @@ export const TwoDVisualizer = memo(function TwoDVisualizer({
 
   return (
     <AeroCard title={title}>
-      <div className="relative w-full min-h-[360px]">
+          <div className="relative w-full min-h-[360px]">
         <svg viewBox="0 0 800 360" role="img" aria-label="2D trajectory visualization">
           <defs>
             <linearGradient id="trajectoryGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -111,10 +110,10 @@ export const TwoDVisualizer = memo(function TwoDVisualizer({
           <div className="absolute top-4 left-4 text-xs bg-slate-950/70 text-cyan-200 px-3 py-2 rounded shadow">
             <div>frames: {frames.length}</div>
             <div>
-              x-range: {extremes.minX.toFixed(1)} → {extremes.maxX.toFixed(1)}
+                x-range: {sanitize(extremes.minX).toFixed(1)} → {sanitize(extremes.maxX).toFixed(1)}
             </div>
             <div>
-              y-range: {extremes.minY.toFixed(1)} → {extremes.maxY.toFixed(1)}
+                y-range: {sanitize(extremes.minY).toFixed(1)} → {sanitize(extremes.maxY).toFixed(1)}
             </div>
           </div>
         )}
