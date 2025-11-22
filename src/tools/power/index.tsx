@@ -34,6 +34,8 @@ import { MissionTimeline } from './components/MissionTimeline';
 import { ResultsPanel } from './components/ResultsPanel';
 import { ChartsPanel } from './components/ChartsPanel';
 
+export { handleCalculate } from './handleCalculate';
+
 export default function PowerSystemCalculator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();
@@ -162,7 +164,7 @@ export default function PowerSystemCalculator() {
   }, [result]);
 
   // Calculate mission
-    const handleCalculate = useCallback(async () => {
+    const handleUserCalculate = useCallback(async () => {
     try {
       // Validate inputs
       const validation = validatePowerSystemInputs({
@@ -238,7 +240,7 @@ export default function PowerSystemCalculator() {
         variant: 'destructive',
       });
     }
-  }, [applyToolPayload, pack, solarConfig, loads, phases, location, dayOfYear, toast]);
+    }, [applyToolPayload, pack, solarConfig, loads, phases, location, dayOfYear, toast]);
   
   return (
     <ErrorBoundary toolName="Battery & Solar Power System">
@@ -357,7 +359,7 @@ export default function PowerSystemCalculator() {
       </Tabs>
       
       <ToolActions>
-        <AeroButton onClick={handleCalculate} icon={Calculator}>
+          <AeroButton onClick={handleUserCalculate} icon={Calculator}>
           Run Simulation
         </AeroButton>
           {result && lastRequestId && lastPayload && (

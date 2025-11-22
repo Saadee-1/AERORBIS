@@ -38,6 +38,8 @@ import { PresetsPanel } from './components/PresetsPanel';
 import { DEFAULT_GAMMA, DEFAULT_NOZZLE_EFFICIENCY, DEFAULT_CSTAR_EFFICIENCY, DEFAULT_PRESSURE_LOSS, R_UNIVERSAL } from './utils/constants';
 import { altitudeToPressure } from './utils/units';
 
+export { handleCalculate } from './handleCalculate';
+
 export default function RocketEngineCalculator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();
@@ -166,7 +168,7 @@ export default function RocketEngineCalculator() {
   }, [toast]);
 
   // Calculate engine performance
-  const handleCalculate = useCallback(async () => {
+  const handleUserCalculate = useCallback(async () => {
     try {
       // Validate inputs
       const validation = validateRocketEngineInputs(inputs);
@@ -292,7 +294,7 @@ export default function RocketEngineCalculator() {
       </ToolSection>
 
       <ToolActions>
-        <AeroButton onClick={handleCalculate} icon={Calculator}>
+          <AeroButton onClick={handleUserCalculate} icon={Calculator}>
           Calculate Performance
         </AeroButton>
           {results && lastPayload && (
