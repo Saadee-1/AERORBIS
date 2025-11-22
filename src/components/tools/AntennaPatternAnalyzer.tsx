@@ -758,9 +758,40 @@ const AntennaPatternAnalyzer = () => {
 
     // Cleanup on unmount or when 3D is disabled
     return () => {
-      if (three3DRef.current?.animationId) {
-        cancelAnimationFrame(three3DRef.current.animationId);
-        three3DRef.current.animationId = null;
+      if (three3DRef.current) {
+        // Cancel animation frame
+        if (three3DRef.current.animationId) {
+          cancelAnimationFrame(three3DRef.current.animationId);
+          three3DRef.current.animationId = null;
+        }
+        
+        // Dispose pattern mesh
+        if (three3DRef.current.patternMesh) {
+          three3DRef.current.scene.remove(three3DRef.current.patternMesh);
+          three3DRef.current.patternMesh.geometry.dispose();
+          if (Array.isArray(three3DRef.current.patternMesh.material)) {
+            three3DRef.current.patternMesh.material.forEach((m) => m.dispose());
+          } else {
+            three3DRef.current.patternMesh.material.dispose();
+          }
+          three3DRef.current.patternMesh = null;
+        }
+        
+        // Dispose controls
+        if (three3DRef.current.controls) {
+          three3DRef.current.controls.dispose();
+        }
+        
+        // Dispose renderer and remove canvas
+        if (three3DRef.current.renderer) {
+          three3DRef.current.renderer.dispose();
+          const canvas = three3DRef.current.renderer.domElement;
+          if (canvas && canvas.parentElement) {
+            canvas.parentElement.removeChild(canvas);
+          }
+        }
+        
+        three3DRef.current = null;
       }
     };
   }, [show3D]);
