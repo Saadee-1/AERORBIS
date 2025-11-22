@@ -245,28 +245,6 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
     warnings.push(`Solver residual is large: ${solverResult.residual.toExponential(2)}`);
   }
   
-  if (process.env.NODE_ENV === 'development') {
-    console.log('DEBUG_ROCKET_ENGINE', {
-      Pc: inputs.Pc,
-      Pa: inputs.Pa,
-      Pc_effective,
-      Pa_effective: inputs.Pa,
-      At: inputs.At,
-      Ae,
-      epsilon,
-      gamma: inputs.gamma,
-      R,
-      Tc: inputs.Tc,
-      mdot,
-      mdot_ideal,
-      Pe,
-      Pe_Pa_ratio: ambientPressure > 0 ? Pe / ambientPressure : null,
-      Me,
-      Ve,
-      thrust: T,
-    });
-  }
-  
   return {
     mdot,
     mdot_ideal,
