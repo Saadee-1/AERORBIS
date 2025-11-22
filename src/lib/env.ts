@@ -26,6 +26,11 @@ const normalizeFlag = (value: unknown) => {
 };
 
 export const isDevEnv = (): boolean => {
+  // Check for explicit disable flag first
+  if (RUNTIME_ENV?.VITE_DISABLE_DEV !== undefined) {
+    const disabled = normalizeFlag(RUNTIME_ENV.VITE_DISABLE_DEV);
+    if (disabled) return false;
+  }
   if (RUNTIME_ENV?.DEV !== undefined) {
     return normalizeFlag(RUNTIME_ENV.DEV);
   }

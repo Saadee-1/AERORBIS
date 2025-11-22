@@ -115,29 +115,82 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
     }
   }, [data, totalFrames, sanitizedDuration]);
 
+    // Sanity check: no frames to visualize
     if (!data || totalFrames === 0) {
       if (IS_DEV) {
-      console.warn('ThreeDVisualizer returning placeholder', {
-        hasData: Boolean(data),
-        frames: totalFrames,
-      });
+        console.debug('3D Visualizer: no frames', {
+          hasData: Boolean(data),
+          frames: totalFrames,
+          reason: !data ? 'no-data' : 'empty-frames',
+        });
+      }
+      return <Placeholder reason={!data ? 'no-data' : 'empty-frames'} details={{ frames: totalFrames }} />;
     }
-    return <Placeholder reason={!data ? 'no-data' : 'empty-frames'} details={{ frames: totalFrames }} />;
-  }
 
   const timelineDuration = Math.max(state.duration, sanitizedDuration, 0.0001);
 
   const renderCanvas = () => {
     try {
+      if (IS_DEV) {
+        console.debug('3D Canvas init start', {
+          hasData: Boolean(data),
+          frames: totalFrames,
+          mode,
+          planetId: planet?.id,
+        });
+      }
+
       return (
         <Canvas
           camera={{ position: [0, 0, 10], fov: 50 }}
           gl={{ preserveDrawingBuffer: true }}
-          onCreated={() => {
-            setCanvasMounted(true);
-            if (IS_DEV) {
-              console.debug('3D Canvas mounted');
+          onCreated={({ gl, scene, camera }) => {
+            try {
+              // Check WebGL context availability
+              const canvas = gl.domElement;
+              if (!canvas) {
+                const error = new Error('Canvas element missing');
+                console.error('3D Visualizer error', error, { location: 'Canvas/onCreated' });
+                setLastSceneError(error);
+                return;
+              }
+
+              // Get WebGL context from canvas
+              const context = canvas.getContext('webgl') || canvas.getContext('webgl2');
+              if (!context) {
+                const error = new Error('WebGL not available in this browser/device');
+                console.error('3D Visualizer error', error, { location: 'Canvas/onCreated' });
+                setLastSceneError(error);
+                return;
+              }
+
+              // Log WebGL info in dev mode
+              if (IS_DEV) {
+                const vendor = context.getParameter(context.VENDOR);
+                const renderer = context.getParameter(context.RENDERER);
+                console.debug('3D Canvas WebGL info', {
+                  vendor: typeof vendor === 'string' ? vendor : 'unknown',
+                  renderer: typeof renderer === 'string' ? renderer : 'unknown',
+                  canvasWidth: canvas.clientWidth,
+                  canvasHeight: canvas.clientHeight,
+                });
+              }
+
+              setCanvasMounted(true);
+              if (IS_DEV) {
+                console.debug('3D Canvas mounted', {
+                  canvasWidth: canvas.clientWidth,
+                  canvasHeight: canvas.clientHeight,
+                });
+              }
+            } catch (error) {
+              console.error('3D Visualizer error', error, { location: 'Canvas/onCreated' });
+              setLastSceneError(error instanceof Error ? error : new Error(String(error)));
             }
+          }}
+          onError={(error) => {
+            console.error('3D Visualizer Canvas error', error, { location: 'Canvas/onError' });
+            setLastSceneError(error instanceof Error ? error : new Error(String(error)));
           }}
         >
           <Suspense fallback={<SuspenseFallback />}>
@@ -148,9 +201,19 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
               currentFrameIndex={state.currentFrameIndex}
               onMarkerClick={(marker) => jumpToEvent(marker.t)}
               onSceneError={(error) => {
+                if (IS_DEV) {
+                  console.error('3D Visualizer scene error', error, { location: 'VisualizerScene' });
+                }
                 setLastSceneError(error);
               }}
               onSceneReady={() => {
+                if (IS_DEV) {
+                  console.debug('3D Visualizer: scene ready', {
+                    frames: totalFrames,
+                    totalFrames: totalFrames,
+                    duration: sanitizedDuration,
+                  });
+                }
                 setSceneReady(true);
                 setLastSceneError(null);
               }}
@@ -159,10 +222,15 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
         </Canvas>
       );
     } catch (error) {
-      console.error('ThreeDVisualizer Canvas mount failed', error);
+      console.error('3D Visualizer error', error, { location: 'ThreeDVisualizer/renderCanvas' });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setLastSceneError(error instanceof Error ? error : new Error(errorMessage));
       return (
-        <div className="absolute inset-0 flex items-center justify-center bg-red-950/40 text-red-200">
-          Canvas initialization failed: {(error as Error)?.message ?? 'Unknown error'}
+        <div className="absolute inset-0 flex items-center justify-center bg-red-950/60 text-red-200 p-4 text-center z-50">
+          <div>
+            <p className="text-lg font-semibold mb-2">Unable to initialize 3D visualization</p>
+            <p className="text-sm">{errorMessage}</p>
+          </div>
         </div>
       );
     }
@@ -174,14 +242,22 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
         <div className="absolute inset-0">{renderCanvas()}</div>
 
         {!sceneReady && !lastSceneError && (
-          <div className="absolute inset-0 flex items-center justify-center text-cyan-200 text-sm bg-slate-900/40 backdrop-blur-sm pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center text-cyan-200 text-sm bg-slate-900/40 backdrop-blur-sm pointer-events-none z-40">
             Initializing 3D scene...
           </div>
         )}
 
         {lastSceneError && (
-          <div className="absolute inset-0 flex items-center justify-center text-red-200 text-sm bg-red-900/30 backdrop-blur-sm p-4 text-center">
-            3D scene error: {lastSceneError.message}
+          <div className="absolute inset-0 flex items-center justify-center text-red-300 bg-black/60 backdrop-blur-sm p-6 text-center z-50 min-h-[360px]">
+            <div>
+              <p className="text-lg font-semibold mb-2 text-red-200">Unable to initialize 3D visualization</p>
+              <p className="text-sm text-red-300">{lastSceneError.message}</p>
+              {IS_DEV && lastSceneError.stack && (
+                <pre className="mt-4 text-xs text-left bg-red-950/40 text-red-200 p-3 rounded border border-red-500/30 max-w-2xl overflow-auto">
+                  {lastSceneError.stack}
+                </pre>
+              )}
+            </div>
           </div>
         )}
 

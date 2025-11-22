@@ -92,23 +92,19 @@ export const useToolContext = () => {
       // Always store locally first (even before trying to send to server)
       const fallbackResponse = createFallbackResponse();
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (!supabaseUrl) {
-        console.warn(
-          "Supabase URL not configured, storing calculation locally only",
-        );
-        return fallbackResponse;
-      }
+      // Use the new hardcoded endpoint
+      const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
 
       // Try to send to server, but don't fail if it doesn't work
       try {
         const response = await fetch(
-          `${supabaseUrl}/functions/v1/assistant-events/events/calc-complete`,
+          assistantEventsUrl,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
+            mode: "cors",
             body: JSON.stringify(event),
           },
         ).catch((fetchError) => {
@@ -196,18 +192,17 @@ export const useToolContext = () => {
           ...payload,
         };
 
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        if (!supabaseUrl) {
-          return false;
-        }
+        // Use the new hardcoded endpoint
+        const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
 
         const response = await fetch(
-          `${supabaseUrl}/functions/v1/assistant-events/events/calc-update`,
+          assistantEventsUrl,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
+            mode: "cors",
             body: JSON.stringify(event),
           },
         );

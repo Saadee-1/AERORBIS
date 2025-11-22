@@ -41,12 +41,22 @@ serve(async (req) => {
     const url = new URL(req.url);
     const path = url.pathname;
 
-    // Route to appropriate handler
-    if (path.includes('/events/calc-complete') && req.method === 'POST') {
-      return await handleCalculationEvent(req);
-    } else if (path.includes('/events/calc-update') && req.method === 'POST') {
-      return await handleCalculationUpdate(req);
-    } else if (path.includes('/explain') && req.method === 'POST') {
+    // Handle calculation events at root path (POST to root with eventType in body)
+    if (req.method === 'POST' && (path === '/functions/v1/assistant-events' || path.endsWith('/assistant-events'))) {
+      try {
+        const body = await req.clone().json();
+        if (body.eventType === 'calculation.complete') {
+          return await handleCalculationEvent(req);
+        } else if (body.eventType === 'calculation.update') {
+          return await handleCalculationUpdate(req);
+        }
+      } catch {
+        // If body parsing fails, fall through to path-based routing
+      }
+    }
+
+    // Route to appropriate handler based on path (for other endpoints)
+    if (path.includes('/explain') && req.method === 'POST') {
       return await handleExplainRequest(req);
     } else if (path.includes('/export/pdf') && req.method === 'POST') {
       return await handlePDFExport(req);

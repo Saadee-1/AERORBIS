@@ -36,28 +36,70 @@ export const VisualizerScene = memo(function VisualizerScene({
   const { gl } = useThree();
   const frames = trajectoryData?.frames ?? [];
 
+  // Sanity check: no frames to visualize - report error via useEffect
   useEffect(() => {
-    if (!gl?.domElement) return;
-
-    const handleContextLost = (event: Event) => {
-      event.preventDefault?.();
-      const error = event instanceof Error ? event : new Error('WebGL context lost');
-      console.error('WebGL init failed', error);
+    if (!frames || frames.length === 0) {
+      if (IS_DEV) {
+        console.debug('3D Visualizer: no frames', {
+          hasTrajectoryData: Boolean(trajectoryData),
+          framesCount: frames?.length ?? 0,
+        });
+      }
+      const error = new Error('No trajectory frames to visualize');
       onSceneError?.(error);
-    };
-
-    gl.domElement.addEventListener('webglcontextlost', handleContextLost as EventListener);
-    return () => gl.domElement.removeEventListener('webglcontextlost', handleContextLost as EventListener);
-  }, [gl, onSceneError]);
+    }
+  }, [frames, trajectoryData, onSceneError]);
 
   useEffect(() => {
-    if (!IS_DEV || frames.length === 0) {
-      if (frames.length > 0) {
-        onSceneReady?.();
+    if (!gl?.domElement) {
+      if (IS_DEV) {
+        console.debug('3D Visualizer: gl or domElement missing', { hasGl: !!gl, hasDomElement: !!gl?.domElement });
       }
       return;
     }
 
+    const handleContextLost = (event: Event) => {
+      event.preventDefault?.();
+      const error = new Error('WebGL context lost');
+      console.error('3D Visualizer error', error, { location: 'VisualizerScene/webglcontextlost' });
+      onSceneError?.(error);
+    };
+
+    const handleContextRestored = () => {
+      if (IS_DEV) {
+        console.debug('3D Visualizer: WebGL context restored');
+      }
+    };
+
+    gl.domElement.addEventListener('webglcontextlost', handleContextLost as EventListener);
+    gl.domElement.addEventListener('webglcontextrestored', handleContextRestored);
+    return () => {
+      gl.domElement.removeEventListener('webglcontextlost', handleContextLost as EventListener);
+      gl.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
+    };
+  }, [gl, onSceneError]);
+
+  useEffect(() => {
+    // Frame validation and logging
+    if (IS_DEV) {
+      console.debug('TrajectoryConvert: frames=', frames.length, {
+        mode: trajectoryData?.metadata?.coordFrame,
+        planetId: trajectoryData?.metadata?.planet,
+        firstFrame: frames[0],
+        lastFrame: frames[frames.length - 1],
+      });
+    }
+
+    if (frames.length === 0) {
+      const error = new Error('No trajectory frames to visualize');
+      if (IS_DEV) {
+        console.debug('3D Visualizer: no frames');
+      }
+      onSceneError?.(error);
+      return;
+    }
+
+    // Validate frame data
     const invalidFrame = frames.find(
       (frame) =>
         !Number.isFinite(frame.t) ||
@@ -68,17 +110,19 @@ export const VisualizerScene = memo(function VisualizerScene({
 
     if (invalidFrame) {
       const error = new Error('Visualizer data contains invalid values');
-      console.error('VisualizerScene self-test failed', { invalidFrame });
+      console.error('3D Visualizer error', error, { location: 'VisualizerScene/frameValidation', invalidFrame });
       onSceneError?.(error);
     } else {
-      console.debug('VisualizerScene self-test OK', {
-        frames: frames.length,
-        duration: frames[frames.length - 1]?.t ?? 0,
-      });
-      console.debug('3D Visualizer: No WebGL errors detected');
+      if (IS_DEV) {
+        console.debug('VisualizerScene self-test OK', {
+          frames: frames.length,
+          duration: frames[frames.length - 1]?.t ?? 0,
+        });
+        console.debug('3D Visualizer: No WebGL errors detected');
+      }
       onSceneReady?.();
     }
-  }, [frames, onSceneError, onSceneReady]);
+  }, [frames, trajectoryData, onSceneError, onSceneReady]);
 
   const currentFrame = useMemo(() => {
     if (frames.length === 0) return undefined;
@@ -103,6 +147,11 @@ export const VisualizerScene = memo(function VisualizerScene({
     },
     [onMarkerClick, onSceneError],
   );
+
+  // Early return if no frames (after error reporting)
+  if (!frames || frames.length === 0) {
+    return <group />;
+  }
 
   try {
     return (
@@ -153,7 +202,7 @@ export const VisualizerScene = memo(function VisualizerScene({
       </>
     );
   } catch (error) {
-    console.error('VisualizerScene render error', error);
+    console.error('3D Visualizer error', error, { location: 'VisualizerScene/render' });
     onSceneError?.(error as Error);
     return <group />;
   }
