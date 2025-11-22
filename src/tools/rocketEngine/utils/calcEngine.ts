@@ -5,12 +5,7 @@
  * Based on Sutton & Biblarz, Anderson, and standard compressible flow relations
  */
 
-import {
-  areaMachRelation,
-  pressureRatioFromMach,
-  exitVelocityIsentropic,
-  chokedMassFluxConstant,
-} from './isentropic';
+import { pressureRatioFromMach } from './isentropic';
 import { solveForMe, SolverResult } from './numeric';
 import { G0, R_UNIVERSAL } from './constants';
 
@@ -82,6 +77,32 @@ export interface RocketEngineResults {
   solverResult: SolverResult;
 }
 
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(Math.max(value, min), max);
+
+const toSpecificGasConstant = (molarMassKgPerKmol: number): number => {
+  if (molarMassKgPerKmol <= 0) {
+    throw new Error('Molar mass must be positive');
+  }
+  const molarMassKgPerMol = molarMassKgPerKmol / 1000;
+  return R_UNIVERSAL / molarMassKgPerMol;
+};
+
+const calculateCharacteristicVelocity = (gamma: number, R: number, Tc: number): number => {
+  if (gamma <= 1) {
+    throw new Error('Gamma must be > 1');
+  }
+  if (R <= 0) {
+    throw new Error('Gas constant must be positive');
+  }
+  if (Tc <= 0) {
+    throw new Error('Chamber temperature must be positive');
+  }
+
+  const heatCapacityTerm = Math.pow((gamma + 1) / 2, (gamma + 1) / (2 * (gamma - 1)));
+  return Math.sqrt((R * Tc) / gamma) * heatCapacityTerm;
+};
+
 /**
  * Calculate rocket engine performance
  * 
@@ -106,9 +127,12 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
   // Calculate or get gas constant
   let R: number;
   if (inputs.R !== undefined) {
+    if (inputs.R <= 0) {
+      throw new Error('Specific gas constant must be positive');
+    }
     R = inputs.R;
   } else if (inputs.M_molar !== undefined) {
-    R = R_UNIVERSAL / inputs.M_molar;
+    R = toSpecificGasConstant(inputs.M_molar);
   } else {
     throw new Error('Either R or M_molar must be provided');
   }
@@ -138,18 +162,15 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
     throw new Error('Expansion ratio must be > 1');
   }
   
-  // Calculate choked mass flux constant
-  const G0 = chokedMassFluxConstant(inputs.gamma, R);
+  if (cStarEfficiency <= 0) {
+    throw new Error('c* efficiency must be positive');
+  }
   
-  // Ideal mass flow rate
-  const mdot_ideal = (Pc_effective / Math.sqrt(inputs.Tc)) * G0 * inputs.At;
-  
-  // Actual mass flow with efficiency
-  const mdot = mdot_ideal * cStarEfficiency;
-  
-  // Characteristic velocity
-  const cStar_ideal = (Pc_effective * inputs.At) / mdot_ideal;
-  const cStar = (Pc_effective * inputs.At) / mdot;
+  // Characteristic velocity and mass flow
+  const cStar_ideal = calculateCharacteristicVelocity(inputs.gamma, R, inputs.Tc);
+  const cStar = cStar_ideal * cStarEfficiency;
+  const mdot_ideal = (Pc_effective * inputs.At) / cStar_ideal;
+  const mdot = (Pc_effective * inputs.At) / cStar;
   
   // Solve for exit Mach number
   const solverResult = solveForMe(epsilon, inputs.gamma);
@@ -164,17 +185,23 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
   const Pe_Pc = pressureRatioFromMach(Me, inputs.gamma);
   const Pe = Pc_effective * Pe_Pc;
   
-  // Calculate ideal exit velocity
-  const Ve_ideal = exitVelocityIsentropic(
-    Pc_effective,
-    Pe,
-    inputs.Tc,
-    inputs.gamma,
-    R
+  if (nozzleEfficiency <= 0) {
+    throw new Error('Nozzle efficiency must be positive');
+  }
+  
+  // Calculate exit velocity
+  const pressureRatio = clamp(Pe / Pc_effective, 1e-9, 0.999999999);
+  const exponent = (inputs.gamma - 1) / inputs.gamma;
+  const velocityTerm = Math.max(1 - Math.pow(pressureRatio, exponent), 0);
+  
+  const Ve_ideal = Math.sqrt(
+    (2 * inputs.gamma) / (inputs.gamma - 1) *
+      R *
+      inputs.Tc *
+      velocityTerm
   );
   
-  // Apply nozzle efficiency
-  const Ve = Ve_ideal * nozzleEfficiency;
+  const Ve = nozzleEfficiency * Ve_ideal;
   
   // Calculate thrust
   const T = mdot * Ve + (Pe - inputs.Pa) * Ae;
@@ -186,8 +213,8 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
                    (Pe_Pc - inputs.Pa / Pc_effective) * epsilon;
   
   // Specific impulse
-  const Isp = Ve / G0;
-  const Isp_vacuum = (Ve + Pe * Ae / mdot) / G0;
+  const Isp = mdot > 0 ? T / (mdot * G0) : 0;
+  const Isp_vacuum = mdot > 0 ? T_vacuum / (mdot * G0) : 0;
   
   // Diagnostics
   const isChoked = true; // Always choked at throat for supersonic nozzle
@@ -214,6 +241,20 @@ export function calculateRocketEngine(inputs: RocketEngineInputs): RocketEngineR
   
   if (Math.abs(solverResult.residual) > 1e-6) {
     warnings.push(`Solver residual is large: ${solverResult.residual.toExponential(2)}`);
+  }
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('RocketEngineCheck:', {
+      Pc: inputs.Pc,
+      Pc_effective,
+      Pa: inputs.Pa,
+      At: inputs.At,
+      Ae,
+      mdot,
+      Ve,
+      thrust: T,
+      Isp,
+    });
   }
   
   return {

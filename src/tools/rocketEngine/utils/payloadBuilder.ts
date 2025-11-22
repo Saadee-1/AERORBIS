@@ -6,8 +6,8 @@
 
 import { buildAeroversePayload } from '@/ai/buildPayload';
 import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
-import { RocketEngineInputs } from './calcEngine';
-import { RocketEngineResults } from './calcEngine';
+import { RocketEngineInputs, RocketEngineResults } from './calcEngine';
+import { R_UNIVERSAL } from './constants';
 
 /**
  * Build AI payload from rocket engine calculation
@@ -17,11 +17,16 @@ export function buildRocketEnginePayload(
   results: RocketEngineResults,
   requestId?: string
 ): AeroverseAIPayload {
+  const gasConstant =
+    inputs.R ??
+    (inputs.M_molar !== undefined && inputs.M_molar > 0
+      ? R_UNIVERSAL / (inputs.M_molar / 1000)
+      : undefined);
+
   // Format calculation steps
   const steps = [
-    `Choked mass flux: G₀ = (Pc/√Tc) * √(γ/R) * [((γ+1)/2)^{-(γ+1)/(2(γ-1))}]`,
-    `Mass flow rate: ṁ = G₀ * At * η_c* = ${results.mdot.toFixed(3)} kg/s`,
-    `Characteristic velocity: c* = (Pc * At) / ṁ = ${results.cStar.toFixed(1)} m/s`,
+    `Characteristic velocity: c* = √[(R·Tc)/γ] * ((γ+1)/2)^{(γ+1)/(2(γ-1))} * η_c* = ${results.cStar.toFixed(1)} m/s (ideal ${results.cStar_ideal.toFixed(1)} m/s)`,
+    `Mass flow rate: ṁ = Pc * At / c* = ${results.mdot.toFixed(3)} kg/s`,
     `Area-Mach relation: A/A* = (1/M) * [ (2/(γ+1)) * (1 + (γ-1)/2 * M²) ]^{(γ+1)/(2(γ-1))}`,
     `Exit Mach number: Me = ${results.Me.toFixed(3)} (solved numerically)`,
     `Exit pressure ratio: Pe/Pc = (1 + (γ-1)/2 * Me²)^{-γ/(γ-1)} = ${results.Pe_Pc.toFixed(4)}`,
@@ -29,7 +34,7 @@ export function buildRocketEnginePayload(
     `Exit velocity: Ve = √[(2γ/(γ-1)) * R * Tc * (1 - (Pe/Pc)^{(γ-1)/γ})] * η_nozzle = ${results.Ve.toFixed(1)} m/s`,
     `Thrust: T = ṁ * Ve + (Pe - Pa) * Ae = ${(results.T / 1000).toFixed(1)} kN`,
     `Thrust coefficient: Cf = T / (Pc * At) = ${results.Cf.toFixed(3)}`,
-    `Specific impulse: Isp = Ve / g₀ = ${results.Isp.toFixed(1)} s`,
+    `Specific impulse: Isp = T / (ṁ * g₀) = ${results.Isp.toFixed(1)} s`,
   ];
   
   // Add diagnostics
@@ -48,7 +53,7 @@ export function buildRocketEnginePayload(
     'Expansion ratio': `${results.epsilon.toFixed(1)}`,
     'Ambient pressure': `${(inputs.Pa / 1e5).toFixed(3)} bar`,
     'Gamma (γ)': inputs.gamma.toFixed(3),
-    'Gas constant': inputs.R ? `${inputs.R.toFixed(1)} J/(kg·K)` : `${(8314.4621 / (inputs.M_molar || 22)).toFixed(1)} J/(kg·K)`,
+    'Gas constant': gasConstant ? `${gasConstant.toFixed(1)} J/(kg·K)` : 'Not specified',
     'Nozzle efficiency': `${((inputs.nozzleEfficiency || 0.98) * 100).toFixed(1)}%`,
     'c* efficiency': `${((inputs.cStarEfficiency || 0.95) * 100).toFixed(1)}%`,
   };

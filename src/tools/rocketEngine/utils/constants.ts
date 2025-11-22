@@ -3,7 +3,7 @@
  */
 
 export const G0 = 9.80665; // Standard gravity (m/s²)
-export const R_UNIVERSAL = 8314.4621; // Universal gas constant (J/(kmol·K))
+export const R_UNIVERSAL = 8.314462618; // Universal gas constant (J/(mol·K))
 
 // Default values
 export const DEFAULT_GAMMA = 1.22; // Typical for LOX/RP-1
