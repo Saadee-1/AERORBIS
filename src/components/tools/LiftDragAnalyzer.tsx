@@ -88,6 +88,23 @@ interface LiftDragResult {
   airfoilName: string;
 }
 
+// Interface for polar data from JSON files
+interface PolarData {
+  airfoil: string;
+  re: number;
+  alpha: number[];
+  cl: number[];
+  cd: number[];
+}
+
+// Interface for computed L/D data from polar
+interface ComputedLD {
+  alpha: number;
+  cl: number;
+  cd: number;
+  ld: number;
+}
+
 const LiftDragAnalyzer = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
@@ -140,6 +157,9 @@ const LiftDragAnalyzer = () => {
 
   const [result, setResult] = useState<LiftDragResult | null>(null);
   const [error, setError] = useState<string>("");
+  const [polarData, setPolarData] = useState<PolarData | null>(null);
+  const [polarError, setPolarError] = useState<string>("");
+  const [computedLD, setComputedLD] = useState<ComputedLD[]>([]);
 
   const getLatestStoredRequestId = useCallback((): string | null => {
     try {
@@ -232,6 +252,49 @@ const LiftDragAnalyzer = () => {
   useEffect(() => {
     localStorage.setItem("liftDragCustomAirfoil", JSON.stringify(customAirfoil));
   }, [customAirfoil]);
+
+  // Fetch polar data when airfoil changes
+  useEffect(() => {
+    // Skip if custom airfoil is selected
+    if (inputs.airfoil === "custom") {
+      setPolarData(null);
+      setPolarError("");
+      setComputedLD([]);
+      return;
+    }
+
+    const fetchPolarData = async () => {
+      try {
+        setPolarError("");
+        const url = `/polars/${inputs.airfoil}/1e6.json`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch polar data: ${response.status}`);
+        }
+
+        const data: PolarData = await response.json();
+        setPolarData(data);
+
+        // Compute L/D = Cl/Cd for each data point
+        const computed: ComputedLD[] = data.alpha.map((alpha, index) => {
+          const cl = data.cl[index];
+          const cd = data.cd[index];
+          const ld = cd !== 0 ? cl / cd : 0;
+          return { alpha, cl, cd, ld };
+        });
+
+        setComputedLD(computed);
+      } catch (err) {
+        console.warn("Failed to load polar data:", err);
+        setPolarError("No polar data available");
+        setPolarData(null);
+        setComputedLD([]);
+      }
+    };
+
+    fetchPolarData();
+  }, [inputs.airfoil]);
 
   const getUnit = (param: string) => {
     if (unitSystem === "SI") {
@@ -788,6 +851,50 @@ const LiftDragAnalyzer = () => {
                 <h3 className="text-xl font-semibold text-cyan-400 mt-4">Results will appear here</h3>
                 <p className="text-slate-400 text-center mt-2">Fill in the configuration and click "Analyze Performance" to see the results.</p>
               </div>
+            </AeroCard>
+          )}
+
+          {/* Polar Data Display */}
+          {polarData && computedLD.length > 0 && (
+            <AeroCard 
+              title="Polar Data (Re = 1,000,000)" 
+              description={`${polarData.airfoil} - L/D ratios from experimental data`}
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-cyan-400/30">
+                      <th className="text-left py-2 px-3 text-cyan-300">α (°)</th>
+                      <th className="text-left py-2 px-3 text-cyan-300">Cl</th>
+                      <th className="text-left py-2 px-3 text-cyan-300">Cd</th>
+                      <th className="text-left py-2 px-3 text-cyan-300">L/D</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {computedLD.map((point, index) => (
+                      <tr 
+                        key={index} 
+                        className="border-b border-slate-700/50 hover:bg-slate-700/30"
+                      >
+                        <td className="py-2 px-3 text-white">{point.alpha.toFixed(1)}</td>
+                        <td className="py-2 px-3 text-blue-400">{point.cl.toFixed(3)}</td>
+                        <td className="py-2 px-3 text-red-400">{point.cd.toFixed(4)}</td>
+                        <td className="py-2 px-3 text-green-400 font-semibold">
+                          {Number.isFinite(point.ld) ? point.ld.toFixed(2) : "N/A"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </AeroCard>
+          )}
+
+          {polarError && (
+            <AeroCard title="Polar Data">
+              <Alert variant="default" className="border-yellow-500/50 bg-yellow-500/10 text-yellow-300">
+                <AlertDescription>{polarError}</AlertDescription>
+              </Alert>
             </AeroCard>
           )}
         </div>
