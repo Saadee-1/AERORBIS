@@ -37,57 +37,14 @@ import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
+import { AIRFOILS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
-type AirfoilKey = keyof typeof airfoils | "custom";
+type AirfoilKey = keyof typeof AIRFOIL_DATA | "custom";
 type ChartMode = "compareOne" | "compareAll";
-
-// Airfoil database with real-world coefficients
-const airfoils = {
-  NACA0012: {
-    name: "NACA 0012 (Symmetric)",
-    description: "General purpose symmetric airfoil, commonly used in aircraft tails",
-    CL_alpha: 0.105, // Lift coefficient per degree
-    CL_0: 0,
-    CD_0: 0.006, // Zero-lift drag coefficient
-    alpha_stall: 15, // Stall angle in degrees
-  },
-  NACA2412: {
-    name: "NACA 2412 (Cambered)",
-    description: "Popular cambered airfoil for general aviation wings",
-    CL_alpha: 0.11,
-    CL_0: 0.25,
-    CD_0: 0.007,
-    alpha_stall: 16,
-  },
-  NACA4415: {
-    name: "NACA 4415 (High Lift)",
-    description: "High-lift cambered airfoil for slower aircraft",
-    CL_alpha: 0.108,
-    CL_0: 0.55,
-    CD_0: 0.008,
-    alpha_stall: 14,
-  },
-  ClarkY: {
-    name: "Clark Y",
-    description: "Classic airfoil for vintage and sport aircraft",
-    CL_alpha: 0.103,
-    CL_0: 0.30,
-    CD_0: 0.0065,
-    alpha_stall: 15.5,
-  },
-  Supercritical: {
-    name: "Supercritical Airfoil",
-    description: "Modern high-speed airfoil for commercial jets",
-    CL_alpha: 0.095,
-    CL_0: 0.15,
-    CD_0: 0.0055,
-    alpha_stall: 17,
-  },
-};
 
 // Interface for the airfoil database
 interface Airfoil {
@@ -156,7 +113,7 @@ const LiftDragAnalyzer = () => {
   const [inputs, setInputs] = useState<LiftDragInputs>(() => {
     const saved = localStorage.getItem("liftDragInputs");
     return saved ? JSON.parse(saved) : {
-      airfoil: "NACA2412" as AirfoilKey,
+      airfoil: "naca2412" as AirfoilKey,
       angleOfAttack: "5",
       airspeed: "50",
       airDensity: "1.225",
@@ -178,7 +135,7 @@ const LiftDragAnalyzer = () => {
     };
   });
   
-  const [comparisonAirfoil, setComparisonAirfoil] = useState<keyof typeof airfoils>("NACA0012");
+  const [comparisonAirfoil, setComparisonAirfoil] = useState<keyof typeof AIRFOIL_DATA>("naca0012");
   const [chartMode, setChartMode] = useState<ChartMode>('compareOne');
 
   const [result, setResult] = useState<LiftDragResult | null>(null);
@@ -351,7 +308,7 @@ const LiftDragAnalyzer = () => {
   const getActiveAirfoil = (): Airfoil => {
     return inputs.airfoil === "custom" 
       ? getParsedCustomAirfoil() 
-      : airfoils[inputs.airfoil];
+      : AIRFOIL_DATA[inputs.airfoil];
   };
 
   const calculateLiftDrag = async () => {
@@ -541,8 +498,8 @@ const LiftDragAnalyzer = () => {
       const point: any = { alpha };
 
       // Calculate for all database airfoils
-      Object.keys(airfoils).forEach((key) => {
-        const airfoil = airfoils[key as keyof typeof airfoils];
+      Object.keys(AIRFOIL_DATA).forEach((key) => {
+        const airfoil = AIRFOIL_DATA[key];
         if (alpha <= airfoil.alpha_stall) {
           const CL = airfoil.CL_0 + airfoil.CL_alpha * alpha;
           const CD = airfoil.CD_0 + k_factor * Math.pow(CL, 2);
@@ -581,10 +538,10 @@ const LiftDragAnalyzer = () => {
   
   const currentAirfoilDescription = inputs.airfoil === "custom"
     ? customAirfoil.description
-    : airfoils[inputs.airfoil].description;
+    : AIRFOIL_DATA[inputs.airfoil]?.description || "";
     
   const currentAirfoilName = result?.airfoilName || "Current";
-  const comparisonAirfoilName = airfoils[comparisonAirfoil].name;
+  const comparisonAirfoilName = AIRFOIL_DATA[comparisonAirfoil]?.name || "";
 
   return (
     <ToolWrapper>
@@ -623,14 +580,16 @@ const LiftDragAnalyzer = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.keys(airfoils).map((key) => (
-                      <SelectItem key={key} value={key}>
-                        {airfoils[key as keyof typeof airfoils].name}
+                    {AIRFOILS.filter(af => !af.custom).map((airfoil) => (
+                      <SelectItem key={airfoil.id} value={airfoil.id}>
+                        {airfoil.name}
                       </SelectItem>
                     ))}
-                    <SelectItem value="custom">
-                      <span className="text-cyan-400">-- Custom Airfoil --</span>
-                    </SelectItem>
+                    {AIRFOILS.filter(af => af.custom).map((airfoil) => (
+                      <SelectItem key={airfoil.id} value={airfoil.id}>
+                        <span className="text-cyan-400">{airfoil.name}</span>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </AeroFormField>
@@ -863,9 +822,9 @@ const LiftDragAnalyzer = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {Object.keys(airfoils).map((key) => (
-                              <SelectItem key={key} value={key} disabled={inputs.airfoil === key}>
-                                {airfoils[key as keyof typeof airfoils].name}
+                            {AIRFOILS.filter(af => !af.custom && af.id !== inputs.airfoil).map((airfoil) => (
+                              <SelectItem key={airfoil.id} value={airfoil.id}>
+                                {airfoil.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -928,7 +887,7 @@ const LiftDragAnalyzer = () => {
                     connectNulls 
                     type="monotone" 
                     dataKey={comparisonAirfoil} 
-                    name={airfoils[comparisonAirfoil].name} 
+                    name={AIRFOIL_DATA[comparisonAirfoil]?.name || ""} 
                     stroke="#f59e0b" 
                     strokeWidth={2} 
                     strokeDasharray="5 5"
