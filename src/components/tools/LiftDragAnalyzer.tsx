@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal, Settings2 } from "lucide-react";
@@ -37,7 +37,7 @@ import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
-import { AIRFOILS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
+import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
@@ -642,16 +642,22 @@ const LiftDragAnalyzer = () => {
                   <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    {AIRFOILS.filter(af => !af.custom).map((airfoil) => (
-                      <SelectItem key={airfoil.id} value={airfoil.id}>
-                        {airfoil.name}
-                      </SelectItem>
-                    ))}
-                    {AIRFOILS.filter(af => af.custom).map((airfoil) => (
-                      <SelectItem key={airfoil.id} value={airfoil.id}>
-                        <span className="text-cyan-400">{airfoil.name}</span>
-                      </SelectItem>
+                  <SelectContent className="max-h-[400px]">
+                    {AIRFOIL_GROUPS.map((group) => (
+                      <SelectGroup key={group.label}>
+                        <SelectLabel className="text-cyan-400 font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
+                          {group.label}
+                        </SelectLabel>
+                        {group.airfoils.map((airfoil) => (
+                          <SelectItem 
+                            key={airfoil.id} 
+                            value={airfoil.id}
+                            className={airfoil.custom ? "text-cyan-400" : ""}
+                          >
+                            {airfoil.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
                   </SelectContent>
                 </Select>
@@ -924,15 +930,22 @@ const LiftDragAnalyzer = () => {
                         className="flex items-center gap-2 overflow-hidden"
                       >
                         <Label htmlFor="compareAirfoil" className="text-cyan-300">Compare with:</Label>
-                        <Select value={comparisonAirfoil} onValueChange={(v) => setComparisonAirfoil(v as keyof typeof airfoils)}>
+                        <Select value={comparisonAirfoil} onValueChange={(v) => setComparisonAirfoil(v as keyof typeof AIRFOIL_DATA)}>
                           <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-400/30 text-white">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
-                            {AIRFOILS.filter(af => !af.custom && af.id !== inputs.airfoil).map((airfoil) => (
-                              <SelectItem key={airfoil.id} value={airfoil.id}>
-                                {airfoil.name}
-                              </SelectItem>
+                          <SelectContent className="max-h-[400px]">
+                            {AIRFOIL_GROUPS.filter(group => !group.airfoils.some(af => af.custom)).map((group) => (
+                              <SelectGroup key={group.label}>
+                                <SelectLabel className="text-cyan-400 font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
+                                  {group.label}
+                                </SelectLabel>
+                                {group.airfoils.filter(af => af.id !== inputs.airfoil).map((airfoil) => (
+                                  <SelectItem key={airfoil.id} value={airfoil.id}>
+                                    {airfoil.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
                             ))}
                           </SelectContent>
                         </Select>

@@ -3,32 +3,71 @@ export interface AirfoilOption {
   id: string;
   name: string;
   custom?: boolean;
+  group?: string;
 }
 
-export const AIRFOILS: AirfoilOption[] = [
-  { id: "naca0006", name: "NACA 0006 (Thin)" },
-  { id: "naca0009", name: "NACA 0009" },
-  { id: "naca0012", name: "NACA 0012 (Symmetric)" },
-  { id: "naca0015", name: "NACA 0015" },
+export interface AirfoilGroup {
+  label: string;
+  airfoils: AirfoilOption[];
+}
 
-  { id: "naca2412", name: "NACA 2412 (Cambered)" },
-  { id: "naca4412", name: "NACA 4412 (High Lift)" },
-  { id: "naca4415", name: "NACA 4415" },
-  { id: "naca23012", name: "NACA 23012" },
-
-  { id: "naca63215", name: "NACA 63-215 (Laminar)" },
-
-  { id: "clarky", name: "Clark Y" },
-  { id: "s1223", name: "Selig S1223 (Low Re UAV)" },
-  { id: "eppler320", name: "Eppler 320" },
-  { id: "fx63137", name: "Wortmann FX 63-137" },
-
-  { id: "du91w2250", name: "DU 91-W2-250 (Wind Turbine)" },
-
-  { id: "supercritical", name: "NASA SC(2)-0412 (Supercritical)" },
-
-  { id: "custom", name: "-- Custom Airfoil --", custom: true }
+// Grouped airfoil list for organized dropdown
+export const AIRFOIL_GROUPS: AirfoilGroup[] = [
+  {
+    label: "NACA 4-digit",
+    airfoils: [
+      { id: "naca0006", name: "NACA 0006 (Thin)" },
+      { id: "naca0009", name: "NACA 0009" },
+      { id: "naca0012", name: "NACA 0012 (Symmetric)" },
+      { id: "naca0015", name: "NACA 0015" },
+      { id: "naca2412", name: "NACA 2412 (Cambered)" },
+      { id: "naca4412", name: "NACA 4412 (High Lift)" },
+      { id: "naca4415", name: "NACA 4415" },
+      { id: "naca23012", name: "NACA 23012" },
+    ],
+  },
+  {
+    label: "NACA 5 & 6 series",
+    airfoils: [
+      { id: "naca63215", name: "NACA 63-215 (Laminar)" },
+    ],
+  },
+  {
+    label: "General Aviation",
+    airfoils: [
+      { id: "clarky", name: "Clark Y" },
+      { id: "eppler320", name: "Eppler 320" },
+      { id: "fx63137", name: "Wortmann FX 63-137" },
+    ],
+  },
+  {
+    label: "UAV Low Reynolds",
+    airfoils: [
+      { id: "s1223", name: "Selig S1223 (Low Re UAV)" },
+    ],
+  },
+  {
+    label: "High-lift / Wind Turbine",
+    airfoils: [
+      { id: "du91w2250", name: "DU 91-W2-250 (Wind Turbine)" },
+    ],
+  },
+  {
+    label: "Supercritical",
+    airfoils: [
+      { id: "supercritical", name: "NASA SC(2)-0412 (Supercritical)" },
+    ],
+  },
+  {
+    label: "Custom",
+    airfoils: [
+      { id: "custom", name: "-- Custom Airfoil --", custom: true },
+    ],
+  },
 ];
+
+// Flattened list for backward compatibility
+export const AIRFOILS: AirfoilOption[] = AIRFOIL_GROUPS.flatMap(group => group.airfoils);
 
 // Airfoil coefficient data for calculations
 export interface AirfoilData {
