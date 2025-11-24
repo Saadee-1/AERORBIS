@@ -39,6 +39,7 @@ import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
+import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
@@ -612,7 +613,7 @@ const LiftDragAnalyzer = () => {
   
   const currentAirfoilDescription = inputs.airfoil === "custom"
     ? customAirfoil.description
-    : AIRFOIL_DATA[inputs.airfoil]?.description || "";
+    : AIRFOIL_DESCRIPTIONS[inputs.airfoil]?.behaviorSummary || "";
     
   const currentAirfoilName = result?.airfoilName || "Current";
   const comparisonAirfoilName = AIRFOIL_DATA[comparisonAirfoil]?.name || "";
@@ -648,7 +649,7 @@ const LiftDragAnalyzer = () => {
         <div>
           <div className={spacingVertical.L}>
             <AeroCard title="Flight Configuration" icon={Plane}>
-              <AeroFormField label="Airfoil Type" helperText={currentAirfoilDescription}>
+              <AeroFormField label="Airfoil Type">
                 <Select value={inputs.airfoil} onValueChange={(v) => setInputs({ ...inputs, airfoil: v as AirfoilKey })}>
                   <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
                     <SelectValue />
@@ -672,6 +673,9 @@ const LiftDragAnalyzer = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {currentAirfoilDescription}
+                </p>
               </AeroFormField>
 
               <div className="grid grid-cols-2 gap-4">
