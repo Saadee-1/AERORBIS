@@ -1,0 +1,24 @@
+{
+  "files_added": 5,
+  "files_modified": 4,
+  "files_backed_up": 3,
+  "tests_passed": "tests_created_but_framework_needs_setup",
+  "dependencies_added": ["pdf-lib"],
+  "new_functions": [
+    "generateClCdCmLdCharts",
+    "computePolarsMetrics",
+    "assemblePdfDocument",
+    "exportPdfForAirfoils"
+  ],
+  "utilities_added": [
+    "safeToFixed",
+    "safeToFixedWithDefault",
+    "isValidNumber",
+    "safeNumber"
+  ],
+  "runtime_guards_added": true,
+  "toFixed_fixes": "all_critical_files_updated",
+  "ui_placement": "top_right_beside_ask_ai_button",
+  "pdf_structure": "4_pages_summary_charts_appendix_metadata"
+}
+
