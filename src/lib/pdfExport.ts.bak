@@ -4,8 +4,6 @@
  * Functions for exporting calculation results to PDF
  */
 
-import { safeToFixed } from './safeNumbers';
-
 export interface PDFExportOptions {
   includeAssistantExplanation?: boolean;
   explanationLevel?: 'brief' | 'detailed' | 'teaching';
@@ -746,7 +744,7 @@ export function computePerformanceMetrics(polar: PolarData): PerformanceMetrics 
       } else if (avgCm > 0.05) {
         cmTrend = "Nose-up (positive)";
       } else {
-        cmTrend = `Slight ${avgCm < 0 ? 'nose-down' : 'nose-up'} (${safeToFixed(avgCm, 3)})`;
+        cmTrend = `Slight ${avgCm < 0 ? 'nose-down' : 'nose-up'} (${avgCm.toFixed(3)})`;
       }
     }
   }
@@ -957,9 +955,9 @@ export function buildPdfDocument(data: PdfDocumentData): string {
   
   // Format Reynolds number for display
   const reDisplay = metadata.re >= 1000000 
-    ? `${safeToFixed(metadata.re / 1000000, 1)}M` 
+    ? `${(metadata.re / 1000000).toFixed(1)}M` 
     : metadata.re >= 1000 
-    ? `${safeToFixed(metadata.re / 1000, 0)}k` 
+    ? `${(metadata.re / 1000).toFixed(0)}k` 
     : `${metadata.re}`;
 
   return generatePdfReportHTML(airfoilName, summary, performance, charts, metadata, comparisonData, reDisplay);
@@ -978,9 +976,9 @@ function generatePdfReportHTML(
   reDisplay?: string
 ): string {
   const reDisp = reDisplay || (metadata.re >= 1000000 
-    ? `${safeToFixed(metadata.re / 1000000, 1)}M` 
+    ? `${(metadata.re / 1000000).toFixed(1)}M` 
     : metadata.re >= 1000 
-    ? `${safeToFixed(metadata.re / 1000, 0)}k` 
+    ? `${(metadata.re / 1000).toFixed(0)}k` 
     : `${metadata.re}`);
 
   // HTML generation continues below...
@@ -1032,9 +1030,9 @@ export async function generatePdfReport(
 
   // Format Reynolds number for display
   const reDisplay = re >= 1000000 
-    ? `${safeToFixed(re / 1000000, 1)}M` 
+    ? `${(re / 1000000).toFixed(1)}M` 
     : re >= 1000 
-    ? `${safeToFixed(re / 1000, 0)}k` 
+    ? `${(re / 1000).toFixed(0)}k` 
     : `${re}`;
 
   // Generate HTML report
@@ -1395,447 +1393,5 @@ export async function generatePdfReport(
   `;
 
   return html;
-}
-
-// ============================================================================
-// ROBUST PDF EXPORT FUNCTIONS (NEW IMPLEMENTATION)
-// ============================================================================
-
-/**
- * Generate Cl, Cd, Cm, and L/D charts as base64 PNG data URLs
- * Uses existing charting library (canvas-based)
- */
-export async function generateClCdCmLdCharts(
-  polar: PolarData
-): Promise<{
-  clDataUrl: string;
-  cdDataUrl: string;
-  cmDataUrl: string;
-  ldDataUrl: string;
-}> {
-  if (!polar || !polar.alpha || !polar.cl || !polar.cd) {
-    throw new Error('Invalid polar data: missing required arrays');
-  }
-
-  if (polar.alpha.length === 0 || polar.cl.length === 0 || polar.cd.length === 0) {
-    throw new Error('Invalid polar data: empty arrays');
-  }
-
-  if (polar.alpha.length !== polar.cl.length || polar.alpha.length !== polar.cd.length) {
-    throw new Error('Invalid polar data: array length mismatch');
-  }
-
-  try {
-    // Generate Cl chart
-    const clData = polar.alpha.map((alpha, i) => ({ x: alpha, y: polar.cl[i] }));
-    const clDataUrl = await generateChartImage(
-      clData,
-      'Lift Coefficient vs. Angle of Attack',
-      'Angle of Attack, α (degrees)',
-      'Lift Coefficient, Cl',
-      800,
-      400
-    );
-
-    // Generate Cd chart
-    const cdData = polar.alpha.map((alpha, i) => ({ x: alpha, y: polar.cd[i] }));
-    const cdDataUrl = await generateChartImage(
-      cdData,
-      'Drag Coefficient vs. Angle of Attack',
-      'Angle of Attack, α (degrees)',
-      'Drag Coefficient, Cd',
-      800,
-      400
-    );
-
-    // Generate Cm chart (if available)
-    let cmDataUrl = '';
-    if (polar.cm && polar.cm.length > 0 && polar.cm.length === polar.alpha.length) {
-      const cmData = polar.alpha.map((alpha, i) => ({ x: alpha, y: polar.cm![i] }));
-      cmDataUrl = await generateChartImage(
-        cmData,
-        'Pitching Moment Coefficient vs. Angle of Attack',
-        'Angle of Attack, α (degrees)',
-        'Pitching Moment Coefficient, Cm',
-        800,
-        400
-      );
-    }
-
-    // Generate L/D chart
-    const ldSeries = computeLDSeries(polar);
-    const ldData = ldSeries.map(point => ({ x: point.alpha, y: point.ld }));
-    const ldDataUrl = await generateChartImage(
-      ldData,
-      'Lift-to-Drag Ratio vs. Angle of Attack',
-      'Angle of Attack, α (degrees)',
-      'Lift-to-Drag Ratio, L/D',
-      800,
-      400
-    );
-
-    return { clDataUrl, cdDataUrl, cmDataUrl, ldDataUrl };
-  } catch (error) {
-    throw new Error(`Failed to generate charts: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Compute polar metrics with safe guards against divide-by-zero and NaNs
- * Returns comprehensive performance metrics
- */
-export function computePolarsMetrics(polar: PolarData): {
-  cl_max: number;
-  alpha_cl_max: number;
-  cd_min: number;
-  alpha_cd_min: number;
-  ld_series: Array<{ alpha: number; ld: number }>;
-  ld_max: number;
-  alpha_ld_max: number;
-  zero_lift_alpha: number;
-  liftSlope: number;
-} {
-  if (!polar || !polar.alpha || !polar.cl || !polar.cd) {
-    throw new Error('Invalid polar data: missing required arrays');
-  }
-
-  if (polar.alpha.length === 0 || polar.cl.length === 0 || polar.cd.length === 0) {
-    throw new Error('Invalid polar data: empty arrays');
-  }
-
-  if (polar.alpha.length !== polar.cl.length || polar.alpha.length !== polar.cd.length) {
-    throw new Error('Invalid polar data: array length mismatch');
-  }
-
-  // Find Cl_max and its alpha
-  let cl_max = -Infinity;
-  let alpha_cl_max = 0;
-  for (let i = 0; i < polar.cl.length; i++) {
-    const cl = polar.cl[i];
-    if (Number.isFinite(cl) && cl > cl_max) {
-      cl_max = cl;
-      alpha_cl_max = Number.isFinite(polar.alpha[i]) ? polar.alpha[i] : 0;
-    }
-  }
-
-  // Find Cd_min and its alpha
-  let cd_min = Infinity;
-  let alpha_cd_min = 0;
-  for (let i = 0; i < polar.cd.length; i++) {
-    const cd = polar.cd[i];
-    if (Number.isFinite(cd) && cd < cd_min) {
-      cd_min = cd;
-      alpha_cd_min = Number.isFinite(polar.alpha[i]) ? polar.alpha[i] : 0;
-    }
-  }
-
-  // Compute L/D series
-  const ld_series: Array<{ alpha: number; ld: number }> = [];
-  for (let i = 0; i < polar.alpha.length; i++) {
-    const alpha = Number.isFinite(polar.alpha[i]) ? polar.alpha[i] : 0;
-    const cl = Number.isFinite(polar.cl[i]) ? polar.cl[i] : 0;
-    const cd = Number.isFinite(polar.cd[i]) ? polar.cd[i] : 0;
-    
-    // Guard against divide-by-zero
-    const ld = cd > 1e-10 ? cl / cd : 0;
-    if (Number.isFinite(ld)) {
-      ld_series.push({ alpha, ld });
-    }
-  }
-
-  // Find L/D_max and its alpha
-  let ld_max = -Infinity;
-  let alpha_ld_max = 0;
-  for (const point of ld_series) {
-    if (Number.isFinite(point.ld) && point.ld > ld_max) {
-      ld_max = point.ld;
-      alpha_ld_max = point.alpha;
-    }
-  }
-
-  // Compute zero-lift alpha using linear interpolation
-  let zero_lift_alpha = 0;
-  for (let i = 0; i < polar.cl.length - 1; i++) {
-    const cl1 = polar.cl[i];
-    const cl2 = polar.cl[i + 1];
-    const alpha1 = polar.alpha[i];
-    const alpha2 = polar.alpha[i + 1];
-
-    if (Number.isFinite(cl1) && Number.isFinite(cl2) && 
-        Number.isFinite(alpha1) && Number.isFinite(alpha2)) {
-      // Check if zero crossing occurs between these points
-      if ((cl1 <= 0 && cl2 >= 0) || (cl1 >= 0 && cl2 <= 0)) {
-        // Linear interpolation: alpha_0 = alpha1 + (0 - cl1) * (alpha2 - alpha1) / (cl2 - cl1)
-        const clDiff = cl2 - cl1;
-        if (Math.abs(clDiff) > 1e-10) {
-          zero_lift_alpha = alpha1 + (0 - cl1) * (alpha2 - alpha1) / clDiff;
-          if (Number.isFinite(zero_lift_alpha)) {
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  // Compute lift curve slope using finite difference in linear region
-  let liftSlope = 0.1; // Default fallback
-  const linearRegion: Array<{ alpha: number; cl: number }> = [];
-  
-  // Find linear region (typically -5° to +5° or until stall)
-  const stallAlpha = detectStall(polar);
-  for (let i = 0; i < polar.alpha.length; i++) {
-    const alpha = polar.alpha[i];
-    const cl = polar.cl[i];
-    if (Number.isFinite(alpha) && Number.isFinite(cl) && 
-        alpha >= -5 && alpha <= Math.min(5, stallAlpha - 2)) {
-      linearRegion.push({ alpha, cl });
-    }
-  }
-
-  if (linearRegion.length >= 2) {
-    // Use least-squares method for lift curve slope
-    let sumAlpha = 0;
-    let sumCl = 0;
-    let sumAlphaCl = 0;
-    let sumAlphaSq = 0;
-
-    for (const point of linearRegion) {
-      if (Number.isFinite(point.alpha) && Number.isFinite(point.cl)) {
-        sumAlpha += point.alpha;
-        sumCl += point.cl;
-        sumAlphaCl += point.alpha * point.cl;
-        sumAlphaSq += point.alpha * point.alpha;
-      }
-    }
-
-    const n = linearRegion.length;
-    const denominator = n * sumAlphaSq - sumAlpha * sumAlpha;
-    
-    if (Math.abs(denominator) > 1e-10) {
-      const slope = (n * sumAlphaCl - sumAlpha * sumCl) / denominator;
-      if (Number.isFinite(slope) && slope > 0) {
-        liftSlope = slope;
-      }
-    }
-  }
-
-  return {
-    cl_max: Number.isFinite(cl_max) ? cl_max : 0,
-    alpha_cl_max: Number.isFinite(alpha_cl_max) ? alpha_cl_max : 0,
-    cd_min: Number.isFinite(cd_min) ? cd_min : 0,
-    alpha_cd_min: Number.isFinite(alpha_cd_min) ? alpha_cd_min : 0,
-    ld_series,
-    ld_max: Number.isFinite(ld_max) ? ld_max : 0,
-    alpha_ld_max: Number.isFinite(alpha_ld_max) ? alpha_ld_max : 0,
-    zero_lift_alpha: Number.isFinite(zero_lift_alpha) ? zero_lift_alpha : 0,
-    liftSlope: Number.isFinite(liftSlope) ? liftSlope : 0.1,
-  };
-}
-
-/**
- * Assemble PDF document using pdf-lib
- * Creates multi-page PDF with proper structure
- */
-export async function assemblePdfDocument(options: {
-  airfoilName: string;
-  summary: {
-    family?: string;
-    camber?: number;
-    thickness?: number;
-    designPurpose?: string;
-    recommendedReRange?: string;
-    applications?: string[];
-    behaviorSummary?: string;
-  };
-  performance: ReturnType<typeof computePolarsMetrics>;
-  charts: {
-    clDataUrl: string;
-    cdDataUrl: string;
-    cmDataUrl: string;
-    ldDataUrl: string;
-  };
-  metadata: ReturnType<typeof extractMetadata>;
-  comparisonData?: Array<{
-    airfoil: string;
-    clMax: number;
-    cdMin: number;
-    ldMax: number;
-    stallAlpha: number;
-  }>;
-}): Promise<Blob> {
-  try {
-    const { PDFDocument, rgb } = await import('pdf-lib');
-    const pdfDoc = await PDFDocument.create();
-
-    // Helper to add text with safe formatting
-    const addText = (page: any, text: string, x: number, y: number, size: number = 12, color = rgb(0, 0, 0)) => {
-      page.drawText(text, { x, y, size, color });
-    };
-
-    // Page 1: Airfoil Summary + Performance Table
-    const page1 = pdfDoc.addPage([595, 842]); // A4 size in points
-    let yPos = 800;
-
-    // Title
-    addText(page1, 'NASA-STYLE AERODYNAMIC REPORT', 50, yPos, 20, rgb(0, 0.2, 0.4));
-    yPos -= 30;
-    addText(page1, 'Aeroverse Blended Polar Dataset Analysis', 50, yPos, 12, rgb(0.4, 0.4, 0.4));
-    yPos -= 40;
-
-    // Airfoil Specification
-    addText(page1, '1. AIRFOIL SPECIFICATION', 50, yPos, 16, rgb(0, 0.2, 0.4));
-    yPos -= 25;
-    addText(page1, `Airfoil: ${options.airfoilName}`, 50, yPos, 12);
-    yPos -= 20;
-    if (options.summary.family) {
-      addText(page1, `Family: ${options.summary.family}`, 50, yPos, 12);
-      yPos -= 20;
-    }
-    if (options.summary.camber !== undefined) {
-      addText(page1, `Camber: ${safeToFixed(options.summary.camber, 1)}%`, 50, yPos, 12);
-      yPos -= 20;
-    }
-    if (options.summary.thickness !== undefined) {
-      addText(page1, `Thickness: ${safeToFixed(options.summary.thickness, 1)}%`, 50, yPos, 12);
-      yPos -= 20;
-    }
-
-    // Performance Summary Table
-    yPos -= 20;
-    addText(page1, '2. PERFORMANCE SUMMARY TABLE', 50, yPos, 16, rgb(0, 0.2, 0.4));
-    yPos -= 25;
-    addText(page1, `Reynolds Number: Re = ${options.metadata.re.toLocaleString()}`, 50, yPos, 12);
-    yPos -= 20;
-    addText(page1, `Mach Number: M = ${safeToFixed(options.metadata.mach, 1)}`, 50, yPos, 12);
-    yPos -= 20;
-    addText(page1, `Maximum Cl: ${safeToFixed(options.performance.cl_max, 3)} at α = ${safeToFixed(options.performance.alpha_cl_max, 2)}°`, 50, yPos, 12);
-    yPos -= 20;
-    addText(page1, `Minimum Cd: ${safeToFixed(options.performance.cd_min, 4)} at α = ${safeToFixed(options.performance.alpha_cd_min, 2)}°`, 50, yPos, 12);
-    yPos -= 20;
-    addText(page1, `Best L/D: ${safeToFixed(options.performance.ld_max, 2)} at α = ${safeToFixed(options.performance.alpha_ld_max, 2)}°`, 50, yPos, 12);
-
-    // Page 2: Plots (Cl, Cd, Cm)
-    const page2 = pdfDoc.addPage([595, 842]);
-    yPos = 800;
-    addText(page2, '3. AERODYNAMIC CHARTS', 50, yPos, 16, rgb(0, 0.2, 0.4));
-    yPos -= 30;
-
-    // Embed charts as images (simplified - in production, decode base64 and embed properly)
-    // For now, we'll note that charts are available
-    addText(page2, 'Charts embedded:', 50, yPos, 12);
-    yPos -= 20;
-    addText(page2, '- Cl vs Alpha', 50, yPos, 10);
-    yPos -= 15;
-    addText(page2, '- Cd vs Alpha', 50, yPos, 10);
-    yPos -= 15;
-    if (options.charts.cmDataUrl) {
-      addText(page2, '- Cm vs Alpha', 50, yPos, 10);
-      yPos -= 15;
-    }
-    addText(page2, '- L/D vs Alpha', 50, yPos, 10);
-
-    // Page 3: L/D graph + Appendix
-    const page3 = pdfDoc.addPage([595, 842]);
-    yPos = 800;
-    addText(page3, '4. CALCULATIONS APPENDIX', 50, yPos, 16, rgb(0, 0.2, 0.4));
-    yPos -= 30;
-    addText(page3, 'Formulas:', 50, yPos, 12);
-    yPos -= 20;
-    addText(page3, 'L/D = Cl / Cd', 50, yPos, 10);
-    yPos -= 15;
-    addText(page3, `dCl/dα = ${safeToFixed(options.performance.liftSlope, 4)} per degree`, 50, yPos, 10);
-    yPos -= 15;
-    addText(page3, `Zero-lift alpha: ${safeToFixed(options.performance.zero_lift_alpha, 2)}°`, 50, yPos, 10);
-
-    // Metadata
-    yPos -= 30;
-    addText(page3, '5. METADATA', 50, yPos, 16, rgb(0, 0.2, 0.4));
-    yPos -= 25;
-    addText(page3, `Source: ${options.metadata.source}`, 50, yPos, 10);
-    yPos -= 15;
-    addText(page3, `Generated: ${new Date().toLocaleString()}`, 50, yPos, 10);
-
-    // Generate PDF bytes
-    const pdfBytes = await pdfDoc.save();
-    return new Blob([pdfBytes], { type: 'application/pdf' });
-  } catch (error) {
-    throw new Error(`Failed to assemble PDF document: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-/**
- * Export PDF for airfoils - orchestrator function
- * Calls compute/plot/assemble and returns Blob or triggers download
- */
-export async function exportPdfForAirfoils(
-  airfoilList: string[],
-  settings: {
-    re: number;
-    onProgress?: (progress: number) => void;
-  }
-): Promise<Blob> {
-  if (!airfoilList || airfoilList.length === 0) {
-    throw new Error('Airfoil list is empty');
-  }
-
-  if (!Number.isFinite(settings.re) || settings.re <= 0) {
-    throw new Error('Invalid Reynolds number');
-  }
-
-  try {
-    // Load first airfoil's polar data
-    const airfoilId = airfoilList[0];
-    const polar = await loadPolar(airfoilId, settings.re);
-    
-    if (!polar) {
-      throw new Error(`Polar data not found for ${airfoilId} at Re=${settings.re}`);
-    }
-
-    // Compute metrics
-    if (settings.onProgress) settings.onProgress(0.3);
-    const metrics = computePolarsMetrics(polar);
-
-    // Generate charts (non-blocking, chunked)
-    if (settings.onProgress) settings.onProgress(0.5);
-    const charts = await generateClCdCmLdCharts(polar);
-
-    // Load airfoil description
-    const { getAirfoilDescription } = await import('@/data/airfoilDescriptions');
-    const description = getAirfoilDescription(airfoilId);
-
-    // Extract metadata
-    const metadata = extractMetadata(polar);
-
-    // Assemble PDF
-    if (settings.onProgress) settings.onProgress(0.8);
-    const pdfBlob = await assemblePdfDocument({
-      airfoilName: polar.airfoil,
-      summary: {
-        family: description?.family,
-        camber: description?.camber,
-        thickness: description?.thickness,
-        designPurpose: description?.designPurpose,
-        recommendedReRange: description?.recommendedReRange,
-        applications: description?.applications,
-        behaviorSummary: description?.behaviorSummary,
-      },
-      performance: metrics,
-      charts,
-      metadata,
-    });
-
-    if (settings.onProgress) settings.onProgress(1.0);
-    return pdfBlob;
-  } catch (error) {
-    // Return diagnostics object on failure
-    const diagnostics = {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString(),
-      airfoilList,
-      re: settings.re,
-    };
-    console.error('PDF export failed:', diagnostics);
-    throw error;
-  }
 }
 

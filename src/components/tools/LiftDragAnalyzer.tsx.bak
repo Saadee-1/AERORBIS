@@ -799,8 +799,14 @@ const LiftDragAnalyzer = () => {
                       />
                       {polarData && computedLD.length > 0 && inputs.airfoil !== "custom" && (
                         <LdPdfButton
-                          selectedAirfoils={[inputs.airfoil]}
+                          airfoilId={inputs.airfoil}
                           re={1000000}
+                          polarData={{
+                            alpha: polarData.alpha,
+                            cl: polarData.cl,
+                            cd: polarData.cd,
+                            cm: polarData.cm,
+                          }}
                         />
                       )}
                     </div>

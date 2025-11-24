@@ -10,30 +10,25 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FileDown, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { generatePdfReport, downloadHTMLAsPDF, loadPolar, generateCharts } from "@/lib/pdfExport";
+import { exportPdfForAirfoils } from "@/lib/pdfExport";
+import { safeToFixed } from "@/lib/safeNumbers";
 import { useToast } from "@/hooks/use-toast";
 
 interface LdPdfButtonProps {
-  airfoilId: string;
+  selectedAirfoils: string[];
   re: number;
-  polarData?: {
-    alpha: number[];
-    cl: number[];
-    cd: number[];
-    cm?: number[];
-  };
   disabled?: boolean;
 }
 
-export function LdPdfButton({ airfoilId, re, polarData, disabled }: LdPdfButtonProps) {
+export function LdPdfButton({ selectedAirfoils, re, disabled }: LdPdfButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const handleExport = async () => {
-    if (disabled || !polarData) {
+    if (disabled || !selectedAirfoils || selectedAirfoils.length === 0) {
       toast({
         title: "Error",
-        description: "Polar data is required to generate the report.",
+        description: "At least one airfoil must be selected.",
         variant: "destructive",
       });
       return;
@@ -42,52 +37,28 @@ export function LdPdfButton({ airfoilId, re, polarData, disabled }: LdPdfButtonP
     setIsGenerating(true);
 
     try {
-      // Load polar data to get full structure
-      const fullPolar = await loadPolar(airfoilId, re);
-      if (!fullPolar) {
-        // Fallback: construct polar from provided data
-        const constructedPolar = {
-          airfoil: airfoilId,
-          re: re,
-          mach: 0.0,
-          alpha: polarData.alpha,
-          cl: polarData.cl,
-          cd: polarData.cd,
-          cm: polarData.cm,
-        };
-        
-        // Generate charts using the helper function
-        const generatedCharts = await generateCharts(constructedPolar);
-        const chartImages = {
-          cl: generatedCharts.clChart,
-          cd: generatedCharts.cdChart,
-          cm: generatedCharts.cmChart,
-          ld: generatedCharts.ldChart,
-        };
+      // Call the orchestrator function
+      const pdfBlob = await exportPdfForAirfoils(selectedAirfoils, {
+        re,
+        onProgress: (progress) => {
+          // Optional: show progress if needed
+          console.log(`PDF generation progress: ${(progress * 100).toFixed(0)}%`);
+        },
+      });
 
-        // Generate PDF HTML
-        const html = await generatePdfReport(airfoilId, re, chartImages);
-        
-        // Download as PDF
-        const filename = `Aerodynamic_Report_${airfoilId}_Re${re >= 1000000 ? (re / 1000000).toFixed(0) + 'M' : (re / 1000).toFixed(0) + 'k'}.pdf`;
-        await downloadHTMLAsPDF(html, filename);
-      } else {
-        // Use full polar data - generate charts
-        const generatedCharts = await generateCharts(fullPolar);
-        const chartImages = {
-          cl: generatedCharts.clChart,
-          cd: generatedCharts.cdChart,
-          cm: generatedCharts.cmChart,
-          ld: generatedCharts.ldChart,
-        };
-
-        // Generate PDF HTML
-        const html = await generatePdfReport(airfoilId, re, chartImages);
-
-        // Download as PDF
-        const filename = `Aerodynamic_Report_${airfoilId}_Re${re >= 1000000 ? (re / 1000000).toFixed(0) + 'M' : (re / 1000).toFixed(0) + 'k'}.pdf`;
-        await downloadHTMLAsPDF(html, filename);
-      }
+      // Trigger download using blob URL
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      const airfoilName = selectedAirfoils[0];
+      const reStr = re >= 1000000 
+        ? `${safeToFixed(re / 1000000, 0)}M` 
+        : `${safeToFixed(re / 1000, 0)}k`;
+      link.download = `Aerodynamic_Report_${airfoilName}_Re${reStr}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
       toast({
         title: "Success",
@@ -111,10 +82,11 @@ export function LdPdfButton({ airfoilId, re, polarData, disabled }: LdPdfButtonP
         <TooltipTrigger asChild>
           <Button
             onClick={handleExport}
-            disabled={disabled || isGenerating || !polarData}
+            disabled={disabled || isGenerating || !selectedAirfoils || selectedAirfoils.length === 0}
             variant="default"
             className="bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-400/40"
             style={{ height: 'auto', fontSize: '14px' }}
+            aria-label="Export PDF - Generate full NASA-style aerodynamic report"
           >
             {isGenerating ? (
               <>
