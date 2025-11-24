@@ -797,6 +797,18 @@ const LiftDragAnalyzer = () => {
                         payload={lastPayload}
                         disabled={!lastPayload}
                       />
+                      {polarData && computedLD.length > 0 && inputs.airfoil !== "custom" && (
+                        <LdPdfButton
+                          airfoilId={inputs.airfoil}
+                          re={1000000}
+                          polarData={{
+                            alpha: polarData.alpha,
+                            cl: polarData.cl,
+                            cd: polarData.cd,
+                            cm: polarData.cm,
+                          }}
+                        />
+                      )}
                     </div>
                   ) : null
                 }
@@ -1031,21 +1043,6 @@ const LiftDragAnalyzer = () => {
         </ChartCard>
       )}
 
-      {/* PDF Export Button for Polar Data */}
-      {polarData && computedLD.length > 0 && inputs.airfoil !== "custom" && (
-        <div className="mt-6 flex justify-center">
-          <LdPdfButton
-            airfoilId={inputs.airfoil}
-            re={1000000}
-            polarData={{
-              alpha: polarData.alpha,
-              cl: polarData.cl,
-              cd: polarData.cd,
-              cm: polarData.cm,
-            }}
-          />
-        </div>
-      )}
     </ToolWrapper>
   );
 };

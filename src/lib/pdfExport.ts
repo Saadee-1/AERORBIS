@@ -572,9 +572,9 @@ export function detectStall(polar: PolarData): number {
     return polar.alpha[maxClIndex];
   }
 
-  // Fallback: find where Cl starts decreasing significantly
+  // Fallback: find where Cl starts decreasing significantly (stall when Cl[i+1] < 0.9 * Cl[i])
   for (let i = 1; i < polar.cl.length; i++) {
-    if (polar.cl[i] < polar.cl[i - 1] - 0.05) {
+    if (polar.cl[i] < 0.9 * polar.cl[i - 1]) {
       return polar.alpha[i - 1];
     }
   }
@@ -646,6 +646,43 @@ export function computeZeroLiftAlpha(polar: PolarData, liftCurveSlope: number): 
   // Refine using linear fit: alpha_0 = -cl_intercept / slope
   // For symmetric airfoils, this should be close to 0
   return zeroLiftAlpha;
+}
+
+/**
+ * Compute performance metrics from polar data
+ * Alias for computePerformanceMetrics for consistency
+ */
+export function computePerformance(polar: PolarData): PerformanceMetrics {
+  return computePerformanceMetrics(polar);
+}
+
+/**
+ * Compute L/D series from polar data
+ */
+export function computeLDSeries(polar: PolarData): Array<{ alpha: number; ld: number }> {
+  const series: Array<{ alpha: number; ld: number }> = [];
+  for (let i = 0; i < polar.alpha.length; i++) {
+    const ld = polar.cd[i] > 0 ? polar.cl[i] / polar.cd[i] : 0;
+    series.push({ alpha: polar.alpha[i], ld });
+  }
+  return series;
+}
+
+/**
+ * Extract metadata from polar data
+ */
+export function extractMetadata(polar: PolarData) {
+  return {
+    airfoil: polar.airfoil,
+    re: polar.re,
+    mach: polar.mach || 0.0,
+    source: polar.meta?.source || 'Aeroverse Blended Polar Dataset (UIUC/AirfoilTools/XFOIL/NASA)',
+    generated_at: polar.meta?.generated_at,
+    filter: polar.meta?.filter,
+    notes: polar.meta?.notes,
+    cm_estimated: polar.meta?.cm_estimated,
+    stall_alpha: polar.meta?.stall_alpha,
+  };
 }
 
 /**
@@ -724,6 +761,67 @@ export function computePerformanceMetrics(polar: PolarData): PerformanceMetrics 
     stall_alpha: stallAlpha,
     cm_trend: cmTrend,
   };
+}
+
+/**
+ * Generate all charts from polar data
+ * Returns base64 PNG strings for Cl, Cd, Cm, and L/D charts
+ */
+export async function generateCharts(polar: PolarData): Promise<{
+  clChart: string;
+  cdChart: string;
+  cmChart: string;
+  ldChart: string;
+}> {
+  // Cl vs Alpha
+  const clData = polar.alpha.map((alpha, i) => ({ x: alpha, y: polar.cl[i] }));
+  const clChart = await generateChartImage(
+    clData,
+    'Lift Coefficient vs. Angle of Attack',
+    'Angle of Attack, α (degrees)',
+    'Lift Coefficient, Cl',
+    800,
+    400
+  );
+
+  // Cd vs Alpha
+  const cdData = polar.alpha.map((alpha, i) => ({ x: alpha, y: polar.cd[i] }));
+  const cdChart = await generateChartImage(
+    cdData,
+    'Drag Coefficient vs. Angle of Attack',
+    'Angle of Attack, α (degrees)',
+    'Drag Coefficient, Cd',
+    800,
+    400
+  );
+
+  // Cm vs Alpha (if available)
+  let cmChart = '';
+  if (polar.cm && polar.cm.length > 0) {
+    const cmData = polar.alpha.map((alpha, i) => ({ x: alpha, y: polar.cm[i] }));
+    cmChart = await generateChartImage(
+      cmData,
+      'Pitching Moment Coefficient vs. Angle of Attack',
+      'Angle of Attack, α (degrees)',
+      'Pitching Moment Coefficient, Cm',
+      800,
+      400
+    );
+  }
+
+  // L/D vs Alpha
+  const ldSeries = computeLDSeries(polar);
+  const ldData = ldSeries.map(point => ({ x: point.alpha, y: point.ld }));
+  const ldChart = await generateChartImage(
+    ldData,
+    'Lift-to-Drag Ratio vs. Angle of Attack',
+    'Angle of Attack, α (degrees)',
+    'Lift-to-Drag Ratio, L/D',
+    800,
+    400
+  );
+
+  return { clChart, cdChart, cmChart, ldChart };
 }
 
 /**
@@ -819,12 +917,88 @@ export async function generateChartImage(
 }
 
 /**
+ * Build PDF document structure
+ */
+export interface PdfDocumentData {
+  airfoilName: string;
+  summary: {
+    family?: string;
+    camber?: number;
+    thickness?: number;
+    designPurpose?: string;
+    recommendedReRange?: string;
+    applications?: string[];
+    behaviorSummary?: string;
+  };
+  performance: PerformanceMetrics;
+  charts: {
+    clChart: string;
+    cdChart: string;
+    cmChart: string;
+    ldChart: string;
+  };
+  metadata: ReturnType<typeof extractMetadata>;
+  comparisonData?: Array<{
+    airfoil: string;
+    clMax: number;
+    cdMin: number;
+    ldMax: number;
+    stallAlpha: number;
+  }>;
+}
+
+/**
+ * Build PDF document from structured data
+ */
+export function buildPdfDocument(data: PdfDocumentData): string {
+  const { airfoilName, summary, performance, charts, metadata, comparisonData } = data;
+  
+  // Format Reynolds number for display
+  const reDisplay = metadata.re >= 1000000 
+    ? `${(metadata.re / 1000000).toFixed(1)}M` 
+    : metadata.re >= 1000 
+    ? `${(metadata.re / 1000).toFixed(0)}k` 
+    : `${metadata.re}`;
+
+  return generatePdfReportHTML(airfoilName, summary, performance, charts, metadata, comparisonData, reDisplay);
+}
+
+/**
+ * Generate HTML for PDF report
+ */
+function generatePdfReportHTML(
+  airfoilName: string,
+  summary: PdfDocumentData['summary'],
+  performance: PerformanceMetrics,
+  charts: PdfDocumentData['charts'],
+  metadata: PdfDocumentData['metadata'],
+  comparisonData?: PdfDocumentData['comparisonData'],
+  reDisplay?: string
+): string {
+  const reDisp = reDisplay || (metadata.re >= 1000000 
+    ? `${(metadata.re / 1000000).toFixed(1)}M` 
+    : metadata.re >= 1000 
+    ? `${(metadata.re / 1000).toFixed(0)}k` 
+    : `${metadata.re}`);
+
+  // HTML generation continues below...
+  return ''; // Placeholder - will be replaced with full HTML
+}
+
+/**
  * Generate NASA-style aerodynamic report PDF
  */
 export async function generatePdfReport(
   airfoilId: string,
   re: number,
-  chartImages?: { cl: string; cd: string; cm: string; ld: string }
+  chartImages?: { cl: string; cd: string; cm: string; ld: string },
+  comparisonData?: Array<{
+    airfoil: string;
+    clMax: number;
+    cdMin: number;
+    ldMax: number;
+    stallAlpha: number;
+  }>
 ): Promise<string> {
   // Load polar data
   const polar = await loadPolar(airfoilId, re);
@@ -838,6 +1012,21 @@ export async function generatePdfReport(
   // Load airfoil description
   const { getAirfoilDescription } = await import('@/data/airfoilDescriptions');
   const description = getAirfoilDescription(airfoilId);
+
+  // Generate charts if not provided
+  let charts = chartImages;
+  if (!charts) {
+    const generatedCharts = await generateCharts(polar);
+    charts = {
+      cl: generatedCharts.clChart,
+      cd: generatedCharts.cdChart,
+      cm: generatedCharts.cmChart,
+      ld: generatedCharts.ldChart,
+    };
+  }
+
+  // Extract metadata
+  const metadata = extractMetadata(polar);
 
   // Format Reynolds number for display
   const reDisplay = re >= 1000000 
@@ -1014,50 +1203,42 @@ export async function generatePdfReport(
   </div>
   ` : ''}
 
-  <h2>2. POLAR PERFORMANCE SUMMARY</h2>
-  <p><strong>Reynolds Number:</strong> Re = ${reDisplay} (${re.toLocaleString()})</p>
-  <p><strong>Mach Number:</strong> M = ${polar.mach.toFixed(1)} (Incompressible flow)</p>
-
+  <h2>2. PERFORMANCE SUMMARY TABLE</h2>
   <table>
     <tr>
-      <th>Performance Metric</th>
+      <th>Parameter</th>
       <th>Value</th>
       <th>Angle of Attack (α)</th>
     </tr>
     <tr>
-      <td><strong>Maximum Lift Coefficient (Cl<sub>max</sub>)</strong></td>
-      <td class="metric-value">${metrics.cl_max.toFixed(3)}</td>
-      <td>${metrics.cl_max_alpha.toFixed(1)}°</td>
-    </tr>
-    <tr>
-      <td><strong>Minimum Drag Coefficient (Cd<sub>min</sub>)</strong></td>
-      <td class="metric-value">${metrics.cd_min.toFixed(4)}</td>
-      <td>${metrics.cd_min_alpha.toFixed(1)}°</td>
-    </tr>
-    <tr>
-      <td><strong>Maximum L/D Ratio (Cl/Cd)<sub>max</sub></strong></td>
-      <td class="metric-value">${metrics.ld_max.toFixed(2)}</td>
-      <td>${metrics.ld_max_alpha.toFixed(1)}°</td>
-    </tr>
-    <tr>
-      <td><strong>Zero-Lift Angle of Attack (α<sub>0</sub>)</strong></td>
-      <td class="metric-value">${metrics.alpha_zero_lift.toFixed(2)}°</td>
+      <td><strong>Reynolds Number</strong></td>
+      <td class="metric-value">Re = ${re.toLocaleString()}</td>
       <td>-</td>
     </tr>
     <tr>
-      <td><strong>Lift Curve Slope (dCl/dα)</strong></td>
-      <td class="metric-value">${metrics.lift_curve_slope.toFixed(4)} per degree</td>
-      <td>Linear region</td>
+      <td><strong>Mach Number</strong></td>
+      <td class="metric-value">M = ${polar.mach.toFixed(1)}</td>
+      <td>-</td>
     </tr>
     <tr>
-      <td><strong>Stall Angle of Attack</strong></td>
+      <td><strong>Stall Angle</strong></td>
       <td class="metric-value">${metrics.stall_alpha.toFixed(1)}°</td>
       <td>-</td>
     </tr>
     <tr>
-      <td><strong>Pitching Moment Trend</strong></td>
-      <td>${metrics.cm_trend}</td>
-      <td>-</td>
+      <td><strong>Maximum Cl (Cl<sub>max</sub>)</strong></td>
+      <td class="metric-value">${metrics.cl_max.toFixed(3)}</td>
+      <td>${metrics.cl_max_alpha.toFixed(1)}°</td>
+    </tr>
+    <tr>
+      <td><strong>Minimum Cd (Cd<sub>min</sub>)</strong></td>
+      <td class="metric-value">${metrics.cd_min.toFixed(4)}</td>
+      <td>${metrics.cd_min_alpha.toFixed(1)}°</td>
+    </tr>
+    <tr>
+      <td><strong>Best L/D (Cl/Cd)<sub>max</sub></strong></td>
+      <td class="metric-value">${metrics.ld_max.toFixed(2)}</td>
+      <td>${metrics.ld_max_alpha.toFixed(1)}°</td>
     </tr>
   </table>
 
@@ -1103,31 +1284,62 @@ export async function generatePdfReport(
   </div>
   <p>Where Cl is the lift coefficient and Cd is the drag coefficient at a given angle of attack.</p>
 
-  <h3>4.2 Lift Curve Slope</h3>
+  <h3>4.2 Lift Curve Slope (dCl/dα)</h3>
+  <div class="formula">
+    dCl/dα = ΔCl / Δα
+  </div>
+  <p>Computed using least-squares linear regression in the linear region (typically -5° to +5° or until stall).</p>
   <div class="formula">
     dCl/dα = (n·Σ(α·Cl) - Σα·ΣCl) / (n·Σα² - (Σα)²)
   </div>
-  <p>Computed using linear regression in the linear region (typically -5° to +5° or until stall).</p>
 
   <h3>4.3 Stall Detection</h3>
-  <p>Stall is detected as the angle of attack corresponding to:</p>
-  <ul>
-    <li>Maximum lift coefficient (Cl<sub>max</sub>)</li>
-    <li>Or the point where Cl begins to decrease significantly (ΔCl &lt; -0.05)</li>
-    <li>Or the value specified in polar metadata (if available)</li>
-  </ul>
+  <p>Stall is detected when:</p>
+  <div class="formula">
+    Cl[i+1] &lt; 0.9 × Cl[i]
+  </div>
+  <p>Or at the angle of attack corresponding to maximum lift coefficient (Cl<sub>max</sub>), or the value specified in polar metadata (if available).</p>
 
   <h3>4.4 Zero-Lift Angle of Attack</h3>
-  <p>Determined by finding the angle of attack where Cl ≈ 0, typically using linear interpolation in the linear region.</p>
+  <p>Determined via linear regression in the linear region, finding the angle where Cl = 0.</p>
+  <div class="formula">
+    α<sub>0</sub> = -Cl<sub>intercept</sub> / (dCl/dα)
+  </div>
 
   <h3>4.5 Behavior Notes</h3>
   <div class="info-box">
-    <p><strong>Laminar Flow Airfoils:</strong> Designed to maintain laminar boundary layer over a significant portion of the chord, resulting in reduced drag at low angles of attack.</p>
-    <p><strong>Supercritical Airfoils:</strong> Designed to delay the onset of transonic drag rise, allowing higher cruise speeds with improved fuel efficiency.</p>
-    <p><strong>Low Reynolds Number Airfoils:</strong> Optimized for small-scale applications (UAVs, model aircraft) where Reynolds numbers are typically below 500,000.</p>
+    <p><strong>Laminar 6-Series Drag Bucket Behavior:</strong> Laminar flow airfoils (e.g., NACA 63-215) are designed to maintain laminar boundary layer over a significant portion of the chord, resulting in reduced drag at low angles of attack. The "drag bucket" refers to the region of minimum drag coefficient maintained over a range of lift coefficients.</p>
+    <p><strong>Supercritical Aft-Loading & Pressure Recovery Behavior:</strong> Supercritical airfoils (e.g., NASA SC(2)-0412) feature aft-loading and optimized pressure recovery to delay the onset of transonic drag rise. The aft-loading distributes lift more evenly along the chord, while pressure recovery minimizes shock formation, allowing higher cruise speeds with improved fuel efficiency.</p>
   </div>
 
-  <!-- Page 4: Metadata -->
+  <!-- Page 4: Optional Multi-Airfoil Comparison -->
+  ${comparisonData && comparisonData.length > 0 ? `
+  <div class="page-break"></div>
+  <h2>4. MULTI-AIRFOIL COMPARISON</h2>
+  <table>
+    <tr>
+      <th>Airfoil</th>
+      <th>Cl<sub>max</sub></th>
+      <th>Cd<sub>min</sub></th>
+      <th>L/D<sub>max</sub></th>
+      <th>Stall α (°)</th>
+    </tr>
+    ${comparisonData.map(comp => `
+    <tr>
+      <td><strong>${comp.airfoil}</strong></td>
+      <td>${comp.clMax.toFixed(3)}</td>
+      <td>${comp.cdMin.toFixed(4)}</td>
+      <td>${comp.ldMax.toFixed(2)}</td>
+      <td>${comp.stallAlpha.toFixed(1)}°</td>
+    </tr>
+    `).join('')}
+  </table>
+  <div class="chart-container" style="margin-top: 30px;">
+    <p><em>Note: L/D curves comparison chart would be displayed here if multiple airfoils were analyzed.</em></p>
+  </div>
+  ` : ''}
+  
+  <!-- Metadata Section -->
   <div class="page-break"></div>
   <h2>5. METADATA</h2>
   <table>
