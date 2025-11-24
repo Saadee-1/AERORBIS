@@ -1667,9 +1667,30 @@ export async function assemblePdfDocument(options: {
     const { PDFDocument, rgb } = await import('pdf-lib');
     const pdfDoc = await PDFDocument.create();
 
-    // Helper to add text with safe formatting
+    // Load and embed Roboto font for Unicode support
+    let robotoFont;
+    try {
+      // Register fontkit for custom font embedding
+      const fontkitModule = await import('@pdf-lib/fontkit');
+      const fontkit = fontkitModule.default || fontkitModule;
+      pdfDoc.registerFontkit(fontkit);
+      
+      // Load Roboto font from public folder
+      const fontResponse = await fetch('/fonts/Roboto-Regular.ttf');
+      if (!fontResponse.ok) {
+        throw new Error('Failed to load Roboto font file');
+      }
+      const fontBytes = await fontResponse.arrayBuffer();
+      robotoFont = await pdfDoc.embedFont(fontBytes, { subset: true });
+    } catch (fontError) {
+      // Fallback: show error but continue with default font
+      console.error('Failed to load Roboto font:', fontError);
+      throw new Error('PDF font loading failed — Unicode export unavailable.');
+    }
+
+    // Helper to add text with safe formatting using embedded Unicode font
     const addText = (page: any, text: string, x: number, y: number, size: number = 12, color = rgb(0, 0, 0)) => {
-      page.drawText(text, { x, y, size, color });
+      page.drawText(text, { x, y, size, color, font: robotoFont });
     };
 
     // Page 1: Airfoil Summary + Performance Table
@@ -1759,7 +1780,55 @@ export async function assemblePdfDocument(options: {
     const pdfBytes = await pdfDoc.save();
     return new Blob([pdfBytes], { type: 'application/pdf' });
   } catch (error) {
-    throw new Error(`Failed to assemble PDF document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // Check if it's a font loading error
+    if (errorMessage.includes('font loading failed') || errorMessage.includes('Unicode export unavailable')) {
+      throw new Error('PDF font loading failed — Unicode export unavailable.');
+    }
+    throw new Error(`Failed to assemble PDF document: ${errorMessage}`);
+  }
+}
+
+/**
+ * Test Unicode character support in PDF
+ * Writes test characters "αβγμρ∞Ω" to verify font embedding works
+ */
+export async function testUnicodeSupport(): Promise<boolean> {
+  try {
+    const { PDFDocument, rgb } = await import('pdf-lib');
+    const pdfDoc = await PDFDocument.create();
+
+    // Load and embed Roboto font
+    const fontkitModule = await import('@pdf-lib/fontkit');
+    const fontkit = fontkitModule.default || fontkitModule;
+    pdfDoc.registerFontkit(fontkit);
+    
+    const fontResponse = await fetch('/fonts/Roboto-Regular.ttf');
+    if (!fontResponse.ok) {
+      return false;
+    }
+    const fontBytes = await fontResponse.arrayBuffer();
+    const robotoFont = await pdfDoc.embedFont(fontBytes, { subset: true });
+
+    // Create test page
+    const page = pdfDoc.addPage([595, 842]);
+    
+    // Test Unicode characters: αβγμρ∞Ω
+    const testText = 'αβγμρ∞Ω';
+    page.drawText(testText, {
+      x: 50,
+      y: 800,
+      size: 12,
+      font: robotoFont,
+      color: rgb(0, 0, 0),
+    });
+
+    // If PDF builds without error, test passes
+    await pdfDoc.save();
+    return true;
+  } catch (error) {
+    console.error('Unicode support test failed:', error);
+    return false;
   }
 }
 

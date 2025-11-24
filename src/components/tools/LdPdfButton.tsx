@@ -66,11 +66,21 @@ export function LdPdfButton({ selectedAirfoils, re, disabled }: LdPdfButtonProps
       });
     } catch (error) {
       console.error('Error generating PDF report:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate PDF report.",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate PDF report.";
+      // Check if it's a font loading error
+      if (errorMessage.includes('font loading failed') || errorMessage.includes('Unicode export unavailable')) {
+        toast({
+          title: "Font Loading Error",
+          description: "PDF font loading failed — Unicode export unavailable.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGenerating(false);
     }
