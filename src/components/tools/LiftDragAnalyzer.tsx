@@ -25,6 +25,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
+import { LdPdfButton } from "@/components/tools/LdPdfButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
 import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
@@ -92,9 +93,19 @@ interface LiftDragResult {
 interface PolarData {
   airfoil: string;
   re: number;
+  mach?: number;
   alpha: number[];
   cl: number[];
   cd: number[];
+  cm?: number[];
+  meta?: {
+    source?: string;
+    generated_at?: string;
+    filter?: string;
+    notes?: string;
+    cm_estimated?: boolean;
+    stall_alpha?: number;
+  };
 }
 
 // Interface for computed L/D data from polar
@@ -1018,6 +1029,22 @@ const LiftDragAnalyzer = () => {
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
+      )}
+
+      {/* PDF Export Button for Polar Data */}
+      {polarData && computedLD.length > 0 && inputs.airfoil !== "custom" && (
+        <div className="mt-6 flex justify-center">
+          <LdPdfButton
+            airfoilId={inputs.airfoil}
+            re={1000000}
+            polarData={{
+              alpha: polarData.alpha,
+              cl: polarData.cl,
+              cd: polarData.cd,
+              cm: polarData.cm,
+            }}
+          />
+        </div>
       )}
     </ToolWrapper>
   );

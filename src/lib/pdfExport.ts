@@ -476,3 +476,710 @@ export async function getExplanation(
   }
 }
 
+// ============================================================================
+// NASA-STYLE AERODYNAMIC REPORT GENERATOR FOR L/D ANALYZER
+// ============================================================================
+
+/**
+ * Polar data interface
+ */
+export interface PolarData {
+  airfoil: string;
+  re: number;
+  mach: number;
+  alpha: number[];
+  cl: number[];
+  cd: number[];
+  cm?: number[];
+  meta?: {
+    source?: string;
+    generated_at?: string;
+    filter?: string;
+    notes?: string;
+    cm_estimated?: boolean;
+    stall_alpha?: number;
+  };
+}
+
+/**
+ * Performance metrics computed from polar data
+ */
+export interface PerformanceMetrics {
+  cl_max: number;
+  cl_max_alpha: number;
+  cd_min: number;
+  cd_min_alpha: number;
+  ld_max: number;
+  ld_max_alpha: number;
+  alpha_zero_lift: number;
+  lift_curve_slope: number; // dCl/dα
+  stall_alpha: number;
+  cm_trend: string;
+}
+
+/**
+ * Load polar data from JSON file
+ */
+export async function loadPolar(airfoilId: string, re: number): Promise<PolarData | null> {
+  try {
+    // Format Reynolds number (e.g., 1000000 -> "1e6", 500000 -> "500k")
+    let reStr: string;
+    if (re >= 1000000) {
+      reStr = `${re / 1000000}e6`;
+    } else if (re >= 1000) {
+      reStr = `${re / 1000}k`;
+    } else {
+      reStr = `${re}`;
+    }
+
+    const url = `/polars/${airfoilId}/${reStr}.json`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      console.warn(`Polar data not found: ${url}`);
+      return null;
+    }
+
+    const data: PolarData = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Error loading polar data for ${airfoilId} at Re=${re}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Detect stall angle from polar data
+ */
+export function detectStall(polar: PolarData): number {
+  // Use meta.stall_alpha if available
+  if (polar.meta?.stall_alpha !== undefined) {
+    return polar.meta.stall_alpha;
+  }
+
+  // Detect stall by finding maximum Cl
+  let maxCl = -Infinity;
+  let maxClIndex = -1;
+
+  for (let i = 0; i < polar.cl.length; i++) {
+    if (polar.cl[i] > maxCl) {
+      maxCl = polar.cl[i];
+      maxClIndex = i;
+    }
+  }
+
+  if (maxClIndex >= 0 && maxClIndex < polar.alpha.length) {
+    return polar.alpha[maxClIndex];
+  }
+
+  // Fallback: find where Cl starts decreasing significantly
+  for (let i = 1; i < polar.cl.length; i++) {
+    if (polar.cl[i] < polar.cl[i - 1] - 0.05) {
+      return polar.alpha[i - 1];
+    }
+  }
+
+  return polar.alpha[polar.alpha.length - 1];
+}
+
+/**
+ * Compute lift curve slope (dCl/dα) using linear regression
+ */
+export function computeLiftCurveSlope(polar: PolarData): number {
+  // Use linear region (typically -5° to +5° or until stall)
+  const stallAlpha = detectStall(polar);
+  const linearRegion: { alpha: number; cl: number }[] = [];
+
+  for (let i = 0; i < polar.alpha.length; i++) {
+    const alpha = polar.alpha[i];
+    if (alpha >= -5 && alpha <= Math.min(5, stallAlpha - 2)) {
+      linearRegion.push({ alpha, cl: polar.cl[i] });
+    }
+  }
+
+  if (linearRegion.length < 3) {
+    // Fallback: use first few points
+    for (let i = 0; i < Math.min(5, polar.alpha.length); i++) {
+      linearRegion.push({ alpha: polar.alpha[i], cl: polar.cl[i] });
+    }
+  }
+
+  // Linear regression: cl = a + b * alpha, where b = dCl/dα
+  const n = linearRegion.length;
+  let sumAlpha = 0;
+  let sumCl = 0;
+  let sumAlphaCl = 0;
+  let sumAlphaSq = 0;
+
+  for (const point of linearRegion) {
+    sumAlpha += point.alpha;
+    sumCl += point.cl;
+    sumAlphaCl += point.alpha * point.cl;
+    sumAlphaSq += point.alpha * point.alpha;
+  }
+
+  const denominator = n * sumAlphaSq - sumAlpha * sumAlpha;
+  if (Math.abs(denominator) < 1e-10) {
+    return 0.1; // Default fallback
+  }
+
+  const slope = (n * sumAlphaCl - sumAlpha * sumCl) / denominator;
+  return slope;
+}
+
+/**
+ * Compute zero-lift angle of attack using linear fit
+ */
+export function computeZeroLiftAlpha(polar: PolarData, liftCurveSlope: number): number {
+  // Find point closest to cl = 0 in linear region
+  let minDist = Infinity;
+  let zeroLiftAlpha = 0;
+
+  for (let i = 0; i < polar.cl.length; i++) {
+    const dist = Math.abs(polar.cl[i]);
+    if (dist < minDist) {
+      minDist = dist;
+      zeroLiftAlpha = polar.alpha[i];
+    }
+  }
+
+  // Refine using linear fit: alpha_0 = -cl_intercept / slope
+  // For symmetric airfoils, this should be close to 0
+  return zeroLiftAlpha;
+}
+
+/**
+ * Compute performance metrics from polar data
+ */
+export function computePerformanceMetrics(polar: PolarData): PerformanceMetrics {
+  // Find Cl_max and its alpha
+  let clMax = -Infinity;
+  let clMaxAlpha = 0;
+  for (let i = 0; i < polar.cl.length; i++) {
+    if (polar.cl[i] > clMax) {
+      clMax = polar.cl[i];
+      clMaxAlpha = polar.alpha[i];
+    }
+  }
+
+  // Find Cd_min and its alpha
+  let cdMin = Infinity;
+  let cdMinAlpha = 0;
+  for (let i = 0; i < polar.cd.length; i++) {
+    if (polar.cd[i] < cdMin) {
+      cdMin = polar.cd[i];
+      cdMinAlpha = polar.alpha[i];
+    }
+  }
+
+  // Find (Cl/Cd)_max and its alpha
+  let ldMax = -Infinity;
+  let ldMaxAlpha = 0;
+  for (let i = 0; i < polar.cl.length; i++) {
+    if (polar.cd[i] > 0) {
+      const ld = polar.cl[i] / polar.cd[i];
+      if (ld > ldMax) {
+        ldMax = ld;
+        ldMaxAlpha = polar.alpha[i];
+      }
+    }
+  }
+
+  // Compute lift curve slope
+  const liftCurveSlope = computeLiftCurveSlope(polar);
+
+  // Compute zero-lift alpha
+  const alphaZeroLift = computeZeroLiftAlpha(polar, liftCurveSlope);
+
+  // Detect stall
+  const stallAlpha = detectStall(polar);
+
+  // Analyze Cm trend
+  let cmTrend = "Not available";
+  if (polar.cm && polar.cm.length > 0) {
+    const cmValues = polar.cm.filter(c => Math.abs(c) < 1); // Filter outliers
+    if (cmValues.length > 0) {
+      const avgCm = cmValues.reduce((a, b) => a + b, 0) / cmValues.length;
+      if (Math.abs(avgCm) < 0.01) {
+        cmTrend = "Neutral (≈ 0)";
+      } else if (avgCm < -0.05) {
+        cmTrend = "Nose-down (negative)";
+      } else if (avgCm > 0.05) {
+        cmTrend = "Nose-up (positive)";
+      } else {
+        cmTrend = `Slight ${avgCm < 0 ? 'nose-down' : 'nose-up'} (${avgCm.toFixed(3)})`;
+      }
+    }
+  }
+
+  return {
+    cl_max: clMax,
+    cl_max_alpha: clMaxAlpha,
+    cd_min: cdMin,
+    cd_min_alpha: cdMinAlpha,
+    ld_max: ldMax,
+    ld_max_alpha: ldMaxAlpha,
+    alpha_zero_lift: alphaZeroLift,
+    lift_curve_slope: liftCurveSlope,
+    stall_alpha: stallAlpha,
+    cm_trend: cmTrend,
+  };
+}
+
+/**
+ * Generate chart as base64 PNG using canvas
+ * This is a placeholder - actual implementation should use Recharts or Chart.js
+ */
+export async function generateChartImage(
+  chartData: Array<{ x: number; y: number }>,
+  title: string,
+  xLabel: string,
+  yLabel: string,
+  width: number = 800,
+  height: number = 400
+): Promise<string> {
+  // Create a canvas element
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    throw new Error('Failed to get canvas context');
+  }
+
+  // Set background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+
+  // Draw axes
+  const margin = { top: 40, right: 40, bottom: 60, left: 80 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+
+  ctx.strokeStyle = '#333333';
+  ctx.lineWidth = 2;
+
+  // X-axis
+  ctx.beginPath();
+  ctx.moveTo(margin.left, height - margin.bottom);
+  ctx.lineTo(width - margin.right, height - margin.bottom);
+  ctx.stroke();
+
+  // Y-axis
+  ctx.beginPath();
+  ctx.moveTo(margin.left, margin.top);
+  ctx.lineTo(margin.left, height - margin.bottom);
+  ctx.stroke();
+
+  // Find data range
+  const xValues = chartData.map(d => d.x);
+  const yValues = chartData.map(d => d.y);
+  const xMin = Math.min(...xValues);
+  const xMax = Math.max(...xValues);
+  const yMin = Math.min(...yValues);
+  const yMax = Math.max(...yValues);
+
+  const xRange = xMax - xMin || 1;
+  const yRange = yMax - yMin || 1;
+
+  // Draw data points and line
+  ctx.strokeStyle = '#22d3ee';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+
+  for (let i = 0; i < chartData.length; i++) {
+    const x = margin.left + ((chartData[i].x - xMin) / xRange) * plotWidth;
+    const y = height - margin.bottom - ((chartData[i].y - yMin) / yRange) * plotHeight;
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+  ctx.stroke();
+
+  // Draw title
+  ctx.fillStyle = '#333333';
+  ctx.font = 'bold 16px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(title, width / 2, 25);
+
+  // Draw labels
+  ctx.font = '12px Arial';
+  ctx.fillText(xLabel, width / 2, height - 15);
+  ctx.save();
+  ctx.translate(20, height / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText(yLabel, 0, 0);
+  ctx.restore();
+
+  return canvas.toDataURL('image/png');
+}
+
+/**
+ * Generate NASA-style aerodynamic report PDF
+ */
+export async function generatePdfReport(
+  airfoilId: string,
+  re: number,
+  chartImages?: { cl: string; cd: string; cm: string; ld: string }
+): Promise<string> {
+  // Load polar data
+  const polar = await loadPolar(airfoilId, re);
+  if (!polar) {
+    throw new Error(`Polar data not found for ${airfoilId} at Re=${re}`);
+  }
+
+  // Compute performance metrics
+  const metrics = computePerformanceMetrics(polar);
+
+  // Load airfoil description
+  const { getAirfoilDescription } = await import('@/data/airfoilDescriptions');
+  const description = getAirfoilDescription(airfoilId);
+
+  // Format Reynolds number for display
+  const reDisplay = re >= 1000000 
+    ? `${(re / 1000000).toFixed(1)}M` 
+    : re >= 1000 
+    ? `${(re / 1000).toFixed(0)}k` 
+    : `${re}`;
+
+  // Generate HTML report
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>NASA Aerodynamic Report - ${polar.airfoil}</title>
+  <style>
+    @media print {
+      @page { 
+        margin: 1.5cm; 
+        size: A4; 
+      }
+      .page-break { page-break-before: always; }
+    }
+    body { 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      margin: 0; 
+      padding: 20px; 
+      color: #1a1a1a; 
+      line-height: 1.6; 
+      background: #ffffff;
+    }
+    .header {
+      border-bottom: 4px solid #003366;
+      padding-bottom: 15px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #003366;
+      margin: 0;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .header .subtitle {
+      color: #666;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    h2 {
+      color: #003366;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #003366;
+      padding-bottom: 8px;
+      font-size: 20px;
+    }
+    h3 {
+      color: #0066cc;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      page-break-inside: avoid;
+    }
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #003366;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background-color: #f5f5f5;
+    }
+    .metric-value {
+      font-weight: bold;
+      color: #0066cc;
+      font-size: 1.1em;
+    }
+    .chart-container {
+      margin: 20px 0;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+    .chart-container img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .info-box {
+      background-color: #e6f2ff;
+      border-left: 4px solid #0066cc;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    .formula {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 10px 0;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+    }
+    .metadata {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #ddd;
+      color: #666;
+      font-size: 0.9em;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+  <!-- Page 1: Airfoil Summary + Performance Table -->
+  <div class="header">
+    <h1>NASA-STYLE AERODYNAMIC REPORT</h1>
+    <div class="subtitle">Aeroverse Blended Polar Dataset Analysis</div>
+  </div>
+
+  <h2>1. AIRFOIL SPECIFICATION</h2>
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td><strong>Airfoil Name</strong></td>
+      <td class="metric-value">${polar.airfoil}</td>
+    </tr>
+    <tr>
+      <td><strong>Family</strong></td>
+      <td>${description?.family || 'N/A'}</td>
+    </tr>
+    ${description?.camber !== undefined ? `
+    <tr>
+      <td><strong>Camber</strong></td>
+      <td>${description.camber}%</td>
+    </tr>
+    ` : ''}
+    ${description?.thickness !== undefined ? `
+    <tr>
+      <td><strong>Thickness</strong></td>
+      <td>${description.thickness}%</td>
+    </tr>
+    ` : ''}
+    <tr>
+      <td><strong>Design Purpose</strong></td>
+      <td>${description?.designPurpose || 'N/A'}</td>
+    </tr>
+    <tr>
+      <td><strong>Recommended Reynolds Range</strong></td>
+      <td>${description?.recommendedReRange || 'N/A'}</td>
+    </tr>
+    <tr>
+      <td><strong>Intended Applications</strong></td>
+      <td>${description?.applications?.join(', ') || 'N/A'}</td>
+    </tr>
+  </table>
+
+  ${description?.behaviorSummary ? `
+  <div class="info-box">
+    <h3>Aerodynamic Behavior Summary</h3>
+    <p>${description.behaviorSummary}</p>
+  </div>
+  ` : ''}
+
+  <h2>2. POLAR PERFORMANCE SUMMARY</h2>
+  <p><strong>Reynolds Number:</strong> Re = ${reDisplay} (${re.toLocaleString()})</p>
+  <p><strong>Mach Number:</strong> M = ${polar.mach.toFixed(1)} (Incompressible flow)</p>
+
+  <table>
+    <tr>
+      <th>Performance Metric</th>
+      <th>Value</th>
+      <th>Angle of Attack (α)</th>
+    </tr>
+    <tr>
+      <td><strong>Maximum Lift Coefficient (Cl<sub>max</sub>)</strong></td>
+      <td class="metric-value">${metrics.cl_max.toFixed(3)}</td>
+      <td>${metrics.cl_max_alpha.toFixed(1)}°</td>
+    </tr>
+    <tr>
+      <td><strong>Minimum Drag Coefficient (Cd<sub>min</sub>)</strong></td>
+      <td class="metric-value">${metrics.cd_min.toFixed(4)}</td>
+      <td>${metrics.cd_min_alpha.toFixed(1)}°</td>
+    </tr>
+    <tr>
+      <td><strong>Maximum L/D Ratio (Cl/Cd)<sub>max</sub></strong></td>
+      <td class="metric-value">${metrics.ld_max.toFixed(2)}</td>
+      <td>${metrics.ld_max_alpha.toFixed(1)}°</td>
+    </tr>
+    <tr>
+      <td><strong>Zero-Lift Angle of Attack (α<sub>0</sub>)</strong></td>
+      <td class="metric-value">${metrics.alpha_zero_lift.toFixed(2)}°</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td><strong>Lift Curve Slope (dCl/dα)</strong></td>
+      <td class="metric-value">${metrics.lift_curve_slope.toFixed(4)} per degree</td>
+      <td>Linear region</td>
+    </tr>
+    <tr>
+      <td><strong>Stall Angle of Attack</strong></td>
+      <td class="metric-value">${metrics.stall_alpha.toFixed(1)}°</td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td><strong>Pitching Moment Trend</strong></td>
+      <td>${metrics.cm_trend}</td>
+      <td>-</td>
+    </tr>
+  </table>
+
+  <!-- Page 2: Aerodynamic Charts -->
+  <div class="page-break"></div>
+  <h2>3. AERODYNAMIC CHARTS</h2>
+
+  ${chartImages?.cl ? `
+  <div class="chart-container">
+    <h3>Lift Coefficient vs. Angle of Attack</h3>
+    <img src="${chartImages.cl}" alt="Cl vs α" />
+  </div>
+  ` : ''}
+
+  ${chartImages?.cd ? `
+  <div class="chart-container">
+    <h3>Drag Coefficient vs. Angle of Attack</h3>
+    <img src="${chartImages.cd}" alt="Cd vs α" />
+  </div>
+  ` : ''}
+
+  ${chartImages?.cm ? `
+  <div class="chart-container">
+    <h3>Pitching Moment Coefficient vs. Angle of Attack</h3>
+    <img src="${chartImages.cm}" alt="Cm vs α" />
+  </div>
+  ` : ''}
+
+  <!-- Page 3: L/D Chart + Appendix -->
+  <div class="page-break"></div>
+  ${chartImages?.ld ? `
+  <div class="chart-container">
+    <h3>Lift-to-Drag Ratio vs. Angle of Attack</h3>
+    <img src="${chartImages.ld}" alt="L/D vs α" />
+  </div>
+  ` : ''}
+
+  <h2>4. APPENDIX: CALCULATIONS AND FORMULAS</h2>
+
+  <h3>4.1 Lift-to-Drag Ratio</h3>
+  <div class="formula">
+    L/D = Cl / Cd
+  </div>
+  <p>Where Cl is the lift coefficient and Cd is the drag coefficient at a given angle of attack.</p>
+
+  <h3>4.2 Lift Curve Slope</h3>
+  <div class="formula">
+    dCl/dα = (n·Σ(α·Cl) - Σα·ΣCl) / (n·Σα² - (Σα)²)
+  </div>
+  <p>Computed using linear regression in the linear region (typically -5° to +5° or until stall).</p>
+
+  <h3>4.3 Stall Detection</h3>
+  <p>Stall is detected as the angle of attack corresponding to:</p>
+  <ul>
+    <li>Maximum lift coefficient (Cl<sub>max</sub>)</li>
+    <li>Or the point where Cl begins to decrease significantly (ΔCl &lt; -0.05)</li>
+    <li>Or the value specified in polar metadata (if available)</li>
+  </ul>
+
+  <h3>4.4 Zero-Lift Angle of Attack</h3>
+  <p>Determined by finding the angle of attack where Cl ≈ 0, typically using linear interpolation in the linear region.</p>
+
+  <h3>4.5 Behavior Notes</h3>
+  <div class="info-box">
+    <p><strong>Laminar Flow Airfoils:</strong> Designed to maintain laminar boundary layer over a significant portion of the chord, resulting in reduced drag at low angles of attack.</p>
+    <p><strong>Supercritical Airfoils:</strong> Designed to delay the onset of transonic drag rise, allowing higher cruise speeds with improved fuel efficiency.</p>
+    <p><strong>Low Reynolds Number Airfoils:</strong> Optimized for small-scale applications (UAVs, model aircraft) where Reynolds numbers are typically below 500,000.</p>
+  </div>
+
+  <!-- Page 4: Metadata -->
+  <div class="page-break"></div>
+  <h2>5. METADATA</h2>
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td><strong>Airfoil</strong></td>
+      <td>${polar.airfoil}</td>
+    </tr>
+    <tr>
+      <td><strong>Reynolds Number</strong></td>
+      <td>Re = ${re.toLocaleString()}</td>
+    </tr>
+    <tr>
+      <td><strong>Mach Number</strong></td>
+      <td>M = ${polar.mach.toFixed(1)} (Incompressible)</td>
+    </tr>
+    <tr>
+      <td><strong>Data Source</strong></td>
+      <td>${polar.meta?.source || 'Aeroverse Blended Polar Dataset (UIUC/AirfoilTools/XFOIL/NASA)'}</td>
+    </tr>
+    <tr>
+      <td><strong>Report Generated</strong></td>
+      <td>${new Date().toLocaleString()}</td>
+    </tr>
+    <tr>
+      <td><strong>App Version</strong></td>
+      <td>Aeroverse Launchpad v1.0.0</td>
+    </tr>
+    ${polar.meta?.generated_at ? `
+    <tr>
+      <td><strong>Polar Data Generated</strong></td>
+      <td>${new Date(polar.meta.generated_at).toLocaleString()}</td>
+    </tr>
+    ` : ''}
+    ${polar.meta?.filter ? `
+    <tr>
+      <td><strong>Data Filter</strong></td>
+      <td>${polar.meta.filter}</td>
+    </tr>
+    ` : ''}
+  </table>
+
+  <div class="metadata">
+    <p><em>This report was generated using the Aeroverse L/D Ratio Analyzer. All aerodynamic data is based on the blended polar dataset combining measurements from UIUC, AirfoilTools, XFOIL simulations, and NASA databases.</em></p>
+  </div>
+</body>
+</html>
+  `;
+
+  return html;
+}
+
