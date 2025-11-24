@@ -1,0 +1,57 @@
+﻿clarky | 1e6.json |  |  |  | none | 
+du91w2250 | 100k.json |  |  |  | none | 
+du91w2250 | 1e6.json |  |  |  (8/8/8/0) | none | 
+du91w2250 | 3e6.json |  |  |  | none | 
+du91w2250 | 500k.json |  |  |  | none | 
+eppler320 | 100k.json |  |  |  | none | 
+eppler320 | 1e6.json |  |  |  (8/8/8/0) | none | 
+eppler320 | 3e6.json |  |  |  | none | 
+eppler320 | 500k.json |  |  |  | none | 
+fx63137 | 100k.json |  |  |  | none | 
+fx63137 | 1e6.json |  |  |  (8/8/8/0) | none | 
+fx63137 | 3e6.json |  |  |  | none | 
+fx63137 | 500k.json |  |  |  | none | 
+naca0006 | 100k.json |  |  |  | none | 
+naca0006 | 1e6.json |  |  |  | none | 
+naca0006 | 3e6.json |  |  |  | none | 
+naca0006 | 500k.json |  |  |  | none | 
+naca0009 | 100k.json |  |  |  | none | 
+naca0009 | 1e6.json |  |  |  | none | 
+naca0009 | 3e6.json |  |  |  | none | 
+naca0009 | 500k.json |  |  |  | none | 
+naca0012 | 100k.json |  |  |  | none | 
+naca0012 | 1e6.json |  |  |  | none | 
+naca0012 | 3e6.json |  |  |  | none | 
+naca0012 | 500k.json |  |  |  | none | 
+naca0015 | 100k.json |  |  |  | none | 
+naca0015 | 1e6.json |  |  |  | none | 
+naca0015 | 3e6.json |  |  |  | none | 
+naca0015 | 500k.json |  |  |  | none | 
+naca23012 | 100k.json |  |  |  | none | 
+naca23012 | 1e6.json |  |  |  | none | 
+naca23012 | 3e6.json |  |  |  | none | 
+naca23012 | 500k.json |  |  |  | none | 
+naca2412 | 100k.json |  |  |  | none | 
+naca2412 | 1e6.json |  |  |  | none | 
+naca2412 | 3e6.json |  |  |  | none | 
+naca2412 | 500k.json |  |  |  | none | 
+naca4412 | 100k.json |  |  |  | none | 
+naca4412 | 1e6.json |  |  |  | none | 
+naca4412 | 3e6.json |  |  |  | cl=1.82, cl=1.82 | 
+naca4412 | 500k.json |  |  |  | none | 
+naca4415 | 100k.json |  |  |  | none | 
+naca4415 | 1e6.json |  |  |  | none | 
+naca4415 | 3e6.json |  |  |  | none | 
+naca4415 | 500k.json |  |  |  | none | 
+naca63215 | 100k.json |  |  |  | none | 
+naca63215 | 1e6.json |  |  |  | none | 
+naca63215 | 3e6.json |  |  |  | none | 
+naca63215 | 500k.json |  |  |  | none | 
+s1223 | 100k.json |  |  |  | none | 
+s1223 | 1e6.json |  |  |  | none | 
+s1223 | 3e6.json |  |  |  | none | 
+s1223 | 500k.json |  |  |  | none | 
+supercritical | 100k.json |  |  |  | none | 
+supercritical | 1e6.json |  |  |  (8/8/8/0) | none | 
+supercritical | 3e6.json |  |  |  | none | 
+supercritical | 500k.json |  |  |  | none | 

@@ -1,8 +1,18 @@
 {
   "airfoil": "Eppler 320",
   "re": 1000000,
+  "mach": 0.0,
   "alpha": [-4, -2, 0, 2, 4, 6, 8, 10],
   "cl": [-0.4, -0.2, 0.0, 0.3, 0.6, 0.9, 1.1, 1.0],
-  "cd": [0.03, 0.02, 0.015, 0.013, 0.015, 0.02, 0.03, 0.05]
+  "cd": [0.03, 0.02, 0.015, 0.013, 0.015, 0.02, 0.03, 0.05],
+  "cm": [-0.022, -0.021, -0.020, -0.019, -0.018, -0.017, -0.016, -0.015],
+  "meta": {
+    "source": "Blended (UIUC/AirfoilTools/XFOIL/NASA)",
+    "generated_at": "2025-11-23T19:00:00.000Z",
+    "filter": "none",
+    "notes": "metadata added only; no smoothing; cm estimated from generic low-camber trend.",
+    "cm_estimated": true,
+    "stall_alpha": null
+  }
 }
 

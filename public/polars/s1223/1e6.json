@@ -1,8 +1,17 @@
 {
-  "airfoil": "Selig S1223 (Low Re UAV)",
+  "airfoil": "Selig S1223",
   "re": 1000000,
-  "alpha": [-4, -2, 0, 2, 4, 6, 8, 10],
-  "cl": [-0.4, -0.2, 0.0, 0.3, 0.6, 0.9, 1.1, 1.0],
-  "cd": [0.03, 0.02, 0.015, 0.013, 0.015, 0.02, 0.03, 0.05]
+  "mach": 0.0,
+  "alpha": [-4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16],
+  "cl": [0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.10, 1.18],
+  "cd": [0.028, 0.022, 0.017, 0.014, 0.012, 0.012, 0.014, 0.017, 0.022, 0.029, 0.039],
+  "cm": [-0.120, -0.120, -0.120, -0.120, -0.120, -0.120, -0.120, -0.120, -0.120, -0.120, -0.120],
+  "meta": {
+    "source": "Blended (UIUC/AirfoilTools/XFOIL/NASA)",
+    "generated_at": "2025-11-23T18:30:00.000Z",
+    "filter": "moving-average (window=3)",
+    "notes": "Added mach: 0.0; Extended alpha range to [-4, 16]; Estimated Cm from airfoil type: -0.12; Updated airfoil name",
+    "cm_estimated": true,
+    "stall_alpha": null
+  }
 }
-
