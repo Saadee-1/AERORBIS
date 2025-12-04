@@ -27,7 +27,6 @@ import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { LdPdfButton } from "@/components/tools/LdPdfButton";
 import { PolarChartsPanel } from "@/components/tools/PolarChartsPanel";
-import { MultiAirfoilSelector } from "@/components/tools/MultiAirfoilSelector";
 import { buildAeroversePayload } from "@/ai/buildPayload";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
 import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
@@ -176,9 +175,9 @@ const LiftDragAnalyzer = () => {
   const [polarError, setPolarError] = useState<string>("");
   const [computedLD, setComputedLD] = useState<ComputedLD[]>([]);
 
-  // Multi-airfoil comparison state
-  const [selectedAirfoilsForComparison, setSelectedAirfoilsForComparison] = useState<string[]>([]);
+  // Unified graph selection state - single source of truth for all charts
   const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: PolarData }>>([]);
+  const [showComparisonLimitWarning, setShowComparisonLimitWarning] = useState(false);
 
   const getLatestStoredRequestId = useCallback((): string | null => {
     try {
@@ -315,17 +314,44 @@ const LiftDragAnalyzer = () => {
     fetchPolarData();
   }, [inputs.airfoil]);
 
-  // Load polars for multi-airfoil comparison
+  // Load polars for comparison - unified with L/D chart selection
   useEffect(() => {
-    if (selectedAirfoilsForComparison.length === 0) {
-      setComparisonPolars([]);
-      return;
-    }
-
     const loadComparisonPolars = async () => {
-      const loaded: Array<{ id: string; name: string; data: PolarData }> = [];
+      const MAX_AIRFOILS = 5;
+      let airfoilIdsToLoad: string[] = [];
 
-      for (const airfoilId of selectedAirfoilsForComparison) {
+      // Determine which airfoils to load based on chartMode
+      if (chartMode === 'compareAll') {
+        // Cap at 5 airfoils for "Compare All"
+        const allKeys = Object.keys(AIRFOIL_DATA);
+        const currentKey = inputs.airfoil === 'custom' ? null : inputs.airfoil;
+        
+        // Put current airfoil first, then others
+        if (currentKey) {
+          airfoilIdsToLoad = [currentKey, ...allKeys.filter(k => k !== currentKey)].slice(0, MAX_AIRFOILS);
+        } else {
+          airfoilIdsToLoad = allKeys.slice(0, MAX_AIRFOILS);
+        }
+
+        // Show warning if we had to cap
+        if (allKeys.length > MAX_AIRFOILS) {
+          setShowComparisonLimitWarning(true);
+        } else {
+          setShowComparisonLimitWarning(false);
+        }
+      } else if (chartMode === 'compareOne') {
+        // Compare mode: show active + comparison airfoil
+        if (inputs.airfoil !== 'custom') {
+          airfoilIdsToLoad = [inputs.airfoil, comparisonAirfoil].filter((v, i, a) => a.indexOf(v) === i);
+        } else {
+          airfoilIdsToLoad = [comparisonAirfoil];
+        }
+        setShowComparisonLimitWarning(false);
+      }
+
+      // Load polar data for each airfoil
+      const loaded: Array<{ id: string; name: string; data: PolarData }> = [];
+      for (const airfoilId of airfoilIdsToLoad) {
         const polar = await loadPolarForComparison(airfoilId, 1000000); // Fixed at Re = 1M
         if (polar) {
           const airfoilName = AIRFOIL_DATA[airfoilId]?.name || airfoilId;
@@ -337,7 +363,7 @@ const LiftDragAnalyzer = () => {
     };
 
     loadComparisonPolars();
-  }, [selectedAirfoilsForComparison]);
+  }, [chartMode, inputs.airfoil, comparisonAirfoil]);
 
   const getUnit = (param: string) => {
     if (unitSystem === "SI") {
@@ -597,39 +623,58 @@ const LiftDragAnalyzer = () => {
   };
   
   // FIXED: Use useCallback to create stable function reference
-  const generateComparisonData = useCallback((currentAirfoil: Airfoil, k_factor: number, activeAirfoilKey: AirfoilKey) => {
+  const generateComparisonData = useCallback((currentAirfoil: Airfoil, k_factor: number, activeAirfoilKey: AirfoilKey, mode: ChartMode) => {
     const data = [];
+    const MAX_AIRFOILS = 5;
+
+    // Get airfoils to plot based on mode
+    let airfoilKeysToPlot: string[] = [];
+    
+    if (mode === 'compareAll') {
+      // Cap at 5 airfoils for "Compare All"
+      const allKeys = Object.keys(AIRFOIL_DATA);
+      // Put active airfoil first, then others
+      const sortedKeys = [
+        activeAirfoilKey === 'custom' ? 'custom' : activeAirfoilKey,
+        ...allKeys.filter(k => k !== activeAirfoilKey)
+      ];
+      airfoilKeysToPlot = sortedKeys.slice(0, MAX_AIRFOILS);
+    } else {
+      // Compare mode: show active + comparison
+      airfoilKeysToPlot = activeAirfoilKey === 'custom' 
+        ? ['custom', comparisonAirfoil] 
+        : [activeAirfoilKey, comparisonAirfoil];
+    }
 
     for (let alpha = -5; alpha <= 20; alpha += 1) {
       const point: any = { alpha };
 
-      // Calculate for all database airfoils
-      Object.keys(AIRFOIL_DATA).forEach((key) => {
-        const airfoil = AIRFOIL_DATA[key];
-        if (alpha <= airfoil.alpha_stall) {
-          const CL = airfoil.CL_0 + airfoil.CL_alpha * alpha;
-          const CD = airfoil.CD_0 + k_factor * Math.pow(CL, 2);
-          point[key] = CD !== 0 ? CL / CD : 0;
-        } else {
-          point[key] = null;
+      // Calculate only for selected airfoils
+      airfoilKeysToPlot.forEach((key) => {
+        if (key === 'custom' && activeAirfoilKey === 'custom') {
+          if (alpha <= currentAirfoil.alpha_stall) {
+            const CL = currentAirfoil.CL_0 + currentAirfoil.CL_alpha * alpha;
+            const CD = currentAirfoil.CD_0 + k_factor * Math.pow(CL, 2);
+            point.custom = CD !== 0 ? CL / CD : 0;
+          } else {
+            point.custom = null;
+          }
+        } else if (key in AIRFOIL_DATA) {
+          const airfoil = AIRFOIL_DATA[key];
+          if (alpha <= airfoil.alpha_stall) {
+            const CL = airfoil.CL_0 + airfoil.CL_alpha * alpha;
+            const CD = airfoil.CD_0 + k_factor * Math.pow(CL, 2);
+            point[key] = CD !== 0 ? CL / CD : 0;
+          } else {
+            point[key] = null;
+          }
         }
       });
-      
-      // Calculate for current custom airfoil IF it's active
-      if (activeAirfoilKey === "custom") {
-        if (alpha <= currentAirfoil.alpha_stall) {
-          const CL = currentAirfoil.CL_0 + currentAirfoil.CL_alpha * alpha;
-          const CD = currentAirfoil.CD_0 + k_factor * Math.pow(CL, 2);
-          point.custom = CD !== 0 ? CL / CD : 0;
-        } else {
-          point.custom = null;
-        }
-      }
       
       data.push(point);
     }
     return data;
-  }, []);
+  }, [comparisonAirfoil]);
   
   // FIXED: Use useMemo to prevent unnecessary recalculations
   const comparisonData = useMemo(() => {
@@ -1029,43 +1074,39 @@ const LiftDragAnalyzer = () => {
               />
               <Legend />
               
-              {/* Dynamic Line Rendering */}
-              {chartMode === 'compareAll' ? (
-                <>
-                  {/* Show all database airfoils */}
-                  <Line connectNulls type="monotone" dataKey="NACA0012" name="NACA 0012" stroke="#22d3ee" strokeWidth={2} dot={false} />
-                  <Line connectNulls type="monotone" dataKey="NACA2412" name="NACA 2412" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                  <Line connectNulls type="monotone" dataKey="NACA4415" name="NACA 4415" stroke="#10b981" strokeWidth={2} dot={false} />
-                  <Line connectNulls type="monotone" dataKey="ClarkY" name="Clark Y" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                  <Line connectNulls type="monotone" dataKey="Supercritical" name="Supercritical" stroke="#ef4444" strokeWidth={2} dot={false} />
-                  {/* Also show custom if it's the selected one */}
-                  {inputs.airfoil === 'custom' && (
-                     <Line connectNulls type="monotone" dataKey="custom" name={result?.airfoilName || "Custom"} stroke="#e879f9" strokeWidth={3} strokeDasharray="5 5" dot={false} />
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* Show 1-v-1 comparison */}
-                  <Line 
-                    connectNulls 
-                    type="monotone" 
-                    dataKey={inputs.airfoil === 'custom' ? 'custom' : inputs.airfoil} 
-                    name={result?.airfoilName || "Current"} 
-                    stroke="#22d3ee" 
-                    strokeWidth={3} 
-                    dot={false} 
+              {/* Dynamic Line Rendering - unified with polar charts */}
+              {comparisonPolars.map((polar, index) => {
+                const colors = ['#22d3ee', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+                const color = colors[index % colors.length];
+                const isActive = polar.id === inputs.airfoil;
+
+                return (
+                  <Line
+                    key={polar.id}
+                    connectNulls
+                    type="monotone"
+                    dataKey={polar.id}
+                    name={polar.name}
+                    stroke={color}
+                    strokeWidth={isActive ? 3 : 2}
+                    strokeDasharray={isActive ? undefined : "5 5"}
+                    dot={false}
                   />
-                  <Line 
-                    connectNulls 
-                    type="monotone" 
-                    dataKey={comparisonAirfoil} 
-                    name={AIRFOIL_DATA[comparisonAirfoil]?.name || ""} 
-                    stroke="#f59e0b" 
-                    strokeWidth={2} 
-                    strokeDasharray="5 5"
-                    dot={false} 
-                  />
-                </>
+                );
+              })}
+              
+              {/* Show custom if it's the selected one */}
+              {inputs.airfoil === 'custom' && (
+                <Line
+                  connectNulls
+                  type="monotone"
+                  dataKey="custom"
+                  name={result?.airfoilName || "Custom"}
+                  stroke="#e879f9"
+                  strokeWidth={3}
+                  strokeDasharray="5 5"
+                  dot={false}
+                />
               )}
             </LineChart>
           </ResponsiveContainer>
@@ -1073,32 +1114,28 @@ const LiftDragAnalyzer = () => {
       )}
 
       {/* Professional Polar Charts Section */}
-      <AeroCard
-        title="Professional Polar Charts (CL, CD, CM vs α)"
-        description="Multi-airfoil comparison with engineering-grade visualization"
-        icon={BarChartHorizontal}
-      >
-        <MultiAirfoilSelector
-          selectedAirfoils={selectedAirfoilsForComparison}
-          onSelectionChange={setSelectedAirfoilsForComparison}
-          maxSelections={5}
-        />
-
-        {comparisonPolars.length > 0 && (
-          <div className="mt-6">
+      {comparisonPolars.length > 0 && (
+        <div>
+          {showComparisonLimitWarning && (
+            <Alert className="mb-4 bg-yellow-500/10 border-yellow-500/50">
+              <AlertDescription className="text-yellow-300">
+                Limited to 5 airfoils for comparison. Showing: {comparisonPolars.map(p => p.name).join(', ')}
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          <AeroCard
+            title="Professional Polar Charts (CL, CD, CM vs α)"
+            description={`Showing ${comparisonPolars.length} airfoil${comparisonPolars.length > 1 ? 's' : ''} at Re = 1,000,000`}
+            icon={BarChartHorizontal}
+          >
             <PolarChartsPanel
               polars={comparisonPolars}
               reynoldsNumber={1000000}
             />
-          </div>
-        )}
-
-        {selectedAirfoilsForComparison.length > 0 && comparisonPolars.length === 0 && (
-          <div className="mt-6 text-center py-8">
-            <p className="text-yellow-400">Loading polar data...</p>
-          </div>
-        )}
-      </AeroCard>
+          </AeroCard>
+        </div>
+      )}
 
     </ToolWrapper>
   );
