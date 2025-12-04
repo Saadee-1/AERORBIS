@@ -132,6 +132,16 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["Vintage aircraft", "Sport aircraft", "Homebuilt aircraft"],
     behaviorSummary: "Time-tested airfoil with predictable characteristics. Good balance of lift, drag, and structural properties for general aviation use."
   },
+  clarkyh: {
+    name: "Clark YH",
+    family: "General Aviation",
+    camber: 4.2,
+    thickness: 11.7,
+    designPurpose: "Higher-lift variant of Clark Y for STOL and trainer applications",
+    recommendedReRange: "100k - 3M",
+    applications: ["STOL aircraft", "Training aircraft", "Heavy-lift RC models", "Bush planes"],
+    behaviorSummary: "More cambered variant of Clark Y with higher low-speed lift, suitable for STOL and heavy-lift RC aircraft. Provides enhanced takeoff and landing performance while maintaining the Clark Y's predictable handling."
+  },
   s1223: {
     name: "Selig S1223",
     family: "Selig",

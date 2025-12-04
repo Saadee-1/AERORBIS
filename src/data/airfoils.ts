@@ -39,6 +39,7 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
     label: "General Aviation",
     airfoils: [
       { id: "clarky", name: "Clark Y" },
+      { id: "clarkyh", name: "Clark YH (STOL)" },
       { id: "eppler320", name: "Eppler 320" },
       { id: "fx63137", name: "Wortmann FX 63-137" },
       { id: "sd7037", name: "SD7037 (Glider/UAV)" },
@@ -188,6 +189,14 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CL_0: 0.30,
     CD_0: 0.0065,
     alpha_stall: 15.5,
+  },
+  clarkyh: {
+    name: "Clark YH (STOL)",
+    description: "Higher-lift variant of Clark Y for STOL and heavy-lift RC aircraft",
+    CL_alpha: 0.107,
+    CL_0: 0.38,
+    CD_0: 0.0072,
+    alpha_stall: 14.5,
   },
   s1223: {
     name: "Selig S1223 (Low Re UAV)",
