@@ -62,6 +62,16 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["Thick wing sections", "Structural applications", "Low-speed aircraft"],
     behaviorSummary: "Thicker symmetric profile providing good structural properties while maintaining low drag characteristics."
   },
+  naca0018: {
+    name: "NACA 0018",
+    family: "NACA",
+    camber: 0,
+    thickness: 18,
+    designPurpose: "Thick symmetric airfoil for aerobatic and 3D aircraft",
+    recommendedReRange: "100k - 3M",
+    applications: ["Aerobatic aircraft", "3D aircraft", "Large control surface wings", "Pattern aircraft"],
+    behaviorSummary: "Thick symmetric NACA airfoil suitable for aerobatic and 3D aircraft with large control surfaces and strong wing structure. The extra thickness provides excellent structural strength for high-G maneuvers and aggressive control deflections."
+  },
   naca2412: {
     name: "NACA 2412",
     family: "NACA",

@@ -20,6 +20,7 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
       { id: "naca0009", name: "NACA 0009" },
       { id: "naca0012", name: "NACA 0012 (Symmetric)" },
       { id: "naca0015", name: "NACA 0015" },
+      { id: "naca0018", name: "NACA 0018 (Aerobatic)" },
       { id: "naca2412", name: "NACA 2412 (Cambered)" },
       { id: "naca2415", name: "NACA 2415 (Trainer)" },
       { id: "naca4412", name: "NACA 4412 (High Lift)" },
@@ -118,6 +119,14 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CL_0: 0,
     CD_0: 0.0062,
     alpha_stall: 15.5,
+  },
+  naca0018: {
+    name: "NACA 0018 (Aerobatic)",
+    description: "Thick symmetric airfoil for aerobatic and 3D aircraft with strong control authority",
+    CL_alpha: 0.107,
+    CL_0: 0,
+    CD_0: 0.0068,
+    alpha_stall: 15,
   },
   naca2412: {
     name: "NACA 2412 (Cambered)",
