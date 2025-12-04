@@ -158,6 +158,16 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["Sailplanes", "Gliders", "High-performance aircraft"],
     behaviorSummary: "Advanced airfoil design with exceptional lift-to-drag characteristics. Ideal for long-range soaring and high-performance gliding."
   },
+  sd7037: {
+    name: "SD7037",
+    family: "SD-series",
+    camber: 3.2,
+    thickness: 9.7,
+    designPurpose: "Glider and electric sailplane airfoil for efficient small UAVs",
+    recommendedReRange: "100k - 3M",
+    applications: ["RC gliders", "Electric sailplanes", "Small UAVs", "Efficient cruisers"],
+    behaviorSummary: "Glider and electric sailplane airfoil commonly used in RC gliders and efficient small UAVs, offering good L/D and smooth stall. Popular choice for electric sailplanes due to excellent efficiency across a wide speed range."
+  },
   du91w2250: {
     name: "DU 91-W2-250",
     family: "Wind Turbine",

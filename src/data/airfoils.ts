@@ -40,6 +40,7 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
       { id: "clarky", name: "Clark Y" },
       { id: "eppler320", name: "Eppler 320" },
       { id: "fx63137", name: "Wortmann FX 63-137" },
+      { id: "sd7037", name: "SD7037 (Glider/UAV)" },
     ],
   },
   {
@@ -210,6 +211,14 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CL_0: 0.28,
     CD_0: 0.0058,
     alpha_stall: 17,
+  },
+  sd7037: {
+    name: "SD7037 (Glider/UAV)",
+    description: "Glider and electric sailplane airfoil, also suitable for efficient small UAVs",
+    CL_alpha: 0.109,
+    CL_0: 0.32,
+    CD_0: 0.0062,
+    alpha_stall: 15,
   },
   du91w2250: {
     name: "DU 91-W2-250 (Wind Turbine)",
