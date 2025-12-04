@@ -21,6 +21,7 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
       { id: "naca0012", name: "NACA 0012 (Symmetric)" },
       { id: "naca0015", name: "NACA 0015" },
       { id: "naca2412", name: "NACA 2412 (Cambered)" },
+      { id: "naca2415", name: "NACA 2415 (Trainer)" },
       { id: "naca4412", name: "NACA 4412 (High Lift)" },
       { id: "naca4415", name: "NACA 4415" },
       { id: "naca23012", name: "NACA 23012" },
@@ -123,6 +124,14 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CL_0: 0.25,
     CD_0: 0.007,
     alpha_stall: 16,
+  },
+  naca2415: {
+    name: "NACA 2415 (Trainer)",
+    description: "Thicker variant of NACA 2412 for trainers and heavy-lift applications",
+    CL_alpha: 0.109,
+    CL_0: 0.27,
+    CD_0: 0.0078,
+    alpha_stall: 15.5,
   },
   naca4412: {
     name: "NACA 4412 (High Lift)",

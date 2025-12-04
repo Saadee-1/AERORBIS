@@ -72,6 +72,16 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["General aviation aircraft", "Training aircraft", "Light sport aircraft"],
     behaviorSummary: "Classic cambered airfoil with good lift-to-drag ratio. Excellent for general aviation applications with balanced performance."
   },
+  naca2415: {
+    name: "NACA 2415",
+    family: "NACA",
+    camber: 2,
+    thickness: 15,
+    designPurpose: "Thicker variant of NACA 2412 for trainers and heavy-lift wings",
+    recommendedReRange: "200k - 5M",
+    applications: ["Training aircraft", "Heavy-lift aircraft", "Bush planes", "STOL aircraft"],
+    behaviorSummary: "Thicker variant of NACA 2412 with higher maximum lift and softer stall, suitable for trainers and heavy-lift wings. The increased thickness provides better structural properties and more docile stall characteristics."
+  },
   naca4412: {
     name: "NACA 4412",
     family: "NACA",
