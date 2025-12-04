@@ -166,6 +166,16 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["Commercial airliners", "Business jets", "High-speed transport"],
     behaviorSummary: "Revolutionary design that delays the onset of transonic drag rise. Allows higher cruise speeds with improved fuel efficiency. Critical for modern commercial aviation."
   },
+  naca64012: {
+    name: "NACA 64-012",
+    family: "NACA",
+    camber: 0,
+    thickness: 12,
+    designPurpose: "Symmetric laminar flow airfoil for high-speed racing",
+    recommendedReRange: "100k - 3M",
+    applications: ["Racing aircraft", "High-speed RC models", "Fast UAVs", "Speed competitions"],
+    behaviorSummary: "Thin laminar NACA 6-series airfoil for high-speed RC racers. Symmetric profile with extended laminar flow region provides minimal drag at racing speeds while maintaining good structural properties."
+  },
   naca65a012: {
     name: "NACA 65A012",
     family: "NACA",

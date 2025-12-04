@@ -30,6 +30,7 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
     label: "NACA 5 & 6 series",
     airfoils: [
       { id: "naca63215", name: "NACA 63-215 (Laminar)" },
+      { id: "naca64012", name: "NACA 64-012 (Racer)" },
       { id: "naca65a012", name: "NACA 65A012 (Racer)" },
     ],
   },
@@ -151,6 +152,14 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CL_alpha: 0.104,
     CL_0: 0.20,
     CD_0: 0.005,
+    alpha_stall: 16,
+  },
+  naca64012: {
+    name: "NACA 64-012 (Racer)",
+    description: "Symmetric laminar flow airfoil for high-speed racing",
+    CL_alpha: 0.105,
+    CL_0: 0.0,
+    CD_0: 0.0045,
     alpha_stall: 16,
   },
   naca65a012: {
