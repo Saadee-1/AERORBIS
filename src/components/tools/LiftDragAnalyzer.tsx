@@ -26,6 +26,8 @@ import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { LdPdfButton } from "@/components/tools/LdPdfButton";
+import { PolarChartsPanel } from "@/components/tools/PolarChartsPanel";
+import { MultiAirfoilSelector } from "@/components/tools/MultiAirfoilSelector";
 import { buildAeroversePayload } from "@/ai/buildPayload";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
 import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
@@ -40,6 +42,7 @@ import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
+import { loadPolarForComparison } from "@/lib/polarChartUtils";
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
@@ -172,6 +175,10 @@ const LiftDragAnalyzer = () => {
   const [polarData, setPolarData] = useState<PolarData | null>(null);
   const [polarError, setPolarError] = useState<string>("");
   const [computedLD, setComputedLD] = useState<ComputedLD[]>([]);
+
+  // Multi-airfoil comparison state
+  const [selectedAirfoilsForComparison, setSelectedAirfoilsForComparison] = useState<string[]>([]);
+  const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: PolarData }>>([]);
 
   const getLatestStoredRequestId = useCallback((): string | null => {
     try {
@@ -307,6 +314,30 @@ const LiftDragAnalyzer = () => {
 
     fetchPolarData();
   }, [inputs.airfoil]);
+
+  // Load polars for multi-airfoil comparison
+  useEffect(() => {
+    if (selectedAirfoilsForComparison.length === 0) {
+      setComparisonPolars([]);
+      return;
+    }
+
+    const loadComparisonPolars = async () => {
+      const loaded: Array<{ id: string; name: string; data: PolarData }> = [];
+
+      for (const airfoilId of selectedAirfoilsForComparison) {
+        const polar = await loadPolarForComparison(airfoilId, 1000000); // Fixed at Re = 1M
+        if (polar) {
+          const airfoilName = AIRFOIL_DATA[airfoilId]?.name || airfoilId;
+          loaded.push({ id: airfoilId, name: airfoilName, data: polar });
+        }
+      }
+
+      setComparisonPolars(loaded);
+    };
+
+    loadComparisonPolars();
+  }, [selectedAirfoilsForComparison]);
 
   const getUnit = (param: string) => {
     if (unitSystem === "SI") {
@@ -1040,6 +1071,34 @@ const LiftDragAnalyzer = () => {
           </ResponsiveContainer>
         </ChartCard>
       )}
+
+      {/* Professional Polar Charts Section */}
+      <AeroCard
+        title="Professional Polar Charts (CL, CD, CM vs α)"
+        description="Multi-airfoil comparison with engineering-grade visualization"
+        icon={BarChartHorizontal}
+      >
+        <MultiAirfoilSelector
+          selectedAirfoils={selectedAirfoilsForComparison}
+          onSelectionChange={setSelectedAirfoilsForComparison}
+          maxSelections={5}
+        />
+
+        {comparisonPolars.length > 0 && (
+          <div className="mt-6">
+            <PolarChartsPanel
+              polars={comparisonPolars}
+              reynoldsNumber={1000000}
+            />
+          </div>
+        )}
+
+        {selectedAirfoilsForComparison.length > 0 && comparisonPolars.length === 0 && (
+          <div className="mt-6 text-center py-8">
+            <p className="text-yellow-400">Loading polar data...</p>
+          </div>
+        )}
+      </AeroCard>
 
     </ToolWrapper>
   );
