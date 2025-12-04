@@ -46,6 +46,7 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
     label: "UAV Low Reynolds",
     airfoils: [
       { id: "s1223", name: "Selig S1223 (Low Re UAV)" },
+      { id: "mh114", name: "MH 114 (Endurance)" },
     ],
   },
   {
@@ -185,6 +186,14 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CL_0: 0.40,
     CD_0: 0.0085,
     alpha_stall: 13,
+  },
+  mh114: {
+    name: "MH 114 (Endurance)",
+    description: "Long-endurance UAV airfoil with excellent L/D for loitering missions",
+    CL_alpha: 0.110,
+    CL_0: 0.35,
+    CD_0: 0.0070,
+    alpha_stall: 14,
   },
   eppler320: {
     name: "Eppler 320",

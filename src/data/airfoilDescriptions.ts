@@ -132,6 +132,16 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["UAVs", "Model aircraft", "Small drones", "Low-speed applications"],
     behaviorSummary: "Specifically designed for low Reynolds number flows. Excellent performance at small scales with high lift-to-drag ratios."
   },
+  mh114: {
+    name: "MH 114",
+    family: "MH-series",
+    camber: 3.8,
+    thickness: 11.4,
+    designPurpose: "Long-endurance UAV airfoil for loitering and surveillance missions",
+    recommendedReRange: "100k - 3M",
+    applications: ["Endurance UAVs", "Long-range surveillance", "Loitering munitions", "Solar-powered aircraft"],
+    behaviorSummary: "Endurance UAV airfoil with good lift-to-drag at medium lift coefficients, suitable for long-range and loitering missions. Optimized for efficient cruise and extended flight times."
+  },
   eppler320: {
     name: "Eppler 320",
     family: "Eppler",
