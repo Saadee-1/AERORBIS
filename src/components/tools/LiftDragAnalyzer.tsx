@@ -11,7 +11,7 @@
  * - Added physics formula comments and test cases
  */
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -41,14 +41,15 @@ import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
-import { loadPolarForComparison } from "@/lib/polarChartUtils";
+import { loadPolarForComparison, exportChartAsPNG, exportChartAsSVG } from "@/lib/polarChartUtils";
+import { Download } from "lucide-react";
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type AirfoilKey = keyof typeof AIRFOIL_DATA | "custom";
-type ChartMode = "compareOne" | "compareAll";
+// Removed ChartMode - now always in comparison mode
 
 // Interface for the airfoil database
 interface Airfoil {
@@ -167,7 +168,6 @@ const LiftDragAnalyzer = () => {
   });
   
   const [comparisonAirfoil, setComparisonAirfoil] = useState<keyof typeof AIRFOIL_DATA>("naca0012");
-  const [chartMode, setChartMode] = useState<ChartMode>('compareOne');
 
   const [result, setResult] = useState<LiftDragResult | null>(null);
   const [error, setError] = useState<string>("");
@@ -176,8 +176,32 @@ const LiftDragAnalyzer = () => {
   const [computedLD, setComputedLD] = useState<ComputedLD[]>([]);
 
   // Unified graph selection state - single source of truth for all charts
-  const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: PolarData }>>([]);
+  const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: any }>>([]);
   const [showComparisonLimitWarning, setShowComparisonLimitWarning] = useState(false);
+  
+  // Ref for L/D chart export
+  const ldChartRef = useRef<HTMLDivElement>(null);
+
+  // Export handlers for L/D chart
+  const handleExportPNG = async () => {
+    if (!ldChartRef.current) return;
+    try {
+      const fileName = `ld-chart-re${result?.aspectRatio || 'N/A'}-${Date.now()}.png`;
+      await exportChartAsPNG(ldChartRef.current, fileName);
+    } catch (error) {
+      console.error('PNG export failed:', error);
+    }
+  };
+
+  const handleExportSVG = async () => {
+    if (!ldChartRef.current) return;
+    try {
+      const fileName = `ld-chart-re${result?.aspectRatio || 'N/A'}-${Date.now()}.svg`;
+      await exportChartAsSVG(ldChartRef.current, fileName);
+    } catch (error) {
+      console.error('SVG export failed:', error);
+    }
+  };
 
   const getLatestStoredRequestId = useCallback((): string | null => {
     try {
@@ -317,44 +341,25 @@ const LiftDragAnalyzer = () => {
   // Load polars for comparison - unified with L/D chart selection
   useEffect(() => {
     const loadComparisonPolars = async () => {
-      const MAX_AIRFOILS = 5;
+      // Always compare active + comparison airfoil (1-v-1)
       let airfoilIdsToLoad: string[] = [];
-
-      // Determine which airfoils to load based on chartMode
-      if (chartMode === 'compareAll') {
-        // Cap at 5 airfoils for "Compare All"
-        const allKeys = Object.keys(AIRFOIL_DATA);
-        const currentKey = inputs.airfoil === 'custom' ? null : inputs.airfoil;
-        
-        // Put current airfoil first, then others
-        if (currentKey) {
-          airfoilIdsToLoad = [currentKey, ...allKeys.filter(k => k !== currentKey)].slice(0, MAX_AIRFOILS);
-        } else {
-          airfoilIdsToLoad = allKeys.slice(0, MAX_AIRFOILS);
-        }
-
-        // Show warning if we had to cap
-        if (allKeys.length > MAX_AIRFOILS) {
-          setShowComparisonLimitWarning(true);
-        } else {
-          setShowComparisonLimitWarning(false);
-        }
-      } else if (chartMode === 'compareOne') {
-        // Compare mode: show active + comparison airfoil
-        if (inputs.airfoil !== 'custom') {
-          airfoilIdsToLoad = [inputs.airfoil, comparisonAirfoil].filter((v, i, a) => a.indexOf(v) === i);
-        } else {
-          airfoilIdsToLoad = [comparisonAirfoil];
-        }
-        setShowComparisonLimitWarning(false);
+      
+      if (inputs.airfoil !== 'custom') {
+        airfoilIdsToLoad = [inputs.airfoil, comparisonAirfoil].filter((v, i, a) => a.indexOf(v) === i);
+      } else {
+        airfoilIdsToLoad = [comparisonAirfoil];
       }
 
       // Load polar data for each airfoil
-      const loaded: Array<{ id: string; name: string; data: PolarData }> = [];
+      const loaded: Array<{ id: string; name: string; data: any }> = [];
       for (const airfoilId of airfoilIdsToLoad) {
         const polar = await loadPolarForComparison(airfoilId, 1000000); // Fixed at Re = 1M
         if (polar) {
           const airfoilName = AIRFOIL_DATA[airfoilId]?.name || airfoilId;
+          // Ensure mach field for type compatibility
+          if (!polar.mach) {
+            polar.mach = 0.0;
+          }
           loaded.push({ id: airfoilId, name: airfoilName, data: polar });
         }
       }
@@ -363,7 +368,7 @@ const LiftDragAnalyzer = () => {
     };
 
     loadComparisonPolars();
-  }, [chartMode, inputs.airfoil, comparisonAirfoil]);
+  }, [inputs.airfoil, comparisonAirfoil]);
 
   const getUnit = (param: string) => {
     if (unitSystem === "SI") {
@@ -623,28 +628,13 @@ const LiftDragAnalyzer = () => {
   };
   
   // FIXED: Use useCallback to create stable function reference
-  const generateComparisonData = useCallback((currentAirfoil: Airfoil, k_factor: number, activeAirfoilKey: AirfoilKey, mode: ChartMode) => {
+  const generateComparisonData = useCallback((currentAirfoil: Airfoil, k_factor: number, activeAirfoilKey: AirfoilKey) => {
     const data = [];
-    const MAX_AIRFOILS = 5;
 
-    // Get airfoils to plot based on mode
-    let airfoilKeysToPlot: string[] = [];
-    
-    if (mode === 'compareAll') {
-      // Cap at 5 airfoils for "Compare All"
-      const allKeys = Object.keys(AIRFOIL_DATA);
-      // Put active airfoil first, then others
-      const sortedKeys = [
-        activeAirfoilKey === 'custom' ? 'custom' : activeAirfoilKey,
-        ...allKeys.filter(k => k !== activeAirfoilKey)
-      ];
-      airfoilKeysToPlot = sortedKeys.slice(0, MAX_AIRFOILS);
-    } else {
-      // Compare mode: show active + comparison
-      airfoilKeysToPlot = activeAirfoilKey === 'custom' 
-        ? ['custom', comparisonAirfoil] 
-        : [activeAirfoilKey, comparisonAirfoil];
-    }
+    // Always compare active airfoil with comparison airfoil (1-v-1)
+    const airfoilKeysToPlot = activeAirfoilKey === 'custom' 
+      ? ['custom', comparisonAirfoil] 
+      : [activeAirfoilKey, comparisonAirfoil];
 
     for (let alpha = -5; alpha <= 20; alpha += 1) {
       const point: any = { alpha };
@@ -681,7 +671,7 @@ const LiftDragAnalyzer = () => {
     if (!result) return [];
     const activeAirfoil = getActiveAirfoil();
     return generateComparisonData(activeAirfoil, result.k_factor, inputs.airfoil);
-  }, [result, inputs.airfoil, customAirfoil, comparisonAirfoil, chartMode, generateComparisonData]);
+  }, [result, inputs.airfoil, customAirfoil, comparisonAirfoil, generateComparisonData]);
   
   const handleCustomAirfoilChange = (field: keyof CustomAirfoilInputs, value: string) => {
     setCustomAirfoil(prev => ({ ...prev, [field]: value }));
@@ -1009,52 +999,57 @@ const LiftDragAnalyzer = () => {
           title="Performance Comparison (L/D Ratio)"
           height={350}
           headerActions={
-            <div className="flex items-center gap-2">
-              <AeroButton
-                type="button"
-                onClick={() => setChartMode(prev => prev === 'compareOne' ? 'compareAll' : 'compareOne')}
-                variant="outline"
-                icon={BarChartHorizontal}
-              >
-                {chartMode === 'compareOne' ? 'Compare All' : 'Compare 1-v-1'}
-              </AeroButton>
-                  <AnimatePresence>
-                    {chartMode === 'compareOne' && (
-                      <motion.div
-                        initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: "auto", opacity: 1 }}
-                        exit={{ width: 0, opacity: 0 }}
-                        className="flex items-center gap-2 overflow-hidden"
-                      >
-                        <Label htmlFor="compareAirfoil" className="text-cyan-300">Compare with:</Label>
-                        <Select value={comparisonAirfoil} onValueChange={(v) => setComparisonAirfoil(v as keyof typeof AIRFOIL_DATA)}>
-                          <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-400/30 text-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[400px]">
-                            {AIRFOIL_GROUPS.filter(group => !group.airfoils.some(af => af.custom)).map((group) => (
-                              <SelectGroup key={group.label}>
-                                <SelectLabel className="text-cyan-400 font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
-                                  {group.label}
-                                </SelectLabel>
-                                {group.airfoils.filter(af => af.id !== inputs.airfoil).map((airfoil) => (
-                                  <SelectItem key={airfoil.id} value={airfoil.id}>
-                                    {airfoil.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="compareAirfoil" className="text-cyan-300">Compare with:</Label>
+                <Select value={comparisonAirfoil} onValueChange={(v) => setComparisonAirfoil(v as keyof typeof AIRFOIL_DATA)}>
+                  <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-400/30 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[400px]">
+                    {AIRFOIL_GROUPS.filter(group => !group.airfoils.some(af => af.custom)).map((group) => (
+                      <SelectGroup key={group.label}>
+                        <SelectLabel className="text-cyan-400 font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
+                          {group.label}
+                        </SelectLabel>
+                        {group.airfoils.filter(af => af.id !== inputs.airfoil).map((airfoil) => (
+                          <SelectItem key={airfoil.id} value={airfoil.id}>
+                            {airfoil.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center gap-1 border-l border-cyan-400/30 pl-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPNG}
+                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-600/20 text-white"
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  PNG
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportSVG}
+                  className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-600/20 text-white"
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  SVG
+                </Button>
+              </div>
             </div>
           }
         >
             <p className="text-sm text-slate-400 -mt-2 mb-4">
-              Comparing all airfoils using your wing's calculated Aspect Ratio of {safeToFixed(result?.aspectRatio, 2)}
+              Comparing {result?.airfoilName || 'selected'} with {AIRFOIL_DATA[comparisonAirfoil]?.name || comparisonAirfoil} using your wing's calculated Aspect Ratio of {safeToFixed(result?.aspectRatio, 2)}
             </p>
+          <div ref={ldChartRef}>
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={comparisonData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -1110,6 +1105,7 @@ const LiftDragAnalyzer = () => {
               )}
             </LineChart>
           </ResponsiveContainer>
+          </div>
         </ChartCard>
       )}
 
