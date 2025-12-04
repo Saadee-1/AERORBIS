@@ -997,10 +997,15 @@ const LiftDragAnalyzer = () => {
 
       {/* Comparison Chart */}
       {comparisonData.length > 0 && (
-        <ChartCard 
-          title="Performance Comparison (L/D Ratio)"
-          height={350}
-          headerActions={
+        <div className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-cyan-400/30 p-6 shadow-lg backdrop-blur-sm">
+          {/* Graph Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-cyan-300">Performance Comparison (L/D Ratio)</h3>
+              <p className="text-sm text-slate-400 mt-1">
+                Using your wing's calculated Aspect Ratio of {safeToFixed(result?.aspectRatio, 2)}
+              </p>
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -1021,11 +1026,11 @@ const LiftDragAnalyzer = () => {
                 SVG
               </Button>
             </div>
-          }
-        >
-          {/* Comparing with chips UI */}
-          <div className="mb-4 space-y-3">
-            <div className="flex items-center justify-between">
+          </div>
+
+          {/* Graph Toolbar - Comparison Controls */}
+          <div className="flex flex-col gap-3 p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <Label className="text-cyan-300 text-sm font-medium">
                 Comparing with ({comparedAirfoilIds.length} / {MAX_COMPARED_AIRFOILS})
               </Label>
@@ -1063,7 +1068,7 @@ const LiftDragAnalyzer = () => {
             
             {/* Chips display */}
             {comparedAirfoilIds.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                 {comparedAirfoilIds.map((airfoilId) => {
                   const airfoilData = AIRFOIL_DATA[airfoilId];
                   return (
@@ -1075,6 +1080,7 @@ const LiftDragAnalyzer = () => {
                       <button
                         onClick={() => setComparedAirfoilIds(comparedAirfoilIds.filter(id => id !== airfoilId))}
                         className="ml-1 hover:bg-cyan-500/30 rounded p-0.5 transition-colors"
+                        aria-label={`Remove ${airfoilData?.name || airfoilId}`}
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1091,10 +1097,8 @@ const LiftDragAnalyzer = () => {
             )}
           </div>
 
-          <p className="text-sm text-slate-400 mb-4">
-            Using your wing's calculated Aspect Ratio of {safeToFixed(result?.aspectRatio, 2)}
-          </p>
-          <div ref={ldChartRef}>
+          {/* Graph Body - Chart Area */}
+          <div ref={ldChartRef} className="relative min-h-[400px] mt-2">
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={comparisonData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -1151,7 +1155,7 @@ const LiftDragAnalyzer = () => {
             </LineChart>
           </ResponsiveContainer>
           </div>
-        </ChartCard>
+        </div>
       )}
 
       {/* Professional Polar Charts Section */}
