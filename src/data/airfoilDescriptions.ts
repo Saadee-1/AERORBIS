@@ -112,6 +112,16 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["General aviation", "Light aircraft", "Training aircraft"],
     behaviorSummary: "Moderate camber provides good lift-to-drag performance across a wide range of angles of attack."
   },
+  naca23015: {
+    name: "NACA 23015",
+    family: "NACA",
+    camber: 2,
+    thickness: 15,
+    designPurpose: "Thicker transport-style NACA 23-series for heavy-lift applications",
+    recommendedReRange: "200k - 5M",
+    applications: ["Transport aircraft", "Heavy-lift aircraft", "Flap-equipped wings", "Cargo aircraft"],
+    behaviorSummary: "Thicker transport-style NACA 23-series airfoil with higher lift and softer stall than NACA 23012, suitable for flap-equipped wings and heavy-lift missions. The increased thickness provides better structural properties for larger aircraft."
+  },
   naca63215: {
     name: "NACA 63-215",
     family: "NACA",
