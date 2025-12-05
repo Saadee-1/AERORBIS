@@ -4,6 +4,7 @@
 
 export interface Stage {
   id: string;
+  name?: string; // Human-readable name
   dryMass: number; // kg
   fuelMass: number; // kg
   engines: Array<{

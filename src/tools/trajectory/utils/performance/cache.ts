@@ -54,8 +54,8 @@ class LRUCache<K, V> {
 }
 
 // Global caches
-export const atmosphereCache = new LRUCache<number, number>(500, 60000);
-export const gravityCache = new LRUCache<number, number>(500, 60000);
+export const atmosphereCache = new LRUCache<string, number>(500, 60000);
+export const gravityCache = new LRUCache<string, number>(500, 60000);
 export const dragCache = new LRUCache<string, number>(1000, 60000);
 
 /**

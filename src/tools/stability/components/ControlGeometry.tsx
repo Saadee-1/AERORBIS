@@ -28,7 +28,7 @@ export function ControlGeometryPanel({
   onGeometryChange,
 }: ControlGeometryProps) {
   return (
-    <AeroCard title="Control Surface Geometry" icon={<Settings2 className="h-5 w-5" />}>
+    <AeroCard title="Control Surface Geometry" icon={Settings2}>
       <Tabs defaultValue="elevator" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="elevator">Elevator</TabsTrigger>
@@ -37,7 +37,7 @@ export function ControlGeometryPanel({
         </TabsList>
 
         <TabsContent value="elevator" className="space-y-4">
-          <AeroFormField label="Span Fraction" description="Elevator span / horizontal tail span">
+          <AeroFormField label="Span Fraction" helperText="Elevator span / horizontal tail span">
             <Input
               type="number"
               step="0.01"
@@ -53,7 +53,7 @@ export function ControlGeometryPanel({
             />
           </AeroFormField>
 
-          <AeroFormField label="Chord Fraction" description="Elevator chord / horizontal tail chord">
+          <AeroFormField label="Chord Fraction" helperText="Elevator chord / horizontal tail chord">
             <Input
               type="number"
               step="0.01"
@@ -69,23 +69,23 @@ export function ControlGeometryPanel({
             />
           </AeroFormField>
 
-          <AeroFormField label="Hinge Line Position" description="Hinge position as fraction of chord">
+          <AeroFormField label="Hinge Line Position" helperText="Hinge position as fraction of chord">
             <Input
               type="number"
               step="0.01"
               min="0"
               max="1"
-              value={elevatorGeometry?.hinge_line || 0.7}
+              value={elevatorGeometry?.hinge_line_position || 0.7}
               onChange={(e) =>
                 onGeometryChange('elevator', {
                   ...elevatorGeometry,
-                  hinge_line: parseFloat(e.target.value) || 0.7,
+                  hinge_line_position: parseFloat(e.target.value) || 0.7,
                 })
               }
             />
           </AeroFormField>
 
-          <AeroFormField label="Aerodynamic Balance" description="Balance type">
+          <AeroFormField label="Aerodynamic Balance" helperText="Balance type">
             <Select
               value={elevatorGeometry?.balance_type || 'unbalanced'}
               onValueChange={(value) =>
@@ -108,7 +108,7 @@ export function ControlGeometryPanel({
         </TabsContent>
 
         <TabsContent value="aileron" className="space-y-4">
-          <AeroFormField label="Span Fraction" description="Aileron span / wing span">
+          <AeroFormField label="Span Fraction" helperText="Aileron span / wing span">
             <Input
               type="number"
               step="0.01"
@@ -124,7 +124,7 @@ export function ControlGeometryPanel({
             />
           </AeroFormField>
 
-          <AeroFormField label="Chord Fraction" description="Aileron chord / wing chord">
+          <AeroFormField label="Chord Fraction" helperText="Aileron chord / wing chord">
             <Input
               type="number"
               step="0.01"
@@ -140,23 +140,23 @@ export function ControlGeometryPanel({
             />
           </AeroFormField>
 
-          <AeroFormField label="Hinge Line Position" description="Hinge position as fraction of chord">
+          <AeroFormField label="Hinge Line Position" helperText="Hinge position as fraction of chord">
             <Input
               type="number"
               step="0.01"
               min="0"
               max="1"
-              value={aileronGeometry?.hinge_line || 0.75}
+              value={aileronGeometry?.hinge_line_position || 0.75}
               onChange={(e) =>
                 onGeometryChange('aileron', {
                   ...aileronGeometry,
-                  hinge_line: parseFloat(e.target.value) || 0.75,
+                  hinge_line_position: parseFloat(e.target.value) || 0.75,
                 })
               }
             />
           </AeroFormField>
 
-          <AeroFormField label="Aerodynamic Balance" description="Balance type">
+          <AeroFormField label="Aerodynamic Balance" helperText="Balance type">
             <Select
               value={aileronGeometry?.balance_type || 'unbalanced'}
               onValueChange={(value) =>
@@ -179,7 +179,7 @@ export function ControlGeometryPanel({
         </TabsContent>
 
         <TabsContent value="rudder" className="space-y-4">
-          <AeroFormField label="Span Fraction" description="Rudder span / vertical tail span">
+          <AeroFormField label="Span Fraction" helperText="Rudder span / vertical tail span">
             <Input
               type="number"
               step="0.01"
@@ -195,7 +195,7 @@ export function ControlGeometryPanel({
             />
           </AeroFormField>
 
-          <AeroFormField label="Chord Fraction" description="Rudder chord / vertical tail chord">
+          <AeroFormField label="Chord Fraction" helperText="Rudder chord / vertical tail chord">
             <Input
               type="number"
               step="0.01"
@@ -211,23 +211,23 @@ export function ControlGeometryPanel({
             />
           </AeroFormField>
 
-          <AeroFormField label="Hinge Line Position" description="Hinge position as fraction of chord">
+          <AeroFormField label="Hinge Line Position" helperText="Hinge position as fraction of chord">
             <Input
               type="number"
               step="0.01"
               min="0"
               max="1"
-              value={rudderGeometry?.hinge_line || 0.7}
+              value={rudderGeometry?.hinge_line_position || 0.7}
               onChange={(e) =>
                 onGeometryChange('rudder', {
                   ...rudderGeometry,
-                  hinge_line: parseFloat(e.target.value) || 0.7,
+                  hinge_line_position: parseFloat(e.target.value) || 0.7,
                 })
               }
             />
           </AeroFormField>
 
-          <AeroFormField label="Aerodynamic Balance" description="Balance type">
+          <AeroFormField label="Aerodynamic Balance" helperText="Balance type">
             <Select
               value={rudderGeometry?.balance_type || 'unbalanced'}
               onValueChange={(value) =>
@@ -252,4 +252,3 @@ export function ControlGeometryPanel({
     </AeroCard>
   );
 }
-

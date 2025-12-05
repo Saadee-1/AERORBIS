@@ -278,7 +278,7 @@ export default function RocketEngineCalculator() {
         icon={Rocket}
       />
 
-      <ToolSection title="Configuration">
+      <ToolSection>
         <PresetsPanel
           selectedPropellantId={selectedPropellantId}
           selectedEngineId={selectedEngineId}
@@ -289,7 +289,7 @@ export default function RocketEngineCalculator() {
         />
       </ToolSection>
 
-      <ToolSection title="Inputs">
+      <ToolSection>
         <InputPanel inputs={inputs} onInputChange={handleInputChange} />
       </ToolSection>
 
@@ -310,7 +310,7 @@ export default function RocketEngineCalculator() {
       </ToolActions>
 
       {results && (
-        <ToolSection title="Parameter Sweeps">
+        <ToolSection>
           <div className="grid md:grid-cols-3 gap-4">
             <div className="p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
               <h3 className="text-sm font-semibold text-cyan-400 mb-2">Altitude Sweep</h3>
@@ -354,11 +354,11 @@ export default function RocketEngineCalculator() {
 
       {results && (
         <>
-          <ToolSection title="Results">
+          <ToolSection>
             <ResultsPanel results={results} />
           </ToolSection>
 
-          <ToolSection title="Performance Plots">
+          <ToolSection>
             <PlotsPanel
               altitudeSweep={altitudeSweep}
               expansionSweep={expansionSweep}
