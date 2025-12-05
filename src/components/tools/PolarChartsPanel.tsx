@@ -37,13 +37,16 @@ interface PolarChartsPanelProps {
 }
 
 /**
- * Extract role from airfoil name or description for legend
+ * Extract role from airfoil name or description
+ * Format: "{name} · {role}" or just "{name}" if no role found
  */
-const getAirfoilRole = (airfoilId: string, airfoilName: string): string | undefined => {
+const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string => {
   // Try to extract role from name (text in parentheses)
   const roleMatch = airfoilName.match(/\(([^)]+)\)/);
   if (roleMatch) {
-    return roleMatch[1];
+    const role = roleMatch[1];
+    const nameWithoutRole = airfoilName.replace(/\s*\([^)]+\)\s*/, '').trim();
+    return `${nameWithoutRole} · ${role}`;
   }
   
   // Try to get role from airfoil descriptions (first application)
@@ -51,26 +54,33 @@ const getAirfoilRole = (airfoilId: string, airfoilName: string): string | undefi
   if (description?.applications && description.applications.length > 0) {
     const firstApp = description.applications[0];
     // Extract key words (e.g., "General aviation aircraft" -> "GA")
-    if (firstApp.toLowerCase().includes('general aviation')) return 'GA';
-    else if (firstApp.toLowerCase().includes('training')) return 'Trainer';
-    else if (firstApp.toLowerCase().includes('uav')) return 'UAV';
-    else if (firstApp.toLowerCase().includes('glider')) return 'Glider';
-    else if (firstApp.toLowerCase().includes('racer') || firstApp.toLowerCase().includes('racing')) return 'Racer';
-    else if (firstApp.toLowerCase().includes('aerobatic')) return 'Aerobatic';
-    else if (firstApp.toLowerCase().includes('wind turbine')) return 'Wind Turbine';
-    else if (firstApp.toLowerCase().includes('high-speed')) return 'High-Speed';
-    else if (firstApp.toLowerCase().includes('control surface')) return 'Control';
-    else if (firstApp.toLowerCase().includes('tail')) return 'Tail';
+    // Only return a role if we can match it to a known short tag
+    let role: string | undefined;
+    if (firstApp.toLowerCase().includes('general aviation')) role = 'GA';
+    else if (firstApp.toLowerCase().includes('training')) role = 'Trainer';
+    else if (firstApp.toLowerCase().includes('uav')) role = 'UAV';
+    else if (firstApp.toLowerCase().includes('glider')) role = 'Glider';
+    else if (firstApp.toLowerCase().includes('racer') || firstApp.toLowerCase().includes('racing')) role = 'Racer';
+    else if (firstApp.toLowerCase().includes('aerobatic')) role = 'Aerobatic';
+    else if (firstApp.toLowerCase().includes('wind turbine')) role = 'Wind Turbine';
+    else if (firstApp.toLowerCase().includes('high-speed')) role = 'High-Speed';
+    else if (firstApp.toLowerCase().includes('control surface')) role = 'Control';
+    else if (firstApp.toLowerCase().includes('tail')) role = 'Tail';
+    else if (firstApp.toLowerCase().includes('supersonic')) role = 'Supersonic';
+    else if (firstApp.toLowerCase().includes('rotor')) role = 'Rotor';
+    else if (firstApp.toLowerCase().includes('sport')) role = 'Sport';
+    else if (firstApp.toLowerCase().includes('bush')) role = 'Bush';
+    else if (firstApp.toLowerCase().includes('stol')) role = 'STOL';
+    else if (firstApp.toLowerCase().includes('pattern')) role = 'Pattern';
+    
+    // Only add role if we found a match (don't use full application string)
+    if (role) {
+      return `${airfoilName} · ${role}`;
+    }
   }
   
-  return undefined;
-};
-
-/**
- * Get clean airfoil name without role in parentheses
- */
-const getAirfoilName = (airfoilName: string): string => {
-  return airfoilName.replace(/\s*\([^)]+\)\s*/, '').trim();
+  // Fallback: just the name (no role if we can't shorten it)
+  return airfoilName;
 };
 
 /**
@@ -423,12 +433,18 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
             
             {/* Custom Legend - Outside Chart Area */}
             <div className="mt-3 pt-3 border-t border-slate-700/50">
-              <CustomLegend
-                items={polars.map((polar, index) => ({
-                  id: polar.id,
-                  name: getAirfoilLegendLabel(polar.id, polar.name),
-                  color: AIRFOIL_COLORS[index % AIRFOIL_COLORS.length],
-                }))}
+              <AeroverseLegend
+                items={polars.map((polar, index): LegendItem => {
+                  const label = getAirfoilLegendLabel(polar.id, polar.name);
+                  // If label contains " · ", split it into name and role
+                  const parts = label.split(' · ');
+                  return {
+                    id: polar.id,
+                    name: parts[0],
+                    role: parts[1],
+                    color: AIRFOIL_COLORS[index % AIRFOIL_COLORS.length],
+                  };
+                })}
               />
             </div>
             
