@@ -7,7 +7,7 @@
  * with multi-airfoil comparison and stall visualization
  */
 
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { AeroButton } from "@/components/common/AeroButton";
