@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import type { RefObject } from "react";
 import { toPng } from "html-to-image";
 
 interface UseChartExportOptions {
@@ -14,7 +15,7 @@ interface UseChartExportOptions {
  * @param options - Optional configuration for filename generation
  */
 export function useChartExport(
-  ref: React.RefObject<HTMLElement>,
+  ref: RefObject<HTMLElement | null>,
   options?: UseChartExportOptions
 ) {
   const generateFileName = useCallback(
@@ -55,6 +56,11 @@ export function useChartExport(
   );
 
   const exportAsPng = useCallback(async () => {
+    if (typeof window === "undefined") {
+      console.error("exportAsPng: window is undefined (SSR)");
+      return;
+    }
+
     const node = ref.current;
     if (!node) {
       console.error("exportAsPng: ref.current is null");
@@ -80,6 +86,11 @@ export function useChartExport(
   }, [ref, generateFileName]);
 
   const exportAsSvg = useCallback(() => {
+    if (typeof window === "undefined") {
+      console.error("exportAsSvg: window is undefined (SSR)");
+      return;
+    }
+
     const node = ref.current;
     if (!node) {
       console.error("exportAsSvg: ref.current is null");
@@ -113,6 +124,7 @@ export function useChartExport(
       }
 
       // Serialize using XMLSerializer to avoid empty/invalid SVG
+      // XMLSerializer is a browser API, safe to use here since we checked window
       const serializer = new XMLSerializer();
       const svgString = serializer.serializeToString(clonedSvg);
 
