@@ -20,14 +20,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal, Settings2, Download, X, Plus } from "lucide-react";
+import { TrendingUp, Info, Plane, Pencil, Settings2, Download, X, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { LdPdfButton } from "@/components/tools/LdPdfButton";
-import { PolarChartsPanel } from "@/components/tools/PolarChartsPanel";
 import { buildAeroversePayload } from "@/ai/buildPayload";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
 import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
@@ -1504,29 +1503,6 @@ const LiftDragAnalyzer = () => {
         </div>
       )}
 
-      {/* Professional Polar Charts Section */}
-      {comparisonPolars.length > 0 && (
-        <div>
-          {showComparisonLimitWarning && (
-            <Alert className="mb-4 bg-yellow-500/10 border-yellow-500/50">
-              <AlertDescription className="text-yellow-300">
-                Limited to 5 airfoils for comparison. Showing: {comparisonPolars.map(p => p.name).join(', ')}
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          <AeroCard
-            title="Professional Polar Charts (CL, CD, CM vs α)"
-            description={`Showing ${comparisonPolars.length} airfoil${comparisonPolars.length > 1 ? 's' : ''} at Re = 1,000,000`}
-            icon={BarChartHorizontal}
-          >
-            <PolarChartsPanel
-              polars={comparisonPolars}
-              reynoldsNumber={1000000}
-            />
-          </AeroCard>
-        </div>
-      )}
 
     </ToolWrapper>
   );
