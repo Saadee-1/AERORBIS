@@ -8,7 +8,7 @@
  */
 
 import { useRef, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { AeroButton } from "@/components/common/AeroButton";
 import { Download, Image as ImageIcon } from "lucide-react";
@@ -208,36 +208,67 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     : `${(reynoldsNumber / 1000).toFixed(0)}k`;
 
   // Prepare drag polar data (CD vs CL)
-  // For each airfoil, create { cl, cd, alpha } pairs
-  const dragPolarSeries = polars.map((polar) => {
-    const points: Array<{ cl: number; cd: number; alpha?: number }> = [];
-    for (let i = 0; i < polar.data.cl.length && i < polar.data.cd.length; i++) {
-      const cl = polar.data.cl[i];
-      const cd = polar.data.cd[i];
-      if (cl !== null && cl !== undefined && cd !== null && cd !== undefined && 
-          !isNaN(cl) && !isNaN(cd)) {
-        points.push({
-          cl,
-          cd,
-          alpha: polar.data.alpha[i],
-        });
-      }
-    }
-    // Sort by CL for smooth line rendering
-    points.sort((a, b) => a.cl - b.cl);
-    return { id: polar.id, name: polar.name, data: points };
-  });
-
-  // Calculate domains for drag polar
+  // Create a unified data structure where each point has CL and CD values for each airfoil
+  const dragPolarData: any[] = [];
   const allClValues: number[] = [];
   const allCdValues: number[] = [];
-  dragPolarSeries.forEach(series => {
-    series.data.forEach(point => {
-      allClValues.push(point.cl);
-      allCdValues.push(point.cd);
+
+  // Collect all unique CL values across all airfoils
+  const clSet = new Set<number>();
+  polars.forEach((polar) => {
+    polar.data.cl.forEach(cl => {
+      if (cl !== null && cl !== undefined && !isNaN(cl)) {
+        clSet.add(Math.round(cl * 1000) / 1000); // Round to 3 decimals for grouping
+        allClValues.push(cl);
+      }
+    });
+    polar.data.cd.forEach(cd => {
+      if (cd !== null && cd !== undefined && !isNaN(cd)) {
+        allCdValues.push(cd);
+      }
     });
   });
 
+  // Create data points for each unique CL value
+  const sortedClValues = Array.from(clSet).sort((a, b) => a - b);
+  
+  sortedClValues.forEach(cl => {
+    const point: any = { cl };
+    
+    // For each airfoil, find the closest CD value for this CL
+    polars.forEach((polar) => {
+      let closestCd: number | null = null;
+      let closestAlpha: number | null = null;
+      let minDiff = Infinity;
+      
+      for (let i = 0; i < polar.data.cl.length && i < polar.data.cd.length; i++) {
+        const polarCl = polar.data.cl[i];
+        const polarCd = polar.data.cd[i];
+        if (polarCl !== null && polarCl !== undefined && polarCd !== null && polarCd !== undefined && 
+            !isNaN(polarCl) && !isNaN(polarCd)) {
+          const diff = Math.abs(polarCl - cl);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestCd = polarCd;
+            closestAlpha = polar.data.alpha[i];
+          }
+        }
+      }
+      
+      if (closestCd !== null && minDiff < 0.01) { // Only use if CL is very close
+        point[polar.id] = closestCd;
+        point[`${polar.id}_cl`] = cl;
+        point[`${polar.id}_alpha`] = closestAlpha;
+      }
+    });
+    
+    // Only add point if at least one airfoil has data
+    if (Object.keys(point).length > 1) {
+      dragPolarData.push(point);
+    }
+  });
+
+  // Calculate domains for drag polar
   const clMin = allClValues.length > 0 ? Math.max(0, Math.min(...allClValues) - 0.1) : 0;
   const clMax = allClValues.length > 0 ? Math.max(...allClValues) + 0.1 : 1;
   const cdMin = 0; // Always start from 0
@@ -252,16 +283,17 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     return (
       <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
         {payload.map((entry: any, index: number) => {
+          const airfoilId = entry.dataKey;
+          const polar = polars.find(p => p.id === airfoilId);
           const point = entry.payload;
-          const cl = point?.cl;
-          const cd = point?.cd;
-          const alpha = point?.alpha;
-          const series = dragPolarSeries.find(s => s.id === entry.dataKey);
+          const cl = point?.[`${airfoilId}_cl`] ?? point?.cl;
+          const cd = entry.value;
+          const alpha = point?.[`${airfoilId}_alpha`];
 
           return (
             <div key={index} className="mb-2 last:mb-0">
               <p className="text-cyan-400 font-semibold mb-1">
-                {series?.name || entry.dataKey}
+                {polar?.name || airfoilId}
               </p>
               <div className="text-sm space-y-1">
                 <div className="flex items-center gap-2">
@@ -609,7 +641,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
                 }
               >
                 <ResponsiveContainer width="100%" height={400}>
-                  <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <LineChart data={dragPolarData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis
                       type="number"
@@ -621,7 +653,6 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
                     />
                     <YAxis
                       type="number"
-                      dataKey="cd"
                       domain={[cdMin, cdMax]}
                       stroke="#94a3b8"
                       label={{ value: "Drag Coefficient, CD", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
@@ -632,23 +663,25 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
                       cursor={{ strokeDasharray: '3 3' }}
                     />
                     
-                    {/* Render scatter/line for each airfoil */}
-                    {dragPolarSeries.map((series, index) => {
+                    {/* Render lines for each airfoil */}
+                    {polars.map((polar, index) => {
                       const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
 
                       return (
-                        <Scatter
-                          key={series.id}
-                          data={series.data}
-                          fill={color}
-                          line={{ stroke: color, strokeWidth: 2 }}
-                          lineType="joint"
-                          name={series.name}
+                        <Line
+                          key={polar.id}
+                          type="monotone"
+                          dataKey={polar.id}
+                          name={polar.name}
+                          stroke={color}
+                          strokeWidth={2}
+                          dot={false}
+                          connectNulls={false}
                           legendType="none"
                         />
                       );
                     })}
-                  </ScatterChart>
+                  </LineChart>
                 </ResponsiveContainer>
                 
                 {/* Custom Legend - Outside Chart Area */}
