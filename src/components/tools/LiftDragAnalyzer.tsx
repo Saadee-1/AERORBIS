@@ -42,6 +42,8 @@ import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
 import { loadPolarForComparison, exportChartAsPNG, exportChartAsSVG, AIRFOIL_COLORS, detectStallIndex } from "@/lib/polarChartUtils";
+import { useGraphSetups } from "@/hooks/useGraphSetups";
+import type { GraphMode as GraphModeType } from "@/types/graphSetup";
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
@@ -251,6 +253,27 @@ const LiftDragAnalyzer = () => {
   
   // Graph mode state for main comparison chart
   const [graphMode, setGraphMode] = useState<GraphMode>("ld");
+
+  // Reynolds number (currently fixed at 1M, but saved in setups for future flexibility)
+  const REYNOLDS = 1000000;
+
+  // Save/Load setups hook
+  const { setups, saveCurrentSetup, deleteSetup, loadSetup } = useGraphSetups({
+    calculatorId: "launchpad",
+    baseAirfoilId: inputs.airfoil,
+    comparedAirfoilIds,
+    reynolds: REYNOLDS,
+    mode: graphMode as GraphModeType,
+    onLoadSetup: (setup) => {
+      // Update base airfoil
+      setInputs({ ...inputs, airfoil: setup.baseAirfoilId as AirfoilKey });
+      // Update compared airfoils
+      setComparedAirfoilIds(setup.comparedAirfoilIds);
+      // Update graph mode
+      setGraphMode(setup.mode as GraphMode);
+      // Note: Reynolds is currently fixed at 1M, so we don't update it
+    },
+  });
 
   const [result, setResult] = useState<LiftDragResult | null>(null);
   const [error, setError] = useState<string>("");
@@ -1330,6 +1353,65 @@ const LiftDragAnalyzer = () => {
             {comparedAirfoilIds.length >= MAX_COMPARED_AIRFOILS && (
               <p className="text-xs text-yellow-400">Maximum {MAX_COMPARED_AIRFOILS} airfoils reached</p>
             )}
+
+            {/* Save/Load Setups Section */}
+            <div className="mt-4 pt-4 border-t border-cyan-400/20">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-cyan-300 text-sm font-medium">Saved Setups</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const name = window.prompt("Name this setup:");
+                      if (!name) return;
+                      saveCurrentSetup(name);
+                    }}
+                    className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-600/20 text-white text-xs"
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    Save Setup
+                  </Button>
+                </div>
+                
+                {setups.length > 0 && (
+                  <div className="flex flex-col gap-1.5 max-h-32 overflow-y-auto">
+                    {setups
+                      .slice()
+                      .sort((a, b) => b.createdAt - a.createdAt)
+                      .map((setup) => (
+                        <div
+                          key={setup.id}
+                          className="flex items-center justify-between gap-2 bg-slate-700/30 border border-cyan-400/20 rounded px-2 py-1.5 text-xs"
+                        >
+                          <button
+                            onClick={() => loadSetup(setup.id)}
+                            className="flex-1 text-left text-cyan-300 hover:text-cyan-200 hover:underline truncate"
+                            title={`Load: ${setup.name}`}
+                          >
+                            {setup.name}
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Delete "${setup.name}"?`)) {
+                                deleteSetup(setup.id);
+                              }
+                            }}
+                            className="text-slate-400 hover:text-red-400 transition-colors p-0.5"
+                            aria-label={`Delete ${setup.name}`}
+                            title="Delete setup"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+                {setups.length === 0 && (
+                  <p className="text-xs text-slate-400 italic">No saved setups. Click "Save Setup" to save your current configuration.</p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Mode Selector Tabs */}
