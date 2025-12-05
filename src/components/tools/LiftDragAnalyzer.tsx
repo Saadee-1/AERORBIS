@@ -821,8 +821,15 @@ const LiftDragAnalyzer = () => {
     return chartData;
   }, [comparisonPolars]);
 
-  // Generate drag polar data (CD vs CL) - uses same processed points as CL vs AoA
-  const generateDragPolarData = useCallback(() => {
+  // Generate drag polar data (CD vs CL) - separate series per airfoil
+  // Uses same processed points as CL vs AoA, but keeps each airfoil's data separate
+  type DragPolarSeries = {
+    airfoilId: string;
+    name: string;
+    data: Array<{ cl: number; cd: number }>;
+  };
+
+  const generateDragPolarSeries = useCallback((): DragPolarSeries[] => {
     if (!comparisonPolars || comparisonPolars.length === 0) return [];
 
     // Use the exact same alpha grid and processing as CL vs AoA chart
@@ -831,8 +838,8 @@ const LiftDragAnalyzer = () => {
 
     const alphaGrid = referencePolar.alpha;
     
-    // For each airfoil, extract (CL, CD) pairs using the same alpha grid as CL vs AoA
-    const airfoilPoints: Map<string, Array<{ cl: number; cd: number }>> = new Map();
+    // Build separate series for each airfoil
+    const seriesList: DragPolarSeries[] = [];
 
     comparisonPolars.forEach((polar) => {
       if (!polar.data || !polar.data.alpha || !polar.data.cl || !polar.data.cd) return;
@@ -856,64 +863,37 @@ const LiftDragAnalyzer = () => {
       }
 
       // Sort by CL to ensure smooth curves (no double-back)
+      // This sorting is per-airfoil, not across all airfoils
       points.sort((a, b) => a.cl - b.cl);
 
       if (points.length > 0) {
-        airfoilPoints.set(polar.id, points);
-      }
-    });
-
-    // Create unified data structure for LineChart
-    // Collect all unique CL values across all airfoils
-    const allClValues = new Set<number>();
-    airfoilPoints.forEach(points => {
-      points.forEach(point => {
-        allClValues.add(Math.round(point.cl * 1000) / 1000); // Round to 3 decimals for grouping
-      });
-    });
-
-    const sortedClValues = Array.from(allClValues).sort((a, b) => a - b);
-    const dragPolarData: any[] = [];
-
-    // For each CL value, find corresponding CD for each airfoil
-    sortedClValues.forEach(cl => {
-      const point: any = { cl };
-
-      airfoilPoints.forEach((points, airfoilId) => {
-        // Find closest point in this airfoil's sorted points
-        let closestPoint: { cl: number; cd: number } | null = null;
-        let minDiff = Infinity;
-
-        points.forEach(p => {
-          const diff = Math.abs(p.cl - cl);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestPoint = p;
-          }
+        seriesList.push({
+          airfoilId: polar.id,
+          name: polar.name,
+          data: points
         });
-
-        // Only use if CL is very close (within 0.01)
-        if (closestPoint && minDiff < 0.01) {
-          point[airfoilId] = closestPoint.cd;
-        }
-      });
-
-      // Only add point if at least one airfoil has data
-      if (Object.keys(point).length > 1) {
-        dragPolarData.push(point);
       }
     });
 
-    return dragPolarData;
+    return seriesList;
   }, [comparisonPolars]);
 
   // Get chart data for current mode
   const currentChartData = useMemo(() => {
     if (graphMode === "dragPolar") {
-      return generateDragPolarData();
+      // Drag polar uses separate series, so return empty array (series have their own data)
+      return [];
     }
     return generateChartDataForMode(graphMode);
-  }, [graphMode, generateChartDataForMode, generateDragPolarData]);
+  }, [graphMode, generateChartDataForMode]);
+
+  // Get drag polar series (separate data per airfoil)
+  const dragPolarSeries = useMemo(() => {
+    if (graphMode === "dragPolar") {
+      return generateDragPolarSeries();
+    }
+    return [];
+  }, [graphMode, generateDragPolarSeries]);
 
   // Get Y-axis label and domain for current mode
   const getYAxisConfig = (mode: GraphMode) => {
@@ -1377,7 +1357,7 @@ const LiftDragAnalyzer = () => {
             <div ref={ldChartRef} className="relative min-h-[400px] mt-4">
               {graphMode === "dragPolar" ? (
                 <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={currentChartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <LineChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis
                       type="number"
@@ -1396,15 +1376,17 @@ const LiftDragAnalyzer = () => {
                       contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
                       labelStyle={{ color: "#22d3ee" }}
                     />
-                    {comparisonPolars.map((polar, index) => {
+                    {/* Each airfoil gets its own Line with its own data array */}
+                    {dragPolarSeries.map((series, index) => {
                       const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
-                      const isActive = polar.id === inputs.airfoil;
+                      const isActive = series.airfoilId === inputs.airfoil;
                       return (
                         <Line
-                          key={polar.id}
+                          key={series.airfoilId}
+                          data={series.data}
                           type="monotone"
-                          dataKey={polar.id}
-                          name={polar.name}
+                          dataKey="cd"
+                          name={series.name}
                           stroke={color}
                           strokeWidth={isActive ? 3 : 2}
                           dot={false}
