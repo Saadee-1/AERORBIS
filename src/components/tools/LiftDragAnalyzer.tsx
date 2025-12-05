@@ -42,7 +42,7 @@ import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
-import { loadPolarForComparison, exportChartAsPNG, exportChartAsSVG, AIRFOIL_COLORS } from "@/lib/polarChartUtils";
+import { loadPolarForComparison, exportChartAsPNG, exportChartAsSVG, AIRFOIL_COLORS, detectStallIndex } from "@/lib/polarChartUtils";
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
@@ -821,65 +821,111 @@ const LiftDragAnalyzer = () => {
     return chartData;
   }, [comparisonPolars]);
 
-  // Generate drag polar data (CD vs CL)
+  // Generate drag polar data (CD vs CL) - cleaned and sorted
   const generateDragPolarData = useCallback(() => {
     if (!comparisonPolars || comparisonPolars.length === 0) return [];
 
-    const dragPolarData: any[] = [];
-    const allClValues: number[] = [];
-    const allCdValues: number[] = [];
+    // For each airfoil, create cleaned and sorted drag polar points
+    const airfoilDragPolars: Array<{ id: string; name: string; points: Array<{ cl: number; cd: number }> }> = [];
 
-    // Collect all unique CL values across all airfoils
-    const clSet = new Set<number>();
     comparisonPolars.forEach((polar) => {
-      if (polar.data && polar.data.cl && polar.data.cd) {
-        polar.data.cl.forEach(cl => {
-          if (cl !== null && cl !== undefined && !isNaN(cl)) {
-            clSet.add(Math.round(cl * 1000) / 1000);
-            allClValues.push(cl);
-          }
-        });
-        polar.data.cd.forEach(cd => {
-          if (cd !== null && cd !== undefined && !isNaN(cd)) {
-            allCdValues.push(cd);
-          }
+      if (!polar.data || !polar.data.cl || !polar.data.cd || !polar.data.alpha) return;
+
+      // Step 1: Create array of { cl, cd, alpha } points from polar data
+      const rawPoints: Array<{ cl: number; cd: number; alpha: number }> = [];
+      for (let i = 0; i < polar.data.cl.length && i < polar.data.cd.length && i < polar.data.alpha.length; i++) {
+        const cl = polar.data.cl[i];
+        const cd = polar.data.cd[i];
+        const alpha = polar.data.alpha[i];
+        
+        if (Number.isFinite(cl) && Number.isFinite(cd) && Number.isFinite(alpha)) {
+          rawPoints.push({ cl, cd, alpha });
+        }
+      }
+
+      if (rawPoints.length === 0) return;
+
+      // Step 2: Filter out post-stall points
+      // Find stall index using detectStallIndex or CL peak
+      const stallIndex = detectStallIndex(polar.data);
+      
+      // Alternative: Find CL peak if stall detection doesn't work well
+      let maxClIndex = 0;
+      let maxCl = rawPoints[0].cl;
+      for (let i = 1; i < rawPoints.length; i++) {
+        if (rawPoints[i].cl > maxCl) {
+          maxCl = rawPoints[i].cl;
+          maxClIndex = i;
+        }
+      }
+      
+      // Use the earlier of stall index or CL peak + small buffer
+      const cutoffIndex = Math.min(stallIndex, maxClIndex + 5);
+      
+      // Filter to pre-stall points (up to cutoff)
+      let clean = rawPoints.slice(0, cutoffIndex);
+      
+      // Also filter by CL <= maxCl as additional safety
+      const maxClValue = Math.max(...clean.map(p => p.cl));
+      clean = clean.filter(p => p.cl <= maxClValue * 1.05); // Allow 5% tolerance
+
+      // Step 3: Remove unrealistic spikes (high drag values)
+      clean = clean.filter(p => p.cd < 0.1); // Filter out CD > 0.1
+
+      // Step 4: Filter out NaN/undefined (should already be done, but double-check)
+      clean = clean.filter(p => Number.isFinite(p.cl) && Number.isFinite(p.cd));
+
+      // Step 5: Sort by CL (ascending)
+      clean.sort((a, b) => a.cl - b.cl);
+
+      // Step 6: Create final dataset with just { cl, cd }
+      const points = clean.map(p => ({ cl: p.cl, cd: p.cd }));
+
+      if (points.length > 0) {
+        airfoilDragPolars.push({
+          id: polar.id,
+          name: polar.name,
+          points: points
         });
       }
     });
 
-    const sortedClValues = Array.from(clSet).sort((a, b) => a - b);
+    // Step 7: Create unified data structure for LineChart
+    // Collect all unique CL values across all airfoils
+    const allClValues = new Set<number>();
+    airfoilDragPolars.forEach(airfoil => {
+      airfoil.points.forEach(point => {
+        allClValues.add(Math.round(point.cl * 1000) / 1000); // Round to 3 decimals
+      });
+    });
 
+    const sortedClValues = Array.from(allClValues).sort((a, b) => a - b);
+    const dragPolarData: any[] = [];
+
+    // For each CL value, find corresponding CD for each airfoil
     sortedClValues.forEach(cl => {
       const point: any = { cl };
 
-      comparisonPolars.forEach((polar) => {
-        if (polar.data && polar.data.cl && polar.data.cd) {
-          let closestCd: number | null = null;
-          let closestAlpha: number | null = null;
-          let minDiff = Infinity;
+      airfoilDragPolars.forEach(airfoil => {
+        // Find closest point in this airfoil's drag polar
+        let closestPoint: { cl: number; cd: number } | null = null;
+        let minDiff = Infinity;
 
-          for (let i = 0; i < polar.data.cl.length && i < polar.data.cd.length; i++) {
-            const polarCl = polar.data.cl[i];
-            const polarCd = polar.data.cd[i];
-            if (polarCl !== null && polarCl !== undefined && polarCd !== null && polarCd !== undefined &&
-                !isNaN(polarCl) && !isNaN(polarCd)) {
-              const diff = Math.abs(polarCl - cl);
-              if (diff < minDiff) {
-                minDiff = diff;
-                closestCd = polarCd;
-                closestAlpha = polar.data.alpha?.[i] ?? null;
-              }
-            }
+        airfoil.points.forEach(p => {
+          const diff = Math.abs(p.cl - cl);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestPoint = p;
           }
+        });
 
-          if (closestCd !== null && minDiff < 0.01) {
-            point[polar.id] = closestCd;
-            point[`${polar.id}_cl`] = cl;
-            point[`${polar.id}_alpha`] = closestAlpha;
-          }
+        // Only use if CL is very close (within 0.01)
+        if (closestPoint && minDiff < 0.01) {
+          point[airfoil.id] = closestPoint.cd;
         }
       });
 
+      // Only add point if at least one airfoil has data
       if (Object.keys(point).length > 1) {
         dragPolarData.push(point);
       }
