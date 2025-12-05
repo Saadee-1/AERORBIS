@@ -72,12 +72,12 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
   return (
     <div className="space-y-6">
       {/* State of Charge */}
-      <div ref={socCardRef}>
-        <AeroCard 
-          title="Battery State of Charge"
-          headerActions={<ChartExportButtons exportAsPng={socExport.exportAsPng} exportAsSvg={socExport.exportAsSvg} />}
-        >
-        <ResponsiveContainer width="100%" height={300}>
+      <AeroCard 
+        title="Battery State of Charge"
+        headerActions={<ChartExportButtons exportAsPng={socExport.exportAsPng} exportAsSvg={socExport.exportAsSvg} />}
+      >
+        <div ref={socCardRef} className="graph-export-target pt-2">
+          <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
@@ -105,16 +105,16 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             />
           </AreaChart>
         </ResponsiveContainer>
+        </div>
       </AeroCard>
-      </div>
       
       {/* Power Load vs Solar */}
-      <div ref={powerCardRef}>
-        <AeroCard 
-          title="Power Load vs Solar Generation"
-          headerActions={<ChartExportButtons exportAsPng={powerExport.exportAsPng} exportAsSvg={powerExport.exportAsSvg} />}
-        >
-        <ResponsiveContainer width="100%" height={300}>
+      <AeroCard 
+        title="Power Load vs Solar Generation"
+        headerActions={<ChartExportButtons exportAsPng={powerExport.exportAsPng} exportAsSvg={powerExport.exportAsSvg} />}
+      >
+        <div ref={powerCardRef} className="graph-export-target pt-2">
+          <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
@@ -165,16 +165,16 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             ]}
           />
         </div>
+        </div>
       </AeroCard>
-      </div>
       
       {/* Voltage */}
-      <div ref={voltageCardRef}>
-        <AeroCard 
-          title="Battery Voltage"
-          headerActions={<ChartExportButtons exportAsPng={voltageExport.exportAsPng} exportAsSvg={voltageExport.exportAsSvg} />}
-        >
-        <ResponsiveContainer width="100%" height={300}>
+      <AeroCard 
+        title="Battery Voltage"
+        headerActions={<ChartExportButtons exportAsPng={voltageExport.exportAsPng} exportAsSvg={voltageExport.exportAsSvg} />}
+      >
+        <div ref={voltageCardRef} className="graph-export-target pt-2">
+          <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
@@ -209,16 +209,16 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             }]}
           />
         </div>
+        </div>
       </AeroCard>
-      </div>
       
       {/* Energy Remaining */}
-      <div ref={energyCardRef}>
-        <AeroCard 
-          title="Energy Remaining"
-          headerActions={<ChartExportButtons exportAsPng={energyExport.exportAsPng} exportAsSvg={energyExport.exportAsSvg} />}
-        >
-        <ResponsiveContainer width="100%" height={300}>
+      <AeroCard 
+        title="Energy Remaining"
+        headerActions={<ChartExportButtons exportAsPng={energyExport.exportAsPng} exportAsSvg={energyExport.exportAsSvg} />}
+      >
+        <div ref={energyCardRef} className="graph-export-target pt-2">
+          <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
@@ -248,12 +248,12 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
       </div>
       
       {/* Sun Elevation */}
-      <div ref={sunCardRef}>
-        <AeroCard 
-          title="Sun Elevation"
-          headerActions={<ChartExportButtons exportAsPng={sunExport.exportAsPng} exportAsSvg={sunExport.exportAsSvg} />}
-        >
-        <ResponsiveContainer width="100%" height={300}>
+      <AeroCard 
+        title="Sun Elevation"
+        headerActions={<ChartExportButtons exportAsPng={sunExport.exportAsPng} exportAsSvg={sunExport.exportAsSvg} />}
+      >
+        <div ref={sunCardRef} className="graph-export-target pt-2">
+          <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
@@ -289,8 +289,8 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             }]}
           />
         </div>
+        </div>
       </AeroCard>
-      </div>
     </div>
   );
 }

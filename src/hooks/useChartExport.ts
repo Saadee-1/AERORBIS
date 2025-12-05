@@ -87,24 +87,34 @@ export function useChartExport(
     }
 
     try {
-      // Look for the first SVG inside the card
+      // Find the actual chart <svg> inside the export target
       const svg = node.querySelector("svg");
       if (!svg) {
-        console.error("exportAsSvg: no <svg> element found inside card");
+        console.error("exportAsSvg: no <svg> element found inside export target");
         return;
       }
 
-      // Clone the SVG to avoid modifying the original
-      const clone = svg.cloneNode(true) as SVGSVGElement;
+      // Clone WITH children (true = deep clone), otherwise we get an empty shell
+      const clonedSvg = svg.cloneNode(true) as SVGSVGElement;
 
-      // Ensure xmlns is set so the file displays correctly
-      if (!clone.getAttribute("xmlns")) {
-        clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      // Ensure proper namespace so it renders when opened
+      if (!clonedSvg.getAttribute("xmlns")) {
+        clonedSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
       }
 
-      // Serialize the cloned SVG
+      // Ensure xmlns:xlink is set if needed
+      if (!clonedSvg.getAttribute("xmlns:xlink")) {
+        clonedSvg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+      }
+
+      // Preserve viewBox if it exists
+      if (svg.getAttribute("viewBox") && !clonedSvg.getAttribute("viewBox")) {
+        clonedSvg.setAttribute("viewBox", svg.getAttribute("viewBox") || "");
+      }
+
+      // Serialize using XMLSerializer to avoid empty/invalid SVG
       const serializer = new XMLSerializer();
-      const svgString = serializer.serializeToString(clone);
+      const svgString = serializer.serializeToString(clonedSvg);
 
       // Create blob and download
       const blob = new Blob([svgString], {

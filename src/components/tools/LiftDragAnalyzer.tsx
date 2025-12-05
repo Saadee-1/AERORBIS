@@ -287,11 +287,11 @@ const LiftDragAnalyzer = () => {
   const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: any }>>([]);
   const [showComparisonLimitWarning, setShowComparisonLimitWarning] = useState(false);
   
-  // Ref for entire graph card export (includes header, chart, legend)
-  const graphCardRef = useRef<HTMLDivElement>(null);
+  // Ref for export target (chart + legend only)
+  const exportRef = useRef<HTMLDivElement>(null);
 
   // Chart export hook
-  const { exportAsPng, exportAsSvg } = useChartExport(graphCardRef, {
+  const { exportAsPng, exportAsSvg } = useChartExport(exportRef, {
     calculatorId: "launchpad",
     graphMode,
     reynolds: REYNOLDS,
@@ -1236,7 +1236,7 @@ const LiftDragAnalyzer = () => {
 
       {/* Comparison Chart */}
       {(comparisonData.length > 0 || comparisonPolars.length > 0) && (
-        <div ref={graphCardRef} className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-cyan-400/30 p-6 shadow-lg backdrop-blur-sm">
+        <div className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-cyan-400/30 p-6 shadow-lg backdrop-blur-sm">
           {/* Graph Header */}
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
@@ -1403,8 +1403,10 @@ const LiftDragAnalyzer = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* Graph Body - Chart Area */}
-            <div className="relative min-h-[400px] mt-4">
+            {/* Export Target - Chart + Legend Only */}
+            <div ref={exportRef} className="graph-export-target pt-2">
+              {/* Graph Body - Chart Area */}
+              <div className="relative min-h-[400px]">
               {graphMode === "dragPolar" ? (
                 <ResponsiveContainer width="100%" height={400}>
                   <LineChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
@@ -1528,29 +1530,30 @@ const LiftDragAnalyzer = () => {
                   </LineChart>
                 </ResponsiveContainer>
               )}
+              </div>
+              
+              {/* Custom Legend - Outside Chart Area */}
+              <div className="mt-3 pt-3 border-t border-slate-700/50">
+                <CustomLegend
+                  items={[
+                    ...comparisonPolars.map((polar, index) => {
+                      const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
+                      return {
+                        id: polar.id,
+                        name: getAirfoilLegendLabel(polar.id, polar.name),
+                        color: color,
+                      };
+                    }),
+                    ...(inputs.airfoil === 'custom' && graphMode === "ld" ? [{
+                      id: 'custom',
+                      name: result?.airfoilName || "Custom",
+                      color: '#e879f9',
+                    }] : []),
+                  ]}
+                />
+              </div>
             </div>
           </Tabs>
-          
-          {/* Custom Legend - Outside Chart Area */}
-          <div className="mt-3 pt-3 border-t border-slate-700/50">
-            <CustomLegend
-              items={[
-                ...comparisonPolars.map((polar, index) => {
-                  const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
-                  return {
-                    id: polar.id,
-                    name: getAirfoilLegendLabel(polar.id, polar.name),
-                    color: color,
-                  };
-                }),
-                ...(inputs.airfoil === 'custom' && graphMode === "ld" ? [{
-                  id: 'custom',
-                  name: result?.airfoilName || "Custom",
-                  color: '#e879f9',
-                }] : []),
-              ]}
-            />
-          </div>
         </div>
       )}
 
