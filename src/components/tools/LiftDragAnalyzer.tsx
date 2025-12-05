@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal, Settings2, Download, X, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
@@ -41,7 +42,7 @@ import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
-import { loadPolarForComparison, exportChartAsPNG, exportChartAsSVG } from "@/lib/polarChartUtils";
+import { loadPolarForComparison, exportChartAsPNG, exportChartAsSVG, AIRFOIL_COLORS } from "@/lib/polarChartUtils";
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
@@ -126,7 +127,8 @@ const CustomLegend = ({ items }: CustomLegendProps) => {
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type AirfoilKey = keyof typeof AIRFOIL_DATA | "custom";
-// Removed ChartMode - now always in comparison mode
+// Graph mode type for main comparison chart
+type GraphMode = "ld" | "cl" | "cd" | "cm" | "dragPolar";
 
 // Interface for the airfoil database
 interface Airfoil {
@@ -247,6 +249,9 @@ const LiftDragAnalyzer = () => {
   // Multi-airfoil comparison state (max 5)
   const [comparedAirfoilIds, setComparedAirfoilIds] = useState<string[]>([]);
   const MAX_COMPARED_AIRFOILS = 5;
+  
+  // Graph mode state for main comparison chart
+  const [graphMode, setGraphMode] = useState<GraphMode>("ld");
 
   const [result, setResult] = useState<LiftDragResult | null>(null);
   const [error, setError] = useState<string>("");
@@ -764,6 +769,153 @@ const LiftDragAnalyzer = () => {
     
   const currentAirfoilName = result?.airfoilName || "Current";
 
+  // Generate chart data for different modes using comparisonPolars
+  const generateChartDataForMode = useCallback((mode: GraphMode) => {
+    if (!comparisonPolars || comparisonPolars.length === 0) return [];
+
+    // Use the first polar's alpha grid as reference
+    const referencePolar = comparisonPolars[0]?.data;
+    if (!referencePolar || !referencePolar.alpha) return [];
+
+    const chartData: any[] = [];
+    const alphaGrid = referencePolar.alpha;
+
+    for (let i = 0; i < alphaGrid.length; i++) {
+      const alpha = alphaGrid[i];
+      const point: any = { alpha };
+
+      comparisonPolars.forEach((polar) => {
+        if (polar.data && polar.data.alpha && polar.data.cl && polar.data.cd) {
+          const alphaIdx = polar.data.alpha.findIndex(a => Math.abs(a - alpha) < 0.1);
+          if (alphaIdx >= 0) {
+            const cl = polar.data.cl[alphaIdx];
+            const cd = polar.data.cd[alphaIdx];
+            const cm = polar.data.cm?.[alphaIdx];
+            
+            switch (mode) {
+              case "ld":
+                point[polar.id] = cd !== 0 ? cl / cd : null;
+                break;
+              case "cl":
+                point[polar.id] = cl;
+                break;
+              case "cd":
+                point[polar.id] = cd;
+                break;
+              case "cm":
+                point[polar.id] = cm ?? null;
+                break;
+              case "dragPolar":
+                // For drag polar, we'll use CL as the x-axis key and store CD
+                point[polar.id] = cd;
+                point[`${polar.id}_cl`] = cl;
+                break;
+            }
+          }
+        }
+      });
+
+      chartData.push(point);
+    }
+
+    return chartData;
+  }, [comparisonPolars]);
+
+  // Generate drag polar data (CD vs CL)
+  const generateDragPolarData = useCallback(() => {
+    if (!comparisonPolars || comparisonPolars.length === 0) return [];
+
+    const dragPolarData: any[] = [];
+    const allClValues: number[] = [];
+    const allCdValues: number[] = [];
+
+    // Collect all unique CL values across all airfoils
+    const clSet = new Set<number>();
+    comparisonPolars.forEach((polar) => {
+      if (polar.data && polar.data.cl && polar.data.cd) {
+        polar.data.cl.forEach(cl => {
+          if (cl !== null && cl !== undefined && !isNaN(cl)) {
+            clSet.add(Math.round(cl * 1000) / 1000);
+            allClValues.push(cl);
+          }
+        });
+        polar.data.cd.forEach(cd => {
+          if (cd !== null && cd !== undefined && !isNaN(cd)) {
+            allCdValues.push(cd);
+          }
+        });
+      }
+    });
+
+    const sortedClValues = Array.from(clSet).sort((a, b) => a - b);
+
+    sortedClValues.forEach(cl => {
+      const point: any = { cl };
+
+      comparisonPolars.forEach((polar) => {
+        if (polar.data && polar.data.cl && polar.data.cd) {
+          let closestCd: number | null = null;
+          let closestAlpha: number | null = null;
+          let minDiff = Infinity;
+
+          for (let i = 0; i < polar.data.cl.length && i < polar.data.cd.length; i++) {
+            const polarCl = polar.data.cl[i];
+            const polarCd = polar.data.cd[i];
+            if (polarCl !== null && polarCl !== undefined && polarCd !== null && polarCd !== undefined &&
+                !isNaN(polarCl) && !isNaN(polarCd)) {
+              const diff = Math.abs(polarCl - cl);
+              if (diff < minDiff) {
+                minDiff = diff;
+                closestCd = polarCd;
+                closestAlpha = polar.data.alpha?.[i] ?? null;
+              }
+            }
+          }
+
+          if (closestCd !== null && minDiff < 0.01) {
+            point[polar.id] = closestCd;
+            point[`${polar.id}_cl`] = cl;
+            point[`${polar.id}_alpha`] = closestAlpha;
+          }
+        }
+      });
+
+      if (Object.keys(point).length > 1) {
+        dragPolarData.push(point);
+      }
+    });
+
+    return dragPolarData;
+  }, [comparisonPolars]);
+
+  // Get chart data for current mode
+  const currentChartData = useMemo(() => {
+    if (graphMode === "dragPolar") {
+      return generateDragPolarData();
+    }
+    return generateChartDataForMode(graphMode);
+  }, [graphMode, generateChartDataForMode, generateDragPolarData]);
+
+  // Get Y-axis label and domain for current mode
+  const getYAxisConfig = (mode: GraphMode) => {
+    switch (mode) {
+      case "ld":
+        return { label: "L/D Ratio", formatter: (val: number) => val.toFixed(2) };
+      case "cl":
+        return { label: "Lift Coefficient, CL", formatter: (val: number) => val.toFixed(2) };
+      case "cd":
+        return { label: "Drag Coefficient, CD", formatter: (val: number) => val.toFixed(4) };
+      case "cm":
+        return { label: "Pitching Moment Coefficient, CM", formatter: (val: number) => val.toFixed(3) };
+      case "dragPolar":
+        return { label: "Drag Coefficient, CD", formatter: (val: number) => val.toFixed(4) };
+      default:
+        return { label: "L/D Ratio", formatter: (val: number) => val.toFixed(2) };
+    }
+  };
+
+  const yAxisConfig = getYAxisConfig(graphMode);
+
   return (
     <ToolWrapper>
       <ToolHeader
@@ -1074,14 +1226,21 @@ const LiftDragAnalyzer = () => {
       </ToolSection>
 
       {/* Comparison Chart */}
-      {comparisonData.length > 0 && (
+      {(comparisonData.length > 0 || comparisonPolars.length > 0) && (
         <div className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-cyan-400/30 p-6 shadow-lg backdrop-blur-sm">
           {/* Graph Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h3 className="text-xl font-bold text-cyan-300">Performance Comparison (L/D Ratio)</h3>
+              <h3 className="text-xl font-bold text-cyan-300">
+                {graphMode === "ld" && "Performance Comparison (L/D Ratio)"}
+                {graphMode === "cl" && "Lift Coefficient (CL) vs Angle of Attack"}
+                {graphMode === "cd" && "Drag Coefficient (CD) vs Angle of Attack"}
+                {graphMode === "cm" && "Pitching Moment Coefficient (CM) vs Angle of Attack"}
+                {graphMode === "dragPolar" && "Drag Polar (CD vs CL)"}
+              </h3>
               <p className="text-sm text-slate-400 mt-1">
-                Using your wing's calculated Aspect Ratio of {safeToFixed(result?.aspectRatio, 2)}
+                {graphMode === "ld" && `Using your wing's calculated Aspect Ratio of ${safeToFixed(result?.aspectRatio, 2)}`}
+                {graphMode !== "ld" && `Showing ${comparisonPolars.length} airfoil${comparisonPolars.length > 1 ? 's' : ''} at Re = 1,000,000`}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -1175,79 +1334,165 @@ const LiftDragAnalyzer = () => {
             )}
           </div>
 
-          {/* Graph Body - Chart Area */}
-          <div ref={ldChartRef} className="relative min-h-[400px] mt-2">
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={comparisonData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis
-                dataKey="alpha"
-                stroke="#94a3b8"
-                label={{ value: "Angle of Attack (degrees)", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
-              />
-              <YAxis
-                stroke="#94a3b8"
-                label={{ value: "L/D Ratio", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
-              />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
-                labelStyle={{ color: "#22d3ee" }}
-                formatter={(value: number) => value.toFixed(2)}
-              />
-              
-              {/* Dynamic Line Rendering - unified with polar charts */}
-              {comparisonPolars.map((polar, index) => {
-                const colors = ['#22d3ee', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
-                const color = colors[index % colors.length];
-                const isActive = polar.id === inputs.airfoil;
+          {/* Mode Selector Tabs */}
+          <Tabs value={graphMode} onValueChange={(value) => setGraphMode(value as GraphMode)}>
+            <TabsList className="bg-slate-700/50 border border-cyan-400/30 w-full justify-start">
+              <TabsTrigger value="ld" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+                L/D vs α
+              </TabsTrigger>
+              <TabsTrigger value="cl" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+                CL vs α
+              </TabsTrigger>
+              <TabsTrigger value="cd" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+                CD vs α
+              </TabsTrigger>
+              <TabsTrigger value="cm" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+                CM vs α
+              </TabsTrigger>
+              <TabsTrigger value="dragPolar" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+                Drag Polar (CD vs CL)
+              </TabsTrigger>
+            </TabsList>
 
-                return (
-                  <Line
-                    key={polar.id}
-                    connectNulls
-                    type="monotone"
-                    dataKey={polar.id}
-                    name={polar.name}
-                    stroke={color}
-                    strokeWidth={isActive ? 3 : 2}
-                    strokeDasharray={isActive ? undefined : "5 5"}
-                    dot={false}
-                    legendType="none"
-                  />
-                );
-              })}
-              
-              {/* Show custom if it's the selected one */}
-              {inputs.airfoil === 'custom' && (
-                <Line
-                  connectNulls
-                  type="monotone"
-                  dataKey="custom"
-                  name={result?.airfoilName || "Custom"}
-                  stroke="#e879f9"
-                  strokeWidth={3}
-                  strokeDasharray="5 5"
-                  dot={false}
-                  legendType="none"
-                />
+            {/* Graph Body - Chart Area */}
+            <div ref={ldChartRef} className="relative min-h-[400px] mt-4">
+              {graphMode === "dragPolar" ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={currentChartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis
+                      type="number"
+                      dataKey="cl"
+                      stroke="#94a3b8"
+                      label={{ value: "Lift Coefficient, CL", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
+                      tickFormatter={(val) => val.toFixed(2)}
+                    />
+                    <YAxis
+                      type="number"
+                      stroke="#94a3b8"
+                      label={{ value: yAxisConfig.label, angle: -90, position: "insideLeft", fill: "#94a3b8" }}
+                      tickFormatter={yAxisConfig.formatter}
+                    />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
+                      labelStyle={{ color: "#22d3ee" }}
+                    />
+                    {comparisonPolars.map((polar, index) => {
+                      const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
+                      const isActive = polar.id === inputs.airfoil;
+                      return (
+                        <Line
+                          key={polar.id}
+                          type="monotone"
+                          dataKey={polar.id}
+                          name={polar.name}
+                          stroke={color}
+                          strokeWidth={isActive ? 3 : 2}
+                          dot={false}
+                          connectNulls={false}
+                          legendType="none"
+                        />
+                      );
+                    })}
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={graphMode === "ld" ? comparisonData : currentChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis
+                      dataKey="alpha"
+                      stroke="#94a3b8"
+                      label={{ value: "Angle of Attack (degrees)", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
+                    />
+                    <YAxis
+                      stroke="#94a3b8"
+                      label={{ value: yAxisConfig.label, angle: -90, position: "insideLeft", fill: "#94a3b8" }}
+                      tickFormatter={yAxisConfig.formatter}
+                    />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
+                      labelStyle={{ color: "#22d3ee" }}
+                      formatter={(value: number) => {
+                        if (graphMode === "cd") return value.toFixed(4);
+                        if (graphMode === "cm") return value.toFixed(3);
+                        return value.toFixed(2);
+                      }}
+                    />
+                    
+                    {/* Dynamic Line Rendering - unified with polar charts */}
+                    {graphMode === "ld" ? (
+                      <>
+                        {comparisonPolars.map((polar, index) => {
+                          const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
+                          const isActive = polar.id === inputs.airfoil;
+                          return (
+                            <Line
+                              key={polar.id}
+                              connectNulls
+                              type="monotone"
+                              dataKey={polar.id}
+                              name={polar.name}
+                              stroke={color}
+                              strokeWidth={isActive ? 3 : 2}
+                              strokeDasharray={isActive ? undefined : "5 5"}
+                              dot={false}
+                              legendType="none"
+                            />
+                          );
+                        })}
+                        {inputs.airfoil === 'custom' && (
+                          <Line
+                            connectNulls
+                            type="monotone"
+                            dataKey="custom"
+                            name={result?.airfoilName || "Custom"}
+                            stroke="#e879f9"
+                            strokeWidth={3}
+                            strokeDasharray="5 5"
+                            dot={false}
+                            legendType="none"
+                          />
+                        )}
+                      </>
+                    ) : (
+                      comparisonPolars.map((polar, index) => {
+                        const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
+                        const isActive = polar.id === inputs.airfoil;
+                        return (
+                          <Line
+                            key={polar.id}
+                            type="monotone"
+                            dataKey={polar.id}
+                            name={polar.name}
+                            stroke={color}
+                            strokeWidth={isActive ? 3 : 2}
+                            dot={false}
+                            connectNulls={false}
+                            legendType="none"
+                          />
+                        );
+                      })
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
               )}
-            </LineChart>
-          </ResponsiveContainer>
-          </div>
+            </div>
+          </Tabs>
           
           {/* Custom Legend - Outside Chart Area */}
           <div className="mt-3 pt-3 border-t border-slate-700/50">
             <CustomLegend
               items={[
                 ...comparisonPolars.map((polar, index) => {
-                  const colors = ['#22d3ee', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+                  const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
                   return {
                     id: polar.id,
                     name: getAirfoilLegendLabel(polar.id, polar.name),
-                    color: colors[index % colors.length],
+                    color: color,
                   };
                 }),
-                ...(inputs.airfoil === 'custom' ? [{
+                ...(inputs.airfoil === 'custom' && graphMode === "ld" ? [{
                   id: 'custom',
                   name: result?.airfoilName || "Custom",
                   color: '#e879f9',
