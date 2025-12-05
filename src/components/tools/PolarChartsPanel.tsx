@@ -280,10 +280,10 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
   }
 
   // Calculate domains for drag polar with safe defaults
-  const clMin = allClValues.length > 0 ? Math.max(0, Math.min(...allClValues) - 0.1) : 0;
-  const clMax = allClValues.length > 0 ? Math.max(...allClValues) + 0.1 : 1;
-  const cdMin = 0; // Always start from 0
-  const cdMax = allCdValues.length > 0 ? Math.max(...allCdValues) * 1.05 : 0.1;
+  const dragPolarClMin = allClValues.length > 0 ? Math.max(0, Math.min(...allClValues) - 0.1) : 0;
+  const dragPolarClMax = allClValues.length > 0 ? Math.max(...allClValues) + 0.1 : 1;
+  const dragPolarCdMin = 0; // Always start from 0
+  const dragPolarCdMax = allCdValues.length > 0 ? Math.max(...allCdValues) * 1.05 : 0.1;
 
   // Custom tooltip for drag polar
   const DragPolarTooltip = ({ active, payload }: any) => {
@@ -657,14 +657,14 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
                     <XAxis
                       type="number"
                       dataKey="cl"
-                      domain={[clMin, clMax]}
+                      domain={[dragPolarClMin, dragPolarClMax]}
                       stroke="#94a3b8"
                       label={{ value: "Lift Coefficient, CL", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
                       tickFormatter={(val) => val.toFixed(2)}
                     />
                     <YAxis
                       type="number"
-                      domain={[cdMin, cdMax]}
+                      domain={[dragPolarCdMin, dragPolarCdMax]}
                       stroke="#94a3b8"
                       label={{ value: "Drag Coefficient, CD", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
                       tickFormatter={(val) => val.toFixed(4)}
