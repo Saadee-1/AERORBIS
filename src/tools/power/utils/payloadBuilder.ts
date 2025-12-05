@@ -77,7 +77,7 @@ export function buildPowerSystemPayload(
     `Simulation length: ${result.frames.length} min, Endurance: ${(result.endurance_min / 60).toFixed(2)} h`,
     `Solar contribution: ${(result.solarFraction * 100).toFixed(1)}%`,
     `Power margin range: ${result.minPowerMargin_W.toFixed(1)} W to ${Math.max(
-      ...result.frames.map((f) => f.powerMargin_W)
+      ...result.frames.map((f) => f.netPower_W)
     ).toFixed(1)} W`,
   ];
 
@@ -110,7 +110,7 @@ export function buildPowerSystemPayload(
       endurance_hours: result.endurance_min / 60,
       solarFraction: result.solarFraction,
       minPowerMargin_W: result.minPowerMargin_W,
-      maxPowerMargin_W: Math.max(...result.frames.map((f) => f.powerMargin_W)),
+      maxPowerMargin_W: Math.max(...result.frames.map((f) => f.netPower_W)),
       maxVoltage: result.maxVoltage,
       minVoltage: result.minVoltage,
       totalEnergyUsed_Wh,

@@ -12,7 +12,7 @@
 
 export interface AirfoilDescription {
   name: string;
-  family: 'NACA' | 'Selig' | 'Eppler' | 'Wortmann' | 'Supercritical' | 'Wind Turbine' | 'General Aviation';
+  family: 'NACA' | 'Selig' | 'Eppler' | 'Wortmann' | 'Supercritical' | 'Wind Turbine' | 'General Aviation' | 'MH-series' | 'SD-series';
   camber?: number; // Percentage camber
   thickness?: number; // Percentage thickness
   designPurpose: string;

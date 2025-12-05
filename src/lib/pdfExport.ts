@@ -1778,7 +1778,7 @@ export async function assemblePdfDocument(options: {
 
     // Generate PDF bytes
     const pdfBytes = await pdfDoc.save();
-    return new Blob([pdfBytes], { type: 'application/pdf' });
+    return new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     // Check if it's a font loading error

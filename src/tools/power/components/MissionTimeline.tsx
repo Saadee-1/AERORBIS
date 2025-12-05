@@ -6,6 +6,7 @@ import { AeroCard } from '@/components/common/AeroCard';
 import { AeroFormField } from '@/components/forms/AeroFormField';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Plus, Trash2 } from 'lucide-react';
 import { MissionPhase } from '../data/missionPresets';
 import { MISSION_PRESETS, getMissionPreset } from '../data/missionPresets';
@@ -25,13 +26,13 @@ export function MissionTimeline({ phases, onPhasesChange }: MissionTimelineProps
   
   const addPhase = () => {
     const lastPhase = phases[phases.length - 1];
-    const startTime = lastPhase ? lastPhase.startTime + lastPhase.duration : 0;
+    const startTime_min = lastPhase ? lastPhase.startTime_min + lastPhase.duration_min : 0;
     onPhasesChange([
       ...phases,
       {
         name: `Phase ${phases.length + 1}`,
-        startTime,
-        duration: 10,
+        startTime_min,
+        duration_min: 10,
         loadMultiplier: 1.0,
         solarAvailable: true,
         altitude: 0,
@@ -50,7 +51,7 @@ export function MissionTimeline({ phases, onPhasesChange }: MissionTimelineProps
   };
   
   const totalDuration = phases.length > 0
-    ? phases[phases.length - 1].startTime + phases[phases.length - 1].duration
+    ? phases[phases.length - 1].startTime_min + phases[phases.length - 1].duration_min
     : 0;
   
   return (
@@ -103,8 +104,8 @@ export function MissionTimeline({ phases, onPhasesChange }: MissionTimelineProps
                 <AeroFormField label="Start Time (min)">
                   <input
                     type="number"
-                    value={phase.startTime}
-                    onChange={(e) => updatePhase(index, { startTime: parseFloat(e.target.value) || 0 })}
+                    value={phase.startTime_min}
+                    onChange={(e) => updatePhase(index, { startTime_min: parseFloat(e.target.value) || 0 })}
                     className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
                     min="0"
                     step="1"
@@ -114,8 +115,8 @@ export function MissionTimeline({ phases, onPhasesChange }: MissionTimelineProps
                 <AeroFormField label="Duration (min)">
                   <input
                     type="number"
-                    value={phase.duration}
-                    onChange={(e) => updatePhase(index, { duration: parseFloat(e.target.value) || 0 })}
+                    value={phase.duration_min}
+                    onChange={(e) => updatePhase(index, { duration_min: parseFloat(e.target.value) || 0 })}
                     className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
                     min="0"
                     step="1"
