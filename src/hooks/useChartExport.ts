@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { exportChartAsPNG, exportChartAsSVG } from "@/lib/polarChartUtils";
+import { toPng } from "html-to-image";
 
 interface UseChartExportOptions {
   getFileBaseName?: () => string;
@@ -55,30 +55,72 @@ export function useChartExport(
   );
 
   const exportAsPng = useCallback(async () => {
-    if (!ref.current) {
-      console.warn("Chart ref not available for PNG export");
+    const node = ref.current;
+    if (!node) {
+      console.error("exportAsPng: ref.current is null");
       return;
     }
 
     try {
-      const fileName = generateFileName("png");
-      await exportChartAsPNG(ref.current, fileName);
+      const dataUrl = await toPng(node, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#0f172a", // slate-900 background
+      });
+
+      const link = document.createElement("a");
+      link.download = generateFileName("png");
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
-      console.error("PNG export failed:", error);
+      console.error("exportAsPng failed:", error);
     }
   }, [ref, generateFileName]);
 
-  const exportAsSvg = useCallback(async () => {
-    if (!ref.current) {
-      console.warn("Chart ref not available for SVG export");
+  const exportAsSvg = useCallback(() => {
+    const node = ref.current;
+    if (!node) {
+      console.error("exportAsSvg: ref.current is null");
       return;
     }
 
     try {
-      const fileName = generateFileName("svg");
-      await exportChartAsSVG(ref.current, fileName);
+      // Look for the first SVG inside the card
+      const svg = node.querySelector("svg");
+      if (!svg) {
+        console.error("exportAsSvg: no <svg> element found inside card");
+        return;
+      }
+
+      // Clone the SVG to avoid modifying the original
+      const clone = svg.cloneNode(true) as SVGSVGElement;
+
+      // Ensure xmlns is set so the file displays correctly
+      if (!clone.getAttribute("xmlns")) {
+        clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      }
+
+      // Serialize the cloned SVG
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(clone);
+
+      // Create blob and download
+      const blob = new Blob([svgString], {
+        type: "image/svg+xml;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = generateFileName("svg");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("SVG export failed:", error);
+      console.error("exportAsSvg failed:", error);
     }
   }, [ref, generateFileName]);
 
