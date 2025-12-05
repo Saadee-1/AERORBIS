@@ -37,16 +37,20 @@ interface PolarChartsPanelProps {
 }
 
 /**
- * Extract role from airfoil name or description
- * Format: "{name} · {role}" or just "{name}" if no role found
+ * Get clean airfoil name without role in parentheses
  */
-const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string => {
+const getAirfoilName = (airfoilName: string): string => {
+  return airfoilName.replace(/\s*\([^)]+\)\s*/, '').trim();
+};
+
+/**
+ * Extract role from airfoil name or description
+ */
+const getAirfoilRole = (airfoilId: string, airfoilName: string): string | undefined => {
   // Try to extract role from name (text in parentheses)
   const roleMatch = airfoilName.match(/\(([^)]+)\)/);
   if (roleMatch) {
-    const role = roleMatch[1];
-    const nameWithoutRole = airfoilName.replace(/\s*\([^)]+\)\s*/, '').trim();
-    return `${nameWithoutRole} · ${role}`;
+    return roleMatch[1];
   }
   
   // Try to get role from airfoil descriptions (first application)
@@ -55,32 +59,40 @@ const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string =
     const firstApp = description.applications[0];
     // Extract key words (e.g., "General aviation aircraft" -> "GA")
     // Only return a role if we can match it to a known short tag
-    let role: string | undefined;
-    if (firstApp.toLowerCase().includes('general aviation')) role = 'GA';
-    else if (firstApp.toLowerCase().includes('training')) role = 'Trainer';
-    else if (firstApp.toLowerCase().includes('uav')) role = 'UAV';
-    else if (firstApp.toLowerCase().includes('glider')) role = 'Glider';
-    else if (firstApp.toLowerCase().includes('racer') || firstApp.toLowerCase().includes('racing')) role = 'Racer';
-    else if (firstApp.toLowerCase().includes('aerobatic')) role = 'Aerobatic';
-    else if (firstApp.toLowerCase().includes('wind turbine')) role = 'Wind Turbine';
-    else if (firstApp.toLowerCase().includes('high-speed')) role = 'High-Speed';
-    else if (firstApp.toLowerCase().includes('control surface')) role = 'Control';
-    else if (firstApp.toLowerCase().includes('tail')) role = 'Tail';
-    else if (firstApp.toLowerCase().includes('supersonic')) role = 'Supersonic';
-    else if (firstApp.toLowerCase().includes('rotor')) role = 'Rotor';
-    else if (firstApp.toLowerCase().includes('sport')) role = 'Sport';
-    else if (firstApp.toLowerCase().includes('bush')) role = 'Bush';
-    else if (firstApp.toLowerCase().includes('stol')) role = 'STOL';
-    else if (firstApp.toLowerCase().includes('pattern')) role = 'Pattern';
-    
-    // Only add role if we found a match (don't use full application string)
-    if (role) {
-      return `${airfoilName} · ${role}`;
-    }
+    if (firstApp.toLowerCase().includes('general aviation')) return 'GA';
+    else if (firstApp.toLowerCase().includes('training')) return 'Trainer';
+    else if (firstApp.toLowerCase().includes('uav')) return 'UAV';
+    else if (firstApp.toLowerCase().includes('glider')) return 'Glider';
+    else if (firstApp.toLowerCase().includes('racer') || firstApp.toLowerCase().includes('racing')) return 'Racer';
+    else if (firstApp.toLowerCase().includes('aerobatic')) return 'Aerobatic';
+    else if (firstApp.toLowerCase().includes('wind turbine')) return 'Wind Turbine';
+    else if (firstApp.toLowerCase().includes('high-speed')) return 'High-Speed';
+    else if (firstApp.toLowerCase().includes('control surface')) return 'Control';
+    else if (firstApp.toLowerCase().includes('tail')) return 'Tail';
+    else if (firstApp.toLowerCase().includes('supersonic')) return 'Supersonic';
+    else if (firstApp.toLowerCase().includes('rotor')) return 'Rotor';
+    else if (firstApp.toLowerCase().includes('sport')) return 'Sport';
+    else if (firstApp.toLowerCase().includes('bush')) return 'Bush';
+    else if (firstApp.toLowerCase().includes('stol')) return 'STOL';
+    else if (firstApp.toLowerCase().includes('pattern')) return 'Pattern';
   }
   
-  // Fallback: just the name (no role if we can't shorten it)
-  return airfoilName;
+  return undefined;
+};
+
+/**
+ * Extract role from airfoil name or description
+ * Format: "{name} · {role}" or just "{name}" if no role found
+ */
+const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string => {
+  const name = getAirfoilName(airfoilName);
+  const role = getAirfoilRole(airfoilId, airfoilName);
+  
+  if (role) {
+    return `${name} · ${role}`;
+  }
+  
+  return name;
 };
 
 /**
