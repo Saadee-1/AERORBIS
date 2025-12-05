@@ -244,8 +244,8 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             />
           </AreaChart>
         </ResponsiveContainer>
+        </div>
       </AeroCard>
-      </div>
       
       {/* Sun Elevation */}
       <AeroCard 
