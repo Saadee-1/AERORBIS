@@ -65,7 +65,8 @@ const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string =
     // Use first application as role, but shorten it
     const firstApp = description.applications[0];
     // Extract key words (e.g., "General aviation aircraft" -> "GA")
-    let role = firstApp;
+    // Only assign a role if we can match it to a known short tag
+    let role: string | undefined = undefined;
     if (firstApp.toLowerCase().includes('general aviation')) role = 'GA';
     else if (firstApp.toLowerCase().includes('training')) role = 'Trainer';
     else if (firstApp.toLowerCase().includes('uav')) role = 'UAV';
@@ -76,8 +77,17 @@ const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string =
     else if (firstApp.toLowerCase().includes('high-speed')) role = 'High-Speed';
     else if (firstApp.toLowerCase().includes('control surface')) role = 'Control';
     else if (firstApp.toLowerCase().includes('tail')) role = 'Tail';
+    else if (firstApp.toLowerCase().includes('supersonic')) role = 'Supersonic';
+    else if (firstApp.toLowerCase().includes('rotor')) role = 'Rotor';
+    else if (firstApp.toLowerCase().includes('sport')) role = 'Sport';
+    else if (firstApp.toLowerCase().includes('bush')) role = 'Bush';
+    else if (firstApp.toLowerCase().includes('stol')) role = 'STOL';
+    else if (firstApp.toLowerCase().includes('pattern')) role = 'Pattern';
     
-    return `${airfoilName} · ${role}`;
+    // Only return role if we found a match, otherwise just return the name
+    if (role) {
+      return `${airfoilName} · ${role}`;
+    }
   }
   
   // Fallback: just the name
