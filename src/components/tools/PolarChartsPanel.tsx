@@ -7,12 +7,13 @@
  * with multi-airfoil comparison and stall visualization
  */
 
-import { useRef } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useRef, useState } from "react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter } from "recharts";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { AeroButton } from "@/components/common/AeroButton";
 import { Download, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AIRFOIL_COLORS,
   calculateClRange,
@@ -122,11 +123,15 @@ const CustomTooltip = ({ active, payload, label, chartType }: any) => {
   );
 };
 
+type ChartMode = "cl" | "cd" | "cm" | "dragPolar";
+
 export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelProps) {
   const { toast } = useToast();
+  const [chartMode, setChartMode] = useState<ChartMode>("cl");
   const clChartRef = useRef<HTMLDivElement>(null);
   const cdChartRef = useRef<HTMLDivElement>(null);
   const cmChartRef = useRef<HTMLDivElement>(null);
+  const dragPolarChartRef = useRef<HTMLDivElement>(null);
 
   if (!polars || polars.length === 0) {
     return null;
@@ -202,10 +207,112 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     ? `${(reynoldsNumber / 1000000).toFixed(1)}M` 
     : `${(reynoldsNumber / 1000).toFixed(0)}k`;
 
+  // Prepare drag polar data (CD vs CL)
+  // For each airfoil, create { cl, cd, alpha } pairs
+  const dragPolarSeries = polars.map((polar) => {
+    const points: Array<{ cl: number; cd: number; alpha?: number }> = [];
+    for (let i = 0; i < polar.data.cl.length && i < polar.data.cd.length; i++) {
+      const cl = polar.data.cl[i];
+      const cd = polar.data.cd[i];
+      if (cl !== null && cl !== undefined && cd !== null && cd !== undefined && 
+          !isNaN(cl) && !isNaN(cd)) {
+        points.push({
+          cl,
+          cd,
+          alpha: polar.data.alpha[i],
+        });
+      }
+    }
+    // Sort by CL for smooth line rendering
+    points.sort((a, b) => a.cl - b.cl);
+    return { id: polar.id, name: polar.name, data: points };
+  });
+
+  // Calculate domains for drag polar
+  const allClValues: number[] = [];
+  const allCdValues: number[] = [];
+  dragPolarSeries.forEach(series => {
+    series.data.forEach(point => {
+      allClValues.push(point.cl);
+      allCdValues.push(point.cd);
+    });
+  });
+
+  const clMin = allClValues.length > 0 ? Math.max(0, Math.min(...allClValues) - 0.1) : 0;
+  const clMax = allClValues.length > 0 ? Math.max(...allClValues) + 0.1 : 1;
+  const cdMin = 0; // Always start from 0
+  const cdMax = allCdValues.length > 0 ? Math.max(...allCdValues) * 1.05 : 0.1;
+
+  // Custom tooltip for drag polar
+  const DragPolarTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || !payload.length) {
+      return null;
+    }
+
+    return (
+      <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
+        {payload.map((entry: any, index: number) => {
+          const point = entry.payload;
+          const cl = point?.cl;
+          const cd = point?.cd;
+          const alpha = point?.alpha;
+          const series = dragPolarSeries.find(s => s.id === entry.dataKey);
+
+          return (
+            <div key={index} className="mb-2 last:mb-0">
+              <p className="text-cyan-400 font-semibold mb-1">
+                {series?.name || entry.dataKey}
+              </p>
+              <div className="text-sm space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-300">CL:</span>
+                  <span className="text-white font-semibold">{cl?.toFixed(3) ?? 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-300">CD:</span>
+                  <span className="text-white font-semibold">{cd?.toFixed(4) ?? 'N/A'}</span>
+                </div>
+                {alpha !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-300">α:</span>
+                    <span className="text-white font-semibold">{alpha?.toFixed(1)}°</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-300">Re:</span>
+                  <span className="text-white font-semibold">{reDisplay}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-6">
-      {/* CL vs α Chart */}
-      <div ref={clChartRef}>
+    <div className="space-y-4">
+      {/* Mode Selector */}
+      <Tabs value={chartMode} onValueChange={(value) => setChartMode(value as ChartMode)}>
+        <TabsList className="bg-slate-700/50 border border-cyan-400/30">
+          <TabsTrigger value="cl" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+            CL vs α
+          </TabsTrigger>
+          <TabsTrigger value="cd" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+            CD vs α
+          </TabsTrigger>
+          <TabsTrigger value="cm" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+            CM vs α
+          </TabsTrigger>
+          <TabsTrigger value="dragPolar" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+            Drag Polar (CD vs CL)
+          </TabsTrigger>
+        </TabsList>
+
+        <div className="mt-4">
+          {/* CL vs α Chart */}
+          <TabsContent value="cl">
+            <div ref={clChartRef}>
         <ChartCard
           title={`Lift Coefficient (Cl) vs Angle of Attack — Re = ${reDisplay}`}
           height={400}
@@ -284,10 +391,12 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
             Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
           </p>
         </ChartCard>
-      </div>
+            </div>
+          </TabsContent>
 
-      {/* CD vs α Chart */}
-      <div ref={cdChartRef}>
+          {/* CD vs α Chart */}
+          <TabsContent value="cd">
+            <div ref={cdChartRef}>
         <ChartCard
           title={`Drag Coefficient (Cd) vs Angle of Attack — Re = ${reDisplay}`}
           height={400}
@@ -365,11 +474,13 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
             Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
           </p>
         </ChartCard>
-      </div>
+            </div>
+          </TabsContent>
 
-      {/* CM vs α Chart (only if CM data available) */}
-      {polars.some(p => p.data.cm && p.data.cm.length > 0) && (
-        <div ref={cmChartRef}>
+          {/* CM vs α Chart (only if CM data available) */}
+          <TabsContent value="cm">
+            {polars.some(p => p.data.cm && p.data.cm.length > 0) ? (
+              <div ref={cmChartRef}>
           <ChartCard
             title={`Pitching Moment Coefficient (Cm) vs Angle of Attack — Re = ${reDisplay}`}
             height={400}
@@ -464,8 +575,102 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
               Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
             </p>
           </ChartCard>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-slate-400">
+                <p>CM data not available for selected airfoils</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Drag Polar Chart (CD vs CL) */}
+          <TabsContent value="dragPolar">
+            <div ref={dragPolarChartRef}>
+              <ChartCard
+                title={`Drag Polar (CD vs CL) — Re = ${reDisplay}`}
+                height={400}
+                headerActions={
+                  <div className="flex gap-2">
+                    <AeroButton
+                      variant="outline"
+                      onClick={() => handleExport(dragPolarChartRef, `DragPolar_CD_vs_CL_Re${reDisplay}.png`, 'png')}
+                      icon={Download}
+                    >
+                      PNG
+                    </AeroButton>
+                    <AeroButton
+                      variant="outline"
+                      onClick={() => handleExport(dragPolarChartRef, `DragPolar_CD_vs_CL_Re${reDisplay}.svg`, 'svg')}
+                      icon={ImageIcon}
+                    >
+                      SVG
+                    </AeroButton>
+                  </div>
+                }
+              >
+                <ResponsiveContainer width="100%" height={400}>
+                  <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis
+                      type="number"
+                      dataKey="cl"
+                      domain={[clMin, clMax]}
+                      stroke="#94a3b8"
+                      label={{ value: "Lift Coefficient, CL", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
+                      tickFormatter={(val) => val.toFixed(2)}
+                    />
+                    <YAxis
+                      type="number"
+                      dataKey="cd"
+                      domain={[cdMin, cdMax]}
+                      stroke="#94a3b8"
+                      label={{ value: "Drag Coefficient, CD", angle: -90, position: "insideLeft", fill: "#94a3b8" }}
+                      tickFormatter={(val) => val.toFixed(4)}
+                    />
+                    <Tooltip
+                      content={<DragPolarTooltip />}
+                      cursor={{ strokeDasharray: '3 3' }}
+                    />
+                    
+                    {/* Render scatter/line for each airfoil */}
+                    {dragPolarSeries.map((series, index) => {
+                      const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
+
+                      return (
+                        <Scatter
+                          key={series.id}
+                          data={series.data}
+                          fill={color}
+                          line={{ stroke: color, strokeWidth: 2 }}
+                          lineType="joint"
+                          name={series.name}
+                          legendType="none"
+                        />
+                      );
+                    })}
+                  </ScatterChart>
+                </ResponsiveContainer>
+                
+                {/* Custom Legend - Outside Chart Area */}
+                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                  <AeroverseLegend
+                    items={polars.map((polar, index): LegendItem => ({
+                      id: polar.id,
+                      name: getAirfoilName(polar.name),
+                      role: getAirfoilRole(polar.id, polar.name),
+                      color: AIRFOIL_COLORS[index % AIRFOIL_COLORS.length],
+                    }))}
+                  />
+                </div>
+                
+                <p className="text-xs text-slate-400 mt-2 text-center">
+                  Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
+                </p>
+              </ChartCard>
+            </div>
+          </TabsContent>
         </div>
-      )}
+      </Tabs>
     </div>
   );
 }
