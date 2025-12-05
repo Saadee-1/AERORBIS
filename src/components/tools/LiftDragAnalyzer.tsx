@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Info, Plane, Pencil, BarChartHorizontal, Settings2, Download, X, Plus } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
@@ -45,6 +45,74 @@ import { loadPolarForComparison, exportChartAsPNG, exportChartAsSVG } from "@/li
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
+
+/**
+ * Extract role from airfoil name or description
+ * Format: "{name} · {role}" or just "{name}" if no role found
+ */
+const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string => {
+  // Try to extract role from name (text in parentheses)
+  const roleMatch = airfoilName.match(/\(([^)]+)\)/);
+  if (roleMatch) {
+    const role = roleMatch[1];
+    const nameWithoutRole = airfoilName.replace(/\s*\([^)]+\)\s*/, '').trim();
+    return `${nameWithoutRole} · ${role}`;
+  }
+  
+  // Try to get role from airfoil descriptions (first application)
+  const description = AIRFOIL_DESCRIPTIONS[airfoilId];
+  if (description?.applications && description.applications.length > 0) {
+    // Use first application as role, but shorten it
+    const firstApp = description.applications[0];
+    // Extract key words (e.g., "General aviation aircraft" -> "GA")
+    let role = firstApp;
+    if (firstApp.toLowerCase().includes('general aviation')) role = 'GA';
+    else if (firstApp.toLowerCase().includes('training')) role = 'Trainer';
+    else if (firstApp.toLowerCase().includes('uav')) role = 'UAV';
+    else if (firstApp.toLowerCase().includes('glider')) role = 'Glider';
+    else if (firstApp.toLowerCase().includes('racer') || firstApp.toLowerCase().includes('racing')) role = 'Racer';
+    else if (firstApp.toLowerCase().includes('aerobatic')) role = 'Aerobatic';
+    else if (firstApp.toLowerCase().includes('wind turbine')) role = 'Wind Turbine';
+    else if (firstApp.toLowerCase().includes('high-speed')) role = 'High-Speed';
+    else if (firstApp.toLowerCase().includes('control surface')) role = 'Control';
+    else if (firstApp.toLowerCase().includes('tail')) role = 'Tail';
+    
+    return `${airfoilName} · ${role}`;
+  }
+  
+  // Fallback: just the name
+  return airfoilName;
+};
+
+/**
+ * Custom Legend Component
+ * Renders a flexbox-based legend that never overlaps
+ */
+interface CustomLegendProps {
+  items: Array<{
+    id: string;
+    name: string;
+    color: string;
+  }>;
+}
+
+const CustomLegend = ({ items }: CustomLegendProps) => {
+  if (!items || items.length === 0) return null;
+  
+  return (
+    <div className="flex flex-wrap gap-x-3 gap-y-1.5 items-center justify-start text-xs leading-tight">
+      {items.map((item) => (
+        <div key={item.id} className="inline-flex items-center whitespace-nowrap">
+          <div
+            className="w-3.5 h-0.5 mr-1.5 flex-shrink-0"
+            style={{ backgroundColor: item.color }}
+          />
+          <span className="text-slate-300">{item.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type AirfoilKey = keyof typeof AIRFOIL_DATA | "custom";
@@ -1116,7 +1184,6 @@ const LiftDragAnalyzer = () => {
                 labelStyle={{ color: "#22d3ee" }}
                 formatter={(value: number) => value.toFixed(2)}
               />
-              <Legend />
               
               {/* Dynamic Line Rendering - unified with polar charts */}
               {comparisonPolars.map((polar, index) => {
@@ -1135,6 +1202,7 @@ const LiftDragAnalyzer = () => {
                     strokeWidth={isActive ? 3 : 2}
                     strokeDasharray={isActive ? undefined : "5 5"}
                     dot={false}
+                    legendType="none"
                   />
                 );
               })}
@@ -1150,10 +1218,32 @@ const LiftDragAnalyzer = () => {
                   strokeWidth={3}
                   strokeDasharray="5 5"
                   dot={false}
+                  legendType="none"
                 />
               )}
             </LineChart>
           </ResponsiveContainer>
+          </div>
+          
+          {/* Custom Legend - Outside Chart Area */}
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <CustomLegend
+              items={[
+                ...comparisonPolars.map((polar, index) => {
+                  const colors = ['#22d3ee', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+                  return {
+                    id: polar.id,
+                    name: getAirfoilLegendLabel(polar.id, polar.name),
+                    color: colors[index % colors.length],
+                  };
+                }),
+                ...(inputs.airfoil === 'custom' ? [{
+                  id: 'custom',
+                  name: result?.airfoilName || "Custom",
+                  color: '#e879f9',
+                }] : []),
+              ]}
+            />
           </div>
         </div>
       )}

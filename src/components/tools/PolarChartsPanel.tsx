@@ -8,7 +8,7 @@
  */
 
 import { useRef } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { AeroButton } from "@/components/common/AeroButton";
 import { Download, Image as ImageIcon } from "lucide-react";
@@ -24,6 +24,7 @@ import {
   exportChartAsSVG,
 } from "@/lib/polarChartUtils";
 import type { PolarData } from "@/lib/pdfExport";
+import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
 
 interface PolarChartsPanelProps {
   polars: Array<{
@@ -33,6 +34,74 @@ interface PolarChartsPanelProps {
   }>;
   reynoldsNumber: number;
 }
+
+/**
+ * Extract role from airfoil name or description
+ * Format: "{name} · {role}" or just "{name}" if no role found
+ */
+const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string => {
+  // Try to extract role from name (text in parentheses)
+  const roleMatch = airfoilName.match(/\(([^)]+)\)/);
+  if (roleMatch) {
+    const role = roleMatch[1];
+    const nameWithoutRole = airfoilName.replace(/\s*\([^)]+\)\s*/, '').trim();
+    return `${nameWithoutRole} · ${role}`;
+  }
+  
+  // Try to get role from airfoil descriptions (first application)
+  const description = AIRFOIL_DESCRIPTIONS[airfoilId];
+  if (description?.applications && description.applications.length > 0) {
+    // Use first application as role, but shorten it
+    const firstApp = description.applications[0];
+    // Extract key words (e.g., "General aviation aircraft" -> "GA")
+    let role = firstApp;
+    if (firstApp.toLowerCase().includes('general aviation')) role = 'GA';
+    else if (firstApp.toLowerCase().includes('training')) role = 'Trainer';
+    else if (firstApp.toLowerCase().includes('uav')) role = 'UAV';
+    else if (firstApp.toLowerCase().includes('glider')) role = 'Glider';
+    else if (firstApp.toLowerCase().includes('racer') || firstApp.toLowerCase().includes('racing')) role = 'Racer';
+    else if (firstApp.toLowerCase().includes('aerobatic')) role = 'Aerobatic';
+    else if (firstApp.toLowerCase().includes('wind turbine')) role = 'Wind Turbine';
+    else if (firstApp.toLowerCase().includes('high-speed')) role = 'High-Speed';
+    else if (firstApp.toLowerCase().includes('control surface')) role = 'Control';
+    else if (firstApp.toLowerCase().includes('tail')) role = 'Tail';
+    
+    return `${airfoilName} · ${role}`;
+  }
+  
+  // Fallback: just the name
+  return airfoilName;
+};
+
+/**
+ * Custom Legend Component
+ * Renders a flexbox-based legend that never overlaps
+ */
+interface CustomLegendProps {
+  items: Array<{
+    id: string;
+    name: string;
+    color: string;
+  }>;
+}
+
+const CustomLegend = ({ items }: CustomLegendProps) => {
+  if (!items || items.length === 0) return null;
+  
+  return (
+    <div className="flex flex-wrap gap-x-3 gap-y-1.5 items-center justify-start text-xs leading-tight">
+      {items.map((item) => (
+        <div key={item.id} className="inline-flex items-center whitespace-nowrap">
+          <div
+            className="w-3.5 h-0.5 mr-1.5 flex-shrink-0"
+            style={{ backgroundColor: item.color }}
+          />
+          <span className="text-slate-300">{item.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 /**
  * Custom tooltip for polar charts
@@ -184,7 +253,6 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
               <Tooltip
                 content={<CustomTooltip chartType="cl" />}
               />
-              <Legend />
               
               {/* Render lines for each airfoil */}
               {polars.map((polar, index) => {
@@ -201,11 +269,24 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
                     strokeWidth={2}
                     dot={false}
                     connectNulls={false}
+                    legendType="none"
                   />
                 );
               })}
             </LineChart>
           </ResponsiveContainer>
+          
+          {/* Custom Legend - Outside Chart Area */}
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <CustomLegend
+              items={polars.map((polar, index) => ({
+                id: polar.id,
+                name: getAirfoilLegendLabel(polar.id, polar.name),
+                color: AIRFOIL_COLORS[index % AIRFOIL_COLORS.length],
+              }))}
+            />
+          </div>
+          
           <p className="text-xs text-slate-400 mt-2 text-center">
             Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
           </p>
@@ -253,7 +334,6 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
               <Tooltip
                 content={<CustomTooltip chartType="cd" />}
               />
-              <Legend />
               
               {/* Render lines for each airfoil */}
               {polars.map((polar, index) => {
@@ -269,11 +349,24 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
                     strokeWidth={2}
                     dot={false}
                     connectNulls={false}
+                    legendType="none"
                   />
                 );
               })}
             </LineChart>
           </ResponsiveContainer>
+          
+          {/* Custom Legend - Outside Chart Area */}
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <CustomLegend
+              items={polars.map((polar, index) => ({
+                id: polar.id,
+                name: getAirfoilLegendLabel(polar.id, polar.name),
+                color: AIRFOIL_COLORS[index % AIRFOIL_COLORS.length],
+              }))}
+            />
+          </div>
+          
           <p className="text-xs text-slate-400 mt-2 text-center">
             Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
           </p>
@@ -322,7 +415,6 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
                 <Tooltip
                   content={<CustomTooltip chartType="cm" />}
                 />
-                <Legend />
                 
                 {/* Render zero line */}
                 <Line
@@ -350,11 +442,24 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
                       strokeWidth={2}
                       dot={false}
                       connectNulls={false}
+                      legendType="none"
                     />
                   );
                 })}
               </LineChart>
             </ResponsiveContainer>
+            
+            {/* Custom Legend - Outside Chart Area */}
+            <div className="mt-3 pt-3 border-t border-slate-700/50">
+              <CustomLegend
+                items={polars.map((polar, index) => ({
+                  id: polar.id,
+                  name: getAirfoilLegendLabel(polar.id, polar.name),
+                  color: AIRFOIL_COLORS[index % AIRFOIL_COLORS.length],
+                }))}
+              />
+            </div>
+            
             <p className="text-xs text-slate-400 mt-2 text-center">
               Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
             </p>
