@@ -3,8 +3,9 @@
  */
 
 import { AeroCard } from '@/components/common/AeroCard';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Rocket } from 'lucide-react';
+import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 
 interface PlotsPanelProps {
   altitudeSweep?: Array<{ Pa: number; T: number; Isp: number; mdot: number; Pe: number }>;
@@ -35,16 +36,25 @@ export function PlotsPanel({ altitudeSweep, expansionSweep, pressureSweep }: Plo
                 formatter={(value: number) => [`${(value / 1000).toFixed(2)} kN`, 'Thrust']}
                 labelFormatter={(label) => `Pa: ${(label / 1e5).toFixed(3)} bar`}
               />
-              <Legend />
               <Line 
                 type="monotone" 
                 dataKey="T" 
                 stroke="#06b6d4" 
                 strokeWidth={2}
                 dot={{ fill: '#06b6d4', r: 3 }}
+                legendType="none"
               />
             </LineChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <AeroverseLegend
+              items={[{
+                id: 'thrust',
+                name: 'Thrust',
+                color: '#06b6d4',
+              }]}
+            />
+          </div>
         </AeroCard>
       )}
 
@@ -67,16 +77,25 @@ export function PlotsPanel({ altitudeSweep, expansionSweep, pressureSweep }: Plo
                 formatter={(value: number) => [`${value.toFixed(1)} s`, 'Isp']}
                 labelFormatter={(label) => `ε: ${label.toFixed(1)}`}
               />
-              <Legend />
               <Line 
                 type="monotone" 
                 dataKey="Isp" 
                 stroke="#10b981" 
                 strokeWidth={2}
                 dot={{ fill: '#10b981', r: 3 }}
+                legendType="none"
               />
             </LineChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <AeroverseLegend
+              items={[{
+                id: 'isp',
+                name: 'Isp',
+                color: '#10b981',
+              }]}
+            />
+          </div>
         </AeroCard>
       )}
 
@@ -100,16 +119,25 @@ export function PlotsPanel({ altitudeSweep, expansionSweep, pressureSweep }: Plo
                 formatter={(value: number) => [`${value.toFixed(3)} kg/s`, 'Mass Flow']}
                 labelFormatter={(label) => `Pc: ${(label / 1e5).toFixed(1)} bar`}
               />
-              <Legend />
               <Line 
                 type="monotone" 
                 dataKey="mdot" 
                 stroke="#8b5cf6" 
                 strokeWidth={2}
                 dot={{ fill: '#8b5cf6', r: 3 }}
+                legendType="none"
               />
             </LineChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <AeroverseLegend
+              items={[{
+                id: 'mdot',
+                name: 'Mass Flow',
+                color: '#8b5cf6',
+              }]}
+            />
+          </div>
         </AeroCard>
       )}
 

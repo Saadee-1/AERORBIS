@@ -9,8 +9,8 @@ import {
   CartesianGrid,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 
@@ -145,10 +145,18 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
                 }}
                 formatter={(value: number) => [`${value.toFixed(2)} ${unit}`, "Δv"]}
               />
-              <Legend />
               <Bar dataKey="value" fill="#22d3ee" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50 px-6 pb-4">
+            <AeroverseLegend
+              items={data.map((item): LegendItem => ({
+                id: item.name.toLowerCase().replace(/\s+/g, '-'),
+                name: item.name,
+                color: item.color,
+              }))}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -186,10 +194,18 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
                 }}
                 formatter={(value: number) => [`${value.toFixed(2)} ${unit}`, "Δv"]}
               />
-              <Legend />
               <Bar dataKey="value" fill="#22d3ee" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50 px-6 pb-4">
+            <AeroverseLegend
+              items={data.map((item): LegendItem => ({
+                id: item.name.toLowerCase().replace(/\s+/g, '-'),
+                name: item.name,
+                color: item.color,
+              }))}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

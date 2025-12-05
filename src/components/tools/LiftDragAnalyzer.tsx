@@ -1227,13 +1227,14 @@ const LiftDragAnalyzer = () => {
           
           {/* Custom Legend - Outside Chart Area */}
           <div className="mt-3 pt-3 border-t border-slate-700/50">
-            <CustomLegend
+            <AeroverseLegend
               items={[
-                ...comparisonPolars.map((polar, index) => {
+                ...comparisonPolars.map((polar, index): LegendItem => {
                   const colors = ['#22d3ee', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
                   return {
                     id: polar.id,
-                    name: getAirfoilLegendLabel(polar.id, polar.name),
+                    name: getAirfoilName(polar.name),
+                    role: getAirfoilRole(polar.id, polar.name),
                     color: colors[index % colors.length],
                   };
                 }),

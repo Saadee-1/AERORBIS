@@ -25,6 +25,7 @@ import {
 } from "@/lib/polarChartUtils";
 import type { PolarData } from "@/lib/pdfExport";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 
 interface PolarChartsPanelProps {
   polars: Array<{
@@ -36,71 +37,40 @@ interface PolarChartsPanelProps {
 }
 
 /**
- * Extract role from airfoil name or description
- * Format: "{name} · {role}" or just "{name}" if no role found
+ * Extract role from airfoil name or description for legend
  */
-const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string => {
+const getAirfoilRole = (airfoilId: string, airfoilName: string): string | undefined => {
   // Try to extract role from name (text in parentheses)
   const roleMatch = airfoilName.match(/\(([^)]+)\)/);
   if (roleMatch) {
-    const role = roleMatch[1];
-    const nameWithoutRole = airfoilName.replace(/\s*\([^)]+\)\s*/, '').trim();
-    return `${nameWithoutRole} · ${role}`;
+    return roleMatch[1];
   }
   
   // Try to get role from airfoil descriptions (first application)
   const description = AIRFOIL_DESCRIPTIONS[airfoilId];
   if (description?.applications && description.applications.length > 0) {
-    // Use first application as role, but shorten it
     const firstApp = description.applications[0];
     // Extract key words (e.g., "General aviation aircraft" -> "GA")
-    let role = firstApp;
-    if (firstApp.toLowerCase().includes('general aviation')) role = 'GA';
-    else if (firstApp.toLowerCase().includes('training')) role = 'Trainer';
-    else if (firstApp.toLowerCase().includes('uav')) role = 'UAV';
-    else if (firstApp.toLowerCase().includes('glider')) role = 'Glider';
-    else if (firstApp.toLowerCase().includes('racer') || firstApp.toLowerCase().includes('racing')) role = 'Racer';
-    else if (firstApp.toLowerCase().includes('aerobatic')) role = 'Aerobatic';
-    else if (firstApp.toLowerCase().includes('wind turbine')) role = 'Wind Turbine';
-    else if (firstApp.toLowerCase().includes('high-speed')) role = 'High-Speed';
-    else if (firstApp.toLowerCase().includes('control surface')) role = 'Control';
-    else if (firstApp.toLowerCase().includes('tail')) role = 'Tail';
-    
-    return `${airfoilName} · ${role}`;
+    if (firstApp.toLowerCase().includes('general aviation')) return 'GA';
+    else if (firstApp.toLowerCase().includes('training')) return 'Trainer';
+    else if (firstApp.toLowerCase().includes('uav')) return 'UAV';
+    else if (firstApp.toLowerCase().includes('glider')) return 'Glider';
+    else if (firstApp.toLowerCase().includes('racer') || firstApp.toLowerCase().includes('racing')) return 'Racer';
+    else if (firstApp.toLowerCase().includes('aerobatic')) return 'Aerobatic';
+    else if (firstApp.toLowerCase().includes('wind turbine')) return 'Wind Turbine';
+    else if (firstApp.toLowerCase().includes('high-speed')) return 'High-Speed';
+    else if (firstApp.toLowerCase().includes('control surface')) return 'Control';
+    else if (firstApp.toLowerCase().includes('tail')) return 'Tail';
   }
   
-  // Fallback: just the name
-  return airfoilName;
+  return undefined;
 };
 
 /**
- * Custom Legend Component
- * Renders a flexbox-based legend that never overlaps
+ * Get clean airfoil name without role in parentheses
  */
-interface CustomLegendProps {
-  items: Array<{
-    id: string;
-    name: string;
-    color: string;
-  }>;
-}
-
-const CustomLegend = ({ items }: CustomLegendProps) => {
-  if (!items || items.length === 0) return null;
-  
-  return (
-    <div className="flex flex-wrap gap-x-3 gap-y-1.5 items-center justify-start text-xs leading-tight">
-      {items.map((item) => (
-        <div key={item.id} className="inline-flex items-center whitespace-nowrap">
-          <div
-            className="w-3.5 h-0.5 mr-1.5 flex-shrink-0"
-            style={{ backgroundColor: item.color }}
-          />
-          <span className="text-slate-300">{item.name}</span>
-        </div>
-      ))}
-    </div>
-  );
+const getAirfoilName = (airfoilName: string): string => {
+  return airfoilName.replace(/\s*\([^)]+\)\s*/, '').trim();
 };
 
 /**
@@ -278,10 +248,11 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
           
           {/* Custom Legend - Outside Chart Area */}
           <div className="mt-3 pt-3 border-t border-slate-700/50">
-            <CustomLegend
-              items={polars.map((polar, index) => ({
+            <AeroverseLegend
+              items={polars.map((polar, index): LegendItem => ({
                 id: polar.id,
-                name: getAirfoilLegendLabel(polar.id, polar.name),
+                name: getAirfoilName(polar.name),
+                role: getAirfoilRole(polar.id, polar.name),
                 color: AIRFOIL_COLORS[index % AIRFOIL_COLORS.length],
               }))}
             />
@@ -358,10 +329,11 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
           
           {/* Custom Legend - Outside Chart Area */}
           <div className="mt-3 pt-3 border-t border-slate-700/50">
-            <CustomLegend
-              items={polars.map((polar, index) => ({
+            <AeroverseLegend
+              items={polars.map((polar, index): LegendItem => ({
                 id: polar.id,
-                name: getAirfoilLegendLabel(polar.id, polar.name),
+                name: getAirfoilName(polar.name),
+                role: getAirfoilRole(polar.id, polar.name),
                 color: AIRFOIL_COLORS[index % AIRFOIL_COLORS.length],
               }))}
             />

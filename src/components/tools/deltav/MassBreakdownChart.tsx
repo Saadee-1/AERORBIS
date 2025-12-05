@@ -9,9 +9,9 @@ import {
   CartesianGrid,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  Legend,
   Cell,
 } from "recharts";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Database } from "lucide-react";
 
@@ -100,7 +100,6 @@ const MassBreakdownChart = ({
               }}
               formatter={(value: number) => [`${value.toFixed(2)} t`, ""]}
             />
-            <Legend />
             <Bar dataKey="dryMass" stackId="a" fill="#22d3ee" name="Dry Mass" />
             <Bar
               dataKey="propellantMass"
@@ -117,6 +116,16 @@ const MassBreakdownChart = ({
             <Bar dataKey="payloadMass" stackId="a" fill="#10b981" name="Payload" />
           </BarChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50 px-6 pb-4">
+          <AeroverseLegend
+            items={[
+              { id: 'dry-mass', name: 'Dry Mass', color: '#22d3ee' },
+              { id: 'propellant', name: 'Propellant', color: '#3b82f6' },
+              { id: 'interstage', name: 'Interstage', color: '#8b5cf6' },
+              { id: 'payload', name: 'Payload', color: '#10b981' },
+            ]}
+          />
+        </div>
       </CardContent>
     </Card>
   );

@@ -3,7 +3,8 @@
  */
 
 import { AeroCard } from '@/components/common/AeroCard';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 
 interface ChartsPanelProps {
   mode: '1D' | '2D' | '3D';
@@ -52,10 +53,19 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(2)} km`}
             />
-            <Legend />
-            <Line type="monotone" dataKey="altitude" stroke="#22d3ee" strokeWidth={2} name="Altitude (km)" />
+            <Line type="monotone" dataKey="altitude" stroke="#22d3ee" strokeWidth={2} name="Altitude (km)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <AeroverseLegend
+            items={[{
+              id: 'altitude',
+              name: 'Altitude',
+              role: 'km',
+              color: '#22d3ee',
+            }]}
+          />
+        </div>
       </AeroCard>
 
       {/* Velocity vs Time */}
@@ -69,10 +79,19 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(2)} km/s`}
             />
-            <Legend />
-            <Line type="monotone" dataKey="velocity" stroke="#06b6d4" strokeWidth={2} name="Velocity (km/s)" />
+            <Line type="monotone" dataKey="velocity" stroke="#06b6d4" strokeWidth={2} name="Velocity (km/s)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <AeroverseLegend
+            items={[{
+              id: 'velocity',
+              name: 'Velocity',
+              role: 'km/s',
+              color: '#06b6d4',
+            }]}
+          />
+        </div>
       </AeroCard>
 
       {/* Dynamic Pressure vs Altitude */}
@@ -86,10 +105,19 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(2)} kPa`}
             />
-            <Legend />
-            <Line type="monotone" dataKey="dynamicPressure" stroke="#f59e0b" strokeWidth={2} name="Q (kPa)" />
+            <Line type="monotone" dataKey="dynamicPressure" stroke="#f59e0b" strokeWidth={2} name="Q (kPa)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <AeroverseLegend
+            items={[{
+              id: 'q',
+              name: 'Q',
+              role: 'kPa',
+              color: '#f59e0b',
+            }]}
+          />
+        </div>
       </AeroCard>
 
       {/* 2D Trajectory Plot */}
@@ -107,10 +135,19 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
                   return `${value.toFixed(2)} km`;
                 }}
               />
-              <Legend />
-              <Line type="monotone" dataKey="altitude" stroke="#22d3ee" strokeWidth={2} name="Altitude (km)" />
+              <Line type="monotone" dataKey="altitude" stroke="#22d3ee" strokeWidth={2} name="Altitude (km)" legendType="none" />
             </LineChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <AeroverseLegend
+              items={[{
+                id: 'altitude-2d',
+                name: 'Altitude',
+                role: 'km',
+                color: '#22d3ee',
+              }]}
+            />
+          </div>
         </AeroCard>
       )}
 
@@ -125,10 +162,19 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(2)} t`}
             />
-            <Legend />
-            <Line type="monotone" dataKey="mass" stroke="#8b5cf6" strokeWidth={2} name="Mass (t)" />
+            <Line type="monotone" dataKey="mass" stroke="#8b5cf6" strokeWidth={2} name="Mass (t)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <AeroverseLegend
+            items={[{
+              id: 'mass',
+              name: 'Mass',
+              role: 't',
+              color: '#8b5cf6',
+            }]}
+          />
+        </div>
       </AeroCard>
     </div>
   );

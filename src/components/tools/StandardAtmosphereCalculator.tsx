@@ -37,7 +37,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import {
   calculateAtmosphere,
   type AtmosphereResult,
@@ -591,7 +592,6 @@ export default function StandardAtmosphereCalculator() {
                         borderRadius: "8px",
                       }}
                     />
-                    <Legend />
                     <Line
                       yAxisId="left"
                       type="monotone"
@@ -600,6 +600,7 @@ export default function StandardAtmosphereCalculator() {
                       strokeWidth={2}
                       name={`Temperature (${unitSystem === "Imperial" ? "°F" : "°C"})`}
                       dot={false}
+                      legendType="none"
                     />
                     <Line
                       yAxisId="right"
@@ -609,6 +610,7 @@ export default function StandardAtmosphereCalculator() {
                       strokeWidth={2}
                       name={`Pressure (${unitSystem === "Imperial" ? "psi" : "kPa"})`}
                       dot={false}
+                      legendType="none"
                     />
                     <Line
                       yAxisId="right"
@@ -618,9 +620,34 @@ export default function StandardAtmosphereCalculator() {
                       strokeWidth={2}
                       name={`Density (${unitSystem === "Imperial" ? "slug/ft³" : "kg/m³"})`}
                       dot={false}
+                      legendType="none"
                     />
                   </LineChart>
                 </ResponsiveContainer>
+                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                  <AeroverseLegend
+                    items={[
+                      {
+                        id: 'temperature',
+                        name: 'Temperature',
+                        role: unitSystem === "Imperial" ? "°F" : "°C",
+                        color: '#3b82f6',
+                      },
+                      {
+                        id: 'pressure',
+                        name: 'Pressure',
+                        role: unitSystem === "Imperial" ? "psi" : "kPa",
+                        color: '#10b981',
+                      },
+                      {
+                        id: 'density',
+                        name: 'Density',
+                        role: unitSystem === "Imperial" ? "slug/ft³" : "kg/m³",
+                        color: '#f59e0b',
+                      },
+                    ]}
+                  />
+                </div>
               </ChartCard>
             )}
           </div>

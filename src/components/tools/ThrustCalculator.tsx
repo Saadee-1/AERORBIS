@@ -40,6 +40,7 @@ import { AeroCard } from "@/components/common/AeroCard";
 import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import { spacingVertical } from "@/styles/spacing";
 import { 
   Select, 
@@ -62,8 +63,7 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip as RechartsTooltip, 
-  ResponsiveContainer, 
-  Legend 
+  ResponsiveContainer
 } from "recharts";
 import { Save, FolderOpen, Trash2 } from "lucide-react";
 
@@ -827,10 +827,18 @@ const AdvancedThrustCalculator = () => {
                     <YAxis stroke="#94a3b8" tickFormatter={(val) => val.toFixed(0)}
                       label={{ value: `Thrust (${getUnit("thrust")})`, angle: -90, position: 'insideLeft', fill: '#94a3b8' }}/>
                     <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/>
-                    <Legend />
-                    <Line type="monotone" dataKey="thrust" stroke="#22d3ee" strokeWidth={2} dot={false} name="Thrust" />
+                    <Line type="monotone" dataKey="thrust" stroke="#22d3ee" strokeWidth={2} dot={false} name="Thrust" legendType="none" />
                   </LineChart>
                 </ResponsiveContainer>
+                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                  <AeroverseLegend
+                    items={[{
+                      id: 'thrust',
+                      name: 'Thrust',
+                      color: '#22d3ee',
+                    }]}
+                  />
+                </div>
               </ChartCard>
             )}
             

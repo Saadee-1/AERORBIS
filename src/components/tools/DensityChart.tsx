@@ -10,8 +10,8 @@ import {
   CartesianGrid,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 
@@ -97,7 +97,6 @@ const DensityChart = ({ materials, unitSystem }: DensityChartProps) => {
                 return label;
               }}
             />
-            <Legend />
             <Bar
               dataKey="density"
               fill="#22d3ee"
@@ -106,6 +105,16 @@ const DensityChart = ({ materials, unitSystem }: DensityChartProps) => {
             />
           </BarChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50 px-6 pb-4">
+          <AeroverseLegend
+            items={[{
+              id: 'density',
+              name: 'Density',
+              role: unitSystem === "SI" ? "kg/m³" : "lb/ft³",
+              color: '#22d3ee',
+            }]}
+          />
+        </div>
       </CardContent>
     </Card>
   );

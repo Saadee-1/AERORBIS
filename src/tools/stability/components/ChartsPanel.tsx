@@ -10,11 +10,11 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 import { TrendingUp, BarChart3, Wind } from 'lucide-react';
 import { StabilityResults } from '../utils/calcStability';
+import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 
 interface ChartsPanelProps {
   results: StabilityResults | null;
@@ -60,7 +60,6 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
                 formatter={(value: number) => [value.toFixed(4), 'C_m']}
                 labelFormatter={(label) => `α: ${label}°`}
               />
-              <Legend />
               <Line
                 type="monotone"
                 dataKey="Cm"
@@ -68,9 +67,19 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
                 strokeWidth={2}
                 dot={false}
                 name="C_m"
+                legendType="none"
               />
             </LineChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <AeroverseLegend
+              items={[{
+                id: 'cm',
+                name: 'C_m',
+                color: '#06b6d4',
+              }]}
+            />
+          </div>
         </ChartCard>
       )}
 
@@ -100,7 +109,6 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
                 formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'SM']}
                 labelFormatter={(label) => `CG: ${(label * 100).toFixed(1)}% MAC`}
               />
-              <Legend />
               <Line
                 type="monotone"
                 dataKey="SM"
@@ -108,9 +116,19 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
                 strokeWidth={2}
                 dot={false}
                 name="Static Margin"
+                legendType="none"
               />
             </LineChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <AeroverseLegend
+              items={[{
+                id: 'sm',
+                name: 'Static Margin',
+                color: '#8b5cf6',
+              }]}
+            />
+          </div>
         </ChartCard>
       )}
 
@@ -138,7 +156,6 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
                 formatter={(value: number) => [value.toFixed(4), 'ε_α']}
                 labelFormatter={(label) => `AR: ${label.toFixed(1)}`}
               />
-              <Legend />
               <Line
                 type="monotone"
                 dataKey="epsilon_alpha"
@@ -146,9 +163,19 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
                 strokeWidth={2}
                 dot={false}
                 name="Downwash"
+                legendType="none"
               />
             </LineChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <AeroverseLegend
+              items={[{
+                id: 'downwash',
+                name: 'Downwash',
+                color: '#10b981',
+              }]}
+            />
+          </div>
         </ChartCard>
       )}
 

@@ -11,11 +11,11 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   AreaChart,
   Area,
 } from 'recharts';
+import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 
 interface ChartsPanelProps {
   result: MissionResult | null;
@@ -88,13 +88,13 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
               formatter={(value: number) => [`${value.toFixed(1)} W`, '']}
             />
-            <Legend />
             <Line
               type="monotone"
               dataKey="load_W"
               stroke="#ef4444"
               name="Load"
               dot={false}
+              legendType="none"
             />
             <Line
               type="monotone"
@@ -102,6 +102,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               stroke="#fbbf24"
               name="Solar"
               dot={false}
+              legendType="none"
             />
             <Line
               type="monotone"
@@ -109,9 +110,19 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               stroke="#22d3ee"
               name="Net (Solar - Load)"
               dot={false}
+              legendType="none"
             />
           </LineChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <AeroverseLegend
+            items={[
+              { id: 'load', name: 'Load', color: '#ef4444' },
+              { id: 'solar', name: 'Solar', color: '#fbbf24' },
+              { id: 'net', name: 'Net', role: 'Solar - Load', color: '#22d3ee' },
+            ]}
+          />
+        </div>
       </AeroCard>
       
       {/* Voltage */}
@@ -138,9 +149,19 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               stroke="#10b981"
               name="Voltage"
               dot={false}
+              legendType="none"
             />
           </LineChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <AeroverseLegend
+            items={[{
+              id: 'voltage',
+              name: 'Voltage',
+              color: '#10b981',
+            }]}
+          />
+        </div>
       </AeroCard>
       
       {/* Energy Remaining */}
@@ -198,9 +219,19 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               stroke="#f59e0b"
               name="Sun Elevation"
               dot={false}
+              legendType="none"
             />
           </LineChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <AeroverseLegend
+            items={[{
+              id: 'sun-elevation',
+              name: 'Sun Elevation',
+              color: '#f59e0b',
+            }]}
+          />
+        </div>
       </AeroCard>
     </div>
   );

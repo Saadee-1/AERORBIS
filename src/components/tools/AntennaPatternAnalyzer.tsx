@@ -59,7 +59,6 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
-  Legend,
 } from "recharts";
 import {
   Radio,
@@ -88,6 +87,7 @@ import { AeroCard } from "@/components/common/AeroCard";
 import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import { spacingVertical } from "@/styles/spacing";
 import { buildAntennaPayload } from "./antenna/payloadBuilder";
 import { AntennaResult } from "./antenna/types";
@@ -1300,7 +1300,6 @@ const AntennaPatternAnalyzer = () => {
                     }}
                     formatter={(value: number) => [`${value.toFixed(2)} dBi`, "Gain"]}
                   />
-                  <Legend />
                   <Line
                     type="monotone"
                     dataKey="gain"
@@ -1308,6 +1307,7 @@ const AntennaPatternAnalyzer = () => {
                     strokeWidth={2}
                     name="E-plane"
                     dot={false}
+                    legendType="none"
                   />
                   <Line
                     type="monotone"
@@ -1317,9 +1317,18 @@ const AntennaPatternAnalyzer = () => {
                     strokeWidth={2}
                     name="H-plane"
                     dot={false}
+                    legendType="none"
                   />
                 </LineChart>
               </ResponsiveContainer>
+              <div className="mt-3 pt-3 border-t border-slate-700/50">
+                <AeroverseLegend
+                  items={[
+                    { id: 'e-plane', name: 'E-plane', color: '#22d3ee' },
+                    { id: 'h-plane', name: 'H-plane', color: '#3b82f6' },
+                  ]}
+                />
+              </div>
             </ChartCard>
 
             {/* 3D Pattern Visualization */}

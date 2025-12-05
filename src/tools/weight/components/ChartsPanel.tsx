@@ -3,9 +3,10 @@
  */
 
 import { AeroCard } from '@/components/common/AeroCard';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ScatterChart, Scatter } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ScatterChart, Scatter } from 'recharts';
 import { ComponentWeights, WeightEstimationInputs } from '../utils/weightEngine';
 import { IterationResult, MissionProfile } from '../utils/iteration';
+import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 
 interface ChartsPanelProps {
   components: ComponentWeights;
@@ -91,10 +92,19 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
             />
-            <Legend />
             <Bar dataKey="weight" fill="#22d3ee" name="Weight (kg)" />
           </BarChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <AeroverseLegend
+            items={[{
+              id: 'weight',
+              name: 'Weight',
+              role: 'kg',
+              color: '#22d3ee',
+            }]}
+          />
+        </div>
       </AeroCard>
 
       {/* Weight Distribution Pie Chart */}
@@ -134,10 +144,19 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
             />
-            <Legend />
-            <Line type="monotone" dataKey="W_to" stroke="#22d3ee" strokeWidth={2} name="Takeoff Weight (kg)" />
+            <Line type="monotone" dataKey="W_to" stroke="#22d3ee" strokeWidth={2} name="Takeoff Weight (kg)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
+        <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <AeroverseLegend
+            items={[{
+              id: 'w_to',
+              name: 'Takeoff Weight',
+              role: 'kg',
+              color: '#22d3ee',
+            }]}
+          />
+        </div>
       </AeroCard>
 
       {/* CG Position on MAC */}
@@ -176,10 +195,19 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
                 formatter={(value: number) => `${value.toFixed(2)}%`}
               />
-              <Legend />
               <Bar dataKey="fuelUsed" fill="#06b6d4" name="Cumulative Fuel Used (%)" />
             </BarChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <AeroverseLegend
+              items={[{
+                id: 'fuel',
+                name: 'Cumulative Fuel Used',
+                role: '%',
+                color: '#06b6d4',
+              }]}
+            />
+          </div>
         </AeroCard>
       )}
 
@@ -195,10 +223,19 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
                 formatter={(value: number) => `${value.toFixed(1)} kg/m²`}
               />
-              <Legend />
-              <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} name="Wing Loading (kg/m²)" dot={{ fill: '#22d3ee', r: 3 }} />
+              <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} name="Wing Loading (kg/m²)" dot={{ fill: '#22d3ee', r: 3 }} legendType="none" />
             </LineChart>
           </ResponsiveContainer>
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <AeroverseLegend
+              items={[{
+                id: 'wing-loading',
+                name: 'Wing Loading',
+                role: 'kg/m²',
+                color: '#22d3ee',
+              }]}
+            />
+          </div>
           <div className="p-4 text-center border-t border-cyan-400/20">
             <p className="text-sm text-gray-400">Current Wing Loading</p>
             <p className="text-2xl font-bold text-cyan-400 mt-1">
