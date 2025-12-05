@@ -149,27 +149,31 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
   const cmChartData: any[] = [];
 
   // Use the first polar's alpha grid as reference
-  const alphaGrid = polars[0].data.alpha;
+  const alphaGrid = polars[0]?.data?.alpha;
+  
+  if (alphaGrid && alphaGrid.length > 0) {
+    for (let i = 0; i < alphaGrid.length; i++) {
+      const alpha = alphaGrid[i];
+      const clPoint: any = { alpha };
+      const cdPoint: any = { alpha };
+      const cmPoint: any = { alpha };
 
-  for (let i = 0; i < alphaGrid.length; i++) {
-    const alpha = alphaGrid[i];
-    const clPoint: any = { alpha };
-    const cdPoint: any = { alpha };
-    const cmPoint: any = { alpha };
+      // Add data for each airfoil
+      polars.forEach((polar) => {
+        if (polar.data && polar.data.alpha && polar.data.cl && polar.data.cd) {
+          const alphaIdx = polar.data.alpha.findIndex(a => Math.abs(a - alpha) < 0.1);
+          if (alphaIdx >= 0) {
+            clPoint[polar.id] = polar.data.cl[alphaIdx];
+            cdPoint[polar.id] = polar.data.cd[alphaIdx];
+            cmPoint[polar.id] = polar.data.cm?.[alphaIdx] ?? 0;
+          }
+        }
+      });
 
-    // Add data for each airfoil
-    polars.forEach((polar) => {
-      const alphaIdx = polar.data.alpha.findIndex(a => Math.abs(a - alpha) < 0.1);
-      if (alphaIdx >= 0) {
-        clPoint[polar.id] = polar.data.cl[alphaIdx];
-        cdPoint[polar.id] = polar.data.cd[alphaIdx];
-        cmPoint[polar.id] = polar.data.cm?.[alphaIdx] ?? 0;
-      }
-    });
-
-    clChartData.push(clPoint);
-    cdChartData.push(cdPoint);
-    cmChartData.push(cmPoint);
+      clChartData.push(clPoint);
+      cdChartData.push(cdPoint);
+      cmChartData.push(cmPoint);
+    }
   }
 
   // Handle export
@@ -213,62 +217,69 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
   const allClValues: number[] = [];
   const allCdValues: number[] = [];
 
-  // Collect all unique CL values across all airfoils
-  const clSet = new Set<number>();
-  polars.forEach((polar) => {
-    polar.data.cl.forEach(cl => {
-      if (cl !== null && cl !== undefined && !isNaN(cl)) {
-        clSet.add(Math.round(cl * 1000) / 1000); // Round to 3 decimals for grouping
-        allClValues.push(cl);
-      }
-    });
-    polar.data.cd.forEach(cd => {
-      if (cd !== null && cd !== undefined && !isNaN(cd)) {
-        allCdValues.push(cd);
-      }
-    });
-  });
-
-  // Create data points for each unique CL value
-  const sortedClValues = Array.from(clSet).sort((a, b) => a - b);
-  
-  sortedClValues.forEach(cl => {
-    const point: any = { cl };
-    
-    // For each airfoil, find the closest CD value for this CL
+  // Only calculate drag polar data if we have polars
+  if (polars && polars.length > 0) {
+    // Collect all unique CL values across all airfoils
+    const clSet = new Set<number>();
     polars.forEach((polar) => {
-      let closestCd: number | null = null;
-      let closestAlpha: number | null = null;
-      let minDiff = Infinity;
+      if (polar.data && polar.data.cl && polar.data.cd) {
+        polar.data.cl.forEach(cl => {
+          if (cl !== null && cl !== undefined && !isNaN(cl)) {
+            clSet.add(Math.round(cl * 1000) / 1000); // Round to 3 decimals for grouping
+            allClValues.push(cl);
+          }
+        });
+        polar.data.cd.forEach(cd => {
+          if (cd !== null && cd !== undefined && !isNaN(cd)) {
+            allCdValues.push(cd);
+          }
+        });
+      }
+    });
+
+    // Create data points for each unique CL value
+    const sortedClValues = Array.from(clSet).sort((a, b) => a - b);
+    
+    sortedClValues.forEach(cl => {
+      const point: any = { cl };
       
-      for (let i = 0; i < polar.data.cl.length && i < polar.data.cd.length; i++) {
-        const polarCl = polar.data.cl[i];
-        const polarCd = polar.data.cd[i];
-        if (polarCl !== null && polarCl !== undefined && polarCd !== null && polarCd !== undefined && 
-            !isNaN(polarCl) && !isNaN(polarCd)) {
-          const diff = Math.abs(polarCl - cl);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestCd = polarCd;
-            closestAlpha = polar.data.alpha[i];
+      // For each airfoil, find the closest CD value for this CL
+      polars.forEach((polar) => {
+        if (polar.data && polar.data.cl && polar.data.cd) {
+          let closestCd: number | null = null;
+          let closestAlpha: number | null = null;
+          let minDiff = Infinity;
+          
+          for (let i = 0; i < polar.data.cl.length && i < polar.data.cd.length; i++) {
+            const polarCl = polar.data.cl[i];
+            const polarCd = polar.data.cd[i];
+            if (polarCl !== null && polarCl !== undefined && polarCd !== null && polarCd !== undefined && 
+                !isNaN(polarCl) && !isNaN(polarCd)) {
+              const diff = Math.abs(polarCl - cl);
+              if (diff < minDiff) {
+                minDiff = diff;
+                closestCd = polarCd;
+                closestAlpha = polar.data.alpha?.[i] ?? null;
+              }
+            }
+          }
+          
+          if (closestCd !== null && minDiff < 0.01) { // Only use if CL is very close
+            point[polar.id] = closestCd;
+            point[`${polar.id}_cl`] = cl;
+            point[`${polar.id}_alpha`] = closestAlpha;
           }
         }
-      }
+      });
       
-      if (closestCd !== null && minDiff < 0.01) { // Only use if CL is very close
-        point[polar.id] = closestCd;
-        point[`${polar.id}_cl`] = cl;
-        point[`${polar.id}_alpha`] = closestAlpha;
+      // Only add point if at least one airfoil has data
+      if (Object.keys(point).length > 1) {
+        dragPolarData.push(point);
       }
     });
-    
-    // Only add point if at least one airfoil has data
-    if (Object.keys(point).length > 1) {
-      dragPolarData.push(point);
-    }
-  });
+  }
 
-  // Calculate domains for drag polar
+  // Calculate domains for drag polar with safe defaults
   const clMin = allClValues.length > 0 ? Math.max(0, Math.min(...allClValues) - 0.1) : 0;
   const clMax = allClValues.length > 0 ? Math.max(...allClValues) + 0.1 : 1;
   const cdMin = 0; // Always start from 0
