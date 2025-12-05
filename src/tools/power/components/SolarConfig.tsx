@@ -5,12 +5,12 @@
 import { AeroCard } from '@/components/common/AeroCard';
 import { AeroFormField } from '@/components/forms/AeroFormField';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SolarConfig } from '../utils/solarModel';
+import type { SolarConfig as SolarConfigType } from '../utils/solarModel';
 import { SOLAR_PRESETS, getSolarPreset } from '../data/solarPresets';
 
 interface SolarConfigProps {
-  config: SolarConfig;
-  onConfigChange: (config: SolarConfig) => void;
+  config: SolarConfigType;
+  onConfigChange: (config: SolarConfigType) => void;
 }
 
 export function SolarConfig({ config, onConfigChange }: SolarConfigProps) {

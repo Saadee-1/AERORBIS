@@ -176,8 +176,7 @@ export function StandardizedFormField({
       label={label}
       required={required}
       error={error}
-      helpText={helpText}
-      compact={compact}
+      helperText={helpText}
     >
       {renderInput()}
     </AeroFormField>

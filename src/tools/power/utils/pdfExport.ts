@@ -4,7 +4,7 @@
  * Generates formatted HTML/PDF reports for power system calculations
  */
 
-import { PowerSystemPayload } from './payloadBuilder';
+import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { MissionResult } from './missionEngine';
 
 export interface PowerSystemPDFData {
@@ -469,26 +469,27 @@ function getDayOfYearDescription(day: number): string {
 }
 
 /**
- * Convert PowerSystemPayload to PDF data format
+ * Convert AeroverseAIPayload to PDF data format
  */
 export function convertPayloadToPDFData(
-  payload: PowerSystemPayload,
+  payload: AeroverseAIPayload,
   steps?: string[]
 ): PowerSystemPDFData {
+  const config = payload.configuration as any;
   return {
     toolName: payload.toolName,
     requestId: payload.requestId || `power-${Date.now()}`,
-    timestamp: payload.timestamp,
+    timestamp: new Date().toISOString(),
     inputs: {
-      battery: payload.configuration.battery,
-      solar: payload.configuration.solar,
-      loads: payload.configuration.loads,
-      location: payload.configuration.location,
-      dayOfYear: payload.configuration.dayOfYear,
+      battery: config?.battery || {},
+      solar: config?.solar || {},
+      loads: config?.loads || {},
+      location: config?.location || {},
+      dayOfYear: config?.dayOfYear || 0,
     },
-    results: payload.results,
-    warnings: payload.warnings,
-    recommendations: payload.recommendations,
+    results: payload.results as any,
+    warnings: (payload.metadata as any)?.warnings || [],
+    recommendations: (payload.results as any)?.recommendations || [],
     steps,
   };
 }

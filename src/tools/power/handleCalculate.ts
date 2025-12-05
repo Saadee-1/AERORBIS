@@ -58,16 +58,16 @@ const DEFAULT_LOADS: PowerLoad = {
 const DEFAULT_PHASES: MissionPhase[] = [
   {
     name: 'Takeoff',
-    startTime: 0,
-    duration: 2,
+    startTime_min: 0,
+    duration_min: 2,
     loadMultiplier: 2.0,
     solarAvailable: true,
     altitude: 0,
   },
   {
     name: 'Cruise',
-    startTime: 2,
-    duration: 60,
+    startTime_min: 2,
+    duration_min: 60,
     loadMultiplier: 1.0,
     solarAvailable: true,
     altitude: 1000,
@@ -137,4 +137,3 @@ export async function handleCalculate(options: PowerHandleOptions = {}): Promise
 }
 
 export { runSimulation as runPowerSystemTestSimulation };
-

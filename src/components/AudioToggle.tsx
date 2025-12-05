@@ -64,10 +64,10 @@ const AudioToggle = () => {
               <span>Audio Console</span>
             </div>
             <div className="space-x-2">
-              <Button variant="outline" size="xs" onClick={mute}>
+              <Button variant="outline" size="sm" onClick={mute}>
                 Mute
               </Button>
-              <Button variant="outline" size="xs" onClick={unmute}>
+              <Button variant="outline" size="sm" onClick={unmute}>
                 Unmute
               </Button>
             </div>
@@ -109,13 +109,13 @@ const AudioToggle = () => {
             <div className="space-x-2">
               <Button
                 variant="secondary"
-                size="xs"
+                size="sm"
                 onClick={play}
                 disabled={isPlaying && !isMuted}
               >
                 Play
               </Button>
-              <Button variant="secondary" size="xs" onClick={pause}>
+              <Button variant="secondary" size="sm" onClick={pause}>
                 Pause
               </Button>
             </div>

@@ -679,7 +679,7 @@ const OrbitalVisualizer = () => {
       ];
       
       // Send calculation event to assistant
-      const convert = (val: number) => unitSystem === "Imperial" ? val * KM_TO_MI : val;
+      const convertToDisplay = (val: number) => unitSystem === "Imperial" ? val * KM_TO_MI : val;
       const unit = unitSystem === "Imperial" ? "mi" : "km";
       const toolInputs = {
         periapsisAltitude: periapsisAlt_SI,
@@ -1207,13 +1207,17 @@ const OrbitalVisualizer = () => {
                       onClick={() => handleLoadCustomOrbit(orbit)}
                       variant="outline"
                       icon={FolderOpen}
-                    />
+                    >
+                      Load
+                    </AeroButton>
                     <AeroButton
                       size="sm"
                       onClick={() => handleDeleteCustomOrbit(index)}
                       variant="destructive"
                       icon={Trash2}
-                    />
+                    >
+                      Delete
+                    </AeroButton>
                   </div>
                 </div>
               ))
