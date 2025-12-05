@@ -2,11 +2,14 @@
  * Charts Panel for Weight Estimator
  */
 
+import { useRef } from 'react';
 import { AeroCard } from '@/components/common/AeroCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ScatterChart, Scatter } from 'recharts';
 import { ComponentWeights, WeightEstimationInputs } from '../utils/weightEngine';
 import { IterationResult, MissionProfile } from '../utils/iteration';
 import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
+import { useChartExport } from '@/hooks/useChartExport';
+import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
 
 interface ChartsPanelProps {
   components: ComponentWeights;
@@ -79,10 +82,30 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
   const S_w = inputs?.geometry.S_w || 1;
   const wingLoading = W_to / (S_w * 9.81); // kg/m²
 
+  // Refs for each chart card
+  const componentRef = useRef<HTMLDivElement>(null);
+  const distributionRef = useRef<HTMLDivElement>(null);
+  const iterationRef = useRef<HTMLDivElement>(null);
+  const cgRef = useRef<HTMLDivElement>(null);
+  const fuelRef = useRef<HTMLDivElement>(null);
+  const wingLoadingRef = useRef<HTMLDivElement>(null);
+
+  // Export hooks
+  const componentExport = useChartExport(componentRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-components' });
+  const distributionExport = useChartExport(distributionRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-distribution' });
+  const iterationExport = useChartExport(iterationRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-iteration' });
+  const cgExport = useChartExport(cgRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-cg' });
+  const fuelExport = useChartExport(fuelRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-fuel' });
+  const wingLoadingExport = useChartExport(wingLoadingRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-wing-loading' });
+
   return (
     <div className="space-y-6">
       {/* Component Weights Bar Chart */}
-      <AeroCard title="Component Weight Breakdown">
+      <div ref={componentRef}>
+        <AeroCard 
+          title="Component Weight Breakdown"
+          headerActions={<ChartExportButtons exportAsPng={componentExport.exportAsPng} exportAsSvg={componentExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={componentData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -106,9 +129,14 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
           />
         </div>
       </AeroCard>
+      </div>
 
       {/* Weight Distribution Pie Chart */}
-      <AeroCard title="Weight Distribution">
+      <div ref={distributionRef}>
+        <AeroCard 
+          title="Weight Distribution"
+          headerActions={<ChartExportButtons exportAsPng={distributionExport.exportAsPng} exportAsSvg={distributionExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
@@ -132,9 +160,14 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
           </PieChart>
         </ResponsiveContainer>
       </AeroCard>
+      </div>
 
       {/* Iteration Convergence */}
-      <AeroCard title="W_TO Iteration Convergence">
+      <div ref={iterationRef}>
+        <AeroCard 
+          title="W_TO Iteration Convergence"
+          headerActions={<ChartExportButtons exportAsPng={iterationExport.exportAsPng} exportAsSvg={iterationExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={iterationData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -158,10 +191,15 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
           />
         </div>
       </AeroCard>
+      </div>
 
       {/* CG Position on MAC */}
       {cg && (
-        <AeroCard title="CG Position on MAC">
+        <div ref={cgRef}>
+          <AeroCard 
+            title="CG Position on MAC"
+            headerActions={<ChartExportButtons exportAsPng={cgExport.exportAsPng} exportAsSvg={cgExport.exportAsSvg} />}
+          >
           <div className="p-4">
             <div className="relative h-8 bg-slate-700/50 rounded border border-cyan-400/30">
               <div 
@@ -181,11 +219,16 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
             </p>
           </div>
         </AeroCard>
+        </div>
       )}
 
       {/* Mission Fuel Fractions */}
       {missionProfile && missionFuelData.length > 0 && (
-        <AeroCard title="Mission Fuel Fractions">
+        <div ref={fuelRef}>
+          <AeroCard 
+            title="Mission Fuel Fractions"
+            headerActions={<ChartExportButtons exportAsPng={fuelExport.exportAsPng} exportAsSvg={fuelExport.exportAsSvg} />}
+          >
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={missionFuelData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -209,11 +252,16 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
             />
           </div>
         </AeroCard>
+        </div>
       )}
 
       {/* Wing Loading vs W_TO */}
       {wingLoadingData.length > 0 && (
-        <AeroCard title="Wing Loading vs W_TO">
+        <div ref={wingLoadingRef}>
+          <AeroCard 
+            title="Wing Loading vs W_TO"
+            headerActions={<ChartExportButtons exportAsPng={wingLoadingExport.exportAsPng} exportAsSvg={wingLoadingExport.exportAsSvg} />}
+          >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={wingLoadingData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -246,6 +294,7 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
             </p>
           </div>
         </AeroCard>
+        </div>
       )}
     </div>
   );

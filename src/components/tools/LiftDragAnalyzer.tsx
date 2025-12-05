@@ -41,9 +41,11 @@ import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
-import { loadPolarForComparison, exportChartAsPNG, exportChartAsSVG, AIRFOIL_COLORS, detectStallIndex } from "@/lib/polarChartUtils";
+import { loadPolarForComparison, AIRFOIL_COLORS, detectStallIndex } from "@/lib/polarChartUtils";
 import { useGraphSetups } from "@/hooks/useGraphSetups";
 import type { GraphMode as GraphModeType } from "@/types/graphSetup";
+import { useChartExport } from "@/hooks/useChartExport";
+import { ChartExportButtons } from "@/components/charts/ChartExportButtons";
 
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
@@ -285,29 +287,15 @@ const LiftDragAnalyzer = () => {
   const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: any }>>([]);
   const [showComparisonLimitWarning, setShowComparisonLimitWarning] = useState(false);
   
-  // Ref for L/D chart export
-  const ldChartRef = useRef<HTMLDivElement>(null);
+  // Ref for entire graph card export (includes header, chart, legend)
+  const graphCardRef = useRef<HTMLDivElement>(null);
 
-  // Export handlers for L/D chart
-  const handleExportPNG = async () => {
-    if (!ldChartRef.current) return;
-    try {
-      const fileName = `ld-chart-re${result?.aspectRatio || 'N/A'}-${Date.now()}.png`;
-      await exportChartAsPNG(ldChartRef.current, fileName);
-    } catch (error) {
-      console.error('PNG export failed:', error);
-    }
-  };
-
-  const handleExportSVG = async () => {
-    if (!ldChartRef.current) return;
-    try {
-      const fileName = `ld-chart-re${result?.aspectRatio || 'N/A'}-${Date.now()}.svg`;
-      await exportChartAsSVG(ldChartRef.current, fileName);
-    } catch (error) {
-      console.error('SVG export failed:', error);
-    }
-  };
+  // Chart export hook
+  const { exportAsPng, exportAsSvg } = useChartExport(graphCardRef, {
+    calculatorId: "launchpad",
+    graphMode,
+    reynolds: REYNOLDS,
+  });
 
   const getLatestStoredRequestId = useCallback((): string | null => {
     try {
@@ -1248,7 +1236,7 @@ const LiftDragAnalyzer = () => {
 
       {/* Comparison Chart */}
       {(comparisonData.length > 0 || comparisonPolars.length > 0) && (
-        <div className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-cyan-400/30 p-6 shadow-lg backdrop-blur-sm">
+        <div ref={graphCardRef} className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-cyan-400/30 p-6 shadow-lg backdrop-blur-sm">
           {/* Graph Header */}
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
@@ -1264,26 +1252,7 @@ const LiftDragAnalyzer = () => {
                 {graphMode !== "ld" && `Showing ${comparisonPolars.length} airfoil${comparisonPolars.length > 1 ? 's' : ''} at Re = 1,000,000`}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportPNG}
-                className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-600/20 text-white"
-              >
-                <Download className="w-4 h-4 mr-1" />
-                PNG
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportSVG}
-                className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-600/20 text-white"
-              >
-                <Download className="w-4 h-4 mr-1" />
-                SVG
-              </Button>
-            </div>
+            <ChartExportButtons exportAsPng={exportAsPng} exportAsSvg={exportAsSvg} />
           </div>
 
           {/* Graph Toolbar - Comparison Controls */}
@@ -1435,7 +1404,7 @@ const LiftDragAnalyzer = () => {
             </TabsList>
 
             {/* Graph Body - Chart Area */}
-            <div ref={ldChartRef} className="relative min-h-[400px] mt-4">
+            <div className="relative min-h-[400px] mt-4">
               {graphMode === "dragPolar" ? (
                 <ResponsiveContainer width="100%" height={400}>
                   <LineChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>

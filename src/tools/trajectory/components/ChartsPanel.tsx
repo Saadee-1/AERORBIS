@@ -2,9 +2,12 @@
  * Charts Panel for Trajectory Simulator
  */
 
+import { useRef } from 'react';
 import { AeroCard } from '@/components/common/AeroCard';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
+import { useChartExport } from '@/hooks/useChartExport';
+import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
 
 interface ChartsPanelProps {
   mode: '1D' | '2D' | '3D';
@@ -40,10 +43,28 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
     downrange: mode === '2D' ? (state.downrange || 0) / 1000 : undefined,
   }));
 
+  // Refs for each chart card
+  const altitudeRef = useRef<HTMLDivElement>(null);
+  const velocityRef = useRef<HTMLDivElement>(null);
+  const pressureRef = useRef<HTMLDivElement>(null);
+  const trajectory2dRef = useRef<HTMLDivElement>(null);
+  const massRef = useRef<HTMLDivElement>(null);
+
+  // Export hooks
+  const altitudeExport = useChartExport(altitudeRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-altitude' });
+  const velocityExport = useChartExport(velocityRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-velocity' });
+  const pressureExport = useChartExport(pressureRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-pressure' });
+  const trajectory2dExport = useChartExport(trajectory2dRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-2d' });
+  const massExport = useChartExport(massRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-mass' });
+
   return (
     <div className="space-y-6">
       {/* Altitude vs Time */}
-      <AeroCard title="Altitude vs Time">
+      <div ref={altitudeRef}>
+        <AeroCard 
+          title="Altitude vs Time"
+          headerActions={<ChartExportButtons exportAsPng={altitudeExport.exportAsPng} exportAsSvg={altitudeExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -67,9 +88,14 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
           />
         </div>
       </AeroCard>
+      </div>
 
       {/* Velocity vs Time */}
-      <AeroCard title="Velocity vs Time">
+      <div ref={velocityRef}>
+        <AeroCard 
+          title="Velocity vs Time"
+          headerActions={<ChartExportButtons exportAsPng={velocityExport.exportAsPng} exportAsSvg={velocityExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -93,9 +119,14 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
           />
         </div>
       </AeroCard>
+      </div>
 
       {/* Dynamic Pressure vs Altitude */}
-      <AeroCard title="Dynamic Pressure (Max Q)">
+      <div ref={pressureRef}>
+        <AeroCard 
+          title="Dynamic Pressure (Max Q)"
+          headerActions={<ChartExportButtons exportAsPng={pressureExport.exportAsPng} exportAsSvg={pressureExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -119,10 +150,15 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
           />
         </div>
       </AeroCard>
+      </div>
 
       {/* 2D Trajectory Plot */}
       {mode === '2D' && (
-        <AeroCard title="2D Trajectory (Altitude vs Downrange)">
+        <div ref={trajectory2dRef}>
+          <AeroCard 
+            title="2D Trajectory (Altitude vs Downrange)"
+            headerActions={<ChartExportButtons exportAsPng={trajectory2dExport.exportAsPng} exportAsSvg={trajectory2dExport.exportAsSvg} />}
+          >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -149,10 +185,15 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
             />
           </div>
         </AeroCard>
+        </div>
       )}
 
       {/* Mass vs Time */}
-      <AeroCard title="Mass vs Time">
+      <div ref={massRef}>
+        <AeroCard 
+          title="Mass vs Time"
+          headerActions={<ChartExportButtons exportAsPng={massExport.exportAsPng} exportAsSvg={massExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -176,6 +217,7 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
           />
         </div>
       </AeroCard>
+      </div>
     </div>
   );
 }

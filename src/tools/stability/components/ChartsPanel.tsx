@@ -2,6 +2,7 @@
  * Charts Panel for Stability & Control Derivatives Calculator
  */
 
+import { useRef } from 'react';
 import { ChartCard } from '@/components/charts/ChartCard';
 import {
   LineChart,
@@ -15,6 +16,8 @@ import {
 import { TrendingUp, BarChart3, Wind } from 'lucide-react';
 import { StabilityResults } from '../utils/calcStability';
 import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
+import { useChartExport } from '@/hooks/useChartExport';
+import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
 
 interface ChartsPanelProps {
   results: StabilityResults | null;
@@ -34,15 +37,27 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
     return data;
   })() : null;
 
+  // Refs for each chart card
+  const cmAlphaRef = useRef<HTMLDivElement>(null);
+  const cgSweepRef = useRef<HTMLDivElement>(null);
+  const downwashRef = useRef<HTMLDivElement>(null);
+
+  // Export hooks
+  const cmAlphaExport = useChartExport(cmAlphaRef, { calculatorId: 'stability', getFileBaseName: () => 'aeroverse-stability-cm-alpha' });
+  const cgSweepExport = useChartExport(cgSweepRef, { calculatorId: 'stability', getFileBaseName: () => 'aeroverse-stability-cg-sweep' });
+  const downwashExport = useChartExport(downwashRef, { calculatorId: 'stability', getFileBaseName: () => 'aeroverse-stability-downwash' });
+
   return (
     <div className="space-y-6">
       {/* Cm vs α Curve */}
       {cmAlphaData && cmAlphaData.length > 0 && (
-        <ChartCard
-          title="Cm vs Angle of Attack"
-          description="Pitching moment coefficient variation with angle of attack"
-          icon={TrendingUp}
-        >
+        <div ref={cmAlphaRef}>
+          <ChartCard
+            title="Cm vs Angle of Attack"
+            description="Pitching moment coefficient variation with angle of attack"
+            icon={TrendingUp}
+            headerActions={<ChartExportButtons exportAsPng={cmAlphaExport.exportAsPng} exportAsSvg={cmAlphaExport.exportAsSvg} />}
+          >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={cmAlphaData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -81,15 +96,18 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
             />
           </div>
         </ChartCard>
+        </div>
       )}
 
       {/* Static Margin vs CG Position */}
       {cgSweepData && cgSweepData.length > 0 && (
-        <ChartCard
-          title="Static Margin vs CG Position"
-          description="Stability margin variation with center of gravity position"
-          icon={BarChart3}
-        >
+        <div ref={cgSweepRef}>
+          <ChartCard
+            title="Static Margin vs CG Position"
+            description="Stability margin variation with center of gravity position"
+            icon={BarChart3}
+            headerActions={<ChartExportButtons exportAsPng={cgSweepExport.exportAsPng} exportAsSvg={cgSweepExport.exportAsSvg} />}
+          >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={cgSweepData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -130,15 +148,18 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
             />
           </div>
         </ChartCard>
+        </div>
       )}
 
       {/* Downwash vs Aspect Ratio */}
       {downwashData && downwashData.length > 0 && (
-        <ChartCard
-          title="Downwash vs Aspect Ratio"
-          description="Downwash gradient variation with wing aspect ratio"
-          icon={Wind}
-        >
+        <div ref={downwashRef}>
+          <ChartCard
+            title="Downwash vs Aspect Ratio"
+            description="Downwash gradient variation with wing aspect ratio"
+            icon={Wind}
+            headerActions={<ChartExportButtons exportAsPng={downwashExport.exportAsPng} exportAsSvg={downwashExport.exportAsSvg} />}
+          >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={downwashData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -177,6 +198,7 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
             />
           </div>
         </ChartCard>
+        </div>
       )}
 
       {!cmAlphaData && !cgSweepData && !downwashData && (

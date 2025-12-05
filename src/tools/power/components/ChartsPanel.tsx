@@ -2,6 +2,7 @@
  * Charts Panel for Power System
  */
 
+import { useRef } from 'react';
 import { AeroCard } from '@/components/common/AeroCard';
 import { MissionResult } from '../utils/missionEngine';
 import {
@@ -16,6 +17,8 @@ import {
   Area,
 } from 'recharts';
 import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
+import { useChartExport } from '@/hooks/useChartExport';
+import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
 
 interface ChartsPanelProps {
   result: MissionResult | null;
@@ -36,10 +39,44 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
   const downsampleFactor = Math.max(1, Math.floor(result.frames.length / 500));
   const chartData = result.frames.filter((_, i) => i % downsampleFactor === 0);
   
+  // Refs for each chart card
+  const socCardRef = useRef<HTMLDivElement>(null);
+  const powerCardRef = useRef<HTMLDivElement>(null);
+  const voltageCardRef = useRef<HTMLDivElement>(null);
+  const energyCardRef = useRef<HTMLDivElement>(null);
+  const sunCardRef = useRef<HTMLDivElement>(null);
+
+  // Export hooks for each chart
+  const socExport = useChartExport(socCardRef, {
+    calculatorId: 'power',
+    getFileBaseName: () => 'aeroverse-power-soc',
+  });
+  const powerExport = useChartExport(powerCardRef, {
+    calculatorId: 'power',
+    getFileBaseName: () => 'aeroverse-power-load-vs-solar',
+  });
+  const voltageExport = useChartExport(voltageCardRef, {
+    calculatorId: 'power',
+    getFileBaseName: () => 'aeroverse-power-voltage',
+  });
+  const energyExport = useChartExport(energyCardRef, {
+    calculatorId: 'power',
+    getFileBaseName: () => 'aeroverse-power-energy',
+  });
+  const sunExport = useChartExport(sunCardRef, {
+    calculatorId: 'power',
+    getFileBaseName: () => 'aeroverse-power-sun-elevation',
+  });
+
+
   return (
     <div className="space-y-6">
       {/* State of Charge */}
-      <AeroCard title="Battery State of Charge">
+      <div ref={socCardRef}>
+        <AeroCard 
+          title="Battery State of Charge"
+          headerActions={<ChartExportButtons exportAsPng={socExport.exportAsPng} exportAsSvg={socExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -69,9 +106,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
           </AreaChart>
         </ResponsiveContainer>
       </AeroCard>
+      </div>
       
       {/* Power Load vs Solar */}
-      <AeroCard title="Power Load vs Solar Generation">
+      <div ref={powerCardRef}>
+        <AeroCard 
+          title="Power Load vs Solar Generation"
+          headerActions={<ChartExportButtons exportAsPng={powerExport.exportAsPng} exportAsSvg={powerExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -124,9 +166,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
           />
         </div>
       </AeroCard>
+      </div>
       
       {/* Voltage */}
-      <AeroCard title="Battery Voltage">
+      <div ref={voltageCardRef}>
+        <AeroCard 
+          title="Battery Voltage"
+          headerActions={<ChartExportButtons exportAsPng={voltageExport.exportAsPng} exportAsSvg={voltageExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -163,9 +210,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
           />
         </div>
       </AeroCard>
+      </div>
       
       {/* Energy Remaining */}
-      <AeroCard title="Energy Remaining">
+      <div ref={energyCardRef}>
+        <AeroCard 
+          title="Energy Remaining"
+          headerActions={<ChartExportButtons exportAsPng={energyExport.exportAsPng} exportAsSvg={energyExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -193,9 +245,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
           </AreaChart>
         </ResponsiveContainer>
       </AeroCard>
+      </div>
       
       {/* Sun Elevation */}
-      <AeroCard title="Sun Elevation">
+      <div ref={sunCardRef}>
+        <AeroCard 
+          title="Sun Elevation"
+          headerActions={<ChartExportButtons exportAsPng={sunExport.exportAsPng} exportAsSvg={sunExport.exportAsSvg} />}
+        >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -233,6 +290,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
           />
         </div>
       </AeroCard>
+      </div>
     </div>
   );
 }
