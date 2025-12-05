@@ -18,6 +18,7 @@ import {
 } from './raymer';
 import {
   calculateTorenbeekWingWeight,
+  calculateTorenbeekFuselageWeight,
   TorenbeekWingInputs,
 } from './torenbeek';
 import {

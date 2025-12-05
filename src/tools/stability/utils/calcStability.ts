@@ -27,17 +27,23 @@ export interface StabilityInputs {
   c_bar: number; // Mean aerodynamic chord (m)
   x_ac_w: number; // Wing aerodynamic center position (fraction of MAC, 0-1)
   x_cg: number; // CG position (fraction of MAC, 0-1)
+  b_w?: number; // Wing span (m)
 
   // Tail geometry
   S_t: number; // Tail area (m²)
   AR_t: number; // Tail aspect ratio
   l_t: number; // Tail arm (m)
 
+  // Vertical tail
+  S_v?: number; // Vertical tail area (m²)
+  l_v?: number; // Vertical tail arm (m)
+
   // Aerodynamic parameters
   a0: number; // Airfoil lift curve slope (per radian)
   e: number; // Wing efficiency factor
   e_t: number; // Tail efficiency factor
   eta: number; // Tail effectiveness factor
+  eta_t?: number; // Alternative name for tail effectiveness (alias for eta)
 
   // Downwash model
   useRoskamDownwash: boolean; // true for Roskam, false for DATCOM
@@ -47,7 +53,6 @@ export interface StabilityInputs {
   tau_e?: number; // Elevator effectiveness (0-1)
   S_a?: number; // Aileron area (m²)
   S_r?: number; // Rudder area (m²)
-  S_v?: number; // Vertical tail area (m²)
 }
 
 /**

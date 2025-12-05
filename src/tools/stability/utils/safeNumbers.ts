@@ -29,7 +29,7 @@ export function safeToFixed(value: any, decimals: number = 3, fallback: string =
  * Ensure all values in an object are numbers
  */
 export function ensureNumbers<T extends Record<string, any>>(obj: T): T {
-  const result = { ...obj };
+  const result = { ...obj } as any;
   for (const key in result) {
     if (typeof result[key] === 'string') {
       result[key] = safeNumber(result[key], result[key] === '' ? undefined : 0);
@@ -40,6 +40,6 @@ export function ensureNumbers<T extends Record<string, any>>(obj: T): T {
       result[key] = 0;
     }
   }
-  return result;
+  return result as T;
 }
 

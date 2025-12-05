@@ -540,7 +540,6 @@ export default function TrajectorySimulator() {
                   planet={selectedPlanet}
                   result={result3D}
                   mode={mode}
-                    trajectoryData={trajectoryData}
                 />
               </div>
             )}
@@ -551,7 +550,6 @@ export default function TrajectorySimulator() {
                   planet={selectedPlanet}
                   result={currentResult}
                   mode={mode}
-                    trajectoryData={trajectoryData}
                 />
               </div>
             )}

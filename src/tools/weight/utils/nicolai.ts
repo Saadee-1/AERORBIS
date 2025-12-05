@@ -9,9 +9,9 @@
  */
 export interface NicolaiFixedEquipmentInputs {
   n_seats: number; // Number of seats
-  isPressurized: boolean;
-  hasOxygen: boolean;
-  hasHVAC: boolean;
+  isPressurized?: boolean;
+  hasOxygen?: boolean;
+  hasHVAC?: boolean;
   batteryCapacity?: number; // Ah (for electric aircraft)
   telemetry?: boolean;
   antennaPackage?: boolean;

@@ -151,9 +151,7 @@ export function buildAntennaPayload({
       approxLevel,
       confidence,
       warnings: result.warnings,
-      notes: result.metadata?.notes,
-      assumptions: result.metadata?.assumptions,
-      recommendedNextSteps: result.metadata?.recommended_next_steps,
+      userNotes: result.metadata?.notes?.join('; '),
     },
   });
 }

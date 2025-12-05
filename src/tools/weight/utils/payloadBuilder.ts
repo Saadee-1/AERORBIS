@@ -104,6 +104,26 @@ export function buildWeightEstimatorPayload(
     steps.push(`CG position: ${cg.x_cg.toFixed(2)} m from nose, ${(cg.x_cg_MAC * 100).toFixed(1)}% MAC`);
   }
   
+  // Format results for display
+  const formattedResults: Record<string, any> = {
+    'Wing weight': `${(components.wing / 9.81).toFixed(1)} kg`,
+    'Fuselage weight': `${(components.fuselage / 9.81).toFixed(1)} kg`,
+    'Horizontal tail weight': `${(components.horizontalTail / 9.81).toFixed(1)} kg`,
+    'Vertical tail weight': `${(components.verticalTail / 9.81).toFixed(1)} kg`,
+    'Landing gear weight': `${(components.landingGear.total / 9.81).toFixed(1)} kg`,
+    'Engine weight': `${(components.engine / 9.81).toFixed(1)} kg`,
+    'Fuel system weight': `${(components.fuelSystem / 9.81).toFixed(1)} kg`,
+    'Controls weight': `${(components.controls / 9.81).toFixed(1)} kg`,
+    'Avionics weight': `${(components.avionics / 9.81).toFixed(1)} kg`,
+    'Fixed equipment weight': `${(components.fixedEquipment / 9.81).toFixed(1)} kg`,
+    'Empty weight': `${(W_empty / 9.81).toFixed(1)} kg`,
+    'Fuel weight': `${(W_fuel / 9.81).toFixed(1)} kg`,
+    'Takeoff weight': `${(W_to / 9.81).toFixed(1)} kg`,
+    'Aircraft class': classification.aircraftClass,
+    'Iteration converged': iteration.converged ? 'Yes' : 'No',
+    'Iterations required': iteration.iterations.toString(),
+  };
+
   if (inertia) {
     steps.push(`Moments of inertia: Ixx = ${inertia.Ixx.toFixed(1)} kg·m², Iyy = ${inertia.Iyy.toFixed(1)} kg·m², Izz = ${inertia.Izz.toFixed(1)} kg·m²`);
     formattedResults['Ixx (Roll)'] = `${inertia.Ixx.toFixed(1)} kg·m²`;
@@ -159,26 +179,6 @@ export function buildWeightEstimatorPayload(
       formattedInputs['Nacelle material'] = MATERIALS[inputs.materials.nacelle]?.name || inputs.materials.nacelle;
     }
   }
-  
-  // Format results for display
-  const formattedResults: Record<string, any> = {
-    'Wing weight': `${(components.wing / 9.81).toFixed(1)} kg`,
-    'Fuselage weight': `${(components.fuselage / 9.81).toFixed(1)} kg`,
-    'Horizontal tail weight': `${(components.horizontalTail / 9.81).toFixed(1)} kg`,
-    'Vertical tail weight': `${(components.verticalTail / 9.81).toFixed(1)} kg`,
-    'Landing gear weight': `${(components.landingGear.total / 9.81).toFixed(1)} kg`,
-    'Engine weight': `${(components.engine / 9.81).toFixed(1)} kg`,
-    'Fuel system weight': `${(components.fuelSystem / 9.81).toFixed(1)} kg`,
-    'Controls weight': `${(components.controls / 9.81).toFixed(1)} kg`,
-    'Avionics weight': `${(components.avionics / 9.81).toFixed(1)} kg`,
-    'Fixed equipment weight': `${(components.fixedEquipment / 9.81).toFixed(1)} kg`,
-    'Empty weight': `${(W_empty / 9.81).toFixed(1)} kg`,
-    'Fuel weight': `${(W_fuel / 9.81).toFixed(1)} kg`,
-    'Takeoff weight': `${(W_to / 9.81).toFixed(1)} kg`,
-    'Aircraft class': classification.aircraftClass,
-    'Iteration converged': iteration.converged ? 'Yes' : 'No',
-    'Iterations required': iteration.iterations.toString(),
-  };
   
   if (cg) {
     formattedResults['CG position'] = `${cg.x_cg.toFixed(2)} m (${(cg.x_cg_MAC * 100).toFixed(1)}% MAC)`;

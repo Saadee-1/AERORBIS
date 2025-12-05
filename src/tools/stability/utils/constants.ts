@@ -6,6 +6,9 @@ export const PI = Math.PI;
 export const DEG_TO_RAD = PI / 180;
 export const RAD_TO_DEG = 180 / PI;
 
+// Theoretical values
+export const A0_THEORETICAL = 2 * PI; // Thin airfoil theory lift slope (per radian)
+
 // Typical values
 export const DEFAULT_AIRFOIL_LIFT_SLOPE = 2 * PI; // per radian
 export const DEFAULT_WING_EFFICIENCY = 0.85;
