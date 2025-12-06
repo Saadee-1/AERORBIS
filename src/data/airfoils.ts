@@ -21,6 +21,7 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
       { id: "naca0012", name: "NACA 0012 (Symmetric)" },
       { id: "naca0015", name: "NACA 0015" },
       { id: "naca0018", name: "NACA 0018 (Aerobatic)" },
+      { id: "naca2410", name: "NACA 2410 (Trainer)" },
       { id: "naca2412", name: "NACA 2412 (Cambered)" },
       { id: "naca2415", name: "NACA 2415 (Trainer)" },
       { id: "naca4412", name: "NACA 4412 (High Lift)" },
@@ -34,7 +35,9 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
     airfoils: [
       { id: "naca63215", name: "NACA 63-215 (Laminar)" },
       { id: "naca64012", name: "NACA 64-012 (Racer)" },
+      { id: "naca64a010", name: "NACA 64A010 (Fast)" },
       { id: "naca65a012", name: "NACA 65A012 (Racer)" },
+      { id: "naca65415", name: "NACA 65-415 (Cruise)" },
     ],
   },
   {
@@ -42,6 +45,7 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
     airfoils: [
       { id: "clarky", name: "Clark Y" },
       { id: "clarkyh", name: "Clark YH (STOL)" },
+      { id: "eppler205", name: "Eppler 205" },
       { id: "eppler320", name: "Eppler 320" },
       { id: "fx63137", name: "Wortmann FX 63-137" },
       { id: "sd7037", name: "SD7037 (Glider/UAV)" },
@@ -51,7 +55,10 @@ export const AIRFOIL_GROUPS: AirfoilGroup[] = [
     label: "UAV Low Reynolds",
     airfoils: [
       { id: "s1223", name: "Selig S1223 (Low Re UAV)" },
+      { id: "selig1223", name: "Selig 1223 (STOL)" },
+      { id: "selig3021", name: "Selig 3021 (Glider)" },
       { id: "mh114", name: "MH 114 (Endurance)" },
+      { id: "hq3012", name: "HQ 3.0/12 (Glider)" },
     ],
   },
   {
@@ -128,6 +135,14 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CD_0: 0.0068,
     alpha_stall: 15,
   },
+  naca2410: {
+    name: "NACA 2410 (Trainer)",
+    description: "Thinner variant of NACA 2412 for trainers and light aircraft",
+    CL_alpha: 0.11,
+    CL_0: 0.24,
+    CD_0: 0.0068,
+    alpha_stall: 16,
+  },
   naca2412: {
     name: "NACA 2412 (Cambered)",
     description: "Popular cambered airfoil for general aviation wings",
@@ -192,6 +207,14 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CD_0: 0.0045,
     alpha_stall: 16,
   },
+  naca64a010: {
+    name: "NACA 64A010 (Fast)",
+    description: "Thin laminar flow airfoil for high-speed cruise",
+    CL_alpha: 0.104,
+    CL_0: 0.10,
+    CD_0: 0.0042,
+    alpha_stall: 16.5,
+  },
   naca65a012: {
     name: "NACA 65A012 (Racer)",
     description: "High-speed laminar flow airfoil for racing applications",
@@ -199,6 +222,14 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CL_0: 0.15,
     CD_0: 0.0048,
     alpha_stall: 16.5,
+  },
+  naca65415: {
+    name: "NACA 65-415 (Cruise)",
+    description: "Cambered laminar flow airfoil for efficient cruise",
+    CL_alpha: 0.105,
+    CL_0: 0.28,
+    CD_0: 0.0052,
+    alpha_stall: 16,
   },
   clarky: {
     name: "Clark Y",
@@ -224,6 +255,22 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CD_0: 0.0085,
     alpha_stall: 13,
   },
+  selig1223: {
+    name: "Selig 1223 (STOL)",
+    description: "High-lift airfoil for STOL and slow-speed UAV applications",
+    CL_alpha: 0.111,
+    CL_0: 0.42,
+    CD_0: 0.0088,
+    alpha_stall: 12.5,
+  },
+  selig3021: {
+    name: "Selig 3021 (Glider)",
+    description: "High-performance glider airfoil optimized for endurance",
+    CL_alpha: 0.108,
+    CL_0: 0.30,
+    CD_0: 0.0065,
+    alpha_stall: 15.5,
+  },
   mh114: {
     name: "MH 114 (Endurance)",
     description: "Long-endurance UAV airfoil with excellent L/D for loitering missions",
@@ -231,6 +278,22 @@ export const AIRFOIL_DATA: Record<string, AirfoilData> = {
     CL_0: 0.35,
     CD_0: 0.0070,
     alpha_stall: 14,
+  },
+  hq3012: {
+    name: "HQ 3.0/12 (Glider)",
+    description: "High-performance glider airfoil for soaring applications",
+    CL_alpha: 0.109,
+    CL_0: 0.32,
+    CD_0: 0.0063,
+    alpha_stall: 15,
+  },
+  eppler205: {
+    name: "Eppler 205",
+    description: "High-performance glider airfoil for efficient flight",
+    CL_alpha: 0.108,
+    CL_0: 0.26,
+    CD_0: 0.0061,
+    alpha_stall: 16,
   },
   eppler320: {
     name: "Eppler 320",

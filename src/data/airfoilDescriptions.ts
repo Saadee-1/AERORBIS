@@ -12,7 +12,7 @@
 
 export interface AirfoilDescription {
   name: string;
-  family: 'NACA' | 'Selig' | 'Eppler' | 'Wortmann' | 'Supercritical' | 'Wind Turbine' | 'General Aviation' | 'MH-series' | 'SD-series';
+  family: 'NACA' | 'Selig' | 'Eppler' | 'Wortmann' | 'Supercritical' | 'Wind Turbine' | 'General Aviation' | 'MH-series' | 'SD-series' | 'HQ-series';
   camber?: number; // Percentage camber
   thickness?: number; // Percentage thickness
   designPurpose: string;
@@ -71,6 +71,16 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     recommendedReRange: "100k - 3M",
     applications: ["Aerobatic aircraft", "3D aircraft", "Large control surface wings", "Pattern aircraft"],
     behaviorSummary: "Thick symmetric NACA airfoil suitable for aerobatic and 3D aircraft with large control surfaces and strong wing structure. The extra thickness provides excellent structural strength for high-G maneuvers and aggressive control deflections."
+  },
+  naca2410: {
+    name: "NACA 2410",
+    family: "NACA",
+    camber: 2,
+    thickness: 10,
+    designPurpose: "Thinner variant of NACA 2412 for trainers and light aircraft",
+    recommendedReRange: "200k - 5M",
+    applications: ["Training aircraft", "Light aircraft", "General aviation"],
+    behaviorSummary: "Thinner variant of NACA 2412 with slightly lower drag, suitable for trainers and light aircraft requiring good efficiency."
   },
   naca2412: {
     name: "NACA 2412",
@@ -142,6 +152,26 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["High-performance aircraft", "Gliders", "Long-range aircraft"],
     behaviorSummary: "Designed to maintain laminar flow over a significant portion of the chord, resulting in reduced drag. Excellent for high-performance applications."
   },
+  naca64a010: {
+    name: "NACA 64A010",
+    family: "NACA",
+    camber: 0,
+    thickness: 10,
+    designPurpose: "Thin laminar flow airfoil for high-speed cruise",
+    recommendedReRange: "500k - 10M",
+    applications: ["High-speed aircraft", "Racing aircraft", "Fast cruise applications"],
+    behaviorSummary: "Thin symmetric laminar flow airfoil optimized for high-speed cruise with minimal drag. Excellent for fast aircraft requiring efficient high-speed performance."
+  },
+  naca65415: {
+    name: "NACA 65-415",
+    family: "NACA",
+    camber: 4,
+    thickness: 15,
+    designPurpose: "Cambered laminar flow airfoil for efficient cruise",
+    recommendedReRange: "500k - 10M",
+    applications: ["High-performance aircraft", "Efficient cruise aircraft", "Long-range aircraft"],
+    behaviorSummary: "Cambered laminar flow airfoil combining high lift with low drag. Excellent for efficient cruise performance in high-performance aircraft."
+  },
   clarky: {
     name: "Clark Y",
     family: "General Aviation",
@@ -172,6 +202,26 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["UAVs", "Model aircraft", "Small drones", "Low-speed applications"],
     behaviorSummary: "Specifically designed for low Reynolds number flows. Excellent performance at small scales with high lift-to-drag ratios."
   },
+  selig1223: {
+    name: "Selig 1223",
+    family: "Selig",
+    camber: 4.2,
+    thickness: 12.2,
+    designPurpose: "High-lift airfoil for STOL and slow-speed UAV applications",
+    recommendedReRange: "50k - 500k",
+    applications: ["STOL aircraft", "Slow-speed UAVs", "Model aircraft", "Bush planes"],
+    behaviorSummary: "High-lift Selig airfoil optimized for STOL operations and slow-speed flight. Provides excellent low-speed lift characteristics for short-field operations."
+  },
+  selig3021: {
+    name: "Selig 3021",
+    family: "Selig",
+    camber: 3.0,
+    thickness: 12.1,
+    designPurpose: "High-performance glider airfoil optimized for endurance",
+    recommendedReRange: "100k - 2M",
+    applications: ["Gliders", "Sailplanes", "Endurance UAVs", "Long-range aircraft"],
+    behaviorSummary: "High-performance glider airfoil with excellent lift-to-drag ratio. Optimized for endurance and efficient soaring applications."
+  },
   mh114: {
     name: "MH 114",
     family: "MH-series",
@@ -182,6 +232,14 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     applications: ["Endurance UAVs", "Long-range surveillance", "Loitering munitions", "Solar-powered aircraft"],
     behaviorSummary: "Endurance UAV airfoil with good lift-to-drag at medium lift coefficients, suitable for long-range and loitering missions. Optimized for efficient cruise and extended flight times."
   },
+  eppler205: {
+    name: "Eppler 205",
+    family: "Eppler",
+    designPurpose: "High-performance glider airfoil for efficient flight",
+    recommendedReRange: "200k - 2M",
+    applications: ["Gliders", "Sailplanes", "High-performance aircraft"],
+    behaviorSummary: "High-performance Eppler glider airfoil with excellent efficiency. Optimized for maximum lift-to-drag ratio in soaring applications."
+  },
   eppler320: {
     name: "Eppler 320",
     family: "Eppler",
@@ -189,6 +247,16 @@ export const AIRFOIL_DESCRIPTIONS: Record<string, AirfoilDescription> = {
     recommendedReRange: "200k - 2M",
     applications: ["Gliders", "Sailplanes", "High-performance aircraft"],
     behaviorSummary: "Optimized for maximum lift-to-drag ratio. Excellent for soaring applications where efficiency is paramount."
+  },
+  hq3012: {
+    name: "HQ 3.0/12",
+    family: "HQ-series",
+    camber: 3.0,
+    thickness: 12,
+    designPurpose: "High-performance glider airfoil for soaring applications",
+    recommendedReRange: "200k - 2M",
+    applications: ["Gliders", "Sailplanes", "High-performance soaring aircraft"],
+    behaviorSummary: "High-performance glider airfoil from the HQ series, optimized for efficient soaring with excellent lift-to-drag characteristics."
   },
   fx63137: {
     name: "Wortmann FX 63-137",
