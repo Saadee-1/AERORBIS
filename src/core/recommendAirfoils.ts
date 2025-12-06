@@ -9,7 +9,7 @@ import type {
   RecommendationResult,
   AirfoilRecommendation,
 } from "@/types/missionRecommendations";
-import { getAllAirfoilsWithMetricsForRe, type AirfoilWithMetrics } from "@/core/airfoilMetrics";
+import { getAllAirfoilsWithMetricsForRe, type AirfoilWithMetrics, type AirfoilPolarMetrics } from "@/core/airfoilMetrics";
 import { getTargetReForMission } from "@/core/missionReMapping";
 import { callGeminiJSON } from "@/services/geminiClient";
 
@@ -45,7 +45,135 @@ function normalize(value: number, min: number, max: number): number {
 }
 
 /**
+ * Build a per-airfoil engineering reason based on metrics and mission
+ * Returns a short single sentence (~80-120 characters) explaining why this airfoil is good for that mission
+ */
+function buildEngineeringReason(
+  missionId: MissionId,
+  metrics: AirfoilPolarMetrics,
+  normalizedScore: number,
+  rankIndex: number
+): string {
+  const clMax = metrics.clMax ?? 0;
+  const cdMin = metrics.cdMin ?? 1;
+  const ldMax = metrics.ldMax ?? 0;
+  const stallSoftness = metrics.stallSoftness ?? 0;
+  const stallAlpha = metrics.stallAlpha ?? metrics.alphaAtClMax ?? 0;
+  const cmRange = metrics.cmRange ?? 0;
+
+  // Determine quality prefix based on rank
+  const qualityPrefix = rankIndex === 0 
+    ? "Excellent" 
+    : rankIndex <= 2 
+    ? "Very good" 
+    : "Good trade-off";
+
+  switch (missionId) {
+    case "racer_highspeed": {
+      // Emphasize low cdMin and high ldMax
+      if (cdMin < 0.01 && ldMax > 80) {
+        return `${qualityPrefix} low drag (Cd≈${cdMin.toFixed(4)}) and high L/D (${ldMax.toFixed(0)}) for high-speed efficiency.`;
+      } else if (cdMin < 0.01) {
+        return `${qualityPrefix} very low drag (Cd≈${cdMin.toFixed(4)}) ideal for high-speed racing.`;
+      } else {
+        return `${qualityPrefix} efficient L/D (${ldMax.toFixed(0)}) with low drag for racing.`;
+      }
+    }
+
+    case "uav_endurance":
+    case "glider_sailplane": {
+      // Emphasize high ldMax and low cdMin
+      if (ldMax > 100) {
+        return `${qualityPrefix} high L/D (${ldMax.toFixed(0)}) with low drag (Cd≈${cdMin.toFixed(4)}) for extended endurance.`;
+      } else if (cdMin < 0.008) {
+        return `${qualityPrefix} very low drag (Cd≈${cdMin.toFixed(4)}) maximizes range and efficiency.`;
+      } else {
+        return `${qualityPrefix} balanced L/D (${ldMax.toFixed(0)}) and drag for efficient flight.`;
+      }
+    }
+
+    case "stol_hauler": {
+      // Emphasize high clMax, soft stall, good stallAlpha
+      if (clMax > 1.8 && stallSoftness > 0.6) {
+        return `${qualityPrefix} high lift (Cl=${clMax.toFixed(2)}) with soft stall at ${stallAlpha.toFixed(1)}° for STOL.`;
+      } else if (clMax > 1.8) {
+        return `${qualityPrefix} very high lift (Cl=${clMax.toFixed(2)}) enables short takeoff performance.`;
+      } else if (stallSoftness > 0.6) {
+        return `${qualityPrefix} soft stall characteristics with good lift for bush operations.`;
+      } else {
+        return `${qualityPrefix} high lift (Cl=${clMax.toFixed(2)}) suitable for short-field operations.`;
+      }
+    }
+
+    case "trainer_ga": {
+      // Emphasize balanced ldMax and gentle stall
+      if (stallSoftness > 0.5 && ldMax > 50) {
+        return `${qualityPrefix} gentle stall behavior with good efficiency (L/D=${ldMax.toFixed(0)}) for training.`;
+      } else if (stallSoftness > 0.5) {
+        return `${qualityPrefix} forgiving stall characteristics ideal for student pilots.`;
+      } else if (ldMax > 50) {
+        return `${qualityPrefix} efficient L/D (${ldMax.toFixed(0)}) with stable handling for GA.`;
+      } else {
+        return `${qualityPrefix} balanced performance with predictable stall at ${stallAlpha.toFixed(1)}°.`;
+      }
+    }
+
+    case "aerobatic_symmetric": {
+      // Emphasize symmetry / stable cmRange
+      if (cmRange < 0.1) {
+        return `${qualityPrefix} stable pitching moment (Cm range ${cmRange.toFixed(3)}) for predictable aerobatics.`;
+      } else if (stallSoftness > 0.4) {
+        return `${qualityPrefix} moderate lift (Cl=${clMax.toFixed(2)}) with controlled stall for aerobatic flight.`;
+      } else {
+        return `${qualityPrefix} balanced lift and pitching moment suitable for aerobatic maneuvers.`;
+      }
+    }
+
+    case "micro_uav_lowre": {
+      // Emphasize good lift and L/D at low Re
+      if (clMax > 1.2 && ldMax > 40) {
+        return `${qualityPrefix} strong lift (Cl=${clMax.toFixed(2)}) and L/D (${ldMax.toFixed(0)}) at low Reynolds.`;
+      } else if (clMax > 1.2) {
+        return `${qualityPrefix} high lift (Cl=${clMax.toFixed(2)}) maintains performance at very low Re.`;
+      } else if (ldMax > 40) {
+        return `${qualityPrefix} good L/D (${ldMax.toFixed(0)}) efficiency for small-scale UAVs.`;
+      } else {
+        return `${qualityPrefix} suitable lift characteristics for micro UAV applications.`;
+      }
+    }
+
+    case "wind_turbine": {
+      // Emphasize strong lift with reasonable drag
+      if (clMax > 1.5 && cdMin < 0.02) {
+        return `${qualityPrefix} strong lift (Cl=${clMax.toFixed(2)}) with reasonable drag for energy extraction.`;
+      } else if (clMax > 1.5) {
+        return `${qualityPrefix} high lift (Cl=${clMax.toFixed(2)}) maximizes power generation.`;
+      } else {
+        return `${qualityPrefix} balanced lift and drag suitable for wind turbine blades.`;
+      }
+    }
+
+    case "transport_supercrit": {
+      // Emphasize low drag and stable pitching moment
+      if (cdMin < 0.01 && cmRange < 0.1) {
+        return `${qualityPrefix} low drag (Cd≈${cdMin.toFixed(4)}) with stable Cm for efficient cruise.`;
+      } else if (cdMin < 0.01) {
+        return `${qualityPrefix} very low drag (Cd≈${cdMin.toFixed(4)}) minimizes fuel consumption.`;
+      } else if (cmRange < 0.1) {
+        return `${qualityPrefix} stable pitching moment (Cm range ${cmRange.toFixed(3)}) ensures smooth cruise.`;
+      } else {
+        return `${qualityPrefix} efficient L/D (${ldMax.toFixed(0)}) with low drag for transport.`;
+      }
+    }
+
+    default:
+      return `${qualityPrefix} performance characteristics suitable for this mission.`;
+  }
+}
+
+/**
  * Score an airfoil for a specific mission using engineering metrics
+ * Note: reason will be set later with rankIndex in recommendWithLocalScoring
  */
 function scoreAirfoilForMission(
   a: AirfoilWithMetrics,
@@ -61,7 +189,6 @@ function scoreAirfoilForMission(
 
   // These weights are rough and can be tuned later.
   let score = 0;
-  let reasonParts: string[] = [];
 
   switch (missionId) {
     case "trainer_ga": {
@@ -71,7 +198,6 @@ function scoreAirfoilForMission(
         0.35 * normalize(stallSoftness, 0, 1) +
         0.20 * normalize(stallAlpha, 8, 18) +
         0.10 * (1 - normalize(cmRange, 0, 0.2));
-      reasonParts.push("Trainer/GA: favors high Clmax, soft stall, stable pitching moment.");
       break;
     }
 
@@ -81,7 +207,6 @@ function scoreAirfoilForMission(
         0.45 * normalize(clMax, 0.8, 3.0) +
         0.35 * normalize(stallAlpha, 10, 20) +
         0.20 * normalize(stallSoftness, 0, 1);
-      reasonParts.push("STOL: prioritizes huge lift and high stall angle with softer stall.");
       break;
     }
 
@@ -91,7 +216,6 @@ function scoreAirfoilForMission(
         0.45 * normalize(ldMax, 20, 200) +
         0.30 * (1 - normalize(cdMin, 0.004, 0.03)) +
         0.25 * normalize(clMax, 0.6, 1.8);
-      reasonParts.push("UAV endurance: prefers high L/D and low drag at mission Reynolds.");
       break;
     }
 
@@ -101,7 +225,6 @@ function scoreAirfoilForMission(
         0.55 * (1 - normalize(cdMin, 0.004, 0.03)) +
         0.25 * normalize(ldMax, 20, 150) +
         0.20 * normalize(clMax, 0.6, 1.6);
-      reasonParts.push("Racer: emphasizes low drag at higher speeds and efficient L/D.");
       break;
     }
 
@@ -111,7 +234,6 @@ function scoreAirfoilForMission(
         0.40 * normalize(clMax, 0.6, 1.6) +
         0.30 * (1 - normalize(cmRange, 0, 0.2)) +
         0.30 * normalize(stallSoftness, 0, 1);
-      reasonParts.push("Aerobatic: seeks moderate lift with predictable pitching moment.");
       break;
     }
 
@@ -120,7 +242,6 @@ function scoreAirfoilForMission(
         0.60 * normalize(ldMax, 30, 250) +
         0.25 * (1 - normalize(cdMin, 0.004, 0.02)) +
         0.15 * normalize(clMax, 0.6, 1.8);
-      reasonParts.push("Glider: maximizes L/D and minimizes drag for soaring.");
       break;
     }
 
@@ -130,7 +251,6 @@ function scoreAirfoilForMission(
         0.5 * normalize(clMax, 0.8, 3.0) +
         0.3 * (1 - normalize(cdMin, 0.004, 0.03)) +
         0.2 * normalize(stallAlpha, 8, 18);
-      reasonParts.push("Wind turbine: looks for strong lift with reasonable drag.");
       break;
     }
 
@@ -139,7 +259,6 @@ function scoreAirfoilForMission(
         0.50 * (1 - normalize(cdMin, 0.004, 0.03)) +
         0.30 * normalize(ldMax, 20, 150) +
         0.20 * (1 - normalize(cmRange, 0, 0.2));
-      reasonParts.push("Transport: low drag and stable pitching moment for cruise.");
       break;
     }
 
@@ -148,7 +267,6 @@ function scoreAirfoilForMission(
         0.5 * normalize(clMax, 0.8, 3.0) +
         0.3 * normalize(ldMax, 15, 150) +
         0.2 * normalize(stallSoftness, 0, 1);
-      reasonParts.push("Micro UAV: needs high lift and decent efficiency at very low Re.");
       break;
     }
   }
@@ -156,12 +274,11 @@ function scoreAirfoilForMission(
   // Clamp between 0 and 1
   const clampedScore = Math.max(0, Math.min(1, score || 0));
 
-  const reason = reasonParts.join(" ");
-
+  // Reason will be set later with rankIndex
   return {
     airfoilId: a.airfoilId,
     score: clampedScore,
-    reason,
+    reason: "", // Will be set in recommendWithLocalScoring
   };
 }
 
@@ -387,19 +504,43 @@ No extra text, no commentary, only the JSON object.`;
       return null;
     }
 
+    // Create a map of airfoilId -> metrics for building engineering reasons when needed
+    const metricsMap = new Map<string, AirfoilPolarMetrics>();
+    airfoils.forEach(a => {
+      metricsMap.set(a.airfoilId, a);
+    });
+
     // Validate, map to AirfoilRecommendation[]
     const validIds = new Set(airfoils.map(a => a.airfoilId));
     const items: AirfoilRecommendation[] = parsed.items
       .filter((item: any) => item && typeof item.airfoilId === "string" && validIds.has(item.airfoilId))
-      .map((item: any) => ({
-        airfoilId: item.airfoilId,
-        score: typeof item.score === "number" && isFinite(item.score)
+      .map((item: any, index: number) => {
+        const airfoilId = item.airfoilId;
+        const score = typeof item.score === "number" && isFinite(item.score)
           ? Math.max(0, Math.min(1, item.score))
-          : 0.5,
-        reason: typeof item.reason === "string"
-          ? item.reason
-          : `Recommended for mission ${missionId}.`,
-      }))
+          : 0.5;
+        
+        // If AI provided a non-empty reason, keep it
+        let reason = typeof item.reason === "string" && item.reason.trim()
+          ? item.reason.trim()
+          : null;
+        
+        // If reason is empty or missing, generate engineering reason
+        if (!reason) {
+          const metrics = metricsMap.get(airfoilId);
+          if (metrics) {
+            reason = buildEngineeringReason(missionId, metrics, score, index);
+          } else {
+            reason = `Recommended for mission ${missionId}.`;
+          }
+        }
+        
+        return {
+          airfoilId,
+          score,
+          reason,
+        };
+      })
       .slice(0, 5);
 
     if (items.length === 0) {
@@ -429,6 +570,12 @@ async function recommendWithLocalScoring(
   const targetRe = getTargetReForMission(missionId);
   const airfoils = await getAllAirfoilsWithMetricsForRe(targetRe);
 
+  // Create a map of airfoilId -> metrics for building reasons
+  const metricsMap = new Map<string, AirfoilPolarMetrics>();
+  airfoils.forEach(a => {
+    metricsMap.set(a.airfoilId, a);
+  });
+
   const scored: AirfoilRecommendation[] = airfoils.map((a) =>
     scoreAirfoilForMission(a, missionId)
   );
@@ -436,7 +583,18 @@ async function recommendWithLocalScoring(
   const items = scored
     .filter((x) => x.score > 0) // drop completely invalid ones
     .sort((a, b) => b.score - a.score)
-    .slice(0, 5);
+    .slice(0, 5)
+    .map((rec, rankIndex) => {
+      // Build per-airfoil reason based on metrics and rank
+      const metrics = metricsMap.get(rec.airfoilId);
+      if (metrics) {
+        rec.reason = buildEngineeringReason(missionId, metrics, rec.score, rankIndex);
+      } else {
+        // Fallback if metrics not found (shouldn't happen)
+        rec.reason = `Recommended for ${missionId}.`;
+      }
+      return rec;
+    });
 
   return {
     missionId,
