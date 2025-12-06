@@ -6,6 +6,7 @@
 import { AIRFOIL_DATA, AIRFOILS } from "@/data/airfoils";
 import { loadPolarForComparison } from "@/lib/polarChartUtils";
 import { polarsConfig } from "@/config/polarsConfig";
+import { getReSetForAirfoil } from "@/data/airfoilReSets";
 import type { PolarData } from "@/lib/pdfExport";
 
 export interface AirfoilPolarMetrics {
@@ -28,10 +29,14 @@ export interface AirfoilWithMetrics extends AirfoilPolarMetrics {
 
 /**
  * Find the closest available Reynolds number to targetRe
- * Safety: Returns default 1M if preferredRes is empty (should never happen)
+ * Uses per-airfoil Re sets if airfoilId is provided, otherwise falls back to global config
+ * Safety: Returns default 1M if no Re set is available
  */
-function findClosestRe(targetRe: number): number {
-  const preferredRes = polarsConfig.preferredRes;
+function findClosestRe(targetRe: number, airfoilId?: string): number {
+  // Use per-airfoil Re set if airfoilId is provided
+  const preferredRes = airfoilId 
+    ? getReSetForAirfoil(airfoilId)
+    : polarsConfig.preferredRes;
   
   // Safety guard: if preferredRes is empty, return default
   if (!preferredRes || preferredRes.length === 0) {
@@ -62,8 +67,8 @@ export async function getPolarMetricsForAirfoil(
   targetRe: number
 ): Promise<AirfoilPolarMetrics | null> {
   try {
-    // Find closest available Re
-    const closestRe = findClosestRe(targetRe);
+    // Find closest available Re using per-airfoil set
+    const closestRe = findClosestRe(targetRe, airfoilId);
     
     // Load polar data
     const polar = await loadPolarForComparison(airfoilId, closestRe);
