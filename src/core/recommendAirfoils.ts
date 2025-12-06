@@ -197,35 +197,125 @@ function describeMission(missionId: MissionId): string {
  * Safely parse JSON from Gemini response
  * Handles cases where Gemini adds extra text around the JSON or wraps it in markdown code blocks
  * Safety: All parsing attempts are wrapped in try-catch to prevent crashes
+ * Never throws - always returns null on failure
  */
 function safeParseGeminiJson(raw: string | null | undefined): { items?: any[] } | null {
-  if (!raw) return null;
+  if (!raw || typeof raw !== "string") return null;
 
-  // Try direct parse first
-  try {
-    return JSON.parse(raw);
-  } catch {
-    // Try to extract JSON from markdown code blocks (```json ... ```)
-    // Use greedy match to capture entire JSON object including nested braces
-    const codeBlockMatch = raw.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-    if (codeBlockMatch && codeBlockMatch[1]) {
-      try {
-        return JSON.parse(codeBlockMatch[1]);
-      } catch {
-        // Fall through to next attempt
-      }
-    }
-
-    // Try to extract the first {...} block if model added extra text
-    // Use greedy match to capture entire JSON object
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match || !match[0]) return null;
+  // Helper to normalize parsed result (map 'id' to 'airfoilId' if needed)
+  const normalizeResult = (obj: any): { items?: any[] } | null => {
     try {
-      return JSON.parse(match[0]);
+      if (!obj || typeof obj !== "object") return null;
+      
+      // If items array exists, normalize each item
+      if (Array.isArray(obj.items)) {
+        obj.items = obj.items.map((item: any) => {
+          if (item && typeof item === "object") {
+            // Map 'id' to 'airfoilId' if airfoilId is missing
+            if (!item.airfoilId && item.id) {
+              item.airfoilId = item.id;
+            }
+          }
+          return item;
+        });
+        return obj;
+      }
+      
+      // If the object itself is an array, wrap it
+      if (Array.isArray(obj)) {
+        const normalized = obj.map((item: any) => {
+          if (item && typeof item === "object" && !item.airfoilId && item.id) {
+            item.airfoilId = item.id;
+          }
+          return item;
+        });
+        return { items: normalized };
+      }
+      
+      return null;
     } catch {
       return null;
     }
+  };
+
+  // Helper to safely parse a string
+  const safeParse = (str: string): any => {
+    try {
+      return JSON.parse(str);
+    } catch {
+      return null;
+    }
+  };
+
+  // 1. Try direct parse first
+  const directParsed = safeParse(raw);
+  if (directParsed) {
+    const result = normalizeResult(directParsed);
+    if (result?.items?.length) return result;
   }
+
+  // 2. Try to extract JSON from markdown code blocks (```json ... ```)
+  try {
+    const codeBlockMatch = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch?.[1]) {
+      const parsed = safeParse(codeBlockMatch[1].trim());
+      if (parsed) {
+        const result = normalizeResult(parsed);
+        if (result?.items?.length) return result;
+      }
+    }
+  } catch {
+    // Continue to next attempt
+  }
+
+  // 3. Find ALL {...} blocks and pick the largest one (most likely the full response)
+  try {
+    const jsonBlocks: string[] = [];
+    let depth = 0;
+    let startIdx = -1;
+    
+    for (let i = 0; i < raw.length; i++) {
+      if (raw[i] === "{") {
+        if (depth === 0) startIdx = i;
+        depth++;
+      } else if (raw[i] === "}") {
+        depth--;
+        if (depth === 0 && startIdx !== -1) {
+          jsonBlocks.push(raw.slice(startIdx, i + 1));
+          startIdx = -1;
+        }
+      }
+    }
+
+    // Sort by length descending and try each
+    jsonBlocks.sort((a, b) => b.length - a.length);
+    
+    for (const block of jsonBlocks) {
+      const parsed = safeParse(block);
+      if (parsed) {
+        const result = normalizeResult(parsed);
+        if (result?.items?.length) return result;
+      }
+    }
+  } catch {
+    // Continue to regex fallback
+  }
+
+  // 4. Last resort: simple regex extraction
+  try {
+    const simpleMatch = raw.match(/\{[\s\S]*\}/);
+    if (simpleMatch?.[0]) {
+      const parsed = safeParse(simpleMatch[0]);
+      if (parsed) {
+        const result = normalizeResult(parsed);
+        if (result?.items?.length) return result;
+      }
+    }
+  } catch {
+    // Silently fail
+  }
+
+  return null;
 }
 
 /**
