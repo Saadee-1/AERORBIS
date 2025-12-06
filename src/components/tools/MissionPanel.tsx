@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type {
   MissionId,
   RecommendationMode,
@@ -10,13 +10,12 @@ import { MISSIONS } from "@/data/missions";
 import { recommendAirfoils } from "@/core/recommendAirfoils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Rocket, Plane, AlertTriangle } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Loader2, AlertTriangle } from "lucide-react";
+import { RecommendationList, type RecommendationItem } from "@/components/recommendations/RecommendationList";
+import { getAllAirfoilsWithMetricsForRe } from "@/core/airfoilMetrics";
+import { getTargetReForMission } from "@/core/missionReMapping";
+import { AIRFOILS } from "@/data/airfoils";
+import { buildRecommendationReasons } from "@/lib/recommendations/reasoning";
 
 interface MissionPanelProps {
   onApplyRecommendations: (baseAirfoilId: string, comparedAirfoilIds: string[]) => void;
@@ -29,6 +28,8 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
   const [recommendations, setRecommendations] = useState<AirfoilRecommendation[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [usedFallback, setUsedFallback] = useState(false);
+  const [selectedAirfoilId, setSelectedAirfoilId] = useState<string | undefined>();
+  const [airfoilMetricsMap, setAirfoilMetricsMap] = useState<Map<string, any>>(new Map());
 
   async function handleRecommend() {
     if (!selectedMission) return;
@@ -66,6 +67,103 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
   const selectedMissionMeta = selectedMission 
     ? MISSIONS.find(m => m.id === selectedMission)
     : null;
+
+  // Fetch metrics for recommended airfoils when recommendations change
+  useEffect(() => {
+    async function fetchMetrics() {
+      if (recommendations.length === 0 || !selectedMission) return;
+      
+      try {
+        const targetRe = getTargetReForMission(selectedMission);
+        const allMetrics = await getAllAirfoilsWithMetricsForRe(targetRe);
+        const metricsMap = new Map();
+        
+        allMetrics.forEach(airfoil => {
+          metricsMap.set(airfoil.airfoilId, airfoil);
+        });
+        
+        setAirfoilMetricsMap(metricsMap);
+      } catch (err) {
+        console.warn("Failed to fetch airfoil metrics:", err);
+      }
+    }
+    
+    fetchMetrics();
+  }, [recommendations, selectedMission]);
+
+  // Map recommendations to RecommendationList format
+  const recommendationItems: RecommendationItem[] = useMemo(() => {
+    return recommendations.map((rec) => {
+      const airfoil = AIRFOILS.find(a => a.id === rec.airfoilId);
+      const airfoilName = airfoil?.name || rec.airfoilId;
+      const metrics = airfoilMetricsMap.get(rec.airfoilId);
+      
+      // Map metrics to RecommendationCard format
+      const cardMetrics = metrics ? {
+        reynolds: metrics.re ?? 0,
+        clMax: metrics.clMax,
+        ldMax: metrics.ldMax,
+        alphaStallDeg: metrics.stallAlpha ?? metrics.alphaAtClMax,
+        // Note: clTarget, clAtTarget, cdAtTarget, cmAtTarget would need to come from mission context
+        // For now, we'll omit them if not available
+      } : undefined;
+
+      // Generate multiple metric-backed reasons if metrics are available
+      let reasons: string[] = [];
+      if (metrics && cardMetrics) {
+        try {
+          reasons = buildRecommendationReasons({
+            mode: mode === "ai" ? "smart-ai" : "engineering",
+            isFallback: usedFallback && mode === "ai",
+            reynolds: cardMetrics.reynolds,
+            ldMax: cardMetrics.ldMax,
+            clMax: cardMetrics.clMax,
+            alphaStallDeg: cardMetrics.alphaStallDeg,
+            cdMin: metrics.cdMin,
+            stallSoftness: metrics.stallSoftness ?? undefined,
+            cmRange: metrics.cmRange ?? undefined,
+            cmMean: metrics.cmMean ?? undefined,
+            // Optional metrics that may not be available (not in cardMetrics, so undefined)
+            clTarget: undefined,
+            clAtTarget: undefined,
+            cdAtTarget: undefined,
+            cmAtTarget: undefined,
+          });
+        } catch (err) {
+          console.warn("Failed to build recommendation reasons:", err);
+          // Fallback to original reason if available
+          reasons = rec.reason ? [rec.reason] : [];
+        }
+      } else {
+        // Fallback to original reason if metrics not available
+        reasons = rec.reason ? [rec.reason] : [];
+      }
+
+      return {
+        airfoilId: rec.airfoilId,
+        airfoilName,
+        mode: mode === "ai" ? "smart-ai" : "engineering",
+        score: rec.score,
+        reasons,
+        metrics: cardMetrics,
+        isFallback: usedFallback && mode === "ai",
+      };
+    });
+  }, [recommendations, mode, usedFallback, airfoilMetricsMap]);
+
+  const handleSelectAirfoil = (airfoilId: string) => {
+    setSelectedAirfoilId(airfoilId);
+    // Find the selected airfoil and apply it as base, with others as compared
+    const selectedIndex = recommendations.findIndex(r => r.airfoilId === airfoilId);
+    if (selectedIndex >= 0) {
+      const base = recommendations[selectedIndex].airfoilId;
+      const compared = recommendations
+        .filter((_, idx) => idx !== selectedIndex)
+        .map(r => r.airfoilId)
+        .slice(0, 4);
+      onApplyRecommendations(base, compared);
+    }
+  };
 
   return (
     <div className="mission-panel bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col gap-4 w-full">
@@ -172,50 +270,17 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
       </div>
 
       {/* Recommendations list below the top row */}
-      {recommendations.length > 0 && (
+      {recommendationItems.length > 0 && (
         <div className="border-t border-slate-800 pt-4">
           <h4 className="mission-subtitle text-xs font-semibold text-slate-200 mb-2">
             Recommendations
           </h4>
-          <div className="max-h-48 overflow-y-auto">
-            <ul className="mission-recommendations flex flex-col gap-2 list-none p-0 m-0">
-              {recommendations.map((rec, idx) => (
-                <li 
-                  key={rec.airfoilId} 
-                  className="mission-recommendation-item rounded-lg border border-slate-800 bg-slate-900/50 p-2"
-                >
-                  <div className="mission-recommendation-header flex items-center gap-2 text-xs text-slate-200">
-                    <span className="mission-rank opacity-70">{idx + 1}.</span>
-                    {mode === "ai" ? (
-                      <Rocket className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                    ) : (
-                      <Plane className="w-3 h-3 text-cyan-400/70 flex-shrink-0" />
-                    )}
-                    <span className="mission-airfoil-id font-semibold">{rec.airfoilId}</span>
-                    <span className="mission-score ml-auto text-xs opacity-80">
-                      ★ {rec.score.toFixed(2)}
-                    </span>
-                  </div>
-                  {rec.reason && (
-                    <TooltipProvider delayDuration={300}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <p className="mission-reason text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2 cursor-help">
-                            {rec.reason}
-                          </p>
-                        </TooltipTrigger>
-                        <TooltipContent 
-                          side="top" 
-                          className="max-w-xs bg-slate-800 border-slate-700 text-slate-200 text-xs p-3"
-                        >
-                          {rec.reason}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </li>
-              ))}
-            </ul>
+          <div className="max-h-[600px] overflow-y-auto">
+            <RecommendationList
+              recommendations={recommendationItems}
+              selectedId={selectedAirfoilId}
+              onSelectAirfoil={handleSelectAirfoil}
+            />
           </div>
         </div>
       )}
