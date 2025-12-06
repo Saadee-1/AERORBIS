@@ -64,7 +64,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
   const ModeIcon = mode === "ai" ? Brain : Plane;
 
   return (
-    <div className="mission-panel bg-slate-950/90 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-3 w-full min-w-[180px] max-w-[340px] overflow-hidden">
+    <div className="mission-panel bg-slate-950/90 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-3 w-full min-w-[180px] sm:w-[260px] md:w-[280px] lg:w-[300px] xl:w-[320px] max-w-full sm:max-w-[320px] max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-slate-800/60 pb-2">
         <h3 className="text-sm font-semibold text-slate-200 tracking-tight">
