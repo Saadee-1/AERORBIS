@@ -10,7 +10,13 @@ import { MISSIONS } from "@/data/missions";
 import { recommendAirfoils } from "@/core/recommendAirfoils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Brain, Plane, AlertTriangle } from "lucide-react";
+import { Loader2, Rocket, Plane, AlertTriangle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MissionPanelProps {
   onApplyRecommendations: (baseAirfoilId: string, comparedAirfoilIds: string[]) => void;
@@ -181,7 +187,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
                   <div className="mission-recommendation-header flex items-center gap-2 text-xs text-slate-200">
                     <span className="mission-rank opacity-70">{idx + 1}.</span>
                     {mode === "ai" ? (
-                      <Brain className="w-3 h-3 text-amber-400/70 flex-shrink-0" />
+                      <Rocket className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                     ) : (
                       <Plane className="w-3 h-3 text-cyan-400/70 flex-shrink-0" />
                     )}
@@ -191,9 +197,21 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
                     </span>
                   </div>
                   {rec.reason && (
-                    <p className="mission-reason text-xs text-slate-400 mt-1 leading-relaxed">
-                      {rec.reason}
-                    </p>
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <p className="mission-reason text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2 cursor-help">
+                            {rec.reason}
+                          </p>
+                        </TooltipTrigger>
+                        <TooltipContent 
+                          side="top" 
+                          className="max-w-xs bg-slate-800 border-slate-700 text-slate-200 text-xs p-3"
+                        >
+                          {rec.reason}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </li>
               ))}
