@@ -11,7 +11,7 @@ import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, 
 import ThrustCalculator from "@/components/tools/ThrustCalculator";
 import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
 import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
-import LiftDragAnalyzer from "@/components/tools/LiftDragAnalyzer";
+import { LaunchpadWithMissionPanel } from "@/components/tools/LaunchpadWithMissionPanel";
 import ReynoldsNumberCalculator from "@/components/tools/ReynoldsNumberCalculator";
 import MaterialsDatabase from "@/components/tools/MaterialsDatabase";
 import DeltaVPlanner from "@/components/tools/deltav/DeltaVPlanner";
@@ -229,7 +229,7 @@ const ToolsLauncher = () => {
               </TabsContent>
 
               <TabsContent value="liftdrag" className="mt-0">
-                <LiftDragAnalyzer />
+                <LaunchpadWithMissionPanel />
               </TabsContent>
 
               <TabsContent value="reynolds" className="mt-0">

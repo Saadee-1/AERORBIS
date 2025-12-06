@@ -47,6 +47,11 @@ import type { GraphMode as GraphModeType } from "@/types/graphSetup";
 import { useChartExport } from "@/hooks/useChartExport";
 import { ChartExportButtons } from "@/components/charts/ChartExportButtons";
 
+interface LiftDragAnalyzerProps {
+  onSelectionChange?: (baseAirfoilId: string, comparedAirfoilIds: string[]) => void;
+  onRegisterUpdateSelection?: (updateFn: (baseAirfoilId: string, comparedAirfoilIds: string[]) => void) => void;
+}
+
 const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
 
@@ -202,7 +207,7 @@ interface ComputedLD {
   ld: number;
 }
 
-const LiftDragAnalyzer = () => {
+const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: LiftDragAnalyzerProps = {}) => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
@@ -276,6 +281,26 @@ const LiftDragAnalyzer = () => {
       // Note: Reynolds is currently fixed at 1M, so we don't update it
     },
   });
+
+  // Expose selection update function for external control (e.g., MissionPanel)
+  const updateSelection = useCallback((baseAirfoilId: string, comparedAirfoilIds: string[]) => {
+    setInputs(prev => ({ ...prev, airfoil: baseAirfoilId as AirfoilKey }));
+    setComparedAirfoilIds(comparedAirfoilIds);
+  }, []);
+
+  // Register updateSelection function with parent component
+  useEffect(() => {
+    if (onRegisterUpdateSelection) {
+      onRegisterUpdateSelection(updateSelection);
+    }
+  }, [onRegisterUpdateSelection, updateSelection]);
+
+  // Expose selection change callback for external control (e.g., MissionPanel)
+  useEffect(() => {
+    if (onSelectionChange) {
+      onSelectionChange(inputs.airfoil, comparedAirfoilIds);
+    }
+  }, [inputs.airfoil, comparedAirfoilIds, onSelectionChange]);
 
   const [result, setResult] = useState<LiftDragResult | null>(null);
   const [error, setError] = useState<string>("");
