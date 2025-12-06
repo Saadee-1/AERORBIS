@@ -61,159 +61,153 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
     ? MISSIONS.find(m => m.id === selectedMission)
     : null;
 
-  const ModeIcon = mode === "ai" ? Brain : Plane;
-
   return (
-    <div className="mission-panel bg-slate-950/90 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-3 w-full min-w-[180px] sm:w-[260px] md:w-[280px] lg:w-[300px] xl:w-[320px] max-w-full sm:max-w-[320px] max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-slate-800/60 pb-2">
-        <h3 className="text-sm font-semibold text-slate-200 tracking-tight">
-          Mission & Engine
-        </h3>
-        <ModeIcon className="w-4 h-4 text-slate-500" />
-      </div>
-
-      {/* Mission Selection */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-          Mission Preset
-        </label>
-        <Select
-          value={selectedMission ?? ""}
-          onValueChange={(value) => setSelectedMission(value as MissionId)}
-        >
-          <SelectTrigger className="bg-slate-900/80 border-slate-700/80 text-slate-200 text-xs h-8 focus:ring-1 focus:ring-cyan-500/40">
-            <SelectValue placeholder="Select mission" />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-700 max-h-[200px]">
-            {MISSIONS.map(m => (
-              <SelectItem 
-                key={m.id} 
-                value={m.id}
-                className="text-slate-200 text-xs hover:bg-slate-800 focus:bg-slate-800"
+    <div className="mission-panel bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col gap-4 w-full">
+      {/* Top row: Mission dropdown, Engine mode, Apply button */}
+      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+        {/* Left: Mission selection */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="mission-panel-title text-sm font-semibold text-slate-200 whitespace-nowrap">
+              Mission & Engine
+            </h3>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+            <div className="flex-1 min-w-0">
+              <Select
+                value={selectedMission ?? ""}
+                onValueChange={(value) => setSelectedMission(value as MissionId)}
               >
-                {m.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {selectedMissionMeta && (
-          <p className="text-[10px] text-slate-500 leading-relaxed line-clamp-2">
-            {selectedMissionMeta.description}
-          </p>
-        )}
-      </div>
+                <SelectTrigger className="mission-select bg-slate-900 border-slate-700 text-slate-200 text-sm h-9 w-full">
+                  <SelectValue placeholder="Select mission" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-700">
+                  {MISSIONS.map(m => (
+                    <SelectItem 
+                      key={m.id} 
+                      value={m.id}
+                      className="text-slate-200 hover:bg-slate-800 focus:bg-slate-800"
+                    >
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedMissionMeta && (
+              <p className="mission-description text-xs text-slate-400 leading-relaxed sm:max-w-md">
+                {selectedMissionMeta.description}
+              </p>
+            )}
+          </div>
+        </div>
 
-      {/* Divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-slate-700/50 to-transparent" />
+        {/* Middle: Engine mode buttons */}
+        <div className="flex flex-col gap-2 lg:min-w-[200px]">
+          <label className="mission-label text-xs text-slate-400 whitespace-nowrap">
+            Engine mode
+          </label>
+          <div className="mission-engine-toggle flex gap-2">
+            <button
+              type="button"
+              className={`engine-button flex-1 text-xs py-2 px-3 rounded-full border transition-all whitespace-nowrap ${
+                mode === "ai"
+                  ? "engine-button-active border-yellow-400 bg-yellow-400 text-slate-900 font-medium"
+                  : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600"
+              }`}
+              onClick={() => setMode("ai")}
+            >
+              Smart AI ✨
+            </button>
+            <button
+              type="button"
+              className={`engine-button flex-1 text-xs py-2 px-3 rounded-full border transition-all whitespace-nowrap ${
+                mode === "engineering"
+                  ? "engine-button-active border-yellow-400 bg-yellow-400 text-slate-900 font-medium"
+                  : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600"
+              }`}
+              onClick={() => setMode("engineering")}
+            >
+              Engineering 📐
+            </button>
+          </div>
+        </div>
 
-      {/* Engine Mode */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-          Engine Mode
-        </label>
-        <div className="grid grid-cols-2 gap-1.5">
-          <button
+        {/* Right: Apply button + error/fallback badge */}
+        <div className="flex flex-col gap-2 lg:min-w-[180px]">
+          <Button
             type="button"
-            className={`flex items-center justify-center gap-1.5 text-[11px] py-1.5 px-2 rounded-lg border transition-all duration-200 ${
-              mode === "ai"
-                ? "border-amber-400/80 bg-amber-400/90 text-slate-900 font-semibold shadow-sm shadow-amber-500/20"
-                : "border-slate-700/80 bg-slate-900/60 text-slate-400 hover:border-slate-600 hover:text-slate-300"
-            }`}
-            onClick={() => setMode("ai")}
+            className="mission-apply-button w-full bg-green-500 hover:bg-green-600 text-slate-900 font-medium text-sm py-2 h-auto whitespace-nowrap"
+            onClick={handleRecommend}
+            disabled={loading || !selectedMission}
           >
-            <Brain className="w-3 h-3" />
-            <span>Smart AI</span>
-          </button>
-          <button
-            type="button"
-            className={`flex items-center justify-center gap-1.5 text-[11px] py-1.5 px-2 rounded-lg border transition-all duration-200 ${
-              mode === "engineering"
-                ? "border-cyan-400/80 bg-cyan-400/90 text-slate-900 font-semibold shadow-sm shadow-cyan-500/20"
-                : "border-slate-700/80 bg-slate-900/60 text-slate-400 hover:border-slate-600 hover:text-slate-300"
-            }`}
-            onClick={() => setMode("engineering")}
-          >
-            <Plane className="w-3 h-3" />
-            <span>Engineering</span>
-          </button>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Computing…
+              </>
+            ) : (
+              "Apply & select top 5"
+            )}
+          </Button>
+          {error && (
+            <p className="mission-error text-xs text-red-400 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" />
+              {error}
+            </p>
+          )}
+          {!error && usedFallback && mode === "ai" && recommendations.length > 0 && (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/30 rounded-md">
+              <AlertTriangle className="w-3 h-3 text-amber-400" />
+              <span className="text-xs text-amber-400">Fallback → Engineering</span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Apply Button */}
-      <Button
-        type="button"
-        className="w-full bg-emerald-500/90 hover:bg-emerald-500 text-slate-900 font-semibold text-xs py-2 h-8 shadow-sm shadow-emerald-500/20 transition-all duration-200"
-        onClick={handleRecommend}
-        disabled={loading || !selectedMission}
-      >
-        {loading ? (
-          <>
-            <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-            Computing…
-          </>
-        ) : (
-          "Apply & Select Top 5"
-        )}
-      </Button>
-
-      {error && (
-        <p className="text-[10px] text-red-400 flex items-center gap-1">
-          <AlertTriangle className="w-3 h-3" />
-          {error}
+      {/* Recommendations list below the top row */}
+      {recommendations.length > 0 && (
+        <div className="border-t border-slate-800 pt-4">
+          <h4 className="mission-subtitle text-xs font-semibold text-slate-200 mb-2">
+            Recommendations
+          </h4>
+          <div className="max-h-48 overflow-y-auto">
+            <ul className="mission-recommendations flex flex-col gap-2 list-none p-0 m-0">
+              {recommendations.map((rec, idx) => (
+                <li 
+                  key={rec.airfoilId} 
+                  className="mission-recommendation-item rounded-lg border border-slate-800 bg-slate-900/50 p-2"
+                >
+                  <div className="mission-recommendation-header flex items-center gap-2 text-xs text-slate-200">
+                    <span className="mission-rank opacity-70">{idx + 1}.</span>
+                    {mode === "ai" ? (
+                      <Brain className="w-3 h-3 text-amber-400/70 flex-shrink-0" />
+                    ) : (
+                      <Plane className="w-3 h-3 text-cyan-400/70 flex-shrink-0" />
+                    )}
+                    <span className="mission-airfoil-id font-semibold">{rec.airfoilId}</span>
+                    <span className="mission-score ml-auto text-xs opacity-80">
+                      ★ {rec.score.toFixed(2)}
+                    </span>
+                  </div>
+                  {rec.reason && (
+                    <p className="mission-reason text-xs text-slate-400 mt-1 leading-relaxed">
+                      {rec.reason}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+      
+      {/* Hint when no recommendations */}
+      {recommendations.length === 0 && !loading && (
+        <p className="mission-hint text-xs text-slate-400 text-center py-2">
+          No recommendations yet. Choose a mission and click apply.
         </p>
       )}
-
-      {/* Fallback Badge */}
-      {usedFallback && mode === "ai" && recommendations.length > 0 && (
-        <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/30 rounded-md">
-          <AlertTriangle className="w-3 h-3 text-amber-400" />
-          <span className="text-[10px] text-amber-400">Fallback → Engineering</span>
-        </div>
-      )}
-
-      {/* Divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-slate-700/50 to-transparent" />
-
-      {/* Recommendations */}
-      <div className="flex flex-col gap-2 flex-1 min-h-0">
-        <h4 className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-          Recommendations
-        </h4>
-        
-        {recommendations.length === 0 && !loading && (
-          <p className="text-[10px] text-slate-500 italic">
-            Select a mission and click apply.
-          </p>
-        )}
-        
-        <ul className="flex flex-col gap-1.5 overflow-y-auto max-h-[180px] pr-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-          {recommendations.map((rec, idx) => (
-            <li 
-              key={rec.airfoilId} 
-              className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-2 hover:bg-slate-800/30 transition-colors"
-            >
-              <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-slate-500 font-mono text-[10px] w-4">{idx + 1}.</span>
-                {mode === "ai" ? (
-                  <Brain className="w-3 h-3 text-amber-400/70 flex-shrink-0" />
-                ) : (
-                  <Plane className="w-3 h-3 text-cyan-400/70 flex-shrink-0" />
-                )}
-                <span className="font-semibold text-slate-200 truncate flex-1">{rec.airfoilId}</span>
-                <span className="text-[10px] text-amber-400/80 font-medium tabular-nums">
-                  ★ {rec.score.toFixed(2)}
-                </span>
-              </div>
-              {rec.reason && (
-                <p className="text-[10px] text-slate-400 mt-1 leading-relaxed line-clamp-2 pl-5">
-                  {rec.reason}
-                </p>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
 }
