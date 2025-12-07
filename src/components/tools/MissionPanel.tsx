@@ -6,7 +6,7 @@ import type {
   RecommendationMode,
   AirfoilRecommendation,
 } from "@/types/missionRecommendations";
-import { MISSIONS } from "@/data/missions";
+import { MISSION_PRESETS, getMissionById } from "@/data/missions";
 import { recommendAirfoils } from "@/core/recommendAirfoils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ import { getAllAirfoilsWithMetricsForRe } from "@/core/airfoilMetrics";
 import { getTargetReForMission } from "@/core/missionReMapping";
 import { AIRFOILS } from "@/data/airfoils";
 import { buildRecommendationReasons } from "@/lib/recommendations/reasoning";
+import { buildEngineeringSummary } from "@/core/engineeringText";
+import { getMissionById } from "@/data/missions";
 
 interface MissionPanelProps {
   onApplyRecommendations: (baseAirfoilId: string, comparedAirfoilIds: string[]) => void;
@@ -64,8 +66,8 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
     }
   }
 
-  const selectedMissionMeta = selectedMission 
-    ? MISSIONS.find(m => m.id === selectedMission)
+  const selectedMissionPreset = selectedMission 
+    ? getMissionById(selectedMission)
     : null;
 
   // Fetch metrics for recommended airfoils when recommendations change
@@ -139,6 +141,35 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
         reasons = rec.reason ? [rec.reason] : [];
       }
 
+      // Build engineering summary for engineering mode
+      let engineeringSummary = undefined;
+      if (mode === "engineering" && metrics && cardMetrics) {
+        try {
+          const missionPreset = selectedMission ? getMissionById(selectedMission) : undefined;
+          engineeringSummary = buildEngineeringSummary(
+            {
+              airfoilId: rec.airfoilId,
+              name: airfoilName,
+              missionId: selectedMission,
+              ldMax: cardMetrics.ldMax ?? 0,
+              clMax: cardMetrics.clMax ?? 0,
+              alphaStall: cardMetrics.alphaStallDeg ?? 0,
+              cdMin: metrics.cdMin ?? 0,
+              stallSoftness: metrics.stallSoftness ?? null,
+              cmRange: metrics.cmRange ?? null,
+              cmMean: metrics.cmMean ?? null,
+              reynolds: cardMetrics.reynolds,
+            },
+            missionPreset
+          );
+        } catch (err) {
+          console.warn("Failed to build engineering summary:", err);
+        }
+      }
+
+      // Get mission preset for chip display
+      const missionPreset = selectedMission ? getMissionById(selectedMission) : undefined;
+
       return {
         airfoilId: rec.airfoilId,
         airfoilName,
@@ -147,9 +178,12 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
         reasons,
         metrics: cardMetrics,
         isFallback: usedFallback && mode === "ai",
+        engineeringSummary,
+        missionEmoji: missionPreset?.emoji,
+        missionShortLabel: missionPreset?.shortLabel,
       };
     });
-  }, [recommendations, mode, usedFallback, airfoilMetricsMap]);
+  }, [recommendations, mode, usedFallback, airfoilMetricsMap, selectedMission]);
 
   const handleSelectAirfoil = (airfoilId: string) => {
     setSelectedAirfoilId(airfoilId);
@@ -186,21 +220,21 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
                   <SelectValue placeholder="Select mission" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-900 border-slate-700">
-                  {MISSIONS.map(m => (
+                  {MISSION_PRESETS.map(preset => (
                     <SelectItem 
-                      key={m.id} 
-                      value={m.id}
+                      key={preset.id} 
+                      value={preset.id}
                       className="text-slate-200 hover:bg-slate-800 focus:bg-slate-800"
                     >
-                      {m.label}
+                      {preset.emoji} {preset.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            {selectedMissionMeta && (
-              <p className="mission-description text-xs text-slate-400 leading-relaxed sm:max-w-md">
-                {selectedMissionMeta.description}
+            {selectedMissionPreset && (
+              <p className="mission-description text-xs text-slate-400 leading-relaxed sm:max-w-md mt-1">
+                {selectedMissionPreset.description}
               </p>
             )}
           </div>

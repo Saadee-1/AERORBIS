@@ -1,6 +1,7 @@
 "use client";
 
 import { RecommendationCard, type RecommendationCardProps } from "./RecommendationCard";
+import type { EngineeringSummary } from "@/core/engineeringText";
 
 export interface RecommendationItem {
   airfoilId: string;
@@ -10,6 +11,9 @@ export interface RecommendationItem {
   reasons: string[];
   metrics?: RecommendationCardProps["metrics"];
   isFallback?: boolean;
+  engineeringSummary?: EngineeringSummary; // Optional structured summary for engineering mode
+  missionEmoji?: string; // Mission emoji for chip
+  missionShortLabel?: string; // Mission short label for chip
 }
 
 export interface RecommendationListProps {
@@ -25,9 +29,10 @@ export function RecommendationList({
 }: RecommendationListProps) {
   return (
     <div className="flex flex-col gap-3">
-      {recommendations.map((rec) => (
+      {recommendations.map((rec, index) => (
         <RecommendationCard
           key={rec.airfoilId}
+          airfoilId={rec.airfoilId}
           airfoilName={rec.airfoilName}
           mode={rec.mode}
           score={rec.score}
@@ -36,6 +41,10 @@ export function RecommendationList({
           isFallback={rec.isFallback}
           selected={rec.airfoilId === selectedId}
           onSelect={() => onSelectAirfoil?.(rec.airfoilId)}
+          engineeringSummary={rec.engineeringSummary}
+          rank={index + 1}
+          missionEmoji={rec.missionEmoji}
+          missionShortLabel={rec.missionShortLabel}
         />
       ))}
     </div>
