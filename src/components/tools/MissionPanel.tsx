@@ -202,7 +202,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
   return (
     <div className="mission-panel bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col gap-4 w-full">
       {/* Top row: Mission dropdown, Engine mode, Apply button */}
-      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+      <div className="flex flex-col lg:flex-row gap-4 items-center lg:items-center">
         {/* Left: Mission selection */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
@@ -233,7 +233,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
               </Select>
             </div>
             {selectedMissionPreset && (
-              <p className="mission-description text-xs text-slate-400 leading-relaxed sm:max-w-md mt-1">
+              <p className="mission-description text-slate-400 text-sm ml-2 mt-1">
                 {selectedMissionPreset.description}
               </p>
             )}
