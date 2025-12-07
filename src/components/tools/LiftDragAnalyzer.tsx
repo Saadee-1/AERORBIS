@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, Info, Plane, Pencil, Settings2, Download, X, Plus } from "lucide-react";
+import { TrendingUp, Info, Plane, Pencil, Settings2, Download, X, Plus, ChevronDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useToolContext } from "@/hooks/useToolContext";
@@ -311,6 +311,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   // Unified graph selection state - single source of truth for all charts
   const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: any }>>([]);
   const [showComparisonLimitWarning, setShowComparisonLimitWarning] = useState(false);
+  const [isPolarTableOpen, setIsPolarTableOpen] = useState(false);
   
   // Ref for export target (chart + legend only)
   const exportRef = useRef<HTMLDivElement>(null);
@@ -1213,40 +1214,57 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
             </AeroCard>
           )}
 
-          {/* Polar Data Display */}
+          {/* Polar Data Display - Collapsible */}
           {polarData && computedLD.length > 0 && (
-            <AeroCard 
-              title="Polar Data (Re = 1,000,000)" 
-              description={`${polarData.airfoil} - L/D ratios from experimental data`}
-            >
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-cyan-400/30">
-                      <th className="text-left py-2 px-3 text-cyan-300">α (°)</th>
-                      <th className="text-left py-2 px-3 text-cyan-300">Cl</th>
-                      <th className="text-left py-2 px-3 text-cyan-300">Cd</th>
-                      <th className="text-left py-2 px-3 text-cyan-300">L/D</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {computedLD.map((point, index) => (
-                      <tr 
-                        key={index} 
-                        className="border-b border-slate-700/50 hover:bg-slate-700/30"
-                      >
-                        <td className="py-2 px-3 text-white">{point.alpha.toFixed(1)}</td>
-                        <td className="py-2 px-3 text-blue-400">{point.cl.toFixed(3)}</td>
-                        <td className="py-2 px-3 text-red-400">{point.cd.toFixed(4)}</td>
-                        <td className="py-2 px-3 text-green-400 font-semibold">
-                          {Number.isFinite(point.ld) ? point.ld.toFixed(2) : "N/A"}
-                        </td>
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl border border-cyan-400/20 overflow-hidden backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={() => setIsPolarTableOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-800/50 transition-colors"
+              >
+                <div className="flex flex-col text-left">
+                  <span className="text-sm font-semibold text-cyan-300">
+                    Polar Data (Re = 1,000,000)
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {polarData.airfoil} · L/D ratios from experimental data
+                  </span>
+                </div>
+                <ChevronDown 
+                  className={`w-5 h-5 text-slate-300 transition-transform duration-200 ${isPolarTableOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              
+              {isPolarTableOpen && (
+                <div className="border-t border-slate-700/50 max-h-[60vh] overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-slate-900/95 backdrop-blur-sm">
+                      <tr className="border-b border-cyan-400/30">
+                        <th className="text-left py-2 px-3 text-cyan-300">α (°)</th>
+                        <th className="text-left py-2 px-3 text-cyan-300">Cl</th>
+                        <th className="text-left py-2 px-3 text-cyan-300">Cd</th>
+                        <th className="text-left py-2 px-3 text-cyan-300">L/D</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </AeroCard>
+                    </thead>
+                    <tbody>
+                      {computedLD.map((point, index) => (
+                        <tr 
+                          key={index} 
+                          className="border-b border-slate-700/50 hover:bg-slate-700/30"
+                        >
+                          <td className="py-2 px-3 text-white">{point.alpha.toFixed(1)}</td>
+                          <td className="py-2 px-3 text-blue-400">{point.cl.toFixed(3)}</td>
+                          <td className="py-2 px-3 text-red-400">{point.cd.toFixed(4)}</td>
+                          <td className="py-2 px-3 text-green-400 font-semibold">
+                            {Number.isFinite(point.ld) ? point.ld.toFixed(2) : "N/A"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           )}
 
           {polarError && (
