@@ -4,6 +4,27 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Wheel handler to contain scroll within dropdown when possible
+ */
+const handleDropdownWheel: React.WheelEventHandler<HTMLDivElement> = (event) => {
+  const target = event.currentTarget;
+  const { scrollTop, scrollHeight, clientHeight } = target;
+
+  const isScrollable = scrollHeight > clientHeight;
+  if (!isScrollable) return;
+
+  const atTop = scrollTop <= 0;
+  const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+
+  const scrollingUp = event.deltaY < 0;
+  const scrollingDown = event.deltaY > 0;
+
+  if ((scrollingUp && !atTop) || (scrollingDown && !atBottom)) {
+    event.stopPropagation();
+  }
+};
+
 const Select = SelectPrimitive.Root;
 
 const SelectGroup = SelectPrimitive.Group;
@@ -77,10 +98,11 @@ const SelectContent = React.forwardRef<
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
         className={cn(
-          "p-1",
+          "p-1 max-h-[300px] overflow-y-auto",
           position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
+            "w-full min-w-[var(--radix-select-trigger-width)]",
         )}
+        onWheel={handleDropdownWheel}
       >
         {children}
       </SelectPrimitive.Viewport>

@@ -3,12 +3,38 @@ import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Wheel handler to contain scroll within scroll area when possible
+ */
+const handleScrollAreaWheel: React.WheelEventHandler<HTMLDivElement> = (event) => {
+  const target = event.currentTarget;
+  const { scrollTop, scrollHeight, clientHeight } = target;
+
+  const isScrollable = scrollHeight > clientHeight;
+  if (!isScrollable) return;
+
+  const atTop = scrollTop <= 0;
+  const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+
+  const scrollingUp = event.deltaY < 0;
+  const scrollingDown = event.deltaY > 0;
+
+  if ((scrollingUp && !atTop) || (scrollingDown && !atBottom)) {
+    event.stopPropagation();
+  }
+};
+
 const ScrollArea = React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>
 >(({ className, children, ...props }, ref) => (
   <ScrollAreaPrimitive.Root ref={ref} className={cn("relative overflow-hidden", className)} {...props}>
-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">{children}</ScrollAreaPrimitive.Viewport>
+    <ScrollAreaPrimitive.Viewport 
+      className="h-full w-full rounded-[inherit]"
+      onWheel={handleScrollAreaWheel}
+    >
+      {children}
+    </ScrollAreaPrimitive.Viewport>
     <ScrollBar />
     <ScrollAreaPrimitive.Corner />
   </ScrollAreaPrimitive.Root>

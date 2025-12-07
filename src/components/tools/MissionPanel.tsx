@@ -17,7 +17,6 @@ import { getTargetReForMission } from "@/core/missionReMapping";
 import { AIRFOILS } from "@/data/airfoils";
 import { buildRecommendationReasons } from "@/lib/recommendations/reasoning";
 import { buildEngineeringSummary } from "@/core/engineeringText";
-import { getMissionById } from "@/data/missions";
 
 interface MissionPanelProps {
   onApplyRecommendations: (baseAirfoilId: string, comparedAirfoilIds: string[]) => void;
