@@ -92,10 +92,12 @@ All colors MUST be HSL.
 
 @layer base {
   * {
+    /* stylelint-disable-next-line */
     @apply border-border;
   }
 
   body {
+    /* stylelint-disable-next-line */
     @apply bg-background text-foreground font-['Poppins',sans-serif];
   }
   
