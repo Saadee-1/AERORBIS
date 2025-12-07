@@ -139,7 +139,15 @@ const AeroBot = () => {
           onClick={() => setIsOpen(!isOpen)}
           className="aerobot-icon"
         >
-          {isOpen ? <X className="w-6 h-6 text-white" /> : <AstronautIcon className="w-7 h-7 text-white" />}
+          {isOpen ? (
+            <X className="w-6 h-6 text-white" />
+          ) : (
+            <img 
+              src="/aerobot-icon.png" 
+              alt="AeroBot Assistant" 
+              className="w-full h-full object-contain"
+            />
+          )}
         </div>
       </motion.div>
 
