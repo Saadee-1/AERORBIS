@@ -159,3 +159,40 @@ All colors MUST be HSL.
 @keyframes fadeOut {
   to { opacity: 0; visibility: hidden; }
 }
+
+/* ============================= */
+/* 🤖 AEROBOT ICON STYLES */
+/* ============================= */
+
+.aerobot-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1d375e, #432365);
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.6),
+    inset 0 2px 5px rgba(255, 255, 255, 0.08),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.8),
+    0 0 18px rgba(89, 155, 255, 0.35);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.aerobot-icon:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 6px 15px rgba(0, 0, 0, 0.7),
+    inset 0 2px 5px rgba(255, 255, 255, 0.1),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.9),
+    0 0 25px rgba(89, 155, 255, 0.5);
+}
+
+.aerobot-icon svg,
+.aerobot-icon img {
+  width: 60%;
+  filter: drop-shadow(0 0 4px rgba(240, 240, 255, 0.6));
+}

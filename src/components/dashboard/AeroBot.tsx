@@ -90,13 +90,12 @@ const AeroBot = () => {
         animate={{ scale: 1 }}
         className="fixed bottom-6 right-6 z-50"
       >
-        <Button
+        <div
           onClick={() => setIsOpen(!isOpen)}
-          size="icon"
-          className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all"
+          className="aerobot-icon"
         >
-          {isOpen ? <X className="w-6 h-6" /> : <AstronautIcon className="w-7 h-7" />}
-        </Button>
+          {isOpen ? <X className="w-6 h-6 text-white" /> : <AstronautIcon className="w-7 h-7 text-white" />}
+        </div>
       </motion.div>
 
       {/* Chat Window */}
