@@ -201,7 +201,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
   return (
     <div className="mission-panel bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col gap-4 w-full">
       {/* Top row: Mission dropdown, Engine mode, Apply button */}
-      <div className="flex flex-col lg:flex-row gap-4 items-center lg:items-center">
+      <div className="flex w-full items-center justify-between gap-4">
         {/* Left: Mission selection */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
@@ -244,7 +244,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
           <label className="mission-label text-xs text-slate-400 whitespace-nowrap">
             Engine mode
           </label>
-          <div className="mission-engine-toggle flex gap-2">
+          <div className="mission-engine-toggle flex items-center gap-3">
             <button
               type="button"
               className={`engine-button flex-1 text-xs py-2 px-3 rounded-full border transition-all whitespace-nowrap ${
