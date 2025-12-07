@@ -206,35 +206,84 @@ export function getAirfoilLegendLabel(
 }
 
 /**
+ * Track failed polar URLs to avoid repeated error logging
+ */
+const failedPolarUrls = new Set<string>();
+
+/**
  * Load polar data for a specific airfoil and Reynolds number
  */
 export async function loadPolarForComparison(
   airfoilId: string,
   re: number
 ): Promise<PolarData | null> {
+  // Format Reynolds number
+  let reStr: string;
+  if (re >= 1000000) {
+    reStr = `${re / 1000000}e6`;
+  } else if (re >= 1000) {
+    reStr = `${re / 1000}k`;
+  } else {
+    reStr = `${re}`;
+  }
+
+  const url = `/polars/${airfoilId}/${reStr}.json`;
+
   try {
-    // Format Reynolds number
-    let reStr: string;
-    if (re >= 1000000) {
-      reStr = `${re / 1000000}e6`;
-    } else if (re >= 1000) {
-      reStr = `${re / 1000}k`;
-    } else {
-      reStr = `${re}`;
-    }
+    const res = await fetch(url);
 
-    const url = `/polars/${airfoilId}/${reStr}.json`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      console.warn(`Polar data not found: ${url}`);
+    // Check HTTP status
+    if (!res.ok) {
+      // Only log if we haven't seen this URL fail before
+      if (!failedPolarUrls.has(url)) {
+        console.error(
+          `Error loading polar data for ${airfoilId} at Re=${re}: HTTP ${res.status}`
+        );
+        failedPolarUrls.add(url);
+      }
       return null;
     }
 
-    const data: PolarData = await response.json();
-    return data;
+    // Check content-type before parsing JSON
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      // Only log if we haven't seen this URL fail before
+      if (!failedPolarUrls.has(url)) {
+        console.error(
+          `Error loading polar data for ${airfoilId} at Re=${re}: Unexpected content-type ${contentType}`
+        );
+        failedPolarUrls.add(url);
+      }
+      return null;
+    }
+
+    // Parse JSON with error handling
+    let json: PolarData;
+    try {
+      json = await res.json();
+    } catch (err) {
+      // Only log if we haven't seen this URL fail before
+      if (!failedPolarUrls.has(url)) {
+        console.error(
+          `Error parsing polar JSON for ${airfoilId} at Re=${re}:`,
+          err
+        );
+        failedPolarUrls.add(url);
+      }
+      return null;
+    }
+
+    // Map to PolarData type (existing structure)
+    return json;
   } catch (error) {
-    console.error(`Error loading polar data for ${airfoilId} at Re=${re}:`, error);
+    // Network or other fetch errors
+    if (!failedPolarUrls.has(url)) {
+      console.error(
+        `Error loading polar data for ${airfoilId} at Re=${re}:`,
+        error
+      );
+      failedPolarUrls.add(url);
+    }
     return null;
   }
 }
