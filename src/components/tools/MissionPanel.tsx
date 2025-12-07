@@ -272,6 +272,9 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
 
         {/* Right: Apply button + error/fallback badge */}
         <div className="flex flex-col gap-2 lg:min-w-[180px]">
+          <label className="text-xs text-slate-400 whitespace-nowrap">
+            Action
+          </label>
           <Button
             type="button"
             className="mission-apply-button w-full bg-green-500 hover:bg-green-600 text-slate-900 font-medium text-sm py-2 h-auto whitespace-nowrap"
