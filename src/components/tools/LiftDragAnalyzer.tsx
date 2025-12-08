@@ -86,27 +86,12 @@ const stallFillColor = "rgba(249, 115, 22, 0.08)"; // subtle shading
 /**
  * Custom legend renderer that includes stall line entry
  */
-const renderCustomLegend = (props: LegendProps & { stallAngle?: number | null }) => {
+const renderCustomLegend = (props: LegendProps) => {
   const { payload = [] } = props;
 
-  const baseItems = payload.map((item) => ({
+  const items = payload.map((item) => ({
     ...item,
   }));
-
-  const stallItems =
-    props.stallAngle != null && Number.isFinite(props.stallAngle)
-      ? [
-          {
-            value: `Stall angle ≈ ${props.stallAngle.toFixed(1)}°`,
-            type: "line" as const,
-            id: "stall-angle",
-            color: stallLineColor,
-            strokeDasharray: "3 3",
-          },
-        ]
-      : [];
-
-  const items = [...baseItems, ...stallItems];
 
   return (
     <ul className="flex flex-wrap gap-3 text-xs text-slate-300">
@@ -119,9 +104,6 @@ const renderCustomLegend = (props: LegendProps & { stallAngle?: number | null })
               height: 2,
               backgroundColor: entry.color,
               borderRadius: 999,
-              borderBottom: entry.strokeDasharray
-                ? `1px dashed ${entry.color}`
-                : undefined,
             }}
           />
           <span>{entry.value}</span>
@@ -1173,14 +1155,6 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
     return [yMin, yMax];
   }, [comparisonPolars]);
 
-  // Get stall angle for legend (use first polar's stall angle)
-  const stallAngleForLegend = useMemo(() => {
-    if (comparisonPolars.length === 0) return null;
-    const firstPolar = comparisonPolars[0];
-    const stallAlpha = firstPolar?.data?.meta?.alphaStallDeg;
-    return stallAlpha && Number.isFinite(stallAlpha) ? stallAlpha : null;
-  }, [comparisonPolars]);
-
   return (
     <ToolWrapper>
       <ToolHeader
@@ -1702,6 +1676,13 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
               </TabsTrigger>
             </TabsList>
 
+            {/* CM comparison warning */}
+            {graphMode === "cm" && comparisonPolars.length > 0 && (
+              <p className="mt-1 text-xs text-slate-400">
+                CM comparison limited – placeholder polars use nearly constant Cm.
+              </p>
+            )}
+
             {/* Export Target - Chart + Legend Only */}
             <div ref={exportRef} className="graph-export-target pt-2">
               {/* Graph Body - Chart Area */}
@@ -1714,14 +1695,27 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                       type="number"
                       dataKey="cl"
                       stroke="#94a3b8"
-                      label={{ value: "Lift Coefficient, CL", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
+                      label={{
+                        value: "Lift Coefficient, CL",
+                        position: "insideBottom",
+                        dy: 10,
+                        style: { textAnchor: "middle", fill: "#94a3b8", fontSize: 12 },
+                      }}
                       tickFormatter={(val) => val.toFixed(2)}
+                      tickMargin={6}
                     />
                     <YAxis
                       type="number"
                       stroke="#94a3b8"
-                      label={{ value: yAxisConfig.label, angle: -90, position: "insideLeft", fill: "#94a3b8" }}
+                      label={{
+                        value: yAxisConfig.label,
+                        angle: -90,
+                        position: "insideLeft",
+                        style: { textAnchor: "middle", fill: "#94a3b8", fontSize: 12 },
+                        offset: 0,
+                      }}
                       tickFormatter={yAxisConfig.formatter}
+                      tickMargin={6}
                     />
                     <Tooltip
                       content={<CustomTooltipWithBadge />}
@@ -1754,14 +1748,27 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                     <XAxis
                       dataKey="alpha"
                       stroke="#94a3b8"
-                      label={{ value: "Angle of Attack (degrees)", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
+                      label={{
+                        value: "Angle of Attack (degrees)",
+                        position: "insideBottom",
+                        dy: 10,
+                        style: { textAnchor: "middle", fill: "#94a3b8", fontSize: 12 },
+                      }}
+                      tickMargin={6}
                     />
                     <YAxis
                       domain={getAutoScaledYDomain(graphMode, graphMode === "ld" ? comparisonData : currentChartData)}
                       stroke="#94a3b8"
-                      label={{ value: yAxisConfig.label, angle: -90, position: "insideLeft", fill: "#94a3b8" }}
+                      label={{
+                        value: yAxisConfig.label,
+                        angle: -90,
+                        position: "insideLeft",
+                        style: { textAnchor: "middle", fill: "#94a3b8", fontSize: 12 },
+                        offset: 0,
+                      }}
                       tickFormatter={yAxisConfig.formatter}
                       tick={{ fontSize: 11 }}
+                      tickMargin={6}
                       width={50}
                     />
                     <Tooltip
@@ -1770,12 +1777,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                     <Legend
                       verticalAlign="top"
                       align="left"
-                      content={(props) =>
-                        renderCustomLegend({
-                          ...props,
-                          stallAngle: stallAngleForLegend,
-                        })
-                      }
+                      content={renderCustomLegend}
                     />
                     
                     {/* Stall line and post-stall shading for alpha-based charts */}
@@ -1872,11 +1874,11 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
               )}
               </div>
               
-              {/* Post-stall modeling note */}
+              {/* Stall line note */}
               {graphMode !== "dragPolar" && comparisonPolars.some(p => p.data.meta.alphaStallDeg && Number.isFinite(p.data.meta.alphaStallDeg)) && (
-                <div className="mt-3 pt-3 border-t border-slate-700/50">
-                  <p className="text-xs text-slate-400 italic">
-                    Post-stall region (beyond dashed line) is modeled using Aeroverse stall model
+                <div className="mt-2">
+                  <p className="text-xs text-slate-500">
+                    Dotted line marks modeled stall onset.
                   </p>
                 </div>
               )}
