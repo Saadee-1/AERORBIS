@@ -238,8 +238,10 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     ? `${(reynoldsNumber / 1000000).toFixed(1)}M` 
     : `${(reynoldsNumber / 1000).toFixed(0)}k`;
 
-  // Check if any polar is a placeholder
-  const hasPlaceholderPolar = polars.some(p => isPlaceholderPolar(p.data));
+  // TODO: Currently all polars are dummy/placeholder for educational purposes
+  // When real experimental/XFOIL polars are added, change this to:
+  // const hasPlaceholderPolar = polars.some(p => isPlaceholderPolar(p.data));
+  const hasPlaceholderPolar = true; // Always show badge until real polars are added
   
   // Placeholder warning badge component
   const PlaceholderBadge = () => (
