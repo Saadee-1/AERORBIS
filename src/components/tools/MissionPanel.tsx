@@ -216,7 +216,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
                 <SelectTrigger className="mission-select bg-slate-900 border-slate-700 text-slate-200 text-sm h-9 w-full">
                   <SelectValue placeholder="Select mission" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-700 [&>*:nth-child(2)]:!max-h-[144px]">
+                <SelectContent className="bg-slate-900 border-slate-700 [&_div[class*='overflow-y-auto']]:!max-h-[144px] [&_div[class*='overflow-y-auto']]:!overflow-y-auto">
                   {MISSION_PRESETS.map(preset => (
                     <SelectItem 
                       key={preset.id} 
