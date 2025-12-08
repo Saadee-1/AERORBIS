@@ -8,6 +8,60 @@
 import type { PolarData } from './pdfExport';
 
 /**
+ * Data quality types for polar data
+ */
+export type PolarDataQuality = 'experimental' | 'estimated' | 'extrapolated';
+
+/**
+ * Determine data quality from polar metadata
+ * Returns 'estimated' for 404/missing polars, otherwise checks meta.source
+ */
+export function getPolarDataQuality(polar: PolarData | null, is404: boolean = false): PolarDataQuality {
+  if (!polar || is404) {
+    return 'estimated'; // Missing polars are treated as estimated
+  }
+
+  const source = polar.meta?.source?.toLowerCase() || '';
+  
+  if (source === 'experimental' || source.includes('wind-tunnel') || source.includes('wind tunnel')) {
+    return 'experimental';
+  }
+  
+  if (source === 'extrapolated' || source.includes('extrapolated') || source.includes('beyond range')) {
+    return 'extrapolated';
+  }
+  
+  // Default to estimated for xfoil, estimated, model-based, or unknown sources
+  return 'estimated';
+}
+
+/**
+ * Get badge label and styling for data quality
+ */
+export function getDataQualityBadge(quality: PolarDataQuality): {
+  label: string;
+  className: string;
+} {
+  switch (quality) {
+    case 'experimental':
+      return {
+        label: 'Verified Wind-Tunnel Data',
+        className: 'bg-green-500/20 text-green-300 border border-green-600/50 text-xs px-2 py-0.5 rounded-md',
+      };
+    case 'estimated':
+      return {
+        label: 'Estimated / Model-Based',
+        className: 'bg-yellow-500/20 text-yellow-300 border border-yellow-600/50 text-xs px-2 py-0.5 rounded-md',
+      };
+    case 'extrapolated':
+      return {
+        label: 'Mixed / Extrapolated Beyond Range',
+        className: 'bg-orange-500/20 text-orange-300 border border-orange-600/50 text-xs px-2 py-0.5 rounded-md',
+      };
+  }
+}
+
+/**
  * Color palette for multi-airfoil comparison (up to 5 airfoils)
  * Each airfoil gets a consistent color across all charts (CL, CD, CM)
  */

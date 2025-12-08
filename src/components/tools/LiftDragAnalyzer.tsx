@@ -42,7 +42,7 @@ import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 import { CalculationSteps } from "@/components/common/CalculationSteps";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
-import { loadPolarForComparison, AIRFOIL_COLORS, detectStallIndex } from "@/lib/polarChartUtils";
+import { loadPolarForComparison, AIRFOIL_COLORS, detectStallIndex, getPolarDataQuality, getDataQualityBadge } from "@/lib/polarChartUtils";
 import { useGraphSetups } from "@/hooks/useGraphSetups";
 import type { GraphMode as GraphModeType } from "@/types/graphSetup";
 import { useChartExport } from "@/hooks/useChartExport";
@@ -817,6 +817,58 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   }, [comparedAirfoilIds]);
   
   // FIXED: Use useMemo to prevent unnecessary recalculations
+  // Custom tooltip with data quality badge
+  const CustomTooltipWithBadge = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length) {
+      return null;
+    }
+
+    return (
+      <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
+        <p className="text-cyan-400 font-semibold mb-2">
+          {graphMode === "dragPolar" ? `CL = ${label}` : `α = ${label}°`}
+        </p>
+        {payload.map((entry: any, index: number) => {
+          // For drag polar, dataKey is "cd", so we need to find by name
+          // For other modes, dataKey is the airfoilId
+          let polar;
+          if (graphMode === "dragPolar") {
+            const series = dragPolarSeries.find((s: any) => s.name === entry.name);
+            polar = series ? comparisonPolars.find((p: any) => p.id === series.airfoilId) : null;
+          } else {
+            const airfoilId = entry.dataKey;
+            polar = comparisonPolars.find((p: any) => p.id === airfoilId);
+          }
+          
+          const dataQuality = polar?.data ? getPolarDataQuality(polar.data, false) : 'estimated';
+          const badge = getDataQualityBadge(dataQuality);
+          
+          return (
+            <div key={index} className="mb-2 last:mb-0">
+              <div className="flex items-center gap-2 mb-1">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-slate-300">{entry.name}:</span>
+                <span className="text-white font-semibold">
+                  {typeof entry.value === 'number' 
+                    ? (graphMode === "cd" || graphMode === "dragPolar" ? entry.value.toFixed(4) : graphMode === "cm" ? entry.value.toFixed(3) : entry.value.toFixed(2))
+                    : entry.value}
+                </span>
+              </div>
+              {polar?.data && (
+                <div className={`${badge.className} text-xs mt-1 inline-block`}>
+                  {badge.label}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const comparisonData = useMemo(() => {
     if (!result) return [];
     const activeAirfoil = getActiveAirfoil();
@@ -1248,20 +1300,28 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
               >
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="flex flex-col text-left">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-cyan-300">
                         Polar Data (Re = 1,000,000)
                       </span>
-                      {/* TODO: When real polars are added, change to: isPlaceholderPolar(polarData) */}
-                      <div 
-                        className="bg-amber-600/20 text-amber-300 border border-amber-500/50 text-xs px-2 py-0.5 rounded-md"
-                        title="Placeholder data – real experimental/XFOIL polars coming soon."
-                      >
-                        ⚠ Placeholder
-                      </div>
+                      {(() => {
+                        const dataQuality = getPolarDataQuality(polarData, false);
+                        const badge = getDataQualityBadge(dataQuality);
+                        return (
+                          <div 
+                            className={badge.className}
+                            title={badge.label}
+                          >
+                            {badge.label}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <span className="text-xs text-slate-400">
-                      {polarData.airfoil} · L/D ratios from experimental data
+                      {polarData.airfoil} · L/D ratios from {(() => {
+                        const quality = getPolarDataQuality(polarData, false);
+                        return quality === 'experimental' ? 'experimental' : quality === 'extrapolated' ? 'mixed/extrapolated' : 'estimated/model-based';
+                      })()} data
                     </span>
                   </div>
                 </div>
@@ -1302,10 +1362,12 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
             </div>
           )}
 
-          {polarError && (
+          {polarError && !polarData && (
             <AeroCard title="Polar Data">
               <Alert variant="default" className="border-yellow-500/50 bg-yellow-500/10 text-yellow-300">
-                <AlertDescription>{polarError}</AlertDescription>
+                <AlertDescription>
+                  No experimental or estimated polars available. Try another airfoil.
+                </AlertDescription>
               </Alert>
             </AeroCard>
           )}
@@ -1512,8 +1574,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                       tickFormatter={yAxisConfig.formatter}
                     />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
-                      labelStyle={{ color: "#22d3ee" }}
+                      content={<CustomTooltipWithBadge />}
                     />
                     {/* Each airfoil gets its own Line with its own data array */}
                     {dragPolarSeries.map((series, index) => {
@@ -1551,13 +1612,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                       tickFormatter={yAxisConfig.formatter}
                     />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #22d3ee" }}
-                      labelStyle={{ color: "#22d3ee" }}
-                      formatter={(value: number) => {
-                        if (graphMode === "cd") return value.toFixed(4);
-                        if (graphMode === "cm") return value.toFixed(3);
-                        return value.toFixed(2);
-                      }}
+                      content={<CustomTooltipWithBadge />}
                     />
                     
                     {/* Dynamic Line Rendering - unified with polar charts */}
