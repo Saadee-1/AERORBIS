@@ -16,6 +16,7 @@ export interface StallMeta {
   clMax: number;
   alphaStallDeg: number;
   cdAtStall: number;
+  cmAtStall: number;
 }
 
 export interface PolarMeta {
@@ -223,6 +224,38 @@ function modelPostStall(alpha: number, stall: StallMeta): { cl: number; cd: numb
 }
 
 /**
+ * Model post-stall CM values
+ * Gradually becomes more negative after stall (no vertical cliff)
+ */
+function modelPostStallCm(alpha: number, stall: StallMeta): number {
+  const dA = alpha - stall.alphaStallDeg;
+
+  // Behaviour-based slope: how fast Cm becomes more negative after stall
+  let slopePerDeg: number;
+  switch (stall.stallBehaviour) {
+    case "soft":
+      slopePerDeg = -0.002;
+      break;
+    case "moderate":
+      slopePerDeg = -0.004;
+      break;
+    case "sharp":
+    case "supercritical":
+    default:
+      slopePerDeg = -0.006;
+      break;
+  }
+
+  let cm = stall.cmAtStall + slopePerDeg * dA;
+
+  // Clamp so we don't go crazy
+  if (cm < -0.4) cm = -0.4;
+  if (cm > 0.2) cm = 0.2;
+
+  return cm;
+}
+
+/**
  * Linear interpolation helper
  */
 function linearInterpolate(
@@ -324,9 +357,13 @@ export function buildEnhancedPolar(
   const features = extractStallFeatures(raw);
   const stallBehaviour = classifyStallBehaviour(features, family);
 
-  // Determine stall angle and CD at stall
+  // Determine stall angle and CD/CM at stall
   const alphaStall = features.alphaClMax;
   const cdAtStall = features.cdAtClMax;
+  
+  // Compute CM at stall (interpolate at exact stall angle)
+  const cmAtStall = interpolateAtAlpha(alphaStall, raw.alpha, raw.cm || []);
+  const cmAtStallValue = cmAtStall !== null ? cmAtStall : features.cmMean;
 
   // Build stall metadata
   const stallMeta: StallMeta = {
@@ -334,6 +371,7 @@ export function buildEnhancedPolar(
     clMax: features.clMax,
     alphaStallDeg: alphaStall,
     cdAtStall,
+    cmAtStall: cmAtStallValue,
   };
 
   // Create dense alpha grid
@@ -361,15 +399,20 @@ export function buildEnhancedPolar(
       const m = modelPostStall(alpha, stallMeta);
       cl.push(m.cl);
       cd.push(m.cd);
-      // Keep CM roughly constant post-stall (or small drift)
-      cm.push(features.cmMean);
+      // Smooth CM decay after stall
+      const cmPost = modelPostStallCm(alpha, stallMeta);
+      cm.push(cmPost);
     }
   }
 
   // Build enhanced meta
   const enhancedMeta: PolarMeta & StallMeta = {
     ...raw.meta,
-    ...stallMeta,
+    stallBehaviour: stallMeta.stallBehaviour,
+    clMax: stallMeta.clMax,
+    alphaStallDeg: stallMeta.alphaStallDeg,
+    cdAtStall: stallMeta.cdAtStall,
+    cmAtStall: stallMeta.cmAtStall,
   };
 
   return {

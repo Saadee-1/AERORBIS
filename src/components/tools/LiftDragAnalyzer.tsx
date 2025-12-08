@@ -58,6 +58,28 @@ const safeToFixed = (value: number | null | undefined, digits = 2) =>
   Number.isFinite(value as number) ? (value as number).toFixed(digits) : "N/A";
 
 /**
+ * Compute a stable L/D value with guards against numerical noise
+ * Removes spikes at negative alpha and near CL ≈ 0
+ */
+function safeLiftToDrag(cl: number, cd: number): number | null {
+  // Guard against nonsense
+  if (!Number.isFinite(cl) || !Number.isFinite(cd)) return null;
+  if (Math.abs(cd) < 1e-5) return null;
+
+  const raw = cl / cd;
+
+  // Kill crazy ratios (numerical noise near CL~0)
+  if (!Number.isFinite(raw) || Math.abs(raw) > 50) return null;
+
+  // Smooth in near CL ≈ 0 so the graph doesn't spike
+  const weight = Math.min(1, Math.abs(cl) / 0.2); // fade-in for |CL| < 0.2
+
+  const ld = raw * weight;
+
+  return ld;
+}
+
+/**
  * Extract role from airfoil name or description
  * Format: "{name} · {role}" or just "{name}" if no role found
  */
@@ -919,7 +941,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
             
             switch (mode) {
               case "ld":
-                point[polar.id] = cd !== 0 ? cl / cd : null;
+                point[polar.id] = safeLiftToDrag(cl, cd);
                 break;
               case "cl":
                 point[polar.id] = cl;
