@@ -22,7 +22,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Info, Plane, Pencil, Settings2, Download, X, Plus, ChevronDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend, type LegendProps } from "recharts";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
@@ -78,6 +78,58 @@ function safeLiftToDrag(cl: number, cd: number): number | null {
 
   return ld;
 }
+
+// Chart styling constants
+const stallLineColor = "#f97316"; // amber/orange
+const stallFillColor = "rgba(249, 115, 22, 0.08)"; // subtle shading
+
+/**
+ * Custom legend renderer that includes stall line entry
+ */
+const renderCustomLegend = (props: LegendProps & { stallAngle?: number | null }) => {
+  const { payload = [] } = props;
+
+  const baseItems = payload.map((item) => ({
+    ...item,
+  }));
+
+  const stallItems =
+    props.stallAngle != null && Number.isFinite(props.stallAngle)
+      ? [
+          {
+            value: `Stall angle ≈ ${props.stallAngle.toFixed(1)}°`,
+            type: "line" as const,
+            id: "stall-angle",
+            color: stallLineColor,
+            strokeDasharray: "3 3",
+          },
+        ]
+      : [];
+
+  const items = [...baseItems, ...stallItems];
+
+  return (
+    <ul className="flex flex-wrap gap-3 text-xs text-slate-300">
+      {items.map((entry) => (
+        <li key={entry.id || entry.value} className="flex items-center gap-1">
+          <span
+            className="inline-block"
+            style={{
+              width: 18,
+              height: 2,
+              backgroundColor: entry.color,
+              borderRadius: 999,
+              borderBottom: entry.strokeDasharray
+                ? `1px dashed ${entry.color}`
+                : undefined,
+            }}
+          />
+          <span>{entry.value}</span>
+        </li>
+      ))}
+    </ul>
+  );
+};
 
 /**
  * Extract role from airfoil name or description
@@ -1039,7 +1091,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
     return [];
   }, [graphMode, generateDragPolarSeries]);
 
-  // Get Y-axis label and domain for current mode
+  // Get Y-axis label and formatter for current mode
   const getYAxisConfig = (mode: GraphMode) => {
     switch (mode) {
       case "ld":
@@ -1058,6 +1110,76 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   };
 
   const yAxisConfig = getYAxisConfig(graphMode);
+
+  // Compute auto-scaled Y-axis domain for alpha-based charts
+  const getAutoScaledYDomain = useCallback((mode: GraphMode, chartData: any[]): [number, number] => {
+    if (mode === "dragPolar") {
+      // For drag polar, use a more conservative approach
+      return [0, "auto" as any];
+    }
+
+    // Extract valid values from chart data
+    const dataKey = mode === "ld" ? "ld" : mode === "cl" ? "cl" : mode === "cd" ? "cd" : "cm";
+    const values = chartData
+      .flatMap((d) => {
+        // For multi-airfoil charts, collect values from all airfoil keys
+        if (mode === "ld" && comparisonPolars.length > 0) {
+          return comparisonPolars.map((p) => d[p.id] as number | null | undefined);
+        }
+        return [d[dataKey] as number | null | undefined];
+      })
+      .filter((v): v is number => typeof v === "number" && !Number.isNaN(v) && Number.isFinite(v));
+
+    if (values.length === 0) {
+      // Fallback ranges
+      switch (mode) {
+        case "ld":
+          return [0, 50];
+        case "cl":
+          return [-0.5, 2.0];
+        case "cd":
+          return [0, 0.2];
+        case "cm":
+          return [-0.1, 0.1];
+        default:
+          return [0, 1];
+      }
+    }
+
+    const rawMin = Math.min(...values);
+    const rawMax = Math.max(...values);
+
+    // Add safety margin (15% padding)
+    const padding = (rawMax - rawMin) * 0.15 || 0.5;
+
+    // For L/D specifically, allow asymmetric domain
+    const isLD = mode === "ld";
+    let yMin = rawMin - padding;
+    let yMax = rawMax + padding;
+
+    // Ensure minimum span to avoid ridiculous zoom
+    const minSpan = isLD ? 2.0 : mode === "cd" ? 0.02 : mode === "cm" ? 0.1 : 0.5;
+    if (yMax - yMin < minSpan) {
+      const mid = (yMax + yMin) / 2;
+      yMin = mid - minSpan / 2;
+      yMax = mid + minSpan / 2;
+    }
+
+    // For L/D, ensure minimum is not too negative
+    if (isLD && yMin < 0) {
+      yMin = 0;
+    }
+
+    return [yMin, yMax];
+  }, [comparisonPolars]);
+
+  // Get stall angle for legend (use first polar's stall angle)
+  const stallAngleForLegend = useMemo(() => {
+    if (comparisonPolars.length === 0) return null;
+    const firstPolar = comparisonPolars[0];
+    const stallAlpha = firstPolar?.data?.meta?.alphaStallDeg;
+    return stallAlpha && Number.isFinite(stallAlpha) ? stallAlpha : null;
+  }, [comparisonPolars]);
 
   return (
     <ToolWrapper>
@@ -1635,12 +1757,25 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                       label={{ value: "Angle of Attack (degrees)", position: "insideBottom", offset: -5, fill: "#94a3b8" }}
                     />
                     <YAxis
+                      domain={getAutoScaledYDomain(graphMode, graphMode === "ld" ? comparisonData : currentChartData)}
                       stroke="#94a3b8"
                       label={{ value: yAxisConfig.label, angle: -90, position: "insideLeft", fill: "#94a3b8" }}
                       tickFormatter={yAxisConfig.formatter}
+                      tick={{ fontSize: 11 }}
+                      width={50}
                     />
                     <Tooltip
                       content={<CustomTooltipWithBadge />}
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      align="left"
+                      content={(props) =>
+                        renderCustomLegend({
+                          ...props,
+                          stallAngle: stallAngleForLegend,
+                        })
+                      }
                     />
                     
                     {/* Stall line and post-stall shading for alpha-based charts */}
@@ -1650,8 +1785,10 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                           const stallAlpha = polar.data.meta.alphaStallDeg;
                           if (!stallAlpha || !Number.isFinite(stallAlpha)) return null;
                           
-                          // Get max alpha from chart data for shading
-                          const maxAlpha = currentChartData.length > 0
+                          // Get max alpha from enhanced polar data for shading
+                          const maxAlpha = polar.data.alpha_deg.length > 0
+                            ? Math.max(...polar.data.alpha_deg)
+                            : currentChartData.length > 0
                             ? Math.max(...currentChartData.map(d => d.alpha as number))
                             : 20;
                           
@@ -1659,17 +1796,18 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                             <g key={`stall-${polar.id}`}>
                               <ReferenceLine
                                 x={stallAlpha}
-                                stroke="#f59e0b"
+                                stroke={stallLineColor}
                                 strokeWidth={1.5}
                                 strokeDasharray="3 3"
                                 opacity={0.6}
+                                ifOverflow="extendDomain"
                               />
                               {stallAlpha < maxAlpha && (
                                 <ReferenceArea
                                   x1={stallAlpha}
                                   x2={maxAlpha}
-                                  fill="#f59e0b"
-                                  fillOpacity={0.05}
+                                  fill={stallFillColor}
+                                  strokeOpacity={0}
                                 />
                               )}
                             </g>
@@ -1690,12 +1828,11 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                               connectNulls
                               type="monotone"
                               dataKey={polar.id}
-                              name={polar.name}
+                              name={getAirfoilLegendLabel(polar.id, polar.name)}
                               stroke={color}
                               strokeWidth={isActive ? 3 : 2}
                               strokeDasharray={isActive ? undefined : "5 5"}
                               dot={false}
-                              legendType="none"
                             />
                           );
                         })}
@@ -1709,7 +1846,6 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                             strokeWidth={3}
                             strokeDasharray="5 5"
                             dot={false}
-                            legendType="none"
                           />
                         )}
                       </>
@@ -1722,12 +1858,11 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                             key={polar.id}
                             type="monotone"
                             dataKey={polar.id}
-                            name={polar.name}
+                            name={getAirfoilLegendLabel(polar.id, polar.name)}
                             stroke={color}
                             strokeWidth={isActive ? 3 : 2}
                             dot={false}
                             connectNulls={false}
-                            legendType="none"
                           />
                         );
                       })
@@ -1737,32 +1872,14 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
               )}
               </div>
               
-              {/* Custom Legend - Outside Chart Area */}
-              <div className="mt-3 pt-3 border-t border-slate-700/50">
-                <CustomLegend
-                  items={[
-                    ...comparisonPolars.map((polar, index) => {
-                      const color = AIRFOIL_COLORS[index % AIRFOIL_COLORS.length];
-                      return {
-                        id: polar.id,
-                        name: getAirfoilLegendLabel(polar.id, polar.name),
-                        color: color,
-                      };
-                    }),
-                    ...(inputs.airfoil === 'custom' && graphMode === "ld" ? [{
-                      id: 'custom',
-                      name: result?.airfoilName || "Custom",
-                      color: '#e879f9',
-                    }] : []),
-                  ]}
-                />
-                {/* Post-stall modeling note */}
-                {graphMode !== "dragPolar" && comparisonPolars.some(p => p.data.meta.alphaStallDeg && Number.isFinite(p.data.meta.alphaStallDeg)) && (
-                  <p className="mt-2 text-xs text-slate-400 italic">
+              {/* Post-stall modeling note */}
+              {graphMode !== "dragPolar" && comparisonPolars.some(p => p.data.meta.alphaStallDeg && Number.isFinite(p.data.meta.alphaStallDeg)) && (
+                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                  <p className="text-xs text-slate-400 italic">
                     Post-stall region (beyond dashed line) is modeled using Aeroverse stall model
                   </p>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </Tabs>
         </div>
