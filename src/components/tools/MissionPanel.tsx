@@ -28,7 +28,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<AirfoilRecommendation[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [usedFallback, setUsedFallback] = useState(false);
+  const [smartAiUnavailableReason, setSmartAiUnavailableReason] = useState<"AI_DISABLED" | "NETWORK_ERROR" | "BAD_RESPONSE" | null>(null);
   const [selectedAirfoilId, setSelectedAirfoilId] = useState<string | undefined>();
   const [airfoilMetricsMap, setAirfoilMetricsMap] = useState<Map<string, any>>(new Map());
 
@@ -36,19 +36,17 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
     if (!selectedMission) return;
     setLoading(true);
     setError(null);
-    setUsedFallback(false);
+    setSmartAiUnavailableReason(null);
     try {
       const result = await recommendAirfoils(selectedMission, mode);
       setRecommendations(result.items);
       
-      // Check if AI mode fell back to engineering
-      if (mode === "ai" && result.items.length > 0) {
-        // Simple heuristic: if reasons don't mention AI-specific language, likely fallback
-        const firstReason = result.items[0]?.reason || "";
-        const isLikelyFallback = !firstReason.toLowerCase().includes("recommend") && 
-                                  !firstReason.toLowerCase().includes("ideal") &&
-                                  !firstReason.toLowerCase().includes("excellent");
-        setUsedFallback(isLikelyFallback);
+      // Check if Smart AI failed and fell back to engineering
+      if (mode === "ai" && result.smartAiError) {
+        setSmartAiUnavailableReason(result.smartAiError.reason);
+      } else if (mode === "ai") {
+        // Smart AI succeeded, clear any previous error
+        setSmartAiUnavailableReason(null);
       }
 
       const airfoilIds = result.items.map(item => item.airfoilId).filter(Boolean);
@@ -115,7 +113,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
         try {
           reasons = buildRecommendationReasons({
             mode: mode === "ai" ? "smart-ai" : "engineering",
-            isFallback: usedFallback && mode === "ai",
+            isFallback: smartAiUnavailableReason !== null && mode === "ai",
             reynolds: cardMetrics.reynolds,
             ldMax: cardMetrics.ldMax,
             clMax: cardMetrics.clMax,
@@ -176,13 +174,13 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
         score: rec.score,
         reasons,
         metrics: cardMetrics,
-        isFallback: usedFallback && mode === "ai",
+        isFallback: smartAiUnavailableReason !== null && mode === "ai",
         engineeringSummary,
         missionEmoji: missionPreset?.emoji,
         missionShortLabel: missionPreset?.shortLabel,
       };
     });
-  }, [recommendations, mode, usedFallback, airfoilMetricsMap, selectedMission]);
+  }, [recommendations, mode, smartAiUnavailableReason, airfoilMetricsMap, selectedMission]);
 
   const handleSelectAirfoil = (airfoilId: string) => {
     setSelectedAirfoilId(airfoilId);
@@ -268,6 +266,14 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
               Engineering 📐
             </button>
           </div>
+          {/* Show Smart AI error hint if Smart AI failed */}
+          {mode === "ai" && smartAiUnavailableReason && (
+            <p className="mt-1 text-xs text-slate-400">
+              {smartAiUnavailableReason === "AI_DISABLED" && "Smart AI is not configured (no API key). Using Engineering mode instead."}
+              {smartAiUnavailableReason === "NETWORK_ERROR" && "Smart AI request failed (network/API). Using Engineering mode instead."}
+              {smartAiUnavailableReason === "BAD_RESPONSE" && "Smart AI responded with an unexpected format. Using Engineering mode instead."}
+            </p>
+          )}
         </div>
 
         {/* Right: Apply button + error/fallback badge */}
@@ -295,12 +301,6 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
               <AlertTriangle className="w-3 h-3" />
               {error}
             </p>
-          )}
-          {!error && usedFallback && mode === "ai" && recommendations.length > 0 && (
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/30 rounded-md">
-              <AlertTriangle className="w-3 h-3 text-amber-400" />
-              <span className="text-xs text-amber-400">Fallback → Engineering</span>
-            </div>
           )}
         </div>
       </div>

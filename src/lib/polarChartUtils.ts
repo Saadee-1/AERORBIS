@@ -217,12 +217,12 @@ export async function loadPolarForComparison(
   airfoilId: string,
   re: number
 ): Promise<PolarData | null> {
-  // Format Reynolds number
+  // Format Reynolds number (using integer division like Python scripts)
   let reStr: string;
   if (re >= 1000000) {
-    reStr = `${re / 1000000}e6`;
+    reStr = `${Math.floor(re / 1000000)}e6`;
   } else if (re >= 1000) {
-    reStr = `${re / 1000}k`;
+    reStr = `${Math.floor(re / 1000)}k`;
   } else {
     reStr = `${re}`;
   }
@@ -258,7 +258,7 @@ export async function loadPolarForComparison(
     }
 
     // Parse JSON with error handling
-    let json: PolarData;
+    let json: any;
     try {
       json = await res.json();
     } catch (err) {
@@ -273,8 +273,52 @@ export async function loadPolarForComparison(
       return null;
     }
 
-    // Map to PolarData type (existing structure)
-    return json;
+    // Normalize schema: handle both nested (from convertAirfoilToolsPolar.ts) and flat (new format) schemas
+    let normalized: PolarData;
+    
+    if (json.data && json.data.alpha_deg) {
+      // Nested schema from convertAirfoilToolsPolar.ts: { meta: {...}, data: { alpha_deg: [...], cl: [...], cd: [...], cm: [...] } }
+      normalized = {
+        airfoil: json.meta?.airfoil || airfoilId,
+        re: json.meta?.re || re,
+        mach: json.meta?.mach ?? 0.0,
+        alpha: json.data.alpha_deg,
+        cl: json.data.cl,
+        cd: json.data.cd,
+        cm: json.data.cm,
+        meta: {
+          source: json.meta?.source,
+          generated_at: json.meta?.generated_at,
+          filter: json.meta?.filter,
+          notes: json.meta?.notes,
+          cm_estimated: json.meta?.cm_estimated,
+          stall_alpha: json.meta?.stall_alpha,
+        },
+      };
+    } else if (json.alpha && Array.isArray(json.alpha)) {
+      // Flat schema (new format): { airfoil: "...", re: ..., mach: ..., alpha: [...], cl: [...], cd: [...], cm: [...] }
+      normalized = {
+        airfoil: json.airfoil || airfoilId,
+        re: json.re ?? re,
+        mach: json.mach ?? 0.0,
+        alpha: json.alpha,
+        cl: json.cl,
+        cd: json.cd,
+        cm: json.cm,
+        meta: json.meta,
+      };
+    } else {
+      // Invalid schema
+      if (!failedPolarUrls.has(url)) {
+        console.error(
+          `Error: Invalid polar JSON schema for ${airfoilId} at Re=${re}. Expected either nested (data.alpha_deg) or flat (alpha) schema.`
+        );
+        failedPolarUrls.add(url);
+      }
+      return null;
+    }
+
+    return normalized;
   } catch (error) {
     // Network or other fetch errors
     if (!failedPolarUrls.has(url)) {
@@ -301,6 +345,7 @@ export function prepareMultiAirfoilChartData(
   }
 
   // Find common alpha grid (use first polar's alpha values)
+  // Note: polars are now in flat schema format (PolarData), not nested
   const alphaGrid = polars[0].data.alpha;
   
   const chartData: Array<Record<string, number>> = [];

@@ -21,5 +21,17 @@ export interface RecommendationResult {
   missionId: MissionId;
   mode: RecommendationMode;
   items: AirfoilRecommendation[];
+  smartAiError?: SmartAiError;
 }
+
+export type SmartAiErrorReason = "AI_DISABLED" | "NETWORK_ERROR" | "BAD_RESPONSE";
+
+export interface SmartAiError {
+  reason: SmartAiErrorReason;
+  detail?: string;
+}
+
+export type SmartAiResult =
+  | { ok: true; recommendations: RecommendationResult }
+  | { ok: false; reason: SmartAiErrorReason; detail?: string };
 

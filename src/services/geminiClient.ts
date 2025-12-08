@@ -4,13 +4,28 @@
  * Reuses the same API key and configuration as the rest of the app
  */
 
+export type GeminiResult =
+  | { ok: true; content: string }
+  | { ok: false; reason: "AI_DISABLED" | "NETWORK_ERROR" | "BAD_RESPONSE"; detail?: string };
+
 /**
- * Call Gemini and return the raw text response
- * @param prompt - The prompt to send to Gemini
- * @returns The raw text response from Gemini
+ * Check if Smart AI is enabled (API key is configured)
  */
-export async function callGeminiJSON(prompt: string): Promise<string> {
-  // Try multiple environment variable names for API key
+export function isSmartAiEnabled(): boolean {
+  const apiKey = 
+    import.meta.env.VITE_LOVABLE_API_KEY || 
+    import.meta.env.VITE_AEROBOT_API_KEY ||
+    import.meta.env.VITE_GEMINI_API_KEY;
+  return !!apiKey;
+}
+
+/**
+ * Call Gemini and return a structured result
+ * @param prompt - The prompt to send to Gemini
+ * @returns Structured result with success/error information
+ */
+export async function callGeminiJSON(prompt: string): Promise<GeminiResult> {
+  // Check if API key is configured
   const apiKey = 
     import.meta.env.VITE_LOVABLE_API_KEY || 
     import.meta.env.VITE_AEROBOT_API_KEY ||
@@ -20,7 +35,11 @@ export async function callGeminiJSON(prompt: string): Promise<string> {
   const model = import.meta.env.VITE_GEMINI_MODEL || 'google/gemini-2.5-flash';
 
   if (!apiKey) {
-    throw new Error('AI API key is not configured. Please set VITE_LOVABLE_API_KEY, VITE_AEROBOT_API_KEY, or VITE_GEMINI_API_KEY in your environment variables.');
+    return {
+      ok: false,
+      reason: "AI_DISABLED",
+      detail: "AI API key is not configured. Please set VITE_LOVABLE_API_KEY, VITE_AEROBOT_API_KEY, or VITE_GEMINI_API_KEY in your environment variables.",
+    };
   }
 
   try {
@@ -48,21 +67,49 @@ export async function callGeminiJSON(prompt: string): Promise<string> {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error?.message || `API error: ${response.status}`);
+      let errorDetail = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorDetail = errorData.error?.message || errorDetail;
+      } catch {
+        // If JSON parsing fails, use the status text
+      }
+      return {
+        ok: false,
+        reason: "NETWORK_ERROR",
+        detail: `Smart AI HTTP error ${response.status}: ${response.statusText}. ${errorDetail}`,
+      };
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      return {
+        ok: false,
+        reason: "BAD_RESPONSE",
+        detail: `Smart AI response parse error: ${parseError instanceof Error ? parseError.message : 'Unknown parse error'}`,
+      };
+    }
+
     const content = data.choices?.[0]?.message?.content || '';
 
     if (!content) {
-      throw new Error('No content in Gemini response');
+      return {
+        ok: false,
+        reason: "BAD_RESPONSE",
+        detail: "No content in Gemini response",
+      };
     }
 
-    return content;
+    return { ok: true, content };
   } catch (error) {
-    console.error('Gemini API error:', error);
-    throw error;
+    // Network errors, fetch failures, etc.
+    return {
+      ok: false,
+      reason: "NETWORK_ERROR",
+      detail: error instanceof Error ? error.message : 'Unknown network error',
+    };
   }
 }
 

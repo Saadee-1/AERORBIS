@@ -8,10 +8,12 @@ import type {
   RecommendationMode,
   RecommendationResult,
   AirfoilRecommendation,
+  SmartAiResult,
+  SmartAiError,
 } from "@/types/missionRecommendations";
 import { getAllAirfoilsWithMetricsForRe, type AirfoilWithMetrics, type AirfoilPolarMetrics } from "@/core/airfoilMetrics";
 import { getTargetReForMission } from "@/core/missionReMapping";
-import { callGeminiJSON } from "@/services/geminiClient";
+import { callGeminiJSON, isSmartAiEnabled } from "@/services/geminiClient";
 
 /**
  * Main recommendation function
@@ -24,11 +26,21 @@ export async function recommendAirfoils(
   if (mode === "ai") {
     // Try AI first, then gracefully fall back to engineering if anything goes wrong.
     const aiResult = await recommendWithGemini(missionId);
-    if (aiResult && aiResult.items.length > 0) {
-      return aiResult;
+    if (aiResult.ok) {
+      return aiResult.recommendations;
     }
-    console.warn("[AI recommendAirfoils] Falling back to engineering scoring for", missionId);
-    return recommendWithLocalScoring(missionId, "engineering");
+    
+    // Log one concise warning about the failure
+    console.warn("[Smart AI] Disabled or failed, falling back to Engineering:", aiResult.reason, aiResult.detail);
+    
+    // Fall back to engineering mode
+    const engineeringResult = await recommendWithLocalScoring(missionId, "engineering");
+    // Attach Smart AI error info to the result so UI can display it
+    engineeringResult.smartAiError = {
+      reason: aiResult.reason,
+      detail: aiResult.detail,
+    };
+    return engineeringResult;
   }
 
   return recommendWithLocalScoring(missionId, "engineering");
@@ -437,11 +449,20 @@ function safeParseGeminiJson(raw: string | null | undefined): { items?: any[] } 
 
 /**
  * AI-based recommendation using Gemini
- * Falls back to engineering mode if Gemini call fails
+ * Returns structured result with error information if it fails
  */
 async function recommendWithGemini(
   missionId: MissionId
-): Promise<RecommendationResult | null> {
+): Promise<SmartAiResult> {
+  // Check if Smart AI is enabled before making any network calls
+  if (!isSmartAiEnabled()) {
+    return {
+      ok: false,
+      reason: "AI_DISABLED",
+      detail: "Smart AI is not configured (no API key).",
+    };
+  }
+
   try {
     // Determine the mission's target Reynolds
     const targetRe = getTargetReForMission(missionId);
@@ -450,8 +471,11 @@ async function recommendWithGemini(
     const airfoils = await getAllAirfoilsWithMetricsForRe(targetRe);
 
     if (airfoils.length === 0) {
-      console.warn("[AI recommendWithGemini] No airfoils with metrics found");
-      return null;
+      return {
+        ok: false,
+        reason: "BAD_RESPONSE",
+        detail: "No airfoils with metrics found for this mission.",
+      };
     }
 
     // Build a compact JSON-like summary of the available metrics for Gemini
@@ -495,13 +519,23 @@ Rules:
 - reason must be short (max ~120 characters).
 No extra text, no commentary, only the JSON object.`;
 
-    // Call Gemini via the wrapper
-    const raw = await callGeminiJSON(prompt);
-    const parsed = safeParseGeminiJson(raw);
+    // Call Gemini via the wrapper - now returns structured result
+    const geminiResult = await callGeminiJSON(prompt);
+    
+    if (!geminiResult.ok) {
+      // Return the error from Gemini client
+      return geminiResult;
+    }
+
+    // Parse the JSON response
+    const parsed = safeParseGeminiJson(geminiResult.content);
 
     if (!parsed || !Array.isArray(parsed.items)) {
-      console.warn("[AI recommendWithGemini] Parsed JSON has no items, falling back.");
-      return null;
+      return {
+        ok: false,
+        reason: "BAD_RESPONSE",
+        detail: "Smart AI responded with an unexpected format. Parsed JSON has no items.",
+      };
     }
 
     // Create a map of airfoilId -> metrics for building engineering reasons when needed
@@ -544,18 +578,28 @@ No extra text, no commentary, only the JSON object.`;
       .slice(0, 5);
 
     if (items.length === 0) {
-      console.warn("[AI recommendWithGemini] No valid items after filtering, falling back.");
-      return null;
+      return {
+        ok: false,
+        reason: "BAD_RESPONSE",
+        detail: "Smart AI responded with an unexpected format. No valid items after filtering.",
+      };
     }
 
     return {
-      missionId,
-      mode: "ai",
-      items,
+      ok: true,
+      recommendations: {
+        missionId,
+        mode: "ai",
+        items,
+      },
     };
   } catch (err) {
-    console.error("[AI recommendWithGemini] Gemini call failed:", err);
-    return null;
+    // Catch any unexpected errors (shouldn't happen with structured results, but safety first)
+    return {
+      ok: false,
+      reason: "NETWORK_ERROR",
+      detail: err instanceof Error ? err.message : "Unknown error during Smart AI recommendation",
+    };
   }
 }
 
