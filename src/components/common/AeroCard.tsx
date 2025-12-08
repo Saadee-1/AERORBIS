@@ -25,6 +25,7 @@ interface AeroCardProps {
   children: ReactNode;
   className?: string;
   headerActions?: ReactNode;
+  titleBadge?: ReactNode;
 }
 
 export function AeroCard({ 
@@ -33,7 +34,8 @@ export function AeroCard({
   icon: Icon, 
   children, 
   className = '',
-  headerActions 
+  headerActions,
+  titleBadge
 }: AeroCardProps) {
   return (
     <Card className={`bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl ${className}`}>
@@ -43,6 +45,7 @@ export function AeroCard({
             <div className="flex items-center gap-2">
               {Icon && <Icon className="w-5 h-5 text-cyan-400" />}
               {title && <CardTitle className={typography.cardTitle}>{title}</CardTitle>}
+              {titleBadge}
             </div>
             {headerActions}
           </div>

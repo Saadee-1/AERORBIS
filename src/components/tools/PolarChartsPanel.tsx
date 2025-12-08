@@ -38,6 +38,33 @@ interface PolarChartsPanelProps {
 }
 
 /**
+ * Check if a polar file appears to be placeholder/dummy data
+ */
+function isPlaceholderPolar(polar: PolarData): boolean {
+  // Check meta.source or meta.notes for placeholder indicators
+  if (polar.meta) {
+    const source = (polar.meta.source || '').toLowerCase();
+    const notes = (polar.meta.notes || '').toLowerCase();
+    
+    if (source.includes('todo') || source.includes('placeholder') || source.includes('stub') ||
+        notes.includes('todo') || notes.includes('placeholder') || notes.includes('stub')) {
+      return true;
+    }
+  }
+  
+  // Check if arrays have < 15 data points
+  const alphaCount = polar.alpha?.length || 0;
+  const clCount = polar.cl?.length || 0;
+  const cdCount = polar.cd?.length || 0;
+  
+  if (alphaCount < 15 || clCount < 15 || cdCount < 15) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
  * Get clean airfoil name without role in parentheses
  */
 const getAirfoilName = (airfoilName: string): string => {
@@ -211,6 +238,19 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     ? `${(reynoldsNumber / 1000000).toFixed(1)}M` 
     : `${(reynoldsNumber / 1000).toFixed(0)}k`;
 
+  // Check if any polar is a placeholder
+  const hasPlaceholderPolar = polars.some(p => isPlaceholderPolar(p.data));
+  
+  // Placeholder warning badge component
+  const PlaceholderBadge = () => (
+    <div 
+      className="bg-amber-600/20 text-amber-300 border border-amber-500/50 text-xs px-2 py-0.5 rounded-md"
+      title="Placeholder data – real experimental/XFOIL polars coming soon."
+    >
+      ⚠ Placeholder
+    </div>
+  );
+
   // Prepare drag polar data (CD vs CL)
   // Create a unified data structure where each point has CL and CD values for each airfoil
   const dragPolarData: any[] = [];
@@ -359,6 +399,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
         <ChartCard
           title={`Lift Coefficient (Cl) vs Angle of Attack — Re = ${reDisplay}`}
           height={400}
+          titleBadge={hasPlaceholderPolar ? <PlaceholderBadge /> : undefined}
           headerActions={
             <div className="flex gap-2">
               <AeroButton
@@ -443,6 +484,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
         <ChartCard
           title={`Drag Coefficient (Cd) vs Angle of Attack — Re = ${reDisplay}`}
           height={400}
+          titleBadge={hasPlaceholderPolar ? <PlaceholderBadge /> : undefined}
           headerActions={
             <div className="flex gap-2">
               <AeroButton
@@ -527,6 +569,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
           <ChartCard
             title={`Pitching Moment Coefficient (Cm) vs Angle of Attack — Re = ${reDisplay}`}
             height={400}
+            titleBadge={hasPlaceholderPolar ? <PlaceholderBadge /> : undefined}
             headerActions={
               <div className="flex gap-2">
                 <AeroButton
@@ -632,6 +675,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
               <ChartCard
                 title={`Drag Polar (CD vs CL) — Re = ${reDisplay}`}
                 height={400}
+                titleBadge={hasPlaceholderPolar ? <PlaceholderBadge /> : undefined}
                 headerActions={
                   <div className="flex gap-2">
                     <AeroButton

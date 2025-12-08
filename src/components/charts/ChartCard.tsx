@@ -27,6 +27,7 @@ interface ChartCardProps {
   height?: number;
   headerActions?: ReactNode;
   icon?: LucideIcon;
+  titleBadge?: ReactNode;
 }
 
 export function ChartCard({ 
@@ -36,10 +37,11 @@ export function ChartCard({
   className = '',
   height = 350,
   headerActions,
-  icon
+  icon,
+  titleBadge
 }: ChartCardProps) {
   return (
-    <AeroCard title={title} description={description} className={className} headerActions={headerActions} icon={icon}>
+    <AeroCard title={title} description={description} className={className} headerActions={headerActions} icon={icon} titleBadge={titleBadge}>
       <div style={{ height: `${height}px` }} className="w-full">
         {children}
       </div>
