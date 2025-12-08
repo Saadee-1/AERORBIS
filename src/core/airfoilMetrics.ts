@@ -8,6 +8,7 @@ import { loadPolarForComparison } from "@/lib/polarChartUtils";
 import { polarsConfig } from "@/config/polarsConfig";
 import { getReSetForAirfoil } from "@/data/airfoilReSets";
 import type { PolarData } from "@/lib/pdfExport";
+import { buildEnhancedPolar } from "@/core/stallModel";
 
 export interface AirfoilPolarMetrics {
   airfoilId: string;
@@ -82,7 +83,13 @@ export async function getPolarMetricsForAirfoil(
       return null;
     }
 
-    const { alpha, cl, cd, cm, meta } = polar;
+    // Build enhanced polar with stall model
+    const airfoilData = AIRFOIL_DATA[airfoilId];
+    const family = airfoilData?.description || "";
+    const enhanced = buildEnhancedPolar(polar, airfoilId, family);
+
+    // Use enhanced polar data for metrics
+    const { alpha_deg: alpha, cl, cd, cm, meta } = enhanced;
 
     // Filter out invalid data points
     const validIndices: number[] = [];

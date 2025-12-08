@@ -6,6 +6,8 @@
  */
 
 import type { PolarData } from './pdfExport';
+import { buildEnhancedPolar, type EnhancedPolar } from '@/core/stallModel';
+import { AIRFOIL_DATA } from '@/data/airfoils';
 
 /**
  * Data quality types for polar data
@@ -15,8 +17,12 @@ export type PolarDataQuality = 'experimental' | 'estimated' | 'extrapolated';
 /**
  * Determine data quality from polar metadata
  * Returns 'estimated' for 404/missing polars, otherwise checks meta.source
+ * Accepts both PolarData and EnhancedPolar
  */
-export function getPolarDataQuality(polar: PolarData | null, is404: boolean = false): PolarDataQuality {
+export function getPolarDataQuality(
+  polar: PolarData | { meta?: { source?: string } } | null,
+  is404: boolean = false
+): PolarDataQuality {
   if (!polar || is404) {
     return 'estimated'; // Missing polars are treated as estimated
   }
@@ -518,6 +524,29 @@ export async function exportChartAsSVG(
   } catch (error) {
     console.error('Error exporting chart as SVG:', error);
     throw error;
+  }
+}
+
+/**
+ * Load enhanced polar data with stall model for a specific airfoil and Reynolds number
+ * This wraps loadPolarForComparison and applies the stall model
+ */
+export async function loadEnhancedPolarForComparison(
+  airfoilId: string,
+  re: number
+): Promise<EnhancedPolar | null> {
+  const rawPolar = await loadPolarForComparison(airfoilId, re);
+  if (!rawPolar) {
+    return null;
+  }
+
+  try {
+    const airfoilData = AIRFOIL_DATA[airfoilId];
+    const family = airfoilData?.description || "";
+    return buildEnhancedPolar(rawPolar, airfoilId, family);
+  } catch (error) {
+    console.error(`Error building enhanced polar for ${airfoilId} at Re=${re}:`, error);
+    return null;
   }
 }
 

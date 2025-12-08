@@ -22,7 +22,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Info, Plane, Pencil, Settings2, Download, X, Plus, ChevronDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from "recharts";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
@@ -42,7 +42,8 @@ import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
 import { CalculationSteps } from "@/components/common/CalculationSteps";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
-import { loadPolarForComparison, AIRFOIL_COLORS, detectStallIndex, getPolarDataQuality, getDataQualityBadge } from "@/lib/polarChartUtils";
+import { loadPolarForComparison, loadEnhancedPolarForComparison, AIRFOIL_COLORS, detectStallIndex, getPolarDataQuality, getDataQualityBadge } from "@/lib/polarChartUtils";
+import type { EnhancedPolar } from "@/core/stallModel";
 import { useGraphSetups } from "@/hooks/useGraphSetups";
 import type { GraphMode as GraphModeType } from "@/types/graphSetup";
 import { useChartExport } from "@/hooks/useChartExport";
@@ -500,17 +501,13 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
         airfoilIdsToLoad = [...comparedAirfoilIds];
       }
 
-      // Load polar data for each airfoil
-      const loaded: Array<{ id: string; name: string; data: any }> = [];
+      // Load enhanced polar data for each airfoil (with stall model)
+      const loaded: Array<{ id: string; name: string; data: EnhancedPolar }> = [];
       for (const airfoilId of airfoilIdsToLoad) {
-        const polar = await loadPolarForComparison(airfoilId, 1000000); // Fixed at Re = 1M
-        if (polar) {
+        const enhancedPolar = await loadEnhancedPolarForComparison(airfoilId, 1000000); // Fixed at Re = 1M
+        if (enhancedPolar) {
           const airfoilName = AIRFOIL_DATA[airfoilId]?.name || airfoilId;
-          // Ensure mach field for type compatibility
-          if (!polar.mach) {
-            polar.mach = 0.0;
-          }
-          loaded.push({ id: airfoilId, name: airfoilName, data: polar });
+          loaded.push({ id: airfoilId, name: airfoilName, data: enhancedPolar });
         }
       }
 
@@ -823,11 +820,23 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
       return null;
     }
 
+    // Check if we're in post-stall region for any polar
+    const alpha = graphMode !== "dragPolar" ? parseFloat(label) : null;
+    const isPostStall = alpha !== null && comparisonPolars.some((p) => {
+      const stallAlpha = p.data.meta.alphaStallDeg;
+      return stallAlpha && Number.isFinite(stallAlpha) && alpha > stallAlpha;
+    });
+
     return (
       <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
         <p className="text-cyan-400 font-semibold mb-2">
           {graphMode === "dragPolar" ? `CL = ${label}` : `α = ${label}°`}
         </p>
+        {isPostStall && (
+          <p className="text-xs text-amber-400 italic mb-2">
+            Post-stall region (modeled)
+          </p>
+        )}
         {payload.map((entry: any, index: number) => {
           // For drag polar, dataKey is "cd", so we need to find by name
           // For other modes, dataKey is the airfoilId
@@ -891,18 +900,18 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
 
     // Use the first polar's alpha grid as reference
     const referencePolar = comparisonPolars[0]?.data;
-    if (!referencePolar || !referencePolar.alpha) return [];
+    if (!referencePolar || !referencePolar.alpha_deg) return [];
 
     const chartData: any[] = [];
-    const alphaGrid = referencePolar.alpha;
+    const alphaGrid = referencePolar.alpha_deg;
 
     for (let i = 0; i < alphaGrid.length; i++) {
       const alpha = alphaGrid[i];
       const point: any = { alpha };
 
       comparisonPolars.forEach((polar) => {
-        if (polar.data && polar.data.alpha && polar.data.cl && polar.data.cd) {
-          const alphaIdx = polar.data.alpha.findIndex(a => Math.abs(a - alpha) < 0.1);
+        if (polar.data && polar.data.alpha_deg && polar.data.cl && polar.data.cd) {
+          const alphaIdx = polar.data.alpha_deg.findIndex(a => Math.abs(a - alpha) < 0.1);
           if (alphaIdx >= 0) {
             const cl = polar.data.cl[alphaIdx];
             const cd = polar.data.cd[alphaIdx];
@@ -950,22 +959,22 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
 
     // Use the exact same alpha grid and processing as CL vs AoA chart
     const referencePolar = comparisonPolars[0]?.data;
-    if (!referencePolar || !referencePolar.alpha) return [];
+    if (!referencePolar || !referencePolar.alpha_deg) return [];
 
-    const alphaGrid = referencePolar.alpha;
+    const alphaGrid = referencePolar.alpha_deg;
     
     // Build separate series for each airfoil
     const seriesList: DragPolarSeries[] = [];
 
     comparisonPolars.forEach((polar) => {
-      if (!polar.data || !polar.data.alpha || !polar.data.cl || !polar.data.cd) return;
+      if (!polar.data || !polar.data.alpha_deg || !polar.data.cl || !polar.data.cd) return;
 
       const points: Array<{ cl: number; cd: number }> = [];
 
       // Use the same alpha matching logic as generateChartDataForMode
       for (let i = 0; i < alphaGrid.length; i++) {
         const alpha = alphaGrid[i];
-        const alphaIdx = polar.data.alpha.findIndex(a => Math.abs(a - alpha) < 0.1);
+        const alphaIdx = polar.data.alpha_deg.findIndex(a => Math.abs(a - alpha) < 0.1);
         
         if (alphaIdx >= 0) {
           const cl = polar.data.cl[alphaIdx];
@@ -1615,6 +1624,41 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                       content={<CustomTooltipWithBadge />}
                     />
                     
+                    {/* Stall line and post-stall shading for alpha-based charts */}
+                    {graphMode !== "dragPolar" && comparisonPolars.length > 0 && (
+                      <>
+                        {comparisonPolars.map((polar) => {
+                          const stallAlpha = polar.data.meta.alphaStallDeg;
+                          if (!stallAlpha || !Number.isFinite(stallAlpha)) return null;
+                          
+                          // Get max alpha from chart data for shading
+                          const maxAlpha = currentChartData.length > 0
+                            ? Math.max(...currentChartData.map(d => d.alpha as number))
+                            : 20;
+                          
+                          return (
+                            <g key={`stall-${polar.id}`}>
+                              <ReferenceLine
+                                x={stallAlpha}
+                                stroke="#f59e0b"
+                                strokeWidth={1.5}
+                                strokeDasharray="3 3"
+                                opacity={0.6}
+                              />
+                              {stallAlpha < maxAlpha && (
+                                <ReferenceArea
+                                  x1={stallAlpha}
+                                  x2={maxAlpha}
+                                  fill="#f59e0b"
+                                  fillOpacity={0.05}
+                                />
+                              )}
+                            </g>
+                          );
+                        })}
+                      </>
+                    )}
+                    
                     {/* Dynamic Line Rendering - unified with polar charts */}
                     {graphMode === "ld" ? (
                       <>
@@ -1693,6 +1737,12 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                     }] : []),
                   ]}
                 />
+                {/* Post-stall modeling note */}
+                {graphMode !== "dragPolar" && comparisonPolars.some(p => p.data.meta.alphaStallDeg && Number.isFinite(p.data.meta.alphaStallDeg)) && (
+                  <p className="mt-2 text-xs text-slate-400 italic">
+                    Post-stall region (beyond dashed line) is modeled using Aeroverse stall model
+                  </p>
+                )}
               </div>
             </div>
           </Tabs>
