@@ -36,6 +36,7 @@ import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
 import { ToolActions } from "@/components/layout/ToolActions";
+import { CalculationSteps } from "@/components/common/CalculationSteps";
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
@@ -797,14 +798,8 @@ const AdvancedThrustCalculator = () => {
                   <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="steps" className="border-cyan-400/20">
                       <AccordionTrigger className="text-white hover:text-cyan-400"><div className="flex items-center gap-2"><Info className="w-4 h-4 text-cyan-400" />Step-by-Step Solution</div></AccordionTrigger>
-                      <AccordionContent className="text-gray-300 space-y-3 pt-2">
-                        {(thrustResult?.steps || performanceResult?.steps).map((s: CalculationStep, i: number) => (
-                          <div key={i} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                            <p className="text-xs text-gray-400 mb-1">Step {i + 1}</p>
-                            <code className="text-cyan-400 font-mono text-sm block mb-1">{s.equation}</code>
-                            <p className="text-gray-300 text-xs">{s.description}</p>
-                          </div>
-                        ))}
+                      <AccordionContent className="pt-2">
+                        <CalculationSteps steps={(thrustResult?.steps || performanceResult?.steps) || []} />
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>

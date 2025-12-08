@@ -40,6 +40,7 @@ import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
+import { CalculationSteps } from "@/components/common/CalculationSteps";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
 import { loadPolarForComparison, AIRFOIL_COLORS, detectStallIndex } from "@/lib/polarChartUtils";
 import { useGraphSetups } from "@/hooks/useGraphSetups";
@@ -1194,12 +1195,8 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                         View Calculation Steps
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="text-slate-300 space-y-1 font-mono text-xs pt-2">
-                      {result.steps.map((step, i) => (
-                        <p key={i} className="leading-relaxed">
-                          {step.split('\n').map((line, j) => <span key={j} className="block">{line}</span>)}
-                        </p>
-                      ))}
+                    <AccordionContent className="pt-2">
+                      <CalculationSteps steps={result.steps} />
                     </AccordionContent>
                   </AccordionItem>
               </Accordion>

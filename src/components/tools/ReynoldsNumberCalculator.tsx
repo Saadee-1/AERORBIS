@@ -25,6 +25,7 @@ import { ToolSection } from "@/components/layout/ToolSection";
 import { ToolActions } from "@/components/layout/ToolActions";
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroFormField } from "@/components/forms/AeroFormField";
+import { CalculationSteps } from "@/components/common/CalculationSteps";
 import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
@@ -853,14 +854,8 @@ const ReynoldsNumberCalculator = () => {
                             Step-by-Step Calculation
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="text-gray-300 space-y-3 pt-2">
-                          {result.steps.map((step, i) => (
-                            <div key={i} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                              <p className="text-xs text-gray-400 mb-1">Step {i + 1}</p>
-                              <code className="text-cyan-400 font-mono text-sm block mb-1">{step.equation}</code>
-                              <p className="text-gray-300 text-xs">{step.description}</p>
-                            </div>
-                          ))}
+                        <AccordionContent className="pt-2">
+                          <CalculationSteps steps={result.steps} />
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
