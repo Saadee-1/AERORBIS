@@ -15,6 +15,7 @@ export interface StallMeta {
   stallBehaviour: StallBehaviour;
   clMax: number;
   alphaStallDeg: number;
+  cdAtStall: number;
 }
 
 export interface PolarMeta {
@@ -127,8 +128,19 @@ export function extractStallFeatures(raw: PolarData): {
     }
   }
 
-  // Compute cdAtClMax
-  const cdAtClMax = idxMax >= 0 ? cd[idxMax] : cdMin;
+  // Compute cdAtClMax (CD at the exact alpha where CL is maximum)
+  // Interpolate CD at alphaClMax for better accuracy
+  let cdAtClMax = idxMax >= 0 ? cd[idxMax] : cdMin;
+  
+  // If we have surrounding points, interpolate for better accuracy
+  if (idxMax >= 0 && idxMax > 0 && idxMax < alpha.length - 1) {
+    const alphaAtMax = alpha[idxMax];
+    // Use linear interpolation if we have points on both sides
+    const cdInterp = interpolateAtAlpha(alphaAtMax, alpha, cd);
+    if (cdInterp !== null) {
+      cdAtClMax = cdInterp;
+    }
+  }
 
   // Compute cmMean and cmRange
   let cmMean = 0;
@@ -187,6 +199,27 @@ export function classifyStallBehaviour(
 
   // Default to moderate
   return "moderate";
+}
+
+/**
+ * Model post-stall CL and CD values
+ * Uses smooth, stable formulas to avoid oscillations
+ */
+function modelPostStall(alpha: number, stall: StallMeta): { cl: number; cd: number } {
+  const dA = alpha - stall.alphaStallDeg;
+
+  // Smooth CL drop after stall (unified formula, no behavior-dependent variations)
+  let cl = stall.clMax * Math.exp(-0.22 * dA);
+
+  // Smooth CD rise after stall (monotonic, strictly increasing)
+  let cd = stall.cdAtStall + 0.015 * Math.pow(dA, 1.5);
+
+  // Stabilizers / clamps
+  if (cl < -0.2) cl = -0.2;                 // don't let CL go too negative
+  if (cd < stall.cdAtStall) cd = stall.cdAtStall;  // ensure CD doesn't decrease
+  if (cd > 2.4) cd = 2.4;                   // cap CD for very high alpha
+
+  return { cl, cd };
 }
 
 /**
@@ -252,6 +285,34 @@ function interpolateAtAlpha(
 }
 
 /**
+ * Interpolate full polar data (CL, CD, CM) at given alpha
+ */
+function interpolatePolar(
+  raw: PolarData,
+  alpha: number,
+  fallbackCm?: number
+): { cl: number; cd: number; cm: number } {
+  const cl = interpolateAtAlpha(alpha, raw.alpha, raw.cl);
+  const cd = interpolateAtAlpha(alpha, raw.alpha, raw.cd);
+  const cm = raw.cm ? interpolateAtAlpha(alpha, raw.alpha, raw.cm) : null;
+
+  // Compute fallback CD (minimum CD in data)
+  let cdMin = Infinity;
+  for (let i = 0; i < raw.cd.length; i++) {
+    if (Number.isFinite(raw.cd[i]) && raw.cd[i] < cdMin) {
+      cdMin = raw.cd[i];
+    }
+  }
+  if (!Number.isFinite(cdMin)) cdMin = 0.01;
+  
+  return {
+    cl: cl !== null ? cl : 0,
+    cd: cd !== null ? cd : cdMin,
+    cm: cm !== null ? cm : (fallbackCm ?? 0),
+  };
+}
+
+/**
  * Build enhanced polar with dense sampling and post-stall modeling
  */
 export function buildEnhancedPolar(
@@ -263,112 +324,60 @@ export function buildEnhancedPolar(
   const features = extractStallFeatures(raw);
   const stallBehaviour = classifyStallBehaviour(features, family);
 
-  // Determine stall angle
+  // Determine stall angle and CD at stall
   const alphaStall = features.alphaClMax;
+  const cdAtStall = features.cdAtClMax;
+
+  // Build stall metadata
+  const stallMeta: StallMeta = {
+    stallBehaviour,
+    clMax: features.clMax,
+    alphaStallDeg: alphaStall,
+    cdAtStall,
+  };
 
   // Create dense alpha grid
   const alphaMin = Math.min(...raw.alpha, -4);
   const alphaMax = Math.max(...raw.alpha, 20);
   const step = 0.25;
   const alphaGrid: number[] = [];
-  for (let a = alphaMin; a <= alphaMax; a += step) {
-    alphaGrid.push(Math.round(a * 100) / 100); // Round to 2 decimals
+  for (let a = alphaMin; a <= alphaMax + 1e-6; a += step) {
+    alphaGrid.push(parseFloat(a.toFixed(2)));
   }
 
-  const enhancedAlpha: number[] = [];
-  const enhancedCl: number[] = [];
-  const enhancedCd: number[] = [];
-  const enhancedCm: number[] = [];
+  const cl: number[] = [];
+  const cd: number[] = [];
+  const cm: number[] = [];
 
   for (const alpha of alphaGrid) {
-    enhancedAlpha.push(alpha);
-
-    if (alpha <= alphaStall) {
-      // Pre-stall: interpolate from raw data
-      const cl = interpolateAtAlpha(alpha, raw.alpha, raw.cl);
-      const cd = interpolateAtAlpha(alpha, raw.alpha, raw.cd);
-      const cm = raw.cm
-        ? interpolateAtAlpha(alpha, raw.alpha, raw.cm)
-        : features.cmMean;
-
-      enhancedCl.push(cl !== null ? cl : 0);
-      enhancedCd.push(cd !== null ? cd : features.cdMin);
-      enhancedCm.push(cm !== null ? cm : features.cmMean);
+    if (alpha <= stallMeta.alphaStallDeg) {
+      // Pre-stall: use interpolated raw polar
+      const p = interpolatePolar(raw, alpha, features.cmMean);
+      cl.push(p.cl);
+      cd.push(p.cd);
+      cm.push(p.cm);
     } else {
-      // Post-stall: use parametric model
-      const deltaAlpha = alpha - alphaStall;
-
-      // CL model (exponential decay)
-      let cl: number;
-      switch (stallBehaviour) {
-        case "soft":
-          cl = features.clMax * Math.exp(-0.08 * deltaAlpha);
-          break;
-        case "moderate":
-          cl = features.clMax * Math.exp(-0.12 * deltaAlpha);
-          break;
-        case "sharp":
-          cl = features.clMax * Math.exp(-0.2 * deltaAlpha);
-          break;
-        case "supercritical":
-          // Keep near clMax then drop slightly
-          cl =
-            features.clMax *
-            (1 - 0.05 * deltaAlpha) *
-            Math.exp(-0.06 * deltaAlpha);
-          break;
-        default:
-          cl = features.clMax * Math.exp(-0.12 * deltaAlpha);
-      }
-      enhancedCl.push(cl);
-
-      // CD model (power law)
-      let k: number;
-      let n: number;
-      switch (stallBehaviour) {
-        case "soft":
-          k = 0.008;
-          n = 1.5;
-          break;
-        case "moderate":
-          k = 0.012;
-          n = 1.8;
-          break;
-        case "sharp":
-          k = 0.02;
-          n = 2.2;
-          break;
-        case "supercritical":
-          k = 0.01;
-          n = 1.6;
-          break;
-        default:
-          k = 0.012;
-          n = 1.8;
-      }
-      const cd = features.cdAtClMax + k * Math.pow(deltaAlpha, n);
-      enhancedCd.push(cd);
-
-      // CM model (linear drift)
-      const cmDrift = -0.01 * deltaAlpha; // Slight nose-down moment
-      enhancedCm.push(features.cmMean + cmDrift);
+      // Post-stall: use the smooth model
+      const m = modelPostStall(alpha, stallMeta);
+      cl.push(m.cl);
+      cd.push(m.cd);
+      // Keep CM roughly constant post-stall (or small drift)
+      cm.push(features.cmMean);
     }
   }
 
   // Build enhanced meta
   const enhancedMeta: PolarMeta & StallMeta = {
     ...raw.meta,
-    stallBehaviour,
-    clMax: features.clMax,
-    alphaStallDeg: alphaStall,
+    ...stallMeta,
   };
 
   return {
     meta: enhancedMeta,
-    alpha_deg: enhancedAlpha,
-    cl: enhancedCl,
-    cd: enhancedCd,
-    cm: enhancedCm,
+    alpha_deg: alphaGrid,
+    cl,
+    cd,
+    cm,
   };
 }
 

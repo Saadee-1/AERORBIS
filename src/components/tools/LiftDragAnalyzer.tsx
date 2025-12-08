@@ -957,33 +957,30 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   const generateDragPolarSeries = useCallback((): DragPolarSeries[] => {
     if (!comparisonPolars || comparisonPolars.length === 0) return [];
 
-    // Use the exact same alpha grid and processing as CL vs AoA chart
-    const referencePolar = comparisonPolars[0]?.data;
-    if (!referencePolar || !referencePolar.alpha_deg) return [];
-
-    const alphaGrid = referencePolar.alpha_deg;
-    
     // Build separate series for each airfoil
     const seriesList: DragPolarSeries[] = [];
 
     comparisonPolars.forEach((polar) => {
       if (!polar.data || !polar.data.alpha_deg || !polar.data.cl || !polar.data.cd) return;
 
+      // Get stall angle for this polar (limit to pre-stall region only)
+      const stallAlpha = polar.data.meta.alphaStallDeg ?? 999;
+
       const points: Array<{ cl: number; cd: number }> = [];
 
-      // Use the same alpha matching logic as generateChartDataForMode
-      for (let i = 0; i < alphaGrid.length; i++) {
-        const alpha = alphaGrid[i];
-        const alphaIdx = polar.data.alpha_deg.findIndex(a => Math.abs(a - alpha) < 0.1);
+      // Only use points up to the stall angle
+      for (let i = 0; i < polar.data.alpha_deg.length; i++) {
+        const alpha = polar.data.alpha_deg[i];
         
-        if (alphaIdx >= 0) {
-          const cl = polar.data.cl[alphaIdx];
-          const cd = polar.data.cd[alphaIdx];
-          
-          // Filter out invalid values (same as CL vs AoA does implicitly)
-          if (Number.isFinite(cl) && Number.isFinite(cd)) {
-            points.push({ cl, cd });
-          }
+        // Stop at stall angle - ignore post-stall in drag polar
+        if (alpha > stallAlpha) break;
+
+        const cl = polar.data.cl[i];
+        const cd = polar.data.cd[i];
+        
+        // Filter out invalid values
+        if (Number.isFinite(cl) && Number.isFinite(cd)) {
+          points.push({ cl, cd });
         }
       }
 
