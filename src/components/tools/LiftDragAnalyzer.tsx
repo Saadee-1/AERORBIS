@@ -23,6 +23,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Info, Plane, Pencil, Settings2, Download, X, Plus, ChevronDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend, type LegendProps } from "recharts";
+import { compactAxisTick, compactAxisProps, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
@@ -1689,33 +1690,27 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
               <div className="relative min-h-[400px]">
               {graphMode === "dragPolar" ? (
                 <ResponsiveContainer width="100%" height={400}>
-                  <LineChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <LineChart margin={{ top: 8, right: 12, bottom: 12, left: 12 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis
                       type="number"
                       dataKey="cl"
-                      stroke="#94a3b8"
-                      label={{
-                        value: "Lift Coefficient, CL",
-                        position: "insideBottom",
-                        dy: 10,
-                        style: { textAnchor: "middle", fill: "#94a3b8", fontSize: 12 },
-                      }}
+                      {...compactAxisProps}
+                      tick={compactAxisTick}
                       tickFormatter={(val) => val.toFixed(2)}
-                      tickMargin={6}
+                      tickMargin={4}
+                      height={34}
+                      label={makeXAxisLabel("Lift Coefficient, CL")}
+                      minTickGap={10}
                     />
                     <YAxis
                       type="number"
-                      stroke="#94a3b8"
-                      label={{
-                        value: yAxisConfig.label,
-                        angle: -90,
-                        position: "insideLeft",
-                        style: { textAnchor: "middle", fill: "#94a3b8", fontSize: 12 },
-                        offset: 0,
-                      }}
+                      {...compactAxisProps}
+                      tick={compactAxisTick}
                       tickFormatter={yAxisConfig.formatter}
-                      tickMargin={6}
+                      tickMargin={4}
+                      width={62}
+                      label={makeYAxisLabel("Drag Coefficient, CD")}
                     />
                     <Tooltip
                       content={<CustomTooltipWithBadge />}
@@ -1743,33 +1738,29 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                 </ResponsiveContainer>
               ) : (
                 <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={graphMode === "ld" ? comparisonData : currentChartData}>
+                  <LineChart 
+                    data={graphMode === "ld" ? comparisonData : currentChartData}
+                    margin={{ top: 8, right: 12, bottom: 12, left: 12 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis
                       dataKey="alpha"
-                      stroke="#94a3b8"
-                      label={{
-                        value: "Angle of Attack (degrees)",
-                        position: "insideBottom",
-                        dy: 10,
-                        style: { textAnchor: "middle", fill: "#94a3b8", fontSize: 12 },
-                      }}
-                      tickMargin={6}
+                      type="number"
+                      {...compactAxisProps}
+                      tick={compactAxisTick}
+                      tickMargin={4}
+                      height={34}
+                      label={makeXAxisLabel("Angle of Attack (degrees)")}
+                      minTickGap={10}
                     />
                     <YAxis
                       domain={getAutoScaledYDomain(graphMode, graphMode === "ld" ? comparisonData : currentChartData)}
-                      stroke="#94a3b8"
-                      label={{
-                        value: yAxisConfig.label,
-                        angle: -90,
-                        position: "insideLeft",
-                        style: { textAnchor: "middle", fill: "#94a3b8", fontSize: 12 },
-                        offset: 0,
-                      }}
+                      {...compactAxisProps}
+                      tick={compactAxisTick}
                       tickFormatter={yAxisConfig.formatter}
-                      tick={{ fontSize: 11 }}
-                      tickMargin={6}
-                      width={50}
+                      tickMargin={4}
+                      width={62}
+                      label={makeYAxisLabel(yAxisConfig.label)}
                     />
                     <Tooltip
                       content={<CustomTooltipWithBadge />}
