@@ -73,7 +73,12 @@ export async function getPolarMetricsForAirfoil(
     // Load polar data
     const polar = await loadPolarForComparison(airfoilId, closestRe);
     
+    // If polar is null (missing or failed to load), return null metrics
+    // This is expected for some airfoils - caller will skip this airfoil
     if (!polar || !polar.alpha || !polar.cl || !polar.cd) {
+      // Log a single warning if no usable polar data at target Re
+      // Note: loadPolarForComparison already logs missing polars, so we only log here
+      // if we tried the closest Re and still got null (should be rare)
       return null;
     }
 
@@ -237,6 +242,8 @@ export async function getAllAirfoilsWithMetricsForRe(targetRe: number): Promise<
   // Load metrics for each airfoil
   for (const af of airfoils) {
     const metrics = await getPolarMetricsForAirfoil(af.id, targetRe);
+    // Skip airfoils with null metrics (missing polars) - no error logging
+    // Smart AI and Engineering will just see fewer candidate airfoils
     if (metrics) {
       const data = AIRFOIL_DATA[af.id];
       results.push({

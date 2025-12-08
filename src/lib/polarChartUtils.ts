@@ -211,6 +211,12 @@ export function getAirfoilLegendLabel(
 const failedPolarUrls = new Set<string>();
 
 /**
+ * Track missing polar keys (404s) to avoid repeated warnings
+ * Format: `${airfoilId}@Re=${re}`
+ */
+const missingPolarKeys = new Set<string>();
+
+/**
  * Load polar data for a specific airfoil and Reynolds number
  */
 export async function loadPolarForComparison(
@@ -232,12 +238,23 @@ export async function loadPolarForComparison(
   try {
     const res = await fetch(url);
 
-    // Check HTTP status
+    // Check HTTP status - treat 404 as expected (missing polar)
+    if (res.status === 404) {
+      const key = `${airfoilId}@Re=${re}`;
+      if (!missingPolarKeys.has(key)) {
+        console.warn(
+          `[Polars] Missing polar JSON for ${airfoilId} at Re=${re} (${url})`
+        );
+        missingPolarKeys.add(key);
+      }
+      return null; // graceful: no throw, caller sees "no polar"
+    }
+
+    // Other HTTP errors (500, etc.) - log once as error
     if (!res.ok) {
-      // Only log if we haven't seen this URL fail before
       if (!failedPolarUrls.has(url)) {
         console.error(
-          `Error loading polar data for ${airfoilId} at Re=${re}: HTTP ${res.status}`
+          `Error loading polar data for ${airfoilId} at Re=${re}: HTTP ${res.status} ${res.statusText}`
         );
         failedPolarUrls.add(url);
       }
@@ -262,10 +279,10 @@ export async function loadPolarForComparison(
     try {
       json = await res.json();
     } catch (err) {
-      // Only log if we haven't seen this URL fail before
+      // JSON parse failure - warn once and return null (not a critical error)
       if (!failedPolarUrls.has(url)) {
-        console.error(
-          `Error parsing polar JSON for ${airfoilId} at Re=${re}:`,
+        console.warn(
+          `[Polars] Failed to parse polar JSON for ${airfoilId} at Re=${re}:`,
           err
         );
         failedPolarUrls.add(url);
