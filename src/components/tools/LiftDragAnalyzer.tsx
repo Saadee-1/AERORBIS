@@ -181,6 +181,33 @@ interface LiftDragResult {
   airfoilName: string;
 }
 
+/**
+ * Check if a polar file appears to be placeholder/dummy data
+ */
+function isPlaceholderPolar(polar: any): boolean {
+  // Check meta.source or meta.notes for placeholder indicators
+  if (polar?.meta) {
+    const source = (polar.meta.source || '').toLowerCase();
+    const notes = (polar.meta.notes || '').toLowerCase();
+    
+    if (source.includes('todo') || source.includes('placeholder') || source.includes('stub') ||
+        notes.includes('todo') || notes.includes('placeholder') || notes.includes('stub')) {
+      return true;
+    }
+  }
+  
+  // Check if arrays have < 15 data points
+  const alphaCount = polar?.alpha?.length || 0;
+  const clCount = polar?.cl?.length || 0;
+  const cdCount = polar?.cd?.length || 0;
+  
+  if (alphaCount < 15 || clCount < 15 || cdCount < 15) {
+    return true;
+  }
+  
+  return false;
+}
+
 // Interface for polar data from JSON files
 interface PolarData {
   airfoil: string;
@@ -1219,13 +1246,24 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                 onClick={() => setIsPolarTableOpen((v) => !v)}
                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-800/50 transition-colors"
               >
-                <div className="flex flex-col text-left">
-                  <span className="text-sm font-semibold text-cyan-300">
-                    Polar Data (Re = 1,000,000)
-                  </span>
-                  <span className="text-xs text-slate-400">
-                    {polarData.airfoil} · L/D ratios from experimental data
-                  </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex flex-col text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-cyan-300">
+                        Polar Data (Re = 1,000,000)
+                      </span>
+                      {/* TODO: When real polars are added, change to: isPlaceholderPolar(polarData) */}
+                      <div 
+                        className="bg-amber-600/20 text-amber-300 border border-amber-500/50 text-xs px-2 py-0.5 rounded-md"
+                        title="Placeholder data – real experimental/XFOIL polars coming soon."
+                      >
+                        ⚠ Placeholder
+                      </div>
+                    </div>
+                    <span className="text-xs text-slate-400">
+                      {polarData.airfoil} · L/D ratios from experimental data
+                    </span>
+                  </div>
                 </div>
                 <ChevronDown 
                   className={`w-5 h-5 text-slate-300 transition-transform duration-200 ${isPolarTableOpen ? "rotate-180" : ""}`}
@@ -1280,13 +1318,22 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
           {/* Graph Header */}
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h3 className="text-xl font-bold text-cyan-300">
-                {graphMode === "ld" && "Performance Comparison (L/D Ratio)"}
-                {graphMode === "cl" && "Lift Coefficient (CL) vs Angle of Attack"}
-                {graphMode === "cd" && "Drag Coefficient (CD) vs Angle of Attack"}
-                {graphMode === "cm" && "Pitching Moment Coefficient (CM) vs Angle of Attack"}
-                {graphMode === "dragPolar" && "Drag Polar (CD vs CL)"}
-              </h3>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-xl font-bold text-cyan-300">
+                  {graphMode === "ld" && "Performance Comparison (L/D Ratio)"}
+                  {graphMode === "cl" && "Lift Coefficient (CL) vs Angle of Attack"}
+                  {graphMode === "cd" && "Drag Coefficient (CD) vs Angle of Attack"}
+                  {graphMode === "cm" && "Pitching Moment Coefficient (CM) vs Angle of Attack"}
+                  {graphMode === "dragPolar" && "Drag Polar (CD vs CL)"}
+                </h3>
+                {/* TODO: When real polars are added, change to: comparisonPolars.some(p => isPlaceholderPolar(p.data)) || (polarData && isPlaceholderPolar(polarData)) */}
+                <div 
+                  className="bg-amber-600/20 text-amber-300 border border-amber-500/50 text-xs px-2 py-0.5 rounded-md"
+                  title="Placeholder data – real experimental/XFOIL polars coming soon."
+                >
+                  ⚠ Placeholder
+                </div>
+              </div>
               <p className="text-sm text-slate-400 mt-1">
                 {graphMode === "ld" && `Using your wing's calculated Aspect Ratio of ${safeToFixed(result?.aspectRatio, 2)}`}
                 {graphMode !== "ld" && `Showing ${comparisonPolars.length} airfoil${comparisonPolars.length > 1 ? 's' : ''} at Re = 1,000,000`}
