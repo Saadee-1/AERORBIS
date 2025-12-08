@@ -1,6 +1,7 @@
 /**
  * Shared component for rendering calculation steps in a clean, textbook-like style
  * Supports both string array format and structured CalculationStep format
+ * Only creates steps when explicit "Step" headings are found
  */
 
 export interface CalculationStep {
@@ -13,75 +14,141 @@ export interface CalculationStepsProps {
   className?: string;
 }
 
+interface ParsedStep {
+  title: string;        // e.g. "Step 1: Calculate Aspect Ratio (AR)"
+  equation?: string;    // the main equation line, if any
+  bodyLines: string[];  // any extra explanation lines
+}
+
+interface ParsedMetadata {
+  airfoil?: string;
+  given?: string;
+  interpretation?: string;
+}
+
 /**
- * Parse a step string to extract title, equation, and description
- * Handles formats like:
- * - "Lift Coefficient: CL = CL₀ + CL_α × α = 0.5 + 0.1 × 10° = 1.5"
- * - "**Airfoil:** NACA 2412"
- * - "**Given:** α = 10°, V = 50 m/s"
+ * Parse steps text into structured format
+ * Only creates steps when explicit "Step" headings are found
  */
-function parseStepString(step: string, index: number): {
-  title: string;
-  equation: string | null;
-  description: string | null;
-  isMetadata: boolean;
+function parseSteps(steps: string[] | CalculationStep[]): {
+  meta: ParsedMetadata;
+  steps: ParsedStep[];
+  preamble: string[];
 } {
-  const trimmed = step.trim();
+  const meta: ParsedMetadata = {};
+  const parsedSteps: ParsedStep[] = [];
+  const preamble: string[] = [];
+
+  // Step title regex: matches "Step", "**Step**", "Step 1:", "Step 1.", "Step 1-", etc.
+  const stepTitleRegex = /^\s*\**Step\s*\d*[:.)-]?\s*/i;
+
+  // Check if it's structured format
+  const isStructuredFormat = steps.length > 0 && typeof steps[0] !== 'string';
   
-  // Check for bold headings like "**Airfoil:**" or "**Given:**" or "**Interpretation:**"
-  const boldHeadingMatch = trimmed.match(/^\*\*(.+?):\*\*\s*(.+)$/);
-  if (boldHeadingMatch) {
-    return {
-      title: boldHeadingMatch[1],
-      equation: null,
-      description: boldHeadingMatch[2],
-      isMetadata: true,
-    };
+  // If structured format, handle separately (don't create fake Step headings)
+  if (isStructuredFormat) {
+    // For structured format, return empty steps array - will be handled in render
+    return { meta, steps: [], preamble: [] };
   }
-  
-  // Check for equation patterns: "Label: formula = calculation"
-  // Example: "Lift Coefficient: CL = CL₀ + CL_α × α = 0.5 + 0.1 × 10° = 1.5"
-  const equationMatch = trimmed.match(/^(.+?):\s*(.+)$/);
-  if (equationMatch) {
-    const label = equationMatch[1].trim();
-    const rest = equationMatch[2].trim();
+
+  // String format: split each step string by newlines
+  const lines: string[] = [];
+  (steps as string[]).forEach(step => {
+    lines.push(...step.split(/\r?\n/));
+  });
+
+  let currentStep: ParsedStep | null = null;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
     
-    // If rest contains "=", it's an equation
-    if (rest.includes('=')) {
-      return {
-        title: label,
-        equation: rest,
-        description: null,
-        isMetadata: false,
+    // Skip empty lines
+    if (!trimmed) {
+      continue;
+    }
+
+    // Check for metadata lines
+    const airfoilMatch = trimmed.match(/^\*\*Airfoil:\*\*\s*(.+)$/i) || trimmed.match(/^Airfoil:\s*(.+)$/i);
+    if (airfoilMatch) {
+      if (currentStep) {
+        parsedSteps.push(currentStep);
+        currentStep = null;
+      }
+      meta.airfoil = airfoilMatch[1].trim();
+      continue;
+    }
+
+    const givenMatch = trimmed.match(/^\*\*Given:\*\*\s*(.+)$/i) || trimmed.match(/^Given:\s*(.+)$/i);
+    if (givenMatch) {
+      if (currentStep) {
+        parsedSteps.push(currentStep);
+        currentStep = null;
+      }
+      // Given can span multiple lines, so start collecting
+      meta.given = givenMatch[1].trim();
+      continue;
+    }
+
+    // Continue collecting Given if we're in a Given block (next lines after "Given:")
+    if (meta.given !== undefined && !stepTitleRegex.test(trimmed) && !trimmed.match(/^\*\*Interpretation:/i)) {
+      meta.given += '\n' + trimmed;
+      continue;
+    }
+
+    const interpretationMatch = trimmed.match(/^\*\*Interpretation:\*\*\s*(.+)$/i) || trimmed.match(/^Interpretation:\s*(.+)$/i);
+    if (interpretationMatch) {
+      if (currentStep) {
+        parsedSteps.push(currentStep);
+        currentStep = null;
+      }
+      meta.interpretation = interpretationMatch[1].trim();
+      continue;
+    }
+
+    // Continue collecting Interpretation if we're in an Interpretation block
+    if (meta.interpretation !== undefined && !stepTitleRegex.test(trimmed)) {
+      meta.interpretation += '\n' + trimmed;
+      continue;
+    }
+
+    // Check if this is a step title line
+    if (stepTitleRegex.test(trimmed)) {
+      // Save previous step if it exists
+      if (currentStep && (currentStep.equation || currentStep.bodyLines.length > 0)) {
+        parsedSteps.push(currentStep);
+      }
+      
+      // Remove leading ** if present, but keep the rest
+      const cleanTitle = trimmed.replace(/^\*\*/, '').replace(/\*\*$/, '').trim();
+      currentStep = {
+        title: cleanTitle,
+        equation: undefined,
+        bodyLines: [],
       };
+      continue;
+    }
+
+    // If we have a current step, add this line to it
+    if (currentStep) {
+      // If equation is not set yet and this line looks like an equation (contains =)
+      if (!currentStep.equation && trimmed.includes('=')) {
+        currentStep.equation = trimmed;
+      } else {
+        // Add to body lines
+        currentStep.bodyLines.push(trimmed);
+      }
     } else {
-      // Just a label with description
-      return {
-        title: label,
-        equation: null,
-        description: rest,
-        isMetadata: false,
-      };
+      // No current step - this is preamble text (before any Step headings)
+      preamble.push(trimmed);
     }
   }
-  
-  // Check if it's a pure equation (contains "=" and math symbols)
-  if (trimmed.includes('=') && /[×÷\+\-\^²³°]/.test(trimmed)) {
-    return {
-      title: `Step ${index + 1}`,
-      equation: trimmed,
-      description: null,
-      isMetadata: false,
-    };
+
+  // Save last step if it exists
+  if (currentStep && (currentStep.equation || currentStep.bodyLines.length > 0)) {
+    parsedSteps.push(currentStep);
   }
-  
-  // Default: treat as description
-  return {
-    title: `Step ${index + 1}`,
-    equation: null,
-    description: trimmed,
-    isMetadata: false,
-  };
+
+  return { meta, steps: parsedSteps, preamble };
 }
 
 export function CalculationSteps({ steps, className = "" }: CalculationStepsProps) {
@@ -93,78 +160,73 @@ export function CalculationSteps({ steps, className = "" }: CalculationStepsProp
     );
   }
 
-  // Normalize steps to a common format
-  const metadata: Array<{ title: string; description: string | null }> = [];
-  const calculationSteps: Array<{
-    title: string;
-    equation: string | null;
-    description: string | null;
-  }> = [];
+  const { meta, steps: parsedSteps, preamble } = parseSteps(steps);
 
-  for (let i = 0; i < steps.length; i++) {
-    const step = steps[i];
+  // If structured format, render it without Step headings
+  const isStructuredFormat = steps.length > 0 && typeof steps[0] !== 'string';
+  if (isStructuredFormat) {
+    return (
+      <div className={`space-y-4 text-sm leading-relaxed text-slate-100 ${className}`}>
+        {(steps as CalculationStep[]).map((step, i) => (
+          <div key={i} className="mb-4">
+            {step.equation && (
+              <p className="text-base sm:text-lg text-slate-100 text-center font-mono mb-1">
+                {step.equation}
+              </p>
+            )}
+            {step.description && (
+              <p className="text-sm text-slate-300">
+                {step.description}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // If no steps were found (no Step headings), just render as plain text
+  if (parsedSteps.length === 0) {
+    // Combine preamble and any remaining text
+    const allText = [...preamble];
     
-    if (typeof step === 'string') {
-      // String format: parse it
-      const parsed = parseStepString(step, i);
-      
-      // Handle metadata lines (Airfoil, Given, Interpretation)
-      if (parsed.isMetadata) {
-        metadata.push({
-          title: parsed.title,
-          description: parsed.description,
-        });
-      } else {
-        // Regular calculation step
-        calculationSteps.push({
-          title: parsed.title,
-          equation: parsed.equation,
-          description: parsed.description,
-        });
-      }
-    } else {
-      // Structured format: { equation, description }
-      calculationSteps.push({
-        title: `Step ${i + 1}`,
-        equation: step.equation,
-        description: step.description,
-      });
-    }
+    // String format without Step headings - render as paragraphs
+    return (
+      <div className={`text-sm text-slate-200 whitespace-pre-wrap leading-relaxed ${className}`}>
+        {allText.join('\n')}
+      </div>
+    );
   }
 
   return (
     <div className={`space-y-4 text-sm leading-relaxed text-slate-100 ${className}`}>
+      {/* Preamble text (before any Step headings) */}
+      {preamble.length > 0 && (
+        <div className="text-slate-200 whitespace-pre-wrap mb-4">
+          {preamble.join('\n')}
+        </div>
+      )}
+
       {/* Metadata section */}
-      {metadata.length > 0 && (
+      {(meta.airfoil || meta.given || meta.interpretation) && (
         <div className="space-y-2 mb-6 pb-4 border-b border-slate-700/50">
-          {metadata.map((meta, i) => (
-            <div key={i}>
-              {meta.title === 'Airfoil' && (
-                <p className="text-slate-200">
-                  <span className="font-semibold text-sky-300">Airfoil:</span>{' '}
-                  <span className="text-slate-100">{meta.description}</span>
-                </p>
-              )}
-              {meta.title === 'Given' && (
-                <div className="text-slate-200">
-                  <p className="font-semibold text-sky-300 mb-1">Given:</p>
-                  <p className="text-slate-100 whitespace-pre-wrap">{meta.description}</p>
-                </div>
-              )}
-              {meta.title === 'Interpretation' && (
-                <p className="text-slate-300 italic mt-4 pt-2 border-t border-slate-700/50">
-                  <span className="font-semibold text-sky-300">Interpretation:</span>{' '}
-                  {meta.description}
-                </p>
-              )}
+          {meta.airfoil && (
+            <p className="text-sm font-semibold text-sky-300 mb-1">
+              Airfoil: <span className="font-normal text-slate-100">{meta.airfoil}</span>
+            </p>
+          )}
+          {meta.given && (
+            <div className="text-slate-200">
+              <p className="text-sm font-semibold text-sky-300 mb-1">Given:</p>
+              <p className="text-slate-100 whitespace-pre-wrap">{meta.given}</p>
             </div>
-          ))}
+          )}
         </div>
       )}
 
       {/* Calculation steps */}
       <div className="space-y-5">
-        {calculationSteps.map((step, i) => (
+        {parsedSteps.map((step, i) => (
           <div key={i} className="mb-5">
             <p className="text-sm font-semibold text-sky-300">
               {step.title}
@@ -174,15 +236,22 @@ export function CalculationSteps({ steps, className = "" }: CalculationStepsProp
                 {step.equation}
               </p>
             )}
-            {step.description && (
-              <p className="mt-1 text-sm text-slate-300">
-                {step.description}
+            {step.bodyLines.length > 0 && (
+              <p className="mt-1 text-sm text-slate-200 whitespace-pre-wrap">
+                {step.bodyLines.join('\n')}
               </p>
             )}
           </div>
         ))}
       </div>
+
+      {/* Interpretation at bottom */}
+      {meta.interpretation && (
+        <p className="mt-4 text-sm italic text-slate-300 whitespace-pre-wrap pt-2 border-t border-slate-700/50">
+          <span className="font-semibold text-sky-300">Interpretation:</span>{' '}
+          {meta.interpretation}
+        </p>
+      )}
     </div>
   );
 }
-
