@@ -11,6 +11,7 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from "recharts";
+import { globalAxisTickStyle, globalAxisCommonProps } from "@/lib/chartAxisTheme";
 import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
@@ -64,15 +65,15 @@ const DensityChart = ({ materials, unitSystem }: DensityChartProps) => {
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
             <XAxis
               dataKey="name"
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               angle={-45}
               textAnchor="end"
               height={100}
-              stroke="#94a3b8"
-              tick={{ fill: "#94a3b8", fontSize: 12 }}
             />
             <YAxis
-              stroke="#94a3b8"
-              tick={{ fill: "#94a3b8" }}
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{
                 value: `Density (${unitSystem === "SI" ? "kg/m³" : "lb/ft³"})`,
                 angle: -90,

@@ -4,6 +4,7 @@
 
 import { AeroCard } from '@/components/common/AeroCard';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
 import { Rocket } from 'lucide-react';
 import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 
@@ -24,11 +25,13 @@ export function PlotsPanel({ altitudeSweep, expansionSweep, pressureSweep }: Plo
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis 
                 dataKey="Pa" 
-                stroke="#9ca3af"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 tickFormatter={(value) => `${(value / 1e5).toFixed(2)} bar`}
               />
               <YAxis 
-                stroke="#9ca3af"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 tickFormatter={(value) => `${(value / 1000).toFixed(1)} kN`}
               />
               <Tooltip 
@@ -66,10 +69,12 @@ export function PlotsPanel({ altitudeSweep, expansionSweep, pressureSweep }: Plo
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis 
                 dataKey="epsilon" 
-                stroke="#9ca3af"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
               />
               <YAxis 
-                stroke="#9ca3af"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 tickFormatter={(value) => `${value.toFixed(0)} s`}
               />
               <Tooltip 
@@ -107,11 +112,13 @@ export function PlotsPanel({ altitudeSweep, expansionSweep, pressureSweep }: Plo
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis 
                 dataKey="Pc" 
-                stroke="#9ca3af"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 tickFormatter={(value) => `${(value / 1e5).toFixed(0)} bar`}
               />
               <YAxis 
-                stroke="#9ca3af"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 tickFormatter={(value) => `${value.toFixed(2)} kg/s`}
               />
               <Tooltip 

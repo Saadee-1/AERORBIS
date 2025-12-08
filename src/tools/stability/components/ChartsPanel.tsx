@@ -18,6 +18,7 @@ import { StabilityResults } from '../utils/calcStability';
 import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 import { useChartExport } from '@/hooks/useChartExport';
 import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
+import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
 
 interface ChartsPanelProps {
   results: StabilityResults | null;
@@ -63,11 +64,13 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
                 dataKey="alpha"
-                stroke="#94a3b8"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 label={{ value: 'Angle of Attack (deg)', position: 'insideBottom', offset: -5 }}
               />
               <YAxis
-                stroke="#94a3b8"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 label={{ value: 'C_m', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip
@@ -113,12 +116,14 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
                 dataKey="x_cg"
-                stroke="#94a3b8"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
                 label={{ value: 'CG Position (% MAC)', position: 'insideBottom', offset: -5 }}
               />
               <YAxis
-                stroke="#94a3b8"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
                 label={{ value: 'Static Margin (% MAC)', angle: -90, position: 'insideLeft' }}
               />
@@ -165,11 +170,13 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
                 dataKey="AR"
-                stroke="#94a3b8"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 label={{ value: 'Aspect Ratio', position: 'insideBottom', offset: -5 }}
               />
               <YAxis
-                stroke="#94a3b8"
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 label={{ value: 'Downwash Gradient (ε_α)', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip

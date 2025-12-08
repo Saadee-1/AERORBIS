@@ -5,6 +5,7 @@
 import { useRef } from 'react';
 import { AeroCard } from '@/components/common/AeroCard';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
 import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 import { useChartExport } from '@/hooks/useChartExport';
 import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
@@ -68,8 +69,8 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} label={{ value: 'Time (s)', position: 'insideBottom', offset: -5 }} />
-            <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Altitude (km)', angle: -90, position: 'insideLeft' }} />
+            <XAxis dataKey="time" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Time (s)', position: 'insideBottom', offset: -5 }} />
+            <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Altitude (km)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(2)} km`}
@@ -99,8 +100,8 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} label={{ value: 'Time (s)', position: 'insideBottom', offset: -5 }} />
-            <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Velocity (km/s)', angle: -90, position: 'insideLeft' }} />
+            <XAxis dataKey="time" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Time (s)', position: 'insideBottom', offset: -5 }} />
+            <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Velocity (km/s)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(2)} km/s`}
@@ -130,8 +131,8 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis dataKey="altitude" stroke="#94a3b8" fontSize={12} label={{ value: 'Altitude (km)', position: 'insideBottom', offset: -5 }} />
-            <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Dynamic Pressure (kPa)', angle: -90, position: 'insideLeft' }} />
+            <XAxis dataKey="altitude" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Altitude (km)', position: 'insideBottom', offset: -5 }} />
+            <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Dynamic Pressure (kPa)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(2)} kPa`}
@@ -162,8 +163,8 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="downrange" stroke="#94a3b8" fontSize={12} label={{ value: 'Downrange (km)', position: 'insideBottom', offset: -5 }} />
-              <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Altitude (km)', angle: -90, position: 'insideLeft' }} />
+              <XAxis dataKey="downrange" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Downrange (km)', position: 'insideBottom', offset: -5 }} />
+              <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Altitude (km)', angle: -90, position: 'insideLeft' }} />
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
                 formatter={(value: number, name: string) => {
@@ -197,8 +198,8 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} label={{ value: 'Time (s)', position: 'insideBottom', offset: -5 }} />
-            <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Mass (t)', angle: -90, position: 'insideLeft' }} />
+            <XAxis dataKey="time" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Time (s)', position: 'insideBottom', offset: -5 }} />
+            <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Mass (t)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(2)} t`}

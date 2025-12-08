@@ -19,6 +19,7 @@ import {
 import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 import { useChartExport } from '@/hooks/useChartExport';
 import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
+import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
 
 interface ChartsPanelProps {
   result: MissionResult | null;
@@ -82,12 +83,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
               dataKey="time_min"
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'Time (minutes)', position: 'insideBottom', offset: -5 }}
-              stroke="#9ca3af"
             />
             <YAxis
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'SOC (%)', angle: -90, position: 'insideLeft' }}
-              stroke="#9ca3af"
               domain={[0, 100]}
               tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
             />
@@ -119,12 +122,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
               dataKey="time_min"
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'Time (minutes)', position: 'insideBottom', offset: -5 }}
-              stroke="#9ca3af"
             />
             <YAxis
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'Power (W)', angle: -90, position: 'insideLeft' }}
-              stroke="#9ca3af"
             />
             <Tooltip
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
@@ -179,12 +184,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
               dataKey="time_min"
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'Time (minutes)', position: 'insideBottom', offset: -5 }}
-              stroke="#9ca3af"
             />
             <YAxis
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'Voltage (V)', angle: -90, position: 'insideLeft' }}
-              stroke="#9ca3af"
             />
             <Tooltip
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
@@ -223,12 +230,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
               dataKey="time_min"
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'Time (minutes)', position: 'insideBottom', offset: -5 }}
-              stroke="#9ca3af"
             />
             <YAxis
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'Energy (Wh)', angle: -90, position: 'insideLeft' }}
-              stroke="#9ca3af"
             />
             <Tooltip
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
@@ -258,12 +267,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
               dataKey="time_min"
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'Time (minutes)', position: 'insideBottom', offset: -5 }}
-              stroke="#9ca3af"
             />
             <YAxis
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{ value: 'Elevation (degrees)', angle: -90, position: 'insideLeft' }}
-              stroke="#9ca3af"
               domain={[-10, 90]}
             />
             <Tooltip

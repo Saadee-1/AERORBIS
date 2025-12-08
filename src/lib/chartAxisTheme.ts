@@ -1,17 +1,25 @@
 /**
- * Compact axis styling for engineering-grade polar charts
- * Provides consistent, tight spacing and smaller tick labels
+ * Global axis styling for all charts
+ * Provides consistent, small tick labels across X and Y axes
  */
 
-export const compactAxisTick = {
-  fontSize: 10,
+// Canonical tick style - use this for ALL XAxis and YAxis components
+export const globalAxisTickStyle = {
+  fontSize: 10, // small and consistent
   fill: "rgba(148, 163, 184, 0.9)", // slate-400/90
 };
 
-export const compactAxisProps = {
+// Common axis props - use this for ALL XAxis and YAxis components
+export const globalAxisCommonProps = {
   tickLine: false,
   axisLine: { stroke: "rgba(148, 163, 184, 0.35)", strokeWidth: 0.75 },
+  tickMargin: 4,
+  minTickGap: 8,
 };
+
+// Legacy exports for backward compatibility (re-export global styles)
+export const compactAxisTick = globalAxisTickStyle;
+export const compactAxisProps = globalAxisCommonProps;
 
 /**
  * Create a compact Y-axis label configuration

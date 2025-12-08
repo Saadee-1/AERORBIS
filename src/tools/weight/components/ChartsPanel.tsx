@@ -5,6 +5,7 @@
 import { useRef } from 'react';
 import { AeroCard } from '@/components/common/AeroCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ScatterChart, Scatter } from 'recharts';
+import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
 import { ComponentWeights, WeightEstimationInputs } from '../utils/weightEngine';
 import { IterationResult, MissionProfile } from '../utils/iteration';
 import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
@@ -109,8 +110,8 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={componentData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
-            <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft' }} />
+            <XAxis dataKey="name" {...globalAxisCommonProps} tick={globalAxisTickStyle} />
+            <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
@@ -171,8 +172,8 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={iterationData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis dataKey="iteration" stroke="#94a3b8" fontSize={12} label={{ value: 'Iteration', position: 'insideBottom', offset: -5 }} />
-            <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'W_TO (kg)', angle: -90, position: 'insideLeft' }} />
+            <XAxis dataKey="iteration" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Iteration', position: 'insideBottom', offset: -5 }} />
+            <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'W_TO (kg)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
               contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
@@ -232,8 +233,8 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={missionFuelData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="phase" stroke="#94a3b8" fontSize={12} angle={-45} textAnchor="end" height={80} />
-              <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Fuel Used (%)', angle: -90, position: 'insideLeft' }} />
+              <XAxis dataKey="phase" {...globalAxisCommonProps} tick={globalAxisTickStyle} angle={-45} textAnchor="end" height={80} />
+              <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Fuel Used (%)', angle: -90, position: 'insideLeft' }} />
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
                 formatter={(value: number) => `${value.toFixed(2)}%`}
@@ -265,8 +266,8 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={wingLoadingData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="W_to" stroke="#94a3b8" fontSize={12} label={{ value: 'Takeoff Weight (kg)', position: 'insideBottom', offset: -5 }} />
-              <YAxis stroke="#94a3b8" fontSize={12} label={{ value: 'Wing Loading (kg/m²)', angle: -90, position: 'insideLeft' }} />
+              <XAxis dataKey="W_to" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Takeoff Weight (kg)', position: 'insideBottom', offset: -5 }} />
+              <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Wing Loading (kg/m²)', angle: -90, position: 'insideLeft' }} />
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
                 formatter={(value: number) => `${value.toFixed(1)} kg/m²`}

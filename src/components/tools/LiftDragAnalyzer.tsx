@@ -23,7 +23,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, Info, Plane, Pencil, Settings2, Download, X, Plus, ChevronDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend, type LegendProps } from "recharts";
-import { compactAxisTick, compactAxisProps, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
+import { globalAxisTickStyle, globalAxisCommonProps, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
@@ -1695,20 +1695,17 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                     <XAxis
                       type="number"
                       dataKey="cl"
-                      {...compactAxisProps}
-                      tick={compactAxisTick}
+                      {...globalAxisCommonProps}
+                      tick={globalAxisTickStyle}
                       tickFormatter={(val) => val.toFixed(2)}
-                      tickMargin={4}
                       height={34}
                       label={makeXAxisLabel("Lift Coefficient, CL")}
-                      minTickGap={10}
                     />
                     <YAxis
                       type="number"
-                      {...compactAxisProps}
-                      tick={compactAxisTick}
+                      {...globalAxisCommonProps}
+                      tick={globalAxisTickStyle}
                       tickFormatter={yAxisConfig.formatter}
-                      tickMargin={4}
                       width={62}
                       label={makeYAxisLabel("Drag Coefficient, CD")}
                     />
@@ -1746,19 +1743,16 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                     <XAxis
                       dataKey="alpha"
                       type="number"
-                      {...compactAxisProps}
-                      tick={compactAxisTick}
-                      tickMargin={4}
+                      {...globalAxisCommonProps}
+                      tick={globalAxisTickStyle}
                       height={34}
                       label={makeXAxisLabel("Angle of Attack (degrees)")}
-                      minTickGap={10}
                     />
                     <YAxis
                       domain={getAutoScaledYDomain(graphMode, graphMode === "ld" ? comparisonData : currentChartData)}
-                      {...compactAxisProps}
-                      tick={compactAxisTick}
+                      {...globalAxisCommonProps}
+                      tick={globalAxisTickStyle}
                       tickFormatter={yAxisConfig.formatter}
-                      tickMargin={4}
                       width={62}
                       label={makeYAxisLabel(yAxisConfig.label)}
                     />

@@ -38,6 +38,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { globalAxisTickStyle, globalAxisCommonProps } from "@/lib/chartAxisTheme";
 import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import {
   calculateAtmosphere,
@@ -576,15 +577,16 @@ export default function StandardAtmosphereCalculator() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis
                       dataKey="altitude"
-                      stroke="#94a3b8"
+                      {...globalAxisCommonProps}
+                      tick={globalAxisTickStyle}
                       label={{
                         value: `Altitude (${unitSystem === "Imperial" ? "ft" : "km"})`,
                         position: "insideBottom",
                         offset: -5,
                       }}
                     />
-                    <YAxis yAxisId="left" stroke="#3b82f6" />
-                    <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
+                    <YAxis yAxisId="left" {...globalAxisCommonProps} tick={globalAxisTickStyle} />
+                    <YAxis yAxisId="right" orientation="right" {...globalAxisCommonProps} tick={globalAxisTickStyle} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "#1e293b",

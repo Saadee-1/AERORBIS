@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { globalAxisTickStyle, globalAxisCommonProps } from "@/lib/chartAxisTheme";
 import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Database } from "lucide-react";
@@ -76,15 +77,15 @@ const MassBreakdownChart = ({
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
             <XAxis
               dataKey="name"
-              stroke="#94a3b8"
-              tick={{ fill: "#94a3b8", fontSize: 12 }}
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               angle={-45}
               textAnchor="end"
               height={100}
             />
             <YAxis
-              stroke="#94a3b8"
-              tick={{ fill: "#94a3b8" }}
+              {...globalAxisCommonProps}
+              tick={globalAxisTickStyle}
               label={{
                 value: "Mass (t)",
                 angle: -90,

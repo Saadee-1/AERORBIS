@@ -10,6 +10,7 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from "recharts";
+import { globalAxisTickStyle, globalAxisCommonProps } from "@/lib/chartAxisTheme";
 import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
@@ -121,15 +122,15 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
                 dataKey="name"
-                stroke="#94a3b8"
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 angle={-45}
                 textAnchor="end"
                 height={80}
               />
               <YAxis
-                stroke="#94a3b8"
-                tick={{ fill: "#94a3b8" }}
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 label={{
                   value: `Δv (${unit})`,
                   angle: -90,
@@ -173,12 +174,12 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
                 dataKey="name"
-                stroke="#94a3b8"
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
               />
               <YAxis
-                stroke="#94a3b8"
-                tick={{ fill: "#94a3b8" }}
+                {...globalAxisCommonProps}
+                tick={globalAxisTickStyle}
                 label={{
                   value: `Δv (${unit})`,
                   angle: -90,

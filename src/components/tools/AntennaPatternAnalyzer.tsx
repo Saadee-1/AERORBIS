@@ -60,6 +60,7 @@ import {
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
 } from "recharts";
+import { globalAxisTickStyle, globalAxisCommonProps } from "@/lib/chartAxisTheme";
 import {
   Radio,
   Settings2,
@@ -1273,8 +1274,8 @@ const AntennaPatternAnalyzer = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                   <XAxis
                     dataKey="angle"
-                    stroke="#94a3b8"
-                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                    {...globalAxisCommonProps}
+                    tick={globalAxisTickStyle}
                     label={{
                       value: "Angle (degrees)",
                       position: "insideBottom",
@@ -1283,8 +1284,8 @@ const AntennaPatternAnalyzer = () => {
                     }}
                   />
                   <YAxis
-                    stroke="#94a3b8"
-                    tick={{ fill: "#94a3b8" }}
+                    {...globalAxisCommonProps}
+                    tick={globalAxisTickStyle}
                     label={{
                       value: "Gain (dBi)",
                       angle: -90,
