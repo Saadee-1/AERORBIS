@@ -58,6 +58,23 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
+import { calculateISADensity, getPresetAltitude, feetToMeters, metersToFeet } from "./utils/isaAtmosphere";
+import {
+  UnitSystem,
+  convertMassToSI,
+  convertMassFromSI,
+  convertWeightToSI,
+  convertWeightFromSI,
+  convertAreaToSI,
+  convertAreaFromSI,
+  convertAltitudeToSI,
+  convertAltitudeFromSI,
+  convertWingLoadingNm2FromSI,
+  convertWingLoadingKgm2FromSI,
+  convertVelocityFromSI,
+  getInputUnits,
+  getOutputUnits
+} from "./utils/unitConversions";
 
 // ============================================================================
 // TYPES & CONSTANTS
@@ -67,7 +84,8 @@ type MissionType = 'UAV' | 'Trainer' | 'STOL' | 'Glider' | 'Jet';
 type WeightMode = 'mass' | 'weight';
 type WingLoadingClass = 'Very Low' | 'Low' | 'Within' | 'High' | 'Very High';
 type StallSpeedClass = 'Low' | 'Nominal' | 'High';
-type AirDensityPreset = 'ISA Sea Level' | '2000 ft' | '5000 ft' | '10000 ft' | 'Custom';
+type AirDensityMode = 'preset' | 'altitude' | 'custom';
+type AirDensityPreset = 'ISA Sea Level' | '2000 ft' | '5000 ft' | '10000 ft';
 
 interface MissionParams {
   wsMinKg: number;
@@ -85,16 +103,16 @@ const missionData: Record<MissionType, MissionParams> = {
   Jet:     { wsMinKg: 200, wsMaxKg: 800, clMax: 2.0, vsMin: 40, vsMax: 70 }
 };
 
-const airDensityPresets: Record<AirDensityPreset, number> = {
-  'ISA Sea Level': 1.225,  // kg/m³
-  '2000 ft': 1.167,
-  '5000 ft': 1.056,
-  '10000 ft': 0.905,
-  'Custom': 1.225 // Default, user can override
-};
-
 const GRAVITY = 9.81; // m/s²
 const KNOTS_TO_MS = 1.94384; // Conversion factor: 1 m/s = 1.94384 knots
+const TRAINER_STALL_LIMIT_KTS = 61; // Typical limit for normal category trainer certification
+
+// Example aircraft reference zones (approximate, for visual reference only)
+const EXAMPLE_AIRCRAFT = {
+  Trainer: { label: 'C172-type trainer', range: [60, 70] },
+  Glider: { label: 'Club glider', range: [35, 50] },
+  Jet: { label: 'Transport / regional jet', range: [300, 500] }
+};
 
 interface CalculationResult {
   weightN: number;
@@ -106,6 +124,9 @@ interface CalculationResult {
   vsClass: StallSpeedClass;
   interpretation: string;
   steps: string[];
+  regulatoryWarning?: string;
+  mtowWingLoadingKgm2?: number;
+  landingWingLoadingKgm2?: number;
 }
 
 // ============================================================================
@@ -198,10 +219,27 @@ function generateInterpretation(
   wsClass: WingLoadingClass,
   vsClass: StallSpeedClass,
   wsKgm2: number,
-  vsMs: number
-): string {
+  vsMs: number,
+  vsKts: number,
+  clMax: number,
+  clMaxIsOverridden: boolean = false
+): { interpretation: string; regulatoryWarning?: string } {
   const params = missionData[missionType];
   let interpretation = "";
+  let regulatoryWarning: string | undefined;
+  
+  // Regulatory check for Trainer mission
+  if (missionType === 'Trainer' && vsKts > TRAINER_STALL_LIMIT_KTS) {
+    regulatoryWarning = `⚠️ Stall speed (${vsKts.toFixed(1)} kts) exceeds typical ${TRAINER_STALL_LIMIT_KTS} kt limit used for normal category trainer certification. This may be unsuitable for a basic trainer role.`;
+    interpretation += regulatoryWarning + "\n\n";
+  } else if (missionType === 'Trainer' && vsKts < TRAINER_STALL_LIMIT_KTS - 5) {
+    interpretation += "✓ Stall speed is compatible with typical trainer certification limits. ";
+  }
+  
+  // Check for unrealistic CLmax
+  if (clMaxIsOverridden && clMax > 3.5) {
+    interpretation += "⚠️ Note: The specified CL,max is very high and may be unrealistic without exceptional high-lift devices. ";
+  }
   
   // Base interpretation by mission type
   switch (missionType) {
@@ -239,9 +277,12 @@ function generateInterpretation(
       
     case 'STOL':
       if (wsClass === 'High' || wsClass === 'Very High') {
-        interpretation += "⚠️ This wing loading defeats the STOL intent unless very high CL,max and higher stall speeds are acceptable. ";
+        interpretation += "⚠️ This wing loading is much higher than typical for STOL aircraft and defeats the STOL intent unless very high CL,max and higher stall speeds are acceptable. ";
         interpretation += "STOL aircraft typically require low wing loading for short takeoff and landing distances. ";
         interpretation += "With this configuration, you'll need exceptional high-lift devices (flaps, slats) to maintain STOL performance. ";
+        if (clMaxIsOverridden && clMax < 2.5) {
+          interpretation += "The current CL,max may be insufficient to compensate for the high wing loading. ";
+        }
       } else if (wsClass === 'Within' || wsClass === 'Low') {
         interpretation += "This wing loading is appropriate for STOL operations. ";
         interpretation += "Short takeoff and landing distances are achievable with the specified CL,max. ";
@@ -299,6 +340,13 @@ function generateInterpretation(
     interpretation += "Pilot workload will be higher, especially during approach and landing phases. ";
   }
   
+  // Add runway/field suitability
+  if ((wsClass === 'Very Low' || wsClass === 'Low') && vsClass === 'Low') {
+    interpretation += "\n\nRunway Suitability: This configuration suggests operations from relatively short or unprepared airstrips may be feasible (subject to detailed performance analysis). ";
+  } else if ((wsClass === 'High' || wsClass === 'Very High') && vsClass === 'High') {
+    interpretation += "\n\nRunway Suitability: This configuration is more suited to paved or longer runways typical of larger aerodromes. ";
+  }
+  
   // Add trade-offs summary
   interpretation += "\n\nTrade-offs Summary:\n";
   if (wsClass === 'Very Low' || wsClass === 'Low') {
@@ -320,7 +368,7 @@ function generateInterpretation(
     interpretation += "✓ Moderate cruise performance\n";
   }
   
-  return interpretation;
+  return { interpretation, regulatoryWarning };
 }
 
 // ============================================================================
@@ -333,13 +381,21 @@ const WingLoadingCalculator = () => {
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   
   // State
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
   const [missionType, setMissionType] = useState<MissionType>('Trainer');
   const [weightMode, setWeightMode] = useState<WeightMode>('mass');
   const [massKg, setMassKg] = useState<string>("");
   const [weightN, setWeightN] = useState<string>("");
   const [wingAreaM2, setWingAreaM2] = useState<string>("");
+  const [airDensityMode, setAirDensityMode] = useState<AirDensityMode>('preset');
   const [airDensityPreset, setAirDensityPreset] = useState<AirDensityPreset>('ISA Sea Level');
+  const [airDensityAltitude, setAirDensityAltitude] = useState<string>("0");
+  const [airDensityDeltaT, setAirDensityDeltaT] = useState<string>("0");
   const [airDensityCustom, setAirDensityCustom] = useState<string>("1.225");
+  const [clMaxOverride, setClMaxOverride] = useState<string>("");
+  const [useClMaxOverride, setUseClMaxOverride] = useState(false);
+  const [mtow, setMtow] = useState<string>("");
+  const [landingWeightFraction, setLandingWeightFraction] = useState<string>("0.7");
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [lastPayload, setLastPayload] = useState<any | null>(null);
   
@@ -349,13 +405,21 @@ const WingLoadingCalculator = () => {
     if (stored) {
       try {
         const state = JSON.parse(stored);
+        setUnitSystem(state.unitSystem || 'SI');
         setMissionType(state.missionType || 'Trainer');
         setWeightMode(state.weightMode || 'mass');
         setMassKg(state.massKg || "");
         setWeightN(state.weightN || "");
         setWingAreaM2(state.wingAreaM2 || "");
+        setAirDensityMode(state.airDensityMode || 'preset');
         setAirDensityPreset(state.airDensityPreset || 'ISA Sea Level');
+        setAirDensityAltitude(state.airDensityAltitude || "0");
+        setAirDensityDeltaT(state.airDensityDeltaT || "0");
         setAirDensityCustom(state.airDensityCustom || "1.225");
+        setClMaxOverride(state.clMaxOverride || "");
+        setUseClMaxOverride(state.useClMaxOverride || false);
+        setMtow(state.mtow || "");
+        setLandingWeightFraction(state.landingWeightFraction || "0.7");
       } catch (e) {
         console.warn("Failed to load state:", e);
       }
@@ -365,69 +429,128 @@ const WingLoadingCalculator = () => {
   // Save to localStorage
   useEffect(() => {
     const state = {
+      unitSystem,
       missionType,
       weightMode,
       massKg,
       weightN,
       wingAreaM2,
+      airDensityMode,
       airDensityPreset,
-      airDensityCustom
+      airDensityAltitude,
+      airDensityDeltaT,
+      airDensityCustom,
+      clMaxOverride,
+      useClMaxOverride,
+      mtow,
+      landingWeightFraction
     };
     localStorage.setItem("wingLoadingCalc_state", JSON.stringify(state));
-  }, [missionType, weightMode, massKg, weightN, wingAreaM2, airDensityPreset, airDensityCustom]);
+  }, [unitSystem, missionType, weightMode, massKg, weightN, wingAreaM2, airDensityMode, airDensityPreset, airDensityAltitude, airDensityDeltaT, airDensityCustom, clMaxOverride, useClMaxOverride, mtow, landingWeightFraction]);
   
   // Get current air density
   const currentAirDensity = useMemo(() => {
-    if (airDensityPreset === 'Custom') {
+    if (airDensityMode === 'custom') {
       const custom = parseFloat(airDensityCustom);
       return isNaN(custom) || custom <= 0 ? 1.225 : custom;
+    } else if (airDensityMode === 'altitude') {
+      const altitudeM = convertAltitudeToSI(parseFloat(airDensityAltitude) || 0, unitSystem);
+      const deltaT = parseFloat(airDensityDeltaT) || 0;
+      try {
+        return calculateISADensity(altitudeM, deltaT);
+      } catch (e) {
+        return 1.225; // Fallback
+      }
+    } else {
+      // Preset mode - map to altitude
+      const preset = airDensityPreset;
+      const altitudeM = getPresetAltitude(preset);
+      return calculateISADensity(altitudeM, 0);
     }
-    return airDensityPresets[airDensityPreset];
-  }, [airDensityPreset, airDensityCustom]);
+  }, [airDensityMode, airDensityPreset, airDensityAltitude, airDensityDeltaT, airDensityCustom, unitSystem]);
   
   // Get CL,max for current mission type
   const currentClMax = useMemo(() => {
+    if (useClMaxOverride && clMaxOverride) {
+      const override = parseFloat(clMaxOverride);
+      return isNaN(override) || override <= 0 ? missionData[missionType].clMax : override;
+    }
     return missionData[missionType].clMax;
-  }, [missionType]);
+  }, [missionType, useClMaxOverride, clMaxOverride]);
+  
+  const clMaxIsOverridden = useClMaxOverride && clMaxOverride && parseFloat(clMaxOverride) > 0;
+  
+  // Get input/output units
+  const inputUnits = useMemo(() => getInputUnits(unitSystem), [unitSystem]);
+  const outputUnits = useMemo(() => getOutputUnits(unitSystem), [unitSystem]);
   
   // Calculate
   const handleCalculate = async () => {
     try {
-      // Validate inputs
-      const mass = weightMode === 'mass' ? parseFloat(massKg) : null;
-      const weight = weightMode === 'weight' ? parseFloat(weightN) : null;
-      const area = parseFloat(wingAreaM2);
+      // Validate and convert inputs to SI
+      const massInput = weightMode === 'mass' ? parseFloat(massKg) : null;
+      const weightInput = weightMode === 'weight' ? parseFloat(weightN) : null;
+      const areaInput = parseFloat(wingAreaM2);
       
-      if (weightMode === 'mass' && (isNaN(mass!) || mass! <= 0)) {
+      if (weightMode === 'mass' && (isNaN(massInput!) || massInput! <= 0)) {
         toast({ title: "Invalid Input", description: "Mass must be a positive number", variant: "destructive" });
         return;
       }
-      if (weightMode === 'weight' && (isNaN(weight!) || weight! <= 0)) {
+      if (weightMode === 'weight' && (isNaN(weightInput!) || weightInput! <= 0)) {
         toast({ title: "Invalid Input", description: "Weight must be a positive number", variant: "destructive" });
         return;
       }
-      if (isNaN(area) || area <= 0) {
+      if (isNaN(areaInput) || areaInput <= 0) {
         toast({ title: "Invalid Input", description: "Wing area must be a positive number", variant: "destructive" });
         return;
       }
 
-      // Calculate weight
-      const finalWeightN = weightMode === 'mass' ? massToWeight(mass!) : weight!;
+      // Convert to SI
+      const massKgSI = weightMode === 'mass' ? convertMassToSI(massInput!, unitSystem) : null;
+      const weightNSI = weightMode === 'weight' ? convertWeightToSI(weightInput!, unitSystem) : null;
+      const areaM2SI = convertAreaToSI(areaInput, unitSystem);
       
-      // Calculate wing loading
-      const wsNm2 = calculateWingLoadingNm2(finalWeightN, area);
-      const wsKgm2 = calculateWingLoadingKgm2(finalWeightN, area);
+      // Calculate weight in SI
+      const finalWeightN = weightMode === 'mass' ? massToWeight(massKgSI!) : weightNSI!;
+      
+      // Calculate wing loading (always in SI internally)
+      const wsNm2 = calculateWingLoadingNm2(finalWeightN, areaM2SI);
+      const wsKgm2 = calculateWingLoadingKgm2(finalWeightN, areaM2SI);
       
       // Calculate stall speed
-      const vsMs = calculateStallSpeed(finalWeightN, area, currentAirDensity, currentClMax);
+      const vsMs = calculateStallSpeed(finalWeightN, areaM2SI, currentAirDensity, currentClMax);
       const vsKts = msToKnots(vsMs);
+      
+      // Calculate MTOW and landing weight wing loadings if provided
+      let mtowWingLoadingKgm2: number | undefined;
+      let landingWingLoadingKgm2: number | undefined;
+      if (mtow) {
+        const mtowSI = weightMode === 'mass' 
+          ? convertMassToSI(parseFloat(mtow), unitSystem)
+          : convertWeightToSI(parseFloat(mtow), unitSystem);
+        const mtowWeightN = weightMode === 'mass' ? massToWeight(mtowSI) : mtowSI;
+        mtowWingLoadingKgm2 = calculateWingLoadingKgm2(mtowWeightN, areaM2SI);
+        
+        const landingFraction = parseFloat(landingWeightFraction) || 0.7;
+        const landingWeightN = mtowWeightN * landingFraction;
+        landingWingLoadingKgm2 = calculateWingLoadingKgm2(landingWeightN, areaM2SI);
+      }
       
       // Classify
       const wsClass = classifyWingLoading(wsKgm2, missionType);
       const vsClass = classifyStallSpeed(vsMs, missionType);
       
       // Generate interpretation
-      const interpretation = generateInterpretation(missionType, wsClass, vsClass, wsKgm2, vsMs);
+      const { interpretation, regulatoryWarning } = generateInterpretation(
+        missionType, 
+        wsClass, 
+        vsClass, 
+        wsKgm2, 
+        vsMs, 
+        vsKts,
+        currentClMax,
+        clMaxIsOverridden
+      );
       
       // Generate step-by-step solution
       const steps: string[] = [];
@@ -435,20 +558,30 @@ const WingLoadingCalculator = () => {
       
       if (weightMode === 'mass') {
         steps.push(`**Step ${stepNum}: Convert mass to weight**`);
-        steps.push(`W = m × g = ${mass!.toFixed(2)} kg × ${GRAVITY} m/s² = ${finalWeightN.toFixed(2)} N`);
+        const massDisplay = unitSystem === 'SI' ? massKgSI!.toFixed(2) : massInput!.toFixed(2);
+        steps.push(`W = m × g = ${massDisplay} ${inputUnits.mass} × ${GRAVITY} m/s² = ${finalWeightN.toFixed(2)} N`);
+        stepNum++;
+      } else {
+        const weightDisplay = unitSystem === 'SI' ? weightNSI!.toFixed(2) : weightInput!.toFixed(2);
+        steps.push(`**Step ${stepNum}: Weight**`);
+        steps.push(`W = ${weightDisplay} ${inputUnits.weight} = ${finalWeightN.toFixed(2)} N (converted to SI)`);
         stepNum++;
       }
       
       steps.push(`**Step ${stepNum}: Compute W/S in N/m²**`);
-      steps.push(`(W/S)_N = W / S = ${finalWeightN.toFixed(2)} N / ${area.toFixed(2)} m² = ${wsNm2.toFixed(2)} N/m²`);
+      const areaDisplay = unitSystem === 'SI' ? areaM2SI.toFixed(2) : areaInput.toFixed(2);
+      steps.push(`(W/S)_N = W / S = ${finalWeightN.toFixed(2)} N / ${areaDisplay} ${inputUnits.area} = ${wsNm2.toFixed(2)} N/m²`);
       stepNum++;
       
       steps.push(`**Step ${stepNum}: Convert to kg/m²**`);
-      steps.push(`(W/S)_kg = W / (g × S) = ${finalWeightN.toFixed(2)} N / (${GRAVITY} m/s² × ${area.toFixed(2)} m²) = ${wsKgm2.toFixed(2)} kg/m²`);
+      steps.push(`(W/S)_kg = W / (g × S) = ${finalWeightN.toFixed(2)} N / (${GRAVITY} m/s² × ${areaM2SI.toFixed(2)} m²) = ${wsKgm2.toFixed(2)} kg/m²`);
       stepNum++;
       
       steps.push(`**Step ${stepNum}: Compute stall speed**`);
-      steps.push(`V_s = √[2W / (ρ × S × CL,max)] = √[2 × ${finalWeightN.toFixed(2)} N / (${currentAirDensity.toFixed(3)} kg/m³ × ${area.toFixed(2)} m² × ${currentClMax.toFixed(2)})]`);
+      const clMaxLabel = clMaxIsOverridden ? "User-specified CL,max" : "Mission CL,max";
+      steps.push(`Using ${clMaxLabel}: ${currentClMax.toFixed(2)}`);
+      steps.push(`Air density: ${currentAirDensity.toFixed(3)} kg/m³${airDensityMode === 'altitude' ? ` (from altitude ${airDensityAltitude} ${inputUnits.altitude})` : ''}`);
+      steps.push(`V_s = √[2W / (ρ × S × CL,max)] = √[2 × ${finalWeightN.toFixed(2)} N / (${currentAirDensity.toFixed(3)} kg/m³ × ${areaM2SI.toFixed(2)} m² × ${currentClMax.toFixed(2)})]`);
       steps.push(`V_s = ${vsMs.toFixed(2)} m/s = ${vsKts.toFixed(2)} knots`);
       stepNum++;
       
@@ -468,20 +601,30 @@ const WingLoadingCalculator = () => {
         wsClass,
         vsClass,
         interpretation,
-        steps
+        steps,
+        regulatoryWarning,
+        mtowWingLoadingKgm2,
+        landingWingLoadingKgm2
       };
       
       setResult(calculationResult);
       
       // Send calculation event
         const toolInputs = {
+        unitSystem,
         missionType,
         weightMode,
-        massKg: weightMode === 'mass' ? mass : null,
-        weightN: weightMode === 'weight' ? weight : null,
-        wingAreaM2: area,
+        massKg: weightMode === 'mass' ? massInput : null,
+        weightN: weightMode === 'weight' ? weightInput : null,
+        wingAreaM2: areaInput,
+        airDensityMode,
         airDensity: currentAirDensity,
-        clMax: currentClMax
+        airDensityAltitude: airDensityMode === 'altitude' ? parseFloat(airDensityAltitude) : null,
+        airDensityDeltaT: airDensityMode === 'altitude' ? parseFloat(airDensityDeltaT) : null,
+        clMax: currentClMax,
+        clMaxOverridden: clMaxIsOverridden,
+        mtow: mtow ? parseFloat(mtow) : null,
+        landingWeightFraction: mtow ? parseFloat(landingWeightFraction) : null
       };
       
         const toolResults = {
@@ -536,8 +679,15 @@ const WingLoadingCalculator = () => {
     setWeightN("");
     setWingAreaM2("");
     setResult(null);
+    setAirDensityMode('preset');
     setAirDensityPreset('ISA Sea Level');
+    setAirDensityAltitude("0");
+    setAirDensityDeltaT("0");
     setAirDensityCustom("1.225");
+    setClMaxOverride("");
+    setUseClMaxOverride(false);
+    setMtow("");
+    setLandingWeightFraction("0.7");
   };
   
   // Get classification color
@@ -592,6 +742,15 @@ const WingLoadingCalculator = () => {
         icon={Plane}
         actions={
           <ToolActions>
+            <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
+              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SI">SI</SelectItem>
+                <SelectItem value="Imperial">Imperial</SelectItem>
+              </SelectContent>
+            </Select>
             <AeroButton type="button" onClick={handleReset} variant="outline">
               Reset
             </AeroButton>
@@ -678,25 +837,25 @@ const WingLoadingCalculator = () => {
               </div>
               </div>
               {weightMode === 'mass' ? (
-                <AeroFormField label="Aircraft Mass (kg)" helperText="Enter mass in kilograms">
+                <AeroFormField label={`Aircraft Mass (${inputUnits.mass})`} helperText={`Enter mass in ${inputUnits.mass}`}>
                   <Input
                     type="number"
                     step="0.01"
                     value={massKg}
                     onChange={(e) => setMassKg(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
-                    placeholder="e.g., 10000"
+                    placeholder={`e.g., ${unitSystem === 'SI' ? '10000' : '22046'}`}
                   />
               </AeroFormField>
               ) : (
-                <AeroFormField label="Aircraft Weight (N)" helperText="Enter weight in Newtons">
+                <AeroFormField label={`Aircraft Weight (${inputUnits.weight})`} helperText={`Enter weight in ${inputUnits.weight}`}>
                   <Input
                     type="number"
                     step="0.01"
                     value={weightN}
                     onChange={(e) => setWeightN(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
-                    placeholder="e.g., 98100"
+                    placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
                   />
               </AeroFormField>
               )}
@@ -708,14 +867,14 @@ const WingLoadingCalculator = () => {
               description="Enter wing area"
               icon={Gauge}
             >
-              <AeroFormField label="Wing Area (m²)" helperText="Enter wing area in square meters">
+              <AeroFormField label={`Wing Area (${inputUnits.area})`} helperText={`Enter wing area in ${inputUnits.area}`}>
                       <Input 
                   type="number"
                   step="0.01"
                   value={wingAreaM2}
                   onChange={(e) => setWingAreaM2(e.target.value)}
                   className="bg-slate-900/50 border-cyan-400/30"
-                  placeholder="e.g., 30"
+                  placeholder={`e.g., ${unitSystem === 'SI' ? '30' : '323'}`}
                 />
               </AeroFormField>
             </AeroCard>
@@ -723,24 +882,64 @@ const WingLoadingCalculator = () => {
             {/* Air Density */}
             <AeroCard
               title="Air Density"
-              description="Select altitude preset or enter custom value"
+              description="Select mode: preset, altitude-based (ISA), or custom"
               icon={Wind}
             >
-              <AeroFormField label="Air Density Preset">
-                <Select value={airDensityPreset} onValueChange={(v) => setAirDensityPreset(v as AirDensityPreset)}>
+              <AeroFormField label="Air Density Mode">
+                <Select value={airDensityMode} onValueChange={(v) => setAirDensityMode(v as AirDensityMode)}>
                   <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ISA Sea Level">ISA Sea Level (1.225 kg/m³)</SelectItem>
-                    <SelectItem value="2000 ft">2000 ft (1.167 kg/m³)</SelectItem>
-                    <SelectItem value="5000 ft">5000 ft (1.056 kg/m³)</SelectItem>
-                    <SelectItem value="10000 ft">10000 ft (0.905 kg/m³)</SelectItem>
-                    <SelectItem value="Custom">Custom</SelectItem>
+                    <SelectItem value="preset">Preset (ISA altitudes)</SelectItem>
+                    <SelectItem value="altitude">Altitude-based (ISA model)</SelectItem>
+                    <SelectItem value="custom">Custom density</SelectItem>
                   </SelectContent>
                 </Select>
               </AeroFormField>
-              {airDensityPreset === 'Custom' && (
+              
+              {airDensityMode === 'preset' && (
+                <AeroFormField label="Altitude Preset">
+                  <Select value={airDensityPreset} onValueChange={(v) => setAirDensityPreset(v as AirDensityPreset)}>
+                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ISA Sea Level">ISA Sea Level</SelectItem>
+                      <SelectItem value="2000 ft">2000 ft</SelectItem>
+                      <SelectItem value="5000 ft">5000 ft</SelectItem>
+                      <SelectItem value="10000 ft">10000 ft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </AeroFormField>
+              )}
+              
+              {airDensityMode === 'altitude' && (
+                <>
+                  <AeroFormField label={`Flight Altitude (${inputUnits.altitude})`} helperText="Enter altitude for ISA calculation">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={airDensityAltitude}
+                      onChange={(e) => setAirDensityAltitude(e.target.value)}
+                      className="bg-slate-900/50 border-cyan-400/30"
+                      placeholder={`e.g., ${unitSystem === 'SI' ? '0' : '0'}`}
+                    />
+                  </AeroFormField>
+                  <AeroFormField label="Temperature Deviation (ΔT, K)" helperText="Optional: deviation from ISA temperature">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={airDensityDeltaT}
+                      onChange={(e) => setAirDensityDeltaT(e.target.value)}
+                      className="bg-slate-900/50 border-cyan-400/30"
+                      placeholder="e.g., 0"
+                    />
+                  </AeroFormField>
+                </>
+              )}
+              
+              {airDensityMode === 'custom' && (
                 <AeroFormField label="Custom Air Density (kg/m³)">
                       <Input 
                         type="number"
@@ -752,12 +951,85 @@ const WingLoadingCalculator = () => {
                   />
                 </AeroFormField>
               )}
+              
               <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
                 <p className="text-sm text-gray-300">
-                  <span className="text-cyan-400">Current:</span> {currentAirDensity.toFixed(3)} kg/m³
+                  <span className="text-cyan-400">Current density:</span> {currentAirDensity.toFixed(3)} kg/m³
                 </p>
+                {airDensityMode === 'altitude' && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Calculated from ISA model at {parseFloat(airDensityAltitude) || 0} {inputUnits.altitude}
+                    {parseFloat(airDensityDeltaT) !== 0 && ` (ΔT = ${airDensityDeltaT} K)`}
+                  </p>
+                )}
                     </div>
               </AeroCard>
+            
+            {/* Advanced Settings */}
+            <AeroCard
+              title="Advanced Settings"
+              description="Optional: CL,max override, MTOW, and landing weight analysis"
+              icon={Info}
+            >
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="advanced" className="border-cyan-400/20">
+                  <AccordionTrigger className="text-white hover:text-cyan-400 text-sm">
+                    Show Advanced Settings
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4 space-y-4">
+                    {/* CLmax Override */}
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={useClMaxOverride}
+                        onCheckedChange={setUseClMaxOverride}
+                      />
+                      <Label className="text-sm text-gray-300">Override CL,max</Label>
+                    </div>
+                    {useClMaxOverride && (
+                      <AeroFormField label="User-specified CL,max" helperText={`Default: ${missionData[missionType].clMax.toFixed(2)} (${missionType})`}>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={clMaxOverride}
+                          onChange={(e) => setClMaxOverride(e.target.value)}
+                          className="bg-slate-900/50 border-cyan-400/30"
+                          placeholder={`e.g., ${missionData[missionType].clMax.toFixed(2)}`}
+                        />
+                      </AeroFormField>
+                    )}
+                    
+                    {/* MTOW and Landing Weight */}
+                    <div className="pt-2 border-t border-cyan-400/20">
+                      <Label className="text-sm text-gray-300 mb-2 block">Weight Analysis (Optional)</Label>
+                      <AeroFormField label={`MTOW (${weightMode === 'mass' ? inputUnits.mass : inputUnits.weight})`} helperText="Maximum Takeoff Weight">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={mtow}
+                          onChange={(e) => setMtow(e.target.value)}
+                          className="bg-slate-900/50 border-cyan-400/30"
+                          placeholder="Leave empty to skip"
+                        />
+                      </AeroFormField>
+                      {mtow && (
+                        <AeroFormField label="Landing Weight Fraction" helperText="Fraction of MTOW (typical: 0.7)">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="1"
+                            value={landingWeightFraction}
+                            onChange={(e) => setLandingWeightFraction(e.target.value)}
+                            className="bg-slate-900/50 border-cyan-400/30"
+                            placeholder="0.7"
+                          />
+                        </AeroFormField>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </AeroCard>
             
             {/* Calculate Button */}
             <AeroButton
@@ -784,28 +1056,58 @@ const WingLoadingCalculator = () => {
                 >
                   <div className="space-y-4">
                     <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                      <p className="text-sm text-gray-400 mb-1">Wing Loading (N/m²)</p>
+                      <p className="text-sm text-gray-400 mb-1">Wing Loading ({outputUnits.wingLoadingNm2})</p>
                       <p className="text-3xl font-bold text-cyan-400">
-                        {result.wingLoadingNm2.toFixed(2)} N/m²
+                        {convertWingLoadingNm2FromSI(result.wingLoadingNm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingNm2}
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        ({result.wingLoadingNm2.toFixed(2)} N/m²)
                       </p>
                     </div>
                     
                     <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                      <p className="text-sm text-gray-400 mb-1">Wing Loading (kg/m²)</p>
+                      <p className="text-sm text-gray-400 mb-1">Wing Loading ({outputUnits.wingLoadingKgm2})</p>
                       <p className="text-3xl font-bold text-cyan-400">
-                        {result.wingLoadingKgm2.toFixed(2)} kg/m²
+                        {convertWingLoadingKgm2FromSI(result.wingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
                     </p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        ({result.wingLoadingKgm2.toFixed(2)} kg/m²)
+                      </p>
                   </div>
                     
                     <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
                       <p className="text-sm text-gray-400 mb-1">Stall Speed</p>
-                      <p className="text-2xl font-bold text-green-400">
-                        {result.stallSpeedMs.toFixed(2)} m/s
-                      </p>
-                      <p className="text-lg text-green-300 mt-1">
-                        ({result.stallSpeedKts.toFixed(2)} knots)
-                          </p>
+                      {(() => {
+                        const velocity = convertVelocityFromSI(result.stallSpeedMs, unitSystem);
+                        return (
+                          <>
+                            <p className="text-2xl font-bold text-green-400">
+                              {velocity.value.toFixed(2)} {velocity.unit}
+                            </p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              ({result.stallSpeedMs.toFixed(2)} m/s, {result.stallSpeedKts.toFixed(2)} kts)
+                            </p>
+                          </>
+                        );
+                      })()}
                         </div>
+                    
+                    {result.mtowWingLoadingKgm2 !== undefined && (
+                      <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                        <p className="text-sm text-gray-400 mb-1">W/S at Takeoff (MTOW)</p>
+                        <p className="text-xl font-bold text-cyan-300">
+                          {convertWingLoadingKgm2FromSI(result.mtowWingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
+                        </p>
+                        {result.landingWingLoadingKgm2 !== undefined && (
+                          <>
+                            <p className="text-sm text-gray-400 mb-1 mt-2">W/S at Landing</p>
+                            <p className="text-xl font-bold text-cyan-300">
+                              {convertWingLoadingKgm2FromSI(result.landingWingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    )}
                     
                     <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading Classification</p>
@@ -828,7 +1130,7 @@ const WingLoadingCalculator = () => {
                         {missionData[missionType].wsMinKg}–{missionData[missionType].wsMaxKg} kg/m²
                       </span>
                     </p>
-                    <div className="relative h-8 bg-slate-700/50 rounded border border-cyan-400/30">
+                    <div className="relative h-12 bg-slate-700/50 rounded border border-cyan-400/30">
                       {/* Range indicator (typical range) */}
                       {(() => {
                         const rangePos = getRangeBarPosition();
@@ -842,23 +1144,87 @@ const WingLoadingCalculator = () => {
                           />
                         );
                       })()}
+                      
+                      {/* Example aircraft reference zones */}
+                      {(() => {
+                        const example = EXAMPLE_AIRCRAFT[missionType as keyof typeof EXAMPLE_AIRCRAFT];
+                        if (!example) return null;
+                        const params = missionData[missionType];
+                        const extendedMin = 0.8 * params.wsMinKg;
+                        const extendedMax = 1.2 * params.wsMaxKg;
+                        const extendedRange = extendedMax - extendedMin;
+                        if (extendedRange <= 0) return null;
+                        
+                        const left = ((example.range[0] - extendedMin) / extendedRange) * 100;
+                        const width = ((example.range[1] - example.range[0]) / extendedRange) * 100;
+                        
+                        return (
+                          <div
+                            className="absolute top-0 h-full bg-blue-400/20 border-l border-r border-blue-400/40"
+                            style={{
+                              left: `${Math.max(0, left)}%`,
+                              width: `${Math.max(0, Math.min(100, width))}%`
+                            }}
+                            title={example.label}
+                          />
+                        );
+                      })()}
+                      
                       {/* Current position marker */}
                       <div
                         className="absolute top-0 h-full w-1 bg-cyan-400 z-10"
                         style={{ left: `${getEnvelopePosition()}%` }}
                       />
+                      
+                      {/* Labels */}
                       <div
                         className="absolute -top-6 left-0 right-0 flex justify-between text-xs text-gray-400"
                       >
                         <span>{(0.8 * missionData[missionType].wsMinKg).toFixed(0)}</span>
                         <span>{(1.2 * missionData[missionType].wsMaxKg).toFixed(0)}</span>
                       </div>
+                      
+                      {/* Example aircraft label */}
+                      {(() => {
+                        const example = EXAMPLE_AIRCRAFT[missionType as keyof typeof EXAMPLE_AIRCRAFT];
+                        if (!example) return null;
+                        const params = missionData[missionType];
+                        const extendedMin = 0.8 * params.wsMinKg;
+                        const extendedMax = 1.2 * params.wsMaxKg;
+                        const extendedRange = extendedMax - extendedMin;
+                        if (extendedRange <= 0) return null;
+                        
+                        const center = ((example.range[0] + example.range[1]) / 2 - extendedMin) / extendedRange * 100;
+                        
+                        return (
+                          <div
+                            className="absolute -bottom-5 text-xs text-blue-300/70"
+                            style={{ left: `${Math.max(5, Math.min(95, center))}%`, transform: 'translateX(-50%)' }}
+                          >
+                            {example.label}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <p className="text-sm text-cyan-400 text-center">
                       Current: {result.wingLoadingKgm2.toFixed(2)} kg/m²
                     </p>
           </div>
                 </AeroCard>
+                
+                {/* Regulatory Warning */}
+                {result.regulatoryWarning && (
+                  <AeroCard
+                    title="Regulatory Check"
+                    icon={AlertTriangle}
+                  >
+                    <div className="p-4 bg-yellow-900/30 rounded-lg border border-yellow-400/30">
+                      <p className="text-sm text-yellow-200 whitespace-pre-wrap leading-relaxed">
+                        {result.regulatoryWarning}
+                      </p>
+                    </div>
+                  </AeroCard>
+                )}
                 
                 {/* Interpretation Card */}
                 <AeroCard
