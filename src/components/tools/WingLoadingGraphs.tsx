@@ -451,7 +451,16 @@ export function WingLoadingGraphs({
               width={90}
             />
             <Tooltip
-              content={<CustomTooltip />}
+              cursor={false}
+              contentStyle={{
+                backgroundColor: "rgba(10, 15, 25, 0.92)",
+                border: "1px solid rgba(168, 85, 247, 0.45)",
+                borderRadius: 10,
+                padding: "8px 12px",
+                boxShadow: "0 0 8px rgba(168, 85, 247, 0.4)"
+              }}
+              labelStyle={{ color: "#22d3ee", fontWeight: 600 }}
+              itemStyle={{ color: "#c084fc", fontWeight: 500 }}
               formatter={(value: number, name: string) => {
                 if (name === 'wsMinKg') return [value.toFixed(1), 'Min W/S (kg/m²)'];
                 if (name === 'wsMaxKg') return [value.toFixed(1), 'Max W/S (kg/m²)'];
@@ -461,19 +470,19 @@ export function WingLoadingGraphs({
               labelFormatter={(label) => `Mission: ${label}`}
             />
             {/* Removed transparent blueish ReferenceArea bands as requested */}
-            {/* Show center point as bar - refined styling with thinner bars and better hover */}
+            {/* Show center point as bar - refined styling with soft lavender hover */}
             <Bar 
               dataKey="wsCenter" 
               name="Center W/S" 
               fill="#a855f7"
-              opacity={0.7}
+              opacity={0.65}
               barSize={18}
-              radius={[8, 8, 8, 8]}
+              radius={[6, 6, 6, 6]}
               activeBar={{
-                fill: "#c4b5fd",
-                opacity: 0.95,
-                stroke: "#a855f7",
-                strokeWidth: 1,
+                fill: "#c084fc",
+                opacity: 0.9,
+                stroke: "#e9d5ff",
+                strokeWidth: 1.2,
               }}
             />
             {/* Reference line for current wing loading */}
