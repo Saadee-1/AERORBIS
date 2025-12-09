@@ -863,11 +863,13 @@ const WingLoadingCalculator = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None (Manual Entry)</SelectItem>
+                    <SelectItem value="smallRCUAV">{AIRCRAFT_PRESETS.smallRCUAV.name}</SelectItem>
                     <SelectItem value="cessna172">{AIRCRAFT_PRESETS.cessna172.name}</SelectItem>
                     <SelectItem value="ask21">{AIRCRAFT_PRESETS.ask21.name}</SelectItem>
                     <SelectItem value="stolBush">{AIRCRAFT_PRESETS.stolBush.name}</SelectItem>
-                    <SelectItem value="lightJetTrainer">{AIRCRAFT_PRESETS.lightJetTrainer.name}</SelectItem>
                     <SelectItem value="maleUAV">{AIRCRAFT_PRESETS.maleUAV.name}</SelectItem>
+                    <SelectItem value="narrowbodyAirliner">{AIRCRAFT_PRESETS.narrowbodyAirliner.name}</SelectItem>
+                    <SelectItem value="highPerfJet">{AIRCRAFT_PRESETS.highPerfJet.name}</SelectItem>
                   </SelectContent>
                 </Select>
               </AeroFormField>
