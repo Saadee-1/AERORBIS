@@ -63,10 +63,10 @@ interface WingLoadingGraphsProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
-        <p className="text-cyan-400 font-semibold mb-2">{`${label}`}</p>
+      <div className="bg-slate-800/95 backdrop-blur-sm border border-cyan-400/40 rounded-lg p-3 shadow-xl">
+        <p className="text-cyan-400 font-semibold mb-2 text-sm">{`${label}`}</p>
         {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-sm text-gray-300" style={{ color: entry.color }}>
+          <p key={index} className="text-sm text-gray-200 font-medium" style={{ color: entry.color }}>
             {`${entry.name}: ${entry.value.toFixed(2)} ${entry.unit || ''}`}
           </p>
         ))}
@@ -193,18 +193,20 @@ export function WingLoadingGraphs({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Graph #1: Wing Loading vs Stall Speed */}
-      <ChartCard
-        title="Wing Loading vs Stall Speed"
-        description="Relationship between wing loading and stall speed for current density and CL,max"
-        height={400}
-      >
+    <div className="space-y-6">
+      {/* Top Row: Two graphs side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Graph #1: Wing Loading vs Stall Speed */}
+        <ChartCard
+          title="Wing Loading vs Stall Speed"
+          description="Relationship between wing loading and stall speed"
+          height={380}
+        >
         {wsVsData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={380}>
             <LineChart
               data={wsVsData}
-              margin={{ top: 8, right: 12, bottom: 12, left: 12 }}
+              margin={{ top: 10, right: 20, bottom: 40, left: 60 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
@@ -236,20 +238,30 @@ export function WingLoadingGraphs({
               <Line
                 type="monotone"
                 dataKey="vsMs"
-                stroke="#06b6d4"
-                strokeWidth={2}
+                stroke="#22d3ee"
+                strokeWidth={2.5}
                 dot={false}
                 name="Stall Speed"
+                strokeOpacity={0.9}
               />
               {/* Highlight current design point */}
               {Number.isFinite(currentWsKgm2) && Number.isFinite(currentVsMs) && (
-                <ReferenceLine
-                  x={currentWsKgm2}
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  label={{ value: "Current Design", position: "top", fill: "#10b981", fontSize: 10 }}
-                />
+                <>
+                  <ReferenceLine
+                    x={currentWsKgm2}
+                    stroke="#10b981"
+                    strokeWidth={2.5}
+                    strokeDasharray="6 4"
+                    label={{ value: "Current Design", position: "top", fill: "#10b981", fontSize: 11, fontWeight: 600 }}
+                  />
+                  <ReferenceLine
+                    y={currentVsMs}
+                    stroke="#10b981"
+                    strokeWidth={2.5}
+                    strokeDasharray="6 4"
+                    label={{ value: `${currentVsMs.toFixed(1)} m/s`, position: "right", fill: "#10b981", fontSize: 11, fontWeight: 600 }}
+                  />
+                </>
               )}
             </LineChart>
           </ResponsiveContainer>
@@ -258,18 +270,18 @@ export function WingLoadingGraphs({
             <p>Calculate wing loading to view this graph</p>
           </div>
         )}
-      </ChartCard>
+        </ChartCard>
 
-      {/* Graph #2: Mission Envelope Wing Loading Bands */}
-      <ChartCard
-        title="Mission Wing Loading Envelopes"
-        description="Typical wing loading ranges for different mission types"
-        height={400}
-      >
-        <ResponsiveContainer width="100%" height={400}>
+        {/* Graph #2: Mission Envelope Wing Loading Bands */}
+        <ChartCard
+          title="Mission Wing Loading Envelopes"
+          description="Typical wing loading ranges for different mission types"
+          height={380}
+        >
+        <ResponsiveContainer width="100%" height={380}>
           <BarChart
             data={missionEnvelopeData}
-            margin={{ top: 8, right: 12, bottom: 12, left: 12 }}
+            margin={{ top: 10, right: 20, bottom: 40, left: 80 }}
             layout="vertical"
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -298,50 +310,62 @@ export function WingLoadingGraphs({
               }}
               labelFormatter={(label) => `Mission: ${label}`}
             />
+            {/* Draw range indicators using ReferenceArea for each mission */}
+            {missionEnvelopeData.map((entry, index) => {
+              const colors = [
+                'rgba(34, 211, 238, 0.25)', // cyan-400
+                'rgba(59, 130, 246, 0.25)', // blue-500
+                'rgba(34, 211, 238, 0.35)', // cyan-400 brighter
+                'rgba(59, 130, 246, 0.35)', // blue-500 brighter
+                'rgba(34, 211, 238, 0.45)', // cyan-400 brightest
+              ];
+              return (
+                <ReferenceArea
+                  key={`range-${entry.mission}`}
+                  y1={entry.mission}
+                  y2={entry.mission}
+                  x1={entry.wsMinKg}
+                  x2={entry.wsMaxKg}
+                  fill={colors[index % colors.length]}
+                  stroke="rgba(34, 211, 238, 0.6)"
+                  strokeWidth={1.5}
+                />
+              );
+            })}
             {/* Show center point as bar */}
-            <Bar dataKey="wsCenter" fill="#06b6d4" name="Center W/S" radius={[0, 4, 4, 0]}>
+            <Bar dataKey="wsCenter" fill="#22d3ee" name="Center W/S" radius={[0, 4, 4, 0]} stroke="#06b6d4" strokeWidth={1}>
               {missionEnvelopeData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={`rgba(6, 182, 212, ${0.6 + (index * 0.05)})`} />
+                <Cell key={`cell-${index}`} fill="#22d3ee" stroke="#06b6d4" />
               ))}
             </Bar>
-            {/* Draw range indicators using ReferenceArea for each mission */}
-            {missionEnvelopeData.map((entry, index) => (
-              <ReferenceArea
-                key={`range-${entry.mission}`}
-                y1={entry.mission}
-                y2={entry.mission}
-                x1={entry.wsMinKg}
-                x2={entry.wsMaxKg}
-                fill={`rgba(6, 182, 212, ${0.15 + (index * 0.05)})`}
-                stroke="rgba(6, 182, 212, 0.4)"
-                strokeWidth={1}
-              />
-            ))}
             {/* Reference line for current wing loading */}
             {Number.isFinite(currentWsKgm2) && (
               <ReferenceLine
                 x={currentWsKgm2}
                 stroke="#10b981"
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                label={{ value: "Current W/S", position: "top", fill: "#10b981", fontSize: 10 }}
+                strokeWidth={2.5}
+                strokeDasharray="6 4"
+                label={{ value: `Current: ${currentWsKgm2.toFixed(1)} kg/m²`, position: "top", fill: "#10b981", fontSize: 11, fontWeight: 600 }}
               />
             )}
           </BarChart>
         </ResponsiveContainer>
-      </ChartCard>
+        </ChartCard>
+      </div>
 
-      {/* Graph #3: Stall Speed vs Altitude (ISA) */}
-      <ChartCard
-        title="Stall Speed vs Altitude (ISA)"
-        description="Effect of altitude on stall speed for current aircraft configuration"
-        height={400}
-      >
+      {/* Bottom Row: Full width graph */}
+      <div className="w-full">
+        {/* Graph #3: Stall Speed vs Altitude (ISA) */}
+        <ChartCard
+          title="Stall Speed vs Altitude (ISA)"
+          description="Effect of altitude on stall speed for current aircraft configuration"
+          height={380}
+        >
         {altitudeData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={380}>
             <LineChart
               data={altitudeData}
-              margin={{ top: 8, right: 12, bottom: 12, left: 12 }}
+              margin={{ top: 10, right: 20, bottom: 40, left: 60 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
@@ -373,19 +397,20 @@ export function WingLoadingGraphs({
               <Line
                 type="monotone"
                 dataKey="vsMs"
-                stroke="#06b6d4"
-                strokeWidth={2}
+                stroke="#22d3ee"
+                strokeWidth={2.5}
                 dot={false}
                 name="Stall Speed"
+                strokeOpacity={0.9}
               />
               {/* Highlight current altitude if applicable */}
               {currentAltitudeFt !== null && (
                 <ReferenceLine
                   x={currentAltitudeFt}
                   stroke="#10b981"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  label={{ value: "Current Altitude", position: "top", fill: "#10b981", fontSize: 10 }}
+                  strokeWidth={2.5}
+                  strokeDasharray="6 4"
+                  label={{ value: `Current: ${currentAltitudeFt} ft`, position: "top", fill: "#10b981", fontSize: 11, fontWeight: 600 }}
                 />
               )}
             </LineChart>
@@ -400,7 +425,8 @@ export function WingLoadingGraphs({
             Custom density – altitude curve shows ISA standard only
           </p>
         )}
-      </ChartCard>
+        </ChartCard>
+      </div>
     </div>
   );
 }

@@ -1288,7 +1288,7 @@ const WingLoadingCalculator = () => {
         </div>
 
         {/* RIGHT COLUMN: RESULTS */}
-        <div>
+        <div className="space-y-6">
           <div className={spacingVertical.L}>
             {result ? (
               <>
@@ -1492,22 +1492,6 @@ const WingLoadingCalculator = () => {
                   </div>
                 </AeroCard>
                 
-                {/* Engineering Graphs */}
-                <WingLoadingGraphs
-                  currentWsKgm2={result.wingLoadingKgm2}
-                  currentVsMs={result.stallSpeedMs}
-                  currentVsKts={result.stallSpeedKts}
-                  weightN={result.weightN}
-                  wingAreaM2={result.weightN / (result.wingLoadingKgm2 * GRAVITY)}
-                  airDensity={currentAirDensity}
-                  clMax={currentClMax}
-                  missionType={missionType}
-                  missionData={missionData}
-                  airDensityMode={airDensityMode}
-                  airDensityPreset={airDensityPreset}
-                  airDensityAltitude={parseFloat(airDensityAltitude) || undefined}
-                />
-                
                 {/* Interpretation Card - Hidden in Beginner mode */}
                 {calculatorMode !== 'Beginner' && (
                 <AeroCard
@@ -1553,6 +1537,26 @@ const WingLoadingCalculator = () => {
           </div>
         </div>
       </ToolSection>
+
+      {/* Engineering Graphs - Full Width Section Below */}
+      {result && (
+        <div className="mt-8 px-4">
+          <WingLoadingGraphs
+            currentWsKgm2={result.wingLoadingKgm2}
+            currentVsMs={result.stallSpeedMs}
+            currentVsKts={result.stallSpeedKts}
+            weightN={result.weightN}
+            wingAreaM2={result.weightN / (result.wingLoadingKgm2 * GRAVITY)}
+            airDensity={currentAirDensity}
+            clMax={currentClMax}
+            missionType={missionType}
+            missionData={missionData}
+            airDensityMode={airDensityMode}
+            airDensityPreset={airDensityPreset}
+            airDensityAltitude={parseFloat(airDensityAltitude) || undefined}
+          />
+        </div>
+      )}
     </ToolWrapper>
   );
 };
