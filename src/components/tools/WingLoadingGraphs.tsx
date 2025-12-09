@@ -11,7 +11,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -25,15 +25,37 @@ import {
   BarChart,
   Bar,
   Cell,
+  Dot,
 } from "recharts";
-import { globalAxisTickStyle, globalAxisCommonProps, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
+import { globalAxisCommonProps, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { isaAtAltitudeFeet } from "./utils/isaAtmosphere";
+import * as htmlToImage from 'html-to-image';
+import { Button } from "@/components/ui/button";
 
 type MissionType = 'None' | 'UAV' | 'Trainer' | 'STOL' | 'Glider' | 'Jet';
 
 const GRAVITY = 9.81; // m/s²
 const KNOTS_TO_MS = 1.94384; // Conversion factor: 1 m/s = 1.94384 knots
+
+// High-contrast graph styling constants
+const GRAPH_STYLES = {
+  curveStroke: '#00eaff',
+  curveStrokeWidth: 2.8,
+  markerFill: '#ff4df0',
+  markerStroke: '#fff',
+  markerStrokeWidth: 1.4,
+  markerRadius: 5.5,
+  gridStroke: 'rgba(255,255,255,0.12)',
+  axisTickText: 'rgba(255,255,255,0.85)',
+  axisLabelText: '#fff',
+  referenceLineColor: '#00eaffaa',
+  referenceLineDash: '5 5',
+  referenceMarkerStroke: '#ff4df0',
+  referenceMarkerFill: '#ff4df0',
+  tooltipBg: 'rgba(20, 20, 20, 0.92)',
+  tooltipText: '#00eaff',
+} as const;
 
 interface WingLoadingGraphsProps {
   // Current calculation results
@@ -58,15 +80,23 @@ interface WingLoadingGraphsProps {
 }
 
 /**
- * Custom tooltip for wing loading graphs
+ * Custom tooltip for wing loading graphs with high-contrast styling
  */
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-800/95 backdrop-blur-sm border border-cyan-400/40 rounded-lg p-3 shadow-xl">
-        <p className="text-cyan-400 font-semibold mb-2 text-sm">{`${label}`}</p>
+      <div 
+        className="backdrop-blur-sm border rounded-lg p-3 shadow-xl"
+        style={{ 
+          backgroundColor: GRAPH_STYLES.tooltipBg,
+          borderColor: `${GRAPH_STYLES.tooltipText}40`
+        }}
+      >
+        <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
+          {`${label}`}
+        </p>
         {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-sm text-gray-200 font-medium" style={{ color: entry.color }}>
+          <p key={index} className="text-sm font-medium" style={{ color: entry.color || GRAPH_STYLES.tooltipText }}>
             {`${entry.name}: ${entry.value.toFixed(2)} ${entry.unit || ''}`}
           </p>
         ))}
@@ -75,6 +105,40 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   }
   return null;
 };
+
+/**
+ * High-contrast axis tick style
+ */
+const highContrastAxisTickStyle = {
+  fontSize: 10,
+  fill: GRAPH_STYLES.axisTickText,
+};
+
+/**
+ * High-contrast axis label style
+ */
+const makeHighContrastXAxisLabel = (text: string) => ({
+  value: text,
+  position: "insideBottom" as const,
+  offset: -2,
+  style: {
+    textAnchor: "middle" as const,
+    fontSize: 11,
+    fill: GRAPH_STYLES.axisLabelText,
+  },
+});
+
+const makeHighContrastYAxisLabel = (text: string) => ({
+  value: text,
+  angle: -90,
+  position: "insideLeft" as const,
+  offset: -4,
+  style: {
+    textAnchor: "middle" as const,
+    fontSize: 11,
+    fill: GRAPH_STYLES.axisLabelText,
+  },
+});
 
 export function WingLoadingGraphs({
   currentWsKgm2,
@@ -201,6 +265,56 @@ export function WingLoadingGraphs({
     );
   }
 
+  // Graph export handlers
+  const graph1Ref = useRef<HTMLDivElement>(null);
+  const graph2Ref = useRef<HTMLDivElement>(null);
+  const graph3Ref = useRef<HTMLDivElement>(null);
+
+  const handleSavePng = (graphRef: React.RefObject<HTMLDivElement>, title: string) => {
+    if (!graphRef.current) return;
+    htmlToImage.toPng(graphRef.current).then((dataUrl) => {
+      const link = document.createElement('a');
+      link.download = `${title.replace(/\s+/g, '_')}.png`;
+      link.href = dataUrl;
+      link.click();
+    }).catch((err) => {
+      console.error('PNG export error:', err);
+    });
+  };
+
+  const handleSaveSvg = (graphRef: React.RefObject<HTMLDivElement>, title: string) => {
+    if (!graphRef.current) return;
+    htmlToImage.toSvg(graphRef.current).then((dataUrl) => {
+      const link = document.createElement('a');
+      link.download = `${title.replace(/\s+/g, '_')}.svg`;
+      link.href = dataUrl;
+      link.click();
+    }).catch((err) => {
+      console.error('SVG export error:', err);
+    });
+  };
+
+  const ExportButtons = ({ graphRef, title }: { graphRef: React.RefObject<HTMLDivElement>; title: string }) => (
+    <div className="flex gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleSavePng(graphRef, title)}
+        className="h-7 px-2 text-xs border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10"
+      >
+        📥 PNG
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleSaveSvg(graphRef, title)}
+        className="h-7 px-2 text-xs border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10"
+      >
+        💾 SVG
+      </Button>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Top Row: Two graphs side by side */}
@@ -210,7 +324,280 @@ export function WingLoadingGraphs({
           title="Wing Loading vs Stall Speed"
           description="Relationship between wing loading and stall speed"
           height={380}
+          headerActions={<ExportButtons graphRef={graph1Ref} title="Wing_Loading_vs_Stall_Speed" />}
         >
+        <div ref={graph1Ref}>
+        {wsVsData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={380}>
+            <LineChart
+              data={wsVsData}
+              margin={{ top: 20, right: 30, bottom: 50, left: 70 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke={GRAPH_STYLES.gridStroke} />
+              <XAxis
+                dataKey="wsKg"
+                type="number"
+                {...globalAxisCommonProps}
+                tick={highContrastAxisTickStyle}
+                tickFormatter={(val) => val.toFixed(0)}
+                height={34}
+                label={makeHighContrastXAxisLabel("Wing Loading (kg/m²)")}
+                domain={[
+                  (dataMin: number) => Math.max(0, dataMin * 0.9),
+                  (dataMax: number) => dataMax * 1.1
+                ]}
+              />
+              <YAxis
+                {...globalAxisCommonProps}
+                tick={highContrastAxisTickStyle}
+                tickFormatter={(val) => val.toFixed(1)}
+                width={70}
+                label={makeHighContrastYAxisLabel("Stall Speed (m/s)")}
+                domain={[
+                  (dataMin: number) => Math.max(0, dataMin * 0.9),
+                  (dataMax: number) => dataMax * 1.1
+                ]}
+              />
+              <Tooltip
+                content={<CustomTooltip />}
+                formatter={(value: number, name: string) => {
+                  if (name === 'vsMs') {
+                    return [`${value.toFixed(2)} m/s (${(value * KNOTS_TO_MS).toFixed(1)} kts)`, 'Stall Speed'];
+                  }
+                  return [value.toFixed(2), name];
+                }}
+                labelFormatter={(label) => `W/S: ${label.toFixed(2)} kg/m²`}
+              />
+              <Line
+                type="monotone"
+                dataKey="vsMs"
+                stroke={GRAPH_STYLES.curveStroke}
+                strokeWidth={GRAPH_STYLES.curveStrokeWidth}
+                dot={false}
+                name="Stall Speed"
+              />
+              {/* Current design point marker */}
+              {Number.isFinite(currentWsKgm2) && Number.isFinite(currentVsMs) && (
+                <Dot
+                  x={currentWsKgm2}
+                  y={currentVsMs}
+                  r={GRAPH_STYLES.markerRadius}
+                  fill={GRAPH_STYLES.markerFill}
+                  stroke={GRAPH_STYLES.markerStroke}
+                  strokeWidth={GRAPH_STYLES.markerStrokeWidth}
+                />
+              )}
+              {/* Highlight current design point */}
+              {Number.isFinite(currentWsKgm2) && Number.isFinite(currentVsMs) && (
+                <>
+                  <ReferenceLine
+                    x={currentWsKgm2}
+                    stroke={GRAPH_STYLES.referenceLineColor}
+                    strokeWidth={2.5}
+                    strokeDasharray={GRAPH_STYLES.referenceLineDash}
+                    label={{ value: "Current", position: "insideTop", fill: GRAPH_STYLES.tooltipText, fontSize: 10, fontWeight: 600 }}
+                  />
+                  <ReferenceLine
+                    y={currentVsMs}
+                    stroke={GRAPH_STYLES.referenceLineColor}
+                    strokeWidth={2.5}
+                    strokeDasharray={GRAPH_STYLES.referenceLineDash}
+                    label={{ value: `${currentVsMs.toFixed(1)} m/s`, position: "insideRight", fill: GRAPH_STYLES.tooltipText, fontSize: 10, fontWeight: 600 }}
+                  />
+                </>
+              )}
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-400">
+            <p>Calculate wing loading to view this graph</p>
+          </div>
+        )}
+        </div>
+        </ChartCard>
+
+        {/* Graph #2: Mission Envelope Wing Loading Bands */}
+        <ChartCard
+          title="Mission Wing Loading Envelopes"
+          description="Typical wing loading ranges for different mission types"
+          height={380}
+          headerActions={<ExportButtons graphRef={graph2Ref} title="Mission_Wing_Loading_Envelopes" />}
+        >
+        <div ref={graph2Ref}>
+        <ResponsiveContainer width="100%" height={380}>
+          <BarChart
+            data={missionEnvelopeData}
+            margin={{ top: 20, right: 30, bottom: 50, left: 90 }}
+            layout="vertical"
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke={GRAPH_STYLES.gridStroke} />
+            <XAxis
+              type="number"
+              {...globalAxisCommonProps}
+              tick={highContrastAxisTickStyle}
+              tickFormatter={(val) => val.toFixed(0)}
+              height={34}
+              label={makeHighContrastXAxisLabel("Wing Loading (kg/m²)")}
+              domain={[0, (dataMax: number) => dataMax * 1.1]}
+            />
+            <YAxis
+              type="category"
+              dataKey="mission"
+              {...globalAxisCommonProps}
+              tick={highContrastAxisTickStyle}
+              width={90}
+            />
+            <Tooltip
+              content={<CustomTooltip />}
+              formatter={(value: number, name: string) => {
+                if (name === 'wsMinKg') return [value.toFixed(1), 'Min W/S (kg/m²)'];
+                if (name === 'wsMaxKg') return [value.toFixed(1), 'Max W/S (kg/m²)'];
+                if (name === 'wsCenter') return [value.toFixed(1), 'Center (kg/m²)'];
+                return [value.toFixed(1), name];
+              }}
+              labelFormatter={(label) => `Mission: ${label}`}
+            />
+            {/* Draw range indicators using ReferenceArea for each mission */}
+            {missionEnvelopeData.map((entry, index) => {
+              const colors = [
+                'rgba(34, 211, 238, 0.25)', // cyan-400
+                'rgba(59, 130, 246, 0.25)', // blue-500
+                'rgba(34, 211, 238, 0.35)', // cyan-400 brighter
+                'rgba(59, 130, 246, 0.35)', // blue-500 brighter
+                'rgba(34, 211, 238, 0.45)', // cyan-400 brightest
+              ];
+              return (
+                <ReferenceArea
+                  key={`range-${entry.mission}`}
+                  y1={entry.mission}
+                  y2={entry.mission}
+                  x1={entry.wsMinKg}
+                  x2={entry.wsMaxKg}
+                  fill={colors[index % colors.length]}
+                  stroke="rgba(34, 211, 238, 0.6)"
+                  strokeWidth={1.5}
+                />
+              );
+            })}
+            {/* Show center point as bar */}
+            <Bar dataKey="wsCenter" fill={GRAPH_STYLES.curveStroke} name="Center W/S" radius={[0, 4, 4, 0]} stroke={GRAPH_STYLES.curveStroke} strokeWidth={1}>
+              {missionEnvelopeData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={GRAPH_STYLES.curveStroke} stroke={GRAPH_STYLES.curveStroke} />
+              ))}
+            </Bar>
+            {/* Reference line for current wing loading */}
+            {Number.isFinite(currentWsKgm2) && (
+              <ReferenceLine
+                x={currentWsKgm2}
+                stroke={GRAPH_STYLES.referenceLineColor}
+                strokeWidth={2.5}
+                strokeDasharray={GRAPH_STYLES.referenceLineDash}
+                label={{ value: `Current: ${currentWsKgm2.toFixed(1)}`, position: "insideTop", fill: GRAPH_STYLES.tooltipText, fontSize: 10, fontWeight: 600 }}
+              />
+            )}
+          </BarChart>
+        </ResponsiveContainer>
+        </div>
+        </ChartCard>
+      </div>
+
+      {/* Bottom Row: Full width graph */}
+      <div className="w-full">
+        {/* Graph #3: Stall Speed vs Altitude (ISA) */}
+        <ChartCard
+          title="Stall Speed vs Altitude (ISA)"
+          description="Effect of altitude on stall speed for current aircraft configuration"
+          height={380}
+          headerActions={<ExportButtons graphRef={graph3Ref} title="Stall_Speed_vs_Altitude_ISA" />}
+        >
+        <div ref={graph3Ref}>
+        {altitudeData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={380}>
+            <LineChart
+              data={altitudeData}
+              margin={{ top: 20, right: 30, bottom: 50, left: 70 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke={GRAPH_STYLES.gridStroke} />
+              <XAxis
+                dataKey="altitudeFt"
+                type="number"
+                {...globalAxisCommonProps}
+                tick={highContrastAxisTickStyle}
+                tickFormatter={(val) => `${val.toFixed(0)}`}
+                height={34}
+                label={makeHighContrastXAxisLabel("Altitude (ft)")}
+                domain={[0, 15000]}
+              />
+              <YAxis
+                {...globalAxisCommonProps}
+                tick={highContrastAxisTickStyle}
+                tickFormatter={(val) => val.toFixed(1)}
+                width={70}
+                label={makeHighContrastYAxisLabel("Stall Speed (m/s)")}
+                domain={[
+                  (dataMin: number) => Math.max(0, dataMin * 0.9),
+                  (dataMax: number) => dataMax * 1.1
+                ]}
+              />
+              <Tooltip
+                content={<CustomTooltip />}
+                formatter={(value: number, name: string) => {
+                  if (name === 'vsMs') {
+                    return [`${value.toFixed(2)} m/s (${(value * KNOTS_TO_MS).toFixed(1)} kts)`, 'Stall Speed'];
+                  }
+                  return [value.toFixed(2), name];
+                }}
+                labelFormatter={(label) => `Altitude: ${label} ft`}
+              />
+              <Line
+                type="monotone"
+                dataKey="vsMs"
+                stroke={GRAPH_STYLES.curveStroke}
+                strokeWidth={GRAPH_STYLES.curveStrokeWidth}
+                dot={false}
+                name="Stall Speed"
+              />
+              {/* Highlight current altitude if applicable */}
+              {currentAltitudeFt !== null && (
+                <>
+                  <ReferenceLine
+                    x={currentAltitudeFt}
+                    stroke={GRAPH_STYLES.referenceLineColor}
+                    strokeWidth={2.5}
+                    strokeDasharray={GRAPH_STYLES.referenceLineDash}
+                    label={{ value: `Current: ${currentAltitudeFt} ft`, position: "insideTop", fill: GRAPH_STYLES.tooltipText, fontSize: 10, fontWeight: 600 }}
+                  />
+                  {/* Marker at current altitude */}
+                  {altitudeData.find(d => d.altitudeFt === currentAltitudeFt) && (
+                    <Dot
+                      x={currentAltitudeFt}
+                      y={altitudeData.find(d => d.altitudeFt === currentAltitudeFt)!.vsMs}
+                      r={GRAPH_STYLES.markerRadius}
+                      fill={GRAPH_STYLES.referenceMarkerFill}
+                      stroke={GRAPH_STYLES.referenceMarkerStroke}
+                      strokeWidth={GRAPH_STYLES.markerStrokeWidth}
+                    />
+                  )}
+                </>
+              )}
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-400">
+            <p>Calculate stall speed to view this graph</p>
+          </div>
+        )}
+        </div>
+        {airDensityMode === 'custom' && (
+          <p className="mt-2 text-xs text-amber-400 italic text-center">
+            Custom density – altitude curve shows ISA standard only
+          </p>
+        )}
+        </ChartCard>
+      </div>
+    </div>
+  );
+}
         {wsVsData.length > 0 ? (
           <ResponsiveContainer width="100%" height={380}>
             <LineChart
