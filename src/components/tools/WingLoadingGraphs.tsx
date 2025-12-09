@@ -576,10 +576,17 @@ export function WingLoadingGraphs({
                 <>
                   <ReferenceLine
                     x={currentAltitudeFt}
-                    stroke={GRAPH_STYLES.referenceLineColor}
+                    stroke="#fbbf24"
                     strokeWidth={2.5}
-                    strokeDasharray={GRAPH_STYLES.referenceLineDash}
-                    label={{ value: `Current: ${currentAltitudeFt} ft`, position: "insideTop", fill: GRAPH_STYLES.currentLabelColor, fontSize: 10, fontWeight: 600 }}
+                    strokeDasharray="6 6"
+                    label={{
+                      value: `Current: ${currentAltitudeFt.toFixed(0)} ft`,
+                      position: "top",
+                      fill: "#22d3ee",
+                      fontWeight: 600,
+                      fontSize: 12,
+                      textShadow: "0px 0px 6px rgba(34, 211, 238, 0.7)",
+                    }}
                   />
                   {/* Marker at current altitude */}
                   {altitudeData.find(d => d.altitudeFt === currentAltitudeFt) && (
