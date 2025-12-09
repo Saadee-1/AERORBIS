@@ -595,7 +595,10 @@ const WingLoadingCalculator = () => {
     setAircraftPreset(preset);
     if (preset !== 'none') {
       const aircraft = AIRCRAFT_PRESETS[preset];
-      setMissionType(aircraft.missionType);
+      // Only auto-change mission type if it's not set to 'None (Manual)'
+      if (missionType !== 'None') {
+        setMissionType(aircraft.missionType);
+      }
       
       // Convert to display units
       const massDisplay = convertMassFromSI(aircraft.mtowKg, unitSystem);
