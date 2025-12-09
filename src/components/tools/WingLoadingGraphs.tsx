@@ -40,7 +40,7 @@ const KNOTS_TO_MS = 1.94384; // Conversion factor: 1 m/s = 1.94384 knots
 
 // High-contrast graph styling constants
 const GRAPH_STYLES = {
-  curveStroke: '#00eaff',
+  curveStroke: '#ff4df0', // Changed to magenta/pink
   curveStrokeWidth: 2.8,
   markerFill: '#ff4df0',
   markerStroke: '#fff',
@@ -49,12 +49,15 @@ const GRAPH_STYLES = {
   gridStroke: 'rgba(255,255,255,0.12)',
   axisTickText: 'rgba(255,255,255,0.85)',
   axisLabelText: '#fff',
-  referenceLineColor: '#00eaffaa',
+  referenceLineColor: '#fbbf24', // Changed to amber/yellow for dotted lines
   referenceLineDash: '5 5',
   referenceMarkerStroke: '#ff4df0',
   referenceMarkerFill: '#ff4df0',
   tooltipBg: 'rgba(20, 20, 20, 0.92)',
   tooltipText: '#00eaff',
+  currentLabelColor: '#fbbf24', // Yellow for "Current" label
+  valueLabelColor: '#fbbf24', // Yellow for stall speed value labels
+  envelopeBarColor: '#8b5cf6', // Purple for mission envelope bars
 } as const;
 
 interface WingLoadingGraphsProps {
@@ -395,14 +398,14 @@ export function WingLoadingGraphs({
                     stroke={GRAPH_STYLES.referenceLineColor}
                     strokeWidth={2.5}
                     strokeDasharray={GRAPH_STYLES.referenceLineDash}
-                    label={{ value: "Current", position: "insideTop", fill: GRAPH_STYLES.tooltipText, fontSize: 10, fontWeight: 600 }}
+                    label={{ value: "Current", position: "insideTop", fill: GRAPH_STYLES.currentLabelColor, fontSize: 10, fontWeight: 600 }}
                   />
                   <ReferenceLine
                     y={currentVsMs}
                     stroke={GRAPH_STYLES.referenceLineColor}
                     strokeWidth={2.5}
                     strokeDasharray={GRAPH_STYLES.referenceLineDash}
-                    label={{ value: `${currentVsMs.toFixed(1)} m/s`, position: "insideRight", fill: GRAPH_STYLES.tooltipText, fontSize: 10, fontWeight: 600 }}
+                    label={{ value: `${currentVsMs.toFixed(1)} m/s`, position: "insideRight", fill: GRAPH_STYLES.valueLabelColor, fontSize: 10, fontWeight: 600 }}
                   />
                 </>
               )}
@@ -457,14 +460,14 @@ export function WingLoadingGraphs({
               }}
               labelFormatter={(label) => `Mission: ${label}`}
             />
-            {/* Draw range indicators using ReferenceArea for each mission */}
+            {/* Draw range indicators using ReferenceArea for each mission - smaller opacity */}
             {missionEnvelopeData.map((entry, index) => {
               const colors = [
-                'rgba(34, 211, 238, 0.25)', // cyan-400
-                'rgba(59, 130, 246, 0.25)', // blue-500
-                'rgba(34, 211, 238, 0.35)', // cyan-400 brighter
-                'rgba(59, 130, 246, 0.35)', // blue-500 brighter
-                'rgba(34, 211, 238, 0.45)', // cyan-400 brightest
+                'rgba(34, 211, 238, 0.12)', // cyan-400 - reduced opacity
+                'rgba(59, 130, 246, 0.12)', // blue-500 - reduced opacity
+                'rgba(34, 211, 238, 0.15)', // cyan-400 brighter - reduced opacity
+                'rgba(59, 130, 246, 0.15)', // blue-500 brighter - reduced opacity
+                'rgba(34, 211, 238, 0.18)', // cyan-400 brightest - reduced opacity
               ];
               return (
                 <ReferenceArea
@@ -474,15 +477,15 @@ export function WingLoadingGraphs({
                   x1={entry.wsMinKg}
                   x2={entry.wsMaxKg}
                   fill={colors[index % colors.length]}
-                  stroke="rgba(34, 211, 238, 0.6)"
-                  strokeWidth={1.5}
+                  stroke="rgba(34, 211, 238, 0.4)"
+                  strokeWidth={1.2}
                 />
               );
             })}
-            {/* Show center point as bar */}
-            <Bar dataKey="wsCenter" fill={GRAPH_STYLES.curveStroke} name="Center W/S" radius={[0, 4, 4, 0]} stroke={GRAPH_STYLES.curveStroke} strokeWidth={1}>
+            {/* Show center point as bar - different color */}
+            <Bar dataKey="wsCenter" fill={GRAPH_STYLES.envelopeBarColor} name="Center W/S" radius={[0, 4, 4, 0]} stroke={GRAPH_STYLES.envelopeBarColor} strokeWidth={1}>
               {missionEnvelopeData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={GRAPH_STYLES.curveStroke} stroke={GRAPH_STYLES.curveStroke} />
+                <Cell key={`cell-${index}`} fill={GRAPH_STYLES.envelopeBarColor} stroke={GRAPH_STYLES.envelopeBarColor} />
               ))}
             </Bar>
             {/* Reference line for current wing loading */}
@@ -492,7 +495,7 @@ export function WingLoadingGraphs({
                 stroke={GRAPH_STYLES.referenceLineColor}
                 strokeWidth={2.5}
                 strokeDasharray={GRAPH_STYLES.referenceLineDash}
-                label={{ value: `Current: ${currentWsKgm2.toFixed(1)}`, position: "insideTop", fill: GRAPH_STYLES.tooltipText, fontSize: 10, fontWeight: 600 }}
+                label={{ value: `Current: ${currentWsKgm2.toFixed(1)}`, position: "insideTop", fill: GRAPH_STYLES.currentLabelColor, fontSize: 10, fontWeight: 600 }}
               />
             )}
           </BarChart>
@@ -565,7 +568,7 @@ export function WingLoadingGraphs({
                     stroke={GRAPH_STYLES.referenceLineColor}
                     strokeWidth={2.5}
                     strokeDasharray={GRAPH_STYLES.referenceLineDash}
-                    label={{ value: `Current: ${currentAltitudeFt} ft`, position: "insideTop", fill: GRAPH_STYLES.tooltipText, fontSize: 10, fontWeight: 600 }}
+                    label={{ value: `Current: ${currentAltitudeFt} ft`, position: "insideTop", fill: GRAPH_STYLES.currentLabelColor, fontSize: 10, fontWeight: 600 }}
                   />
                   {/* Marker at current altitude */}
                   {altitudeData.find(d => d.altitudeFt === currentAltitudeFt) && (
