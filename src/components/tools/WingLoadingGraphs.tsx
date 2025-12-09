@@ -21,7 +21,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
-  ReferenceArea,
   BarChart,
   Bar,
   Cell,
@@ -83,7 +82,7 @@ interface WingLoadingGraphsProps {
 }
 
 /**
- * Custom tooltip for wing loading graphs with high-contrast styling
+ * Custom tooltip for wing loading graphs with mild gradient styling
  */
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -91,8 +90,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div 
         className="backdrop-blur-sm border rounded-lg p-3 shadow-xl"
         style={{ 
-          backgroundColor: GRAPH_STYLES.tooltipBg,
-          borderColor: `${GRAPH_STYLES.tooltipText}40`
+          background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 35, 0.92) 100%)',
+          borderColor: `${GRAPH_STYLES.tooltipText}30`
         }}
       >
         <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
@@ -460,28 +459,7 @@ export function WingLoadingGraphs({
               }}
               labelFormatter={(label) => `Mission: ${label}`}
             />
-            {/* Draw range indicators using ReferenceArea for each mission - smaller opacity */}
-            {missionEnvelopeData.map((entry, index) => {
-              const colors = [
-                'rgba(34, 211, 238, 0.12)', // cyan-400 - reduced opacity
-                'rgba(59, 130, 246, 0.12)', // blue-500 - reduced opacity
-                'rgba(34, 211, 238, 0.15)', // cyan-400 brighter - reduced opacity
-                'rgba(59, 130, 246, 0.15)', // blue-500 brighter - reduced opacity
-                'rgba(34, 211, 238, 0.18)', // cyan-400 brightest - reduced opacity
-              ];
-              return (
-                <ReferenceArea
-                  key={`range-${entry.mission}`}
-                  y1={entry.mission}
-                  y2={entry.mission}
-                  x1={entry.wsMinKg}
-                  x2={entry.wsMaxKg}
-                  fill={colors[index % colors.length]}
-                  stroke="rgba(34, 211, 238, 0.4)"
-                  strokeWidth={1.2}
-                />
-              );
-            })}
+            {/* Removed transparent blueish ReferenceArea bands as requested */}
             {/* Show center point as bar - different color, smaller size */}
             <Bar dataKey="wsCenter" fill={GRAPH_STYLES.envelopeBarColor} name="Center W/S" radius={[0, 4, 4, 0]} stroke={GRAPH_STYLES.envelopeBarColor} strokeWidth={1} barSize={24}>
               {missionEnvelopeData.map((entry, index) => (
