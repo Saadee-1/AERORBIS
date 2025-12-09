@@ -28,7 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Wind, Anchor } from "lucide-react";
+import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Wind, Anchor, Settings2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
@@ -81,7 +81,8 @@ import {
 // TYPES & CONSTANTS
 // ============================================================================
 
-type MissionType = 'UAV' | 'Trainer' | 'STOL' | 'Glider' | 'Jet';
+type MissionType = 'None' | 'UAV' | 'Trainer' | 'STOL' | 'Glider' | 'Jet';
+type CalculatorMode = 'Beginner' | 'University' | 'Expert';
 type WeightMode = 'mass' | 'weight';
 type WingLoadingClass = 'Very Low' | 'Low' | 'Within' | 'High' | 'Very High';
 type StallSpeedClass = 'Low' | 'Nominal' | 'High';
@@ -244,11 +245,19 @@ function msToKnots(ms: number): number {
 // CLASSIFICATION FUNCTIONS
 // ============================================================================
 
+// Helper to get mission data, using Trainer as default for 'None'
+function getMissionData(missionType: MissionType): MissionParams {
+  if (missionType === 'None') {
+    return missionData['Trainer']; // Use Trainer as default for calculations
+  }
+  return missionData[missionType];
+}
+
 /**
  * Classify wing loading based on mission type
  */
 function classifyWingLoading(wsKgm2: number, missionType: MissionType): WingLoadingClass {
-  const params = missionData[missionType];
+  const params = getMissionData(missionType);
   const lowLimit = 0.8 * params.wsMinKg;
   const highLimit = 1.2 * params.wsMaxKg;
   
@@ -263,7 +272,7 @@ function classifyWingLoading(wsKgm2: number, missionType: MissionType): WingLoad
  * Classify stall speed based on mission type
  */
 function classifyStallSpeed(vsMs: number, missionType: MissionType): StallSpeedClass {
-  const params = missionData[missionType];
+  const params = getMissionData(missionType);
   
   if (vsMs < params.vsMin) return 'Low';
   if (vsMs <= params.vsMax) return 'Nominal';
@@ -287,7 +296,7 @@ function generateInterpretation(
   clMax: number,
   clMaxIsOverridden: boolean = false
 ): { interpretation: string; regulatoryWarning?: string } {
-  const params = missionData[missionType];
+  const params = getMissionData(missionType);
   let interpretation = "";
   let regulatoryWarning: string | undefined;
   
@@ -434,6 +443,70 @@ function generateInterpretation(
   return { interpretation, regulatoryWarning };
 }
 
+/**
+ * Generate Best Use Case / Mission Fit recommendation
+ */
+function generateBestUseCase(
+  missionType: MissionType,
+  wsClass: WingLoadingClass,
+  vsClass: StallSpeedClass,
+  wsKgm2: number,
+  vsMs: number,
+  vsKts: number
+): string {
+  // If mission is None, provide general suggestions
+  if (missionType === 'None') {
+    if (wsClass === 'Very Low' || wsClass === 'Low') {
+      if (vsClass === 'Low' || vsClass === 'Nominal') {
+        return "This configuration is similar to STOL or slow UAV designs. Good for short takeoff/landing operations, training approach speeds, and low-speed surveillance missions.";
+      } else {
+        return "This configuration shows low wing loading but higher stall speed, suggesting a design optimized for low-speed operations with moderate approach speeds.";
+      }
+    } else if (wsClass === 'High' || wsClass === 'Very High') {
+      if (vsClass === 'High') {
+        return "This configuration is more suitable for Jet or high-speed cruise aircraft. Longer runway needed, typical of transport or regional jet designs.";
+      } else {
+        return "This configuration shows high wing loading with moderate stall speed, suggesting efficient cruise performance with reasonable approach characteristics.";
+      }
+    } else {
+      // Within range
+      if (vsClass === 'Low' || vsClass === 'Nominal') {
+        return "This configuration is similar to Trainer or STOL aircraft. Balanced design suitable for training, utility, or general aviation applications.";
+      } else {
+        return "This configuration shows moderate wing loading with higher stall speed, typical of advanced trainers or light utility aircraft.";
+      }
+    }
+  }
+  
+  // Mission-specific recommendations
+  const params = getMissionData(missionType);
+  const wsWithinRange = wsKgm2 >= params.wsMinKg && wsKgm2 <= params.wsMaxKg;
+  const vsWithinRange = vsMs >= params.vsMin && vsMs <= params.vsMax;
+  
+  if (wsWithinRange && vsWithinRange) {
+    return `Configuration aligns with ${missionType} standards. Wing loading and stall speed are within typical ranges for this mission type.`;
+  }
+  
+  // Mismatch cases
+  let mismatchReasons: string[] = [];
+  if (!wsWithinRange) {
+    if (wsKgm2 < params.wsMinKg) {
+      mismatchReasons.push("wing loading is below typical range");
+    } else {
+      mismatchReasons.push("wing loading exceeds typical range");
+    }
+  }
+  if (!vsWithinRange) {
+    if (vsMs < params.vsMin) {
+      mismatchReasons.push("stall speed is below typical range");
+    } else {
+      mismatchReasons.push("stall speed exceeds typical range");
+    }
+  }
+  
+  return `Not ideal for ${missionType} mission, due to ${mismatchReasons.join(' and ')}. Consider adjusting wing area, weight, or CL,max to better match ${missionType} requirements.`;
+}
+
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
@@ -445,6 +518,7 @@ const WingLoadingCalculator = () => {
   
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
+  const [calculatorMode, setCalculatorMode] = useState<CalculatorMode>('University');
   const [aircraftPreset, setAircraftPreset] = useState<AircraftPreset>('none');
   const [missionType, setMissionType] = useState<MissionType>('Trainer');
   const [weightMode, setWeightMode] = useState<WeightMode>('mass');
@@ -470,6 +544,7 @@ const WingLoadingCalculator = () => {
       try {
         const state = JSON.parse(stored);
         setUnitSystem(state.unitSystem || 'SI');
+        setCalculatorMode(state.calculatorMode || 'University');
         setAircraftPreset(state.aircraftPreset || 'none');
         setMissionType(state.missionType || 'Trainer');
         setWeightMode(state.weightMode || 'mass');
@@ -495,6 +570,7 @@ const WingLoadingCalculator = () => {
   useEffect(() => {
     const state = {
       unitSystem,
+      calculatorMode,
       aircraftPreset,
       missionType,
       weightMode,
@@ -512,7 +588,7 @@ const WingLoadingCalculator = () => {
       landingWeightFraction
     };
     localStorage.setItem("wingLoadingCalc_state", JSON.stringify(state));
-  }, [unitSystem, aircraftPreset, missionType, weightMode, massKg, weightN, wingAreaM2, airDensityMode, airDensityPreset, airDensityAltitude, airDensityDeltaT, airDensityCustom, clMaxOverride, useClMaxOverride, mtow, landingWeightFraction]);
+  }, [unitSystem, calculatorMode, aircraftPreset, missionType, weightMode, massKg, weightN, wingAreaM2, airDensityMode, airDensityPreset, airDensityAltitude, airDensityDeltaT, airDensityCustom, clMaxOverride, useClMaxOverride, mtow, landingWeightFraction]);
   
   // Handle aircraft preset selection
   const handleAircraftPresetChange = (preset: AircraftPreset) => {
@@ -554,11 +630,12 @@ const WingLoadingCalculator = () => {
   
   // Get CL,max for current mission type
   const currentClMax = useMemo(() => {
+    const missionParams = getMissionData(missionType);
     if (useClMaxOverride && clMaxOverride) {
       const override = parseFloat(clMaxOverride);
-      return isNaN(override) || override <= 0 ? missionData[missionType].clMax : override;
+      return isNaN(override) || override <= 0 ? missionParams.clMax : override;
     }
-    return missionData[missionType].clMax;
+    return missionParams.clMax;
   }, [missionType, useClMaxOverride, clMaxOverride]);
   
   const clMaxIsOverridden = useClMaxOverride && clMaxOverride && parseFloat(clMaxOverride) > 0;
@@ -669,10 +746,17 @@ const WingLoadingCalculator = () => {
       stepNum++;
       
       steps.push(`**Step ${stepNum}: Compare against mission envelope**`);
-      const params = missionData[missionType];
-      steps.push(`Typical ${missionType} wing loading: ${params.wsMinKg}–${params.wsMaxKg} kg/m²`);
+      if (missionType !== 'None') {
+        const params = getMissionData(missionType);
+        steps.push(`Typical ${missionType} wing loading: ${params.wsMinKg}–${params.wsMaxKg} kg/m²`);
+      } else {
+        steps.push(`Manual mode: No mission-specific ranges applied`);
+      }
       steps.push(`Current W/S: ${wsKgm2.toFixed(2)} kg/m² → Classification: ${wsClass}`);
-      steps.push(`Typical ${missionType} stall speed: ${params.vsMin}–${params.vsMax} m/s`);
+      if (missionType !== 'None') {
+        const params = getMissionData(missionType);
+        steps.push(`Typical ${missionType} stall speed: ${params.vsMin}–${params.vsMax} m/s`);
+      }
       steps.push(`Current V_s: ${vsMs.toFixed(2)} m/s → Classification: ${vsClass}`);
       
       const calculationResult: CalculationResult = {
@@ -787,7 +871,8 @@ const WingLoadingCalculator = () => {
   // Calculate position on mission envelope bar
   const getEnvelopePosition = (): number => {
     if (!result) return 0;
-    const params = missionData[missionType];
+    if (missionType === 'None') return 50; // Fallback for None
+    const params = getMissionData(missionType);
     const extendedMin = 0.8 * params.wsMinKg;
     const extendedMax = 1.2 * params.wsMaxKg;
     const extendedRange = extendedMax - extendedMin;
@@ -802,7 +887,8 @@ const WingLoadingCalculator = () => {
   
   // Calculate range bar position
   const getRangeBarPosition = (): { left: number; width: number } => {
-    const params = missionData[missionType];
+    if (missionType === 'None') return 50; // Fallback for None
+    const params = getMissionData(missionType);
     const extendedMin = 0.8 * params.wsMinKg;
     const extendedMax = 1.2 * params.wsMaxKg;
     const extendedRange = extendedMax - extendedMin;
@@ -896,6 +982,33 @@ const WingLoadingCalculator = () => {
               )}
             </AeroCard>
             
+            {/* Mode Selector */}
+            <AeroCard
+              title="Calculator Mode"
+              description="Select complexity level (calculations remain identical)"
+              icon={Settings2}
+            >
+              <AeroFormField label="Mode">
+                <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
+                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Beginner">Beginner</SelectItem>
+                    <SelectItem value="University">University</SelectItem>
+                    <SelectItem value="Expert">Expert</SelectItem>
+                  </SelectContent>
+                </Select>
+              </AeroFormField>
+              <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
+                <p className="text-xs text-gray-300">
+                  {calculatorMode === 'Beginner' && 'Simplified interface with essential features only.'}
+                  {calculatorMode === 'University' && 'Standard features with full functionality.'}
+                  {calculatorMode === 'Expert' && 'All features including advanced settings and ISA deviation.'}
+                </p>
+              </div>
+            </AeroCard>
+            
             {/* Mission Type Selection */}
             <AeroCard
               title="Mission Type"
@@ -903,7 +1016,10 @@ const WingLoadingCalculator = () => {
               icon={Plane}
             >
               <Tabs value={missionType} onValueChange={(v) => setMissionType(v as MissionType)}>
-                <TabsList className="w-full bg-slate-700/50 border border-cyan-400/30 grid grid-cols-5">
+                <TabsList className={`w-full bg-slate-700/50 border border-cyan-400/30 grid ${missionType === 'None' ? 'grid-cols-6' : 'grid-cols-6'}`}>
+                  <TabsTrigger value="None" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
+                    None (Manual)
+                  </TabsTrigger>
                   <TabsTrigger value="UAV" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
                     UAV
                   </TabsTrigger>
@@ -921,17 +1037,26 @@ const WingLoadingCalculator = () => {
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
-              <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                <p className="text-sm text-gray-300">
-                  <span className="text-cyan-400 font-semibold">CL,max:</span> {currentClMax.toFixed(2)}
-                </p>
-                <p className="text-sm text-gray-300 mt-1">
-                  <span className="text-cyan-400 font-semibold">Typical W/S:</span> {missionData[missionType].wsMinKg}–{missionData[missionType].wsMaxKg} kg/m²
-                </p>
-                <p className="text-sm text-gray-300 mt-1">
-                  <span className="text-cyan-400 font-semibold">Typical V_s:</span> {missionData[missionType].vsMin}–{missionData[missionType].vsMax} m/s
-                </p>
-              </div>
+              {missionType !== 'None' && (
+                <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <p className="text-sm text-gray-300">
+                    <span className="text-cyan-400 font-semibold">CL,max:</span> {currentClMax.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-300 mt-1">
+                    <span className="text-cyan-400 font-semibold">Typical W/S:</span> {getMissionData(missionType).wsMinKg}–{getMissionData(missionType).wsMaxKg} kg/m²
+                  </p>
+                  <p className="text-sm text-gray-300 mt-1">
+                    <span className="text-cyan-400 font-semibold">Typical V_s:</span> {getMissionData(missionType).vsMin}–{getMissionData(missionType).vsMax} m/s
+                  </p>
+                </div>
+              )}
+              {missionType === 'None' && (
+                <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <p className="text-sm text-gray-300">
+                    Mission-specific parameters will not auto-change. Use manual CL,max override if needed.
+                  </p>
+                </div>
+              )}
             </AeroCard>
 
             {/* Weight/Mass Input */}
@@ -1082,7 +1207,8 @@ const WingLoadingCalculator = () => {
                     </div>
             </AeroCard>
 
-            {/* Advanced Settings */}
+            {/* Advanced Settings - Hidden in Beginner mode */}
+            {(calculatorMode === 'University' || calculatorMode === 'Expert') && (
               <AeroCard
               title="Advanced Settings"
               description="Optional: CL,max override, MTOW, and landing weight analysis"
@@ -1103,14 +1229,14 @@ const WingLoadingCalculator = () => {
                       <Label className="text-sm text-gray-300">Override CL,max</Label>
                     </div>
                     {useClMaxOverride && (
-                      <AeroFormField label="User-specified CL,max" helperText={`Default: ${missionData[missionType].clMax.toFixed(2)} (${missionType})`}>
+                      <AeroFormField label="User-specified CL,max" helperText={`Default: ${getMissionData(missionType).clMax.toFixed(2)}${missionType !== 'None' ? ` (${missionType})` : ''}`}>
                       <Input 
                           type="number"
                           step="0.01"
                           value={clMaxOverride}
                           onChange={(e) => setClMaxOverride(e.target.value)}
                           className="bg-slate-900/50 border-cyan-400/30"
-                          placeholder={`e.g., ${missionData[missionType].clMax.toFixed(2)}`}
+                          placeholder={`e.g., ${getMissionData(missionType).clMax.toFixed(2)}`}
                         />
                       </AeroFormField>
                     )}
@@ -1128,7 +1254,7 @@ const WingLoadingCalculator = () => {
                           placeholder="Leave empty to skip"
                         />
                       </AeroFormField>
-                      {mtow && (
+                      {mtow && calculatorMode === 'Expert' && (
                         <AeroFormField label="Landing Weight Fraction" helperText="Fraction of MTOW (typical: 0.7)">
                           <Input
                             type="number"
@@ -1146,7 +1272,8 @@ const WingLoadingCalculator = () => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-              </AeroCard>
+            </AeroCard>
+            )}
             
             {/* Calculate Button */}
             <AeroButton
@@ -1244,7 +1371,7 @@ const WingLoadingCalculator = () => {
                     <p className="text-sm text-gray-300">
                       Typical <span className="text-cyan-400 font-semibold">{missionType}</span> wing loading:{" "}
                       <span className="text-cyan-400">
-                        {missionData[missionType].wsMinKg}–{missionData[missionType].wsMaxKg} kg/m²
+                        {missionType !== 'None' ? `${getMissionData(missionType).wsMinKg}–${getMissionData(missionType).wsMaxKg} kg/m²` : 'N/A (Manual mode)'}
                       </span>
                     </p>
                     <div className="relative h-12 bg-slate-700/50 rounded border border-cyan-400/30">
@@ -1297,8 +1424,12 @@ const WingLoadingCalculator = () => {
                       <div
                         className="absolute -top-6 left-0 right-0 flex justify-between text-xs text-gray-400"
                       >
-                        <span>{(0.8 * missionData[missionType].wsMinKg).toFixed(0)}</span>
-                        <span>{(1.2 * missionData[missionType].wsMaxKg).toFixed(0)}</span>
+                        {missionType !== 'None' && (
+                          <>
+                            <span>{(0.8 * getMissionData(missionType).wsMinKg).toFixed(0)}</span>
+                            <span>{(1.2 * getMissionData(missionType).wsMaxKg).toFixed(0)}</span>
+                          </>
+                        )}
             </div>
                       
                       {/* Example aircraft label */}
@@ -1343,7 +1474,27 @@ const WingLoadingCalculator = () => {
                   </AeroCard>
                 )}
                 
-                {/* Interpretation Card */}
+                {/* Best Use Case / Mission Fit Card */}
+                <AeroCard
+                  title="Best Use Case / Mission Fit"
+                  icon={TrendingUp}
+                >
+                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                    <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">
+                      {generateBestUseCase(
+                        missionType,
+                        result.wsClass,
+                        result.vsClass,
+                        result.wingLoadingKgm2,
+                        result.stallSpeedMs,
+                        result.stallSpeedKts
+                      )}
+                    </p>
+                  </div>
+                </AeroCard>
+                
+                {/* Interpretation Card - Hidden in Beginner mode */}
+                {calculatorMode !== 'Beginner' && (
                 <AeroCard
                   title="Engineering Interpretation"
                   icon={Info}
@@ -1354,6 +1505,7 @@ const WingLoadingCalculator = () => {
                     </p>
                   </div>
                 </AeroCard>
+                )}
                 
                 {/* Step-by-Step Solution */}
                 <AeroCard
