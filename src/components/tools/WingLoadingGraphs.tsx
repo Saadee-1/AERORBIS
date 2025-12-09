@@ -30,7 +30,7 @@ import {
 import { globalAxisCommonProps, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { isaAtAltitudeFeet } from "./utils/isaAtmosphere";
-import { toPng, toSvg } from 'html-to-image';
+import * as htmlToImage from 'html-to-image';
 import { Button } from "@/components/ui/button";
 
 type MissionType = 'None' | 'UAV' | 'Trainer' | 'STOL' | 'Glider' | 'Jet';
@@ -272,7 +272,7 @@ export function WingLoadingGraphs({
 
   const handleSavePng = (graphRef: React.RefObject<HTMLDivElement>, title: string) => {
     if (!graphRef.current) return;
-    toPng(graphRef.current).then((dataUrl) => {
+    htmlToImage.toPng(graphRef.current).then((dataUrl) => {
       const link = document.createElement('a');
       link.download = `${title.replace(/\s+/g, '_')}.png`;
       link.href = dataUrl;
@@ -284,7 +284,7 @@ export function WingLoadingGraphs({
 
   const handleSaveSvg = (graphRef: React.RefObject<HTMLDivElement>, title: string) => {
     if (!graphRef.current) return;
-    toSvg(graphRef.current).then((dataUrl) => {
+    htmlToImage.toSvg(graphRef.current).then((dataUrl) => {
       const link = document.createElement('a');
       link.download = `${title.replace(/\s+/g, '_')}.svg`;
       link.href = dataUrl;
