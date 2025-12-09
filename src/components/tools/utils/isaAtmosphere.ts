@@ -115,8 +115,12 @@ export function getPresetAltitude(preset: string): number {
       return feetToMeters(2000);
     case '5000 ft':
       return feetToMeters(5000);
+    case '8000 ft':
+      return feetToMeters(8000);
     case '10000 ft':
       return feetToMeters(10000);
+    case '15000 ft':
+      return feetToMeters(15000);
     default:
       return 0;
   }

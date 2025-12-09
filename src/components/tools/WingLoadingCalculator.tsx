@@ -7,9 +7,10 @@
  * and engineering interpretations.
  * 
  * Features:
+ * - Aircraft presets (Cessna 172, ASK 21, STOL bush plane, light jet trainer, MALE UAV)
  * - Mission type selection (UAV, Trainer, STOL, Glider, Jet)
  * - Mass/Weight input toggle
- * - Air density presets (ISA Sea Level, 2000ft, 5000ft, 10000ft, Custom)
+ * - Air density presets (ISA Sea Level, 2000ft, 5000ft, 8000ft, 10000ft, 15000ft, Custom)
  * - Wing loading classification (Very Low, Low, Within, High, Very High)
  * - Stall speed classification (Low, Nominal, High)
  * - Engineering-grade interpretations with trade-offs
@@ -85,7 +86,16 @@ type WeightMode = 'mass' | 'weight';
 type WingLoadingClass = 'Very Low' | 'Low' | 'Within' | 'High' | 'Very High';
 type StallSpeedClass = 'Low' | 'Nominal' | 'High';
 type AirDensityMode = 'preset' | 'altitude' | 'custom';
-type AirDensityPreset = 'ISA Sea Level' | '2000 ft' | '5000 ft' | '10000 ft';
+type AirDensityPreset = 'ISA Sea Level' | '2000 ft' | '5000 ft' | '8000 ft' | '10000 ft' | '15000 ft';
+type AircraftPreset = 'none' | 'cessna172' | 'ask21' | 'stolBush' | 'lightJetTrainer' | 'maleUAV';
+
+interface AircraftPresetData {
+  name: string;
+  missionType: MissionType;
+  mtowKg: number; // MTOW in kg (SI)
+  wingAreaM2: number; // Wing area in m² (SI)
+  description: string;
+}
 
 interface MissionParams {
   wsMinKg: number;
@@ -106,6 +116,45 @@ const missionData: Record<MissionType, MissionParams> = {
 const GRAVITY = 9.81; // m/s²
 const KNOTS_TO_MS = 1.94384; // Conversion factor: 1 m/s = 1.94384 knots
 const TRAINER_STALL_LIMIT_KTS = 61; // Typical limit for normal category trainer certification
+
+// Aircraft presets with realistic MTOW and wing area values
+const AIRCRAFT_PRESETS: Record<Exclude<AircraftPreset, 'none'>, AircraftPresetData> = {
+  cessna172: {
+    name: 'Cessna 172 Skyhawk',
+    missionType: 'Trainer',
+    mtowKg: 1157, // kg (2550 lb)
+    wingAreaM2: 16.2, // m² (174.5 ft²)
+    description: 'Popular trainer aircraft, W/S ~71 kg/m²'
+  },
+  ask21: {
+    name: 'ASK 21 Glider',
+    missionType: 'Glider',
+    mtowKg: 600, // kg (1323 lb)
+    wingAreaM2: 18.0, // m² (193.8 ft²)
+    description: 'Two-seat training glider, W/S ~33 kg/m²'
+  },
+  stolBush: {
+    name: 'STOL Bush Plane (Super Cub type)',
+    missionType: 'STOL',
+    mtowKg: 680, // kg (1500 lb)
+    wingAreaM2: 16.6, // m² (178.7 ft²)
+    description: 'Short takeoff/landing utility aircraft, W/S ~41 kg/m²'
+  },
+  lightJetTrainer: {
+    name: 'Light Jet Trainer (T-38 type)',
+    missionType: 'Jet',
+    mtowKg: 5488, // kg (12100 lb)
+    wingAreaM2: 15.79, // m² (170 ft²)
+    description: 'Supersonic jet trainer, W/S ~347 kg/m²'
+  },
+  maleUAV: {
+    name: 'MALE UAV (Predator type)',
+    missionType: 'UAV',
+    mtowKg: 1020, // kg (2250 lb)
+    wingAreaM2: 55.0, // m² (592 ft²)
+    description: 'Medium-altitude long-endurance UAV, W/S ~18.5 kg/m²'
+  }
+};
 
 // Example aircraft reference zones (approximate, for visual reference only)
 const EXAMPLE_AIRCRAFT = {
@@ -382,6 +431,7 @@ const WingLoadingCalculator = () => {
   
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
+  const [aircraftPreset, setAircraftPreset] = useState<AircraftPreset>('none');
   const [missionType, setMissionType] = useState<MissionType>('Trainer');
   const [weightMode, setWeightMode] = useState<WeightMode>('mass');
   const [massKg, setMassKg] = useState<string>("");
@@ -406,6 +456,7 @@ const WingLoadingCalculator = () => {
       try {
         const state = JSON.parse(stored);
         setUnitSystem(state.unitSystem || 'SI');
+        setAircraftPreset(state.aircraftPreset || 'none');
         setMissionType(state.missionType || 'Trainer');
         setWeightMode(state.weightMode || 'mass');
         setMassKg(state.massKg || "");
@@ -430,6 +481,7 @@ const WingLoadingCalculator = () => {
   useEffect(() => {
     const state = {
       unitSystem,
+      aircraftPreset,
       missionType,
       weightMode,
       massKg,
@@ -446,7 +498,24 @@ const WingLoadingCalculator = () => {
       landingWeightFraction
     };
     localStorage.setItem("wingLoadingCalc_state", JSON.stringify(state));
-  }, [unitSystem, missionType, weightMode, massKg, weightN, wingAreaM2, airDensityMode, airDensityPreset, airDensityAltitude, airDensityDeltaT, airDensityCustom, clMaxOverride, useClMaxOverride, mtow, landingWeightFraction]);
+  }, [unitSystem, aircraftPreset, missionType, weightMode, massKg, weightN, wingAreaM2, airDensityMode, airDensityPreset, airDensityAltitude, airDensityDeltaT, airDensityCustom, clMaxOverride, useClMaxOverride, mtow, landingWeightFraction]);
+  
+  // Handle aircraft preset selection
+  const handleAircraftPresetChange = (preset: AircraftPreset) => {
+    setAircraftPreset(preset);
+    if (preset !== 'none') {
+      const aircraft = AIRCRAFT_PRESETS[preset];
+      setMissionType(aircraft.missionType);
+      
+      // Convert to display units
+      const massDisplay = convertMassFromSI(aircraft.mtowKg, unitSystem);
+      const areaDisplay = convertAreaFromSI(aircraft.wingAreaM2, unitSystem);
+      
+      setMassKg(massDisplay.toFixed(2));
+      setWeightN(""); // Clear weight if in mass mode
+      setWingAreaM2(areaDisplay.toFixed(2));
+    }
+  };
   
   // Get current air density
   const currentAirDensity = useMemo(() => {
@@ -674,6 +743,7 @@ const WingLoadingCalculator = () => {
   };
   
   const handleReset = () => {
+    setAircraftPreset('none');
     setMassKg("");
     setWeightN("");
     setWingAreaM2("");
@@ -780,6 +850,36 @@ const WingLoadingCalculator = () => {
         {/* LEFT COLUMN: INPUTS */}
         <div>
           <div className={spacingVertical.L}>
+            {/* Aircraft Preset Selection */}
+            <AeroCard
+              title="Aircraft Preset"
+              description="Select a real-world aircraft to auto-fill mission type, mass, and wing area"
+              icon={Plane}
+            >
+              <AeroFormField label="Aircraft Preset">
+                <Select value={aircraftPreset} onValueChange={(v) => handleAircraftPresetChange(v as AircraftPreset)}>
+                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectValue placeholder="Select aircraft preset (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Manual Entry)</SelectItem>
+                    <SelectItem value="cessna172">{AIRCRAFT_PRESETS.cessna172.name}</SelectItem>
+                    <SelectItem value="ask21">{AIRCRAFT_PRESETS.ask21.name}</SelectItem>
+                    <SelectItem value="stolBush">{AIRCRAFT_PRESETS.stolBush.name}</SelectItem>
+                    <SelectItem value="lightJetTrainer">{AIRCRAFT_PRESETS.lightJetTrainer.name}</SelectItem>
+                    <SelectItem value="maleUAV">{AIRCRAFT_PRESETS.maleUAV.name}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </AeroFormField>
+              {aircraftPreset !== 'none' && (
+                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
+                  <p className="text-xs text-gray-300">
+                    {AIRCRAFT_PRESETS[aircraftPreset].description}
+                  </p>
+                </div>
+              )}
+            </AeroCard>
+            
             {/* Mission Type Selection */}
             <AeroCard
               title="Mission Type"
@@ -903,12 +1003,14 @@ const WingLoadingCalculator = () => {
                     <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ISA Sea Level">ISA Sea Level</SelectItem>
-                      <SelectItem value="2000 ft">2000 ft</SelectItem>
-                      <SelectItem value="5000 ft">5000 ft</SelectItem>
-                      <SelectItem value="10000 ft">10000 ft</SelectItem>
-                    </SelectContent>
+                  <SelectContent>
+                    <SelectItem value="ISA Sea Level">ISA Sea Level (0 ft)</SelectItem>
+                    <SelectItem value="2000 ft">2000 ft</SelectItem>
+                    <SelectItem value="5000 ft">5000 ft</SelectItem>
+                    <SelectItem value="8000 ft">8000 ft</SelectItem>
+                    <SelectItem value="10000 ft">10000 ft</SelectItem>
+                    <SelectItem value="15000 ft">15000 ft</SelectItem>
+                  </SelectContent>
                   </Select>
                 </AeroFormField>
               )}
