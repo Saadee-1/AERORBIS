@@ -105,6 +105,9 @@ export function WingLoadingGraphs({
   }, [weightN, wingAreaM2, airDensity, clMax]);
 
   // Graph #1: Wing Loading vs Stall Speed
+  // Formula: Vs = sqrt( (2 * (W/S)_N) / (rho * CL_max) )
+  // where (W/S)_N = (W/S)_kg * g, and we don't need S separately
+  // Units: wsKg in kg/m², wsNm2 in N/m², airDensity in kg/m³, vsMs in m/s
   const wsVsData = useMemo(() => {
     if (!hasValidData || !Number.isFinite(currentWsKgm2) || currentWsKgm2 <= 0) {
       return [];
@@ -116,10 +119,12 @@ export function WingLoadingGraphs({
     const data: Array<{ wsKg: number; vsMs: number; vsKts: number }> = [];
 
     for (let i = 0; i <= numPoints; i++) {
-      const wsKg = minWs + (maxWs - minWs) * (i / numPoints);
-      const wsNm2 = wsKg * GRAVITY;
-      const vsMs = Math.sqrt((2 * wsNm2) / (airDensity * clMax));
-      const vsKts = vsMs * KNOTS_TO_MS;
+      const wsKg = minWs + (maxWs - minWs) * (i / numPoints); // kg/m²
+      const wsNm2 = wsKg * GRAVITY; // Convert to N/m²: (kg/m²) * (m/s²) = N/m²
+      // Vs = sqrt( (2 * (W/S)_N) / (rho * CL_max) )
+      // No S needed here - W/S already accounts for it
+      const vsMs = Math.sqrt((2 * wsNm2) / (airDensity * clMax)); // m/s
+      const vsKts = vsMs * KNOTS_TO_MS; // knots
       data.push({ wsKg, vsMs, vsKts });
     }
 
@@ -146,18 +151,22 @@ export function WingLoadingGraphs({
   }, [missionData]);
 
   // Graph #3: Stall Speed vs Altitude (ISA)
+  // Formula: Vs(h) = sqrt( (2 * W) / (rho(h) * S * CL_max) )
+  // Units: weightN in N (newtons), density in kg/m³, wingAreaM2 in m², vsMs in m/s
   const altitudeData = useMemo(() => {
     if (!hasValidData) {
       return [];
     }
 
-    const altitudes = [0, 2000, 5000, 8000, 10000, 12000, 15000];
+    const altitudes = [0, 2000, 5000, 8000, 10000, 12000, 15000]; // ft
     const data: Array<{ altitudeFt: number; vsMs: number; vsKts: number }> = [];
 
     for (const altFt of altitudes) {
-      const { density } = isaAtAltitudeFeet(altFt);
-      const vsMs = Math.sqrt((2 * weightN) / (density * wingAreaM2 * clMax));
-      const vsKts = vsMs * KNOTS_TO_MS;
+      const { density } = isaAtAltitudeFeet(altFt); // density in kg/m³
+      // Vs = sqrt( (2 * W) / (rho * S * CL_max) )
+      // weightN is in N (newtons), not kg
+      const vsMs = Math.sqrt((2 * weightN) / (density * wingAreaM2 * clMax)); // m/s
+      const vsKts = vsMs * KNOTS_TO_MS; // knots
       data.push({ altitudeFt: altFt, vsMs, vsKts });
     }
 
@@ -206,7 +215,7 @@ export function WingLoadingGraphs({
           <ResponsiveContainer width="100%" height={380}>
             <LineChart
               data={wsVsData}
-              margin={{ top: 10, right: 20, bottom: 40, left: 60 }}
+              margin={{ top: 20, right: 30, bottom: 50, left: 70 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
@@ -217,13 +226,21 @@ export function WingLoadingGraphs({
                 tickFormatter={(val) => val.toFixed(0)}
                 height={34}
                 label={makeXAxisLabel("Wing Loading (kg/m²)")}
+                domain={[
+                  (dataMin: number) => Math.max(0, dataMin * 0.9),
+                  (dataMax: number) => dataMax * 1.1
+                ]}
               />
               <YAxis
                 {...globalAxisCommonProps}
                 tick={globalAxisTickStyle}
                 tickFormatter={(val) => val.toFixed(1)}
-                width={62}
+                width={70}
                 label={makeYAxisLabel("Stall Speed (m/s)")}
+                domain={[
+                  (dataMin: number) => Math.max(0, dataMin * 0.9),
+                  (dataMax: number) => dataMax * 1.1
+                ]}
               />
               <Tooltip
                 content={<CustomTooltip />}
@@ -252,14 +269,14 @@ export function WingLoadingGraphs({
                     stroke="#10b981"
                     strokeWidth={2.5}
                     strokeDasharray="6 4"
-                    label={{ value: "Current Design", position: "top", fill: "#10b981", fontSize: 11, fontWeight: 600 }}
+                    label={{ value: "Current", position: "insideTop", fill: "#10b981", fontSize: 10, fontWeight: 600 }}
                   />
                   <ReferenceLine
                     y={currentVsMs}
                     stroke="#10b981"
                     strokeWidth={2.5}
                     strokeDasharray="6 4"
-                    label={{ value: `${currentVsMs.toFixed(1)} m/s`, position: "right", fill: "#10b981", fontSize: 11, fontWeight: 600 }}
+                    label={{ value: `${currentVsMs.toFixed(1)} m/s`, position: "insideRight", fill: "#10b981", fontSize: 10, fontWeight: 600 }}
                   />
                 </>
               )}
@@ -281,7 +298,7 @@ export function WingLoadingGraphs({
         <ResponsiveContainer width="100%" height={380}>
           <BarChart
             data={missionEnvelopeData}
-            margin={{ top: 10, right: 20, bottom: 40, left: 80 }}
+            margin={{ top: 20, right: 30, bottom: 50, left: 90 }}
             layout="vertical"
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -292,13 +309,14 @@ export function WingLoadingGraphs({
               tickFormatter={(val) => val.toFixed(0)}
               height={34}
               label={makeXAxisLabel("Wing Loading (kg/m²)")}
+              domain={[0, (dataMax: number) => dataMax * 1.1]}
             />
             <YAxis
               type="category"
               dataKey="mission"
               {...globalAxisCommonProps}
               tick={globalAxisTickStyle}
-              width={80}
+              width={90}
             />
             <Tooltip
               content={<CustomTooltip />}
@@ -345,7 +363,7 @@ export function WingLoadingGraphs({
                 stroke="#10b981"
                 strokeWidth={2.5}
                 strokeDasharray="6 4"
-                label={{ value: `Current: ${currentWsKgm2.toFixed(1)} kg/m²`, position: "top", fill: "#10b981", fontSize: 11, fontWeight: 600 }}
+                label={{ value: `Current: ${currentWsKgm2.toFixed(1)}`, position: "insideTop", fill: "#10b981", fontSize: 10, fontWeight: 600 }}
               />
             )}
           </BarChart>
@@ -365,7 +383,7 @@ export function WingLoadingGraphs({
           <ResponsiveContainer width="100%" height={380}>
             <LineChart
               data={altitudeData}
-              margin={{ top: 10, right: 20, bottom: 40, left: 60 }}
+              margin={{ top: 20, right: 30, bottom: 50, left: 70 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis
@@ -376,13 +394,18 @@ export function WingLoadingGraphs({
                 tickFormatter={(val) => `${val.toFixed(0)}`}
                 height={34}
                 label={makeXAxisLabel("Altitude (ft)")}
+                domain={[0, 15000]}
               />
               <YAxis
                 {...globalAxisCommonProps}
                 tick={globalAxisTickStyle}
                 tickFormatter={(val) => val.toFixed(1)}
-                width={62}
+                width={70}
                 label={makeYAxisLabel("Stall Speed (m/s)")}
+                domain={[
+                  (dataMin: number) => Math.max(0, dataMin * 0.9),
+                  (dataMax: number) => dataMax * 1.1
+                ]}
               />
               <Tooltip
                 content={<CustomTooltip />}
@@ -410,7 +433,7 @@ export function WingLoadingGraphs({
                   stroke="#10b981"
                   strokeWidth={2.5}
                   strokeDasharray="6 4"
-                  label={{ value: `Current: ${currentAltitudeFt} ft`, position: "top", fill: "#10b981", fontSize: 11, fontWeight: 600 }}
+                  label={{ value: `Current: ${currentAltitudeFt} ft`, position: "insideTop", fill: "#10b981", fontSize: 10, fontWeight: 600 }}
                 />
               )}
             </LineChart>
