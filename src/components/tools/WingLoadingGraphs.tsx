@@ -431,6 +431,7 @@ export function WingLoadingGraphs({
             data={missionEnvelopeData}
             margin={{ top: 20, right: 30, bottom: 50, left: 90 }}
             layout="vertical"
+            barCategoryGap="20%"
           >
             <CartesianGrid strokeDasharray="3 3" stroke={GRAPH_STYLES.gridStroke} />
             <XAxis
@@ -460,12 +461,21 @@ export function WingLoadingGraphs({
               labelFormatter={(label) => `Mission: ${label}`}
             />
             {/* Removed transparent blueish ReferenceArea bands as requested */}
-            {/* Show center point as bar - different color, smaller size */}
-            <Bar dataKey="wsCenter" fill={GRAPH_STYLES.envelopeBarColor} name="Center W/S" radius={[0, 4, 4, 0]} stroke={GRAPH_STYLES.envelopeBarColor} strokeWidth={1} barSize={24}>
-              {missionEnvelopeData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={GRAPH_STYLES.envelopeBarColor} stroke={GRAPH_STYLES.envelopeBarColor} />
-              ))}
-            </Bar>
+            {/* Show center point as bar - refined styling with thinner bars and better hover */}
+            <Bar 
+              dataKey="wsCenter" 
+              name="Center W/S" 
+              fill="#a855f7"
+              opacity={0.7}
+              barSize={18}
+              radius={[8, 8, 8, 8]}
+              activeBar={{
+                fill: "#c4b5fd",
+                opacity: 0.95,
+                stroke: "#a855f7",
+                strokeWidth: 1,
+              }}
+            />
             {/* Reference line for current wing loading */}
             {Number.isFinite(currentWsKgm2) && (
               <ReferenceLine
