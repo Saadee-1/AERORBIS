@@ -58,7 +58,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
-import { calculateISADensity, getPresetAltitude, feetToMeters, metersToFeet } from "./utils/isaAtmosphere";
+import { calculateISADensity, getPresetAltitude, feetToMeters, metersToFeet } from "../utils/isaAtmosphere";
 import {
   UnitSystem,
   convertMassToSI,
@@ -74,7 +74,7 @@ import {
   convertVelocityFromSI,
   getInputUnits,
   getOutputUnits
-} from "./utils/unitConversions";
+} from "../utils/unitConversions";
 
 // ============================================================================
 // TYPES & CONSTANTS

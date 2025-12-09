@@ -30,17 +30,20 @@ export async function recommendAirfoils(
       return aiResult.recommendations;
     }
     
-    // Log one concise warning about the failure
-    console.warn("[Smart AI] Disabled or failed, falling back to Engineering:", aiResult.reason, aiResult.detail);
-    
-    // Fall back to engineering mode
-    const engineeringResult = await recommendWithLocalScoring(missionId, "engineering");
-    // Attach Smart AI error info to the result so UI can display it
-    engineeringResult.smartAiError = {
-      reason: aiResult.reason,
-      detail: aiResult.detail,
-    };
-    return engineeringResult;
+    // TypeScript narrowing: aiResult.ok is false here
+    if (!aiResult.ok) {
+      // Log one concise warning about the failure
+      console.warn("[Smart AI] Disabled or failed, falling back to Engineering:", aiResult.reason, aiResult.detail);
+      
+      // Fall back to engineering mode
+      const engineeringResult = await recommendWithLocalScoring(missionId, "engineering");
+      // Attach Smart AI error info to the result so UI can display it
+      engineeringResult.smartAiError = {
+        reason: aiResult.reason,
+        detail: aiResult.detail,
+      };
+      return engineeringResult;
+    }
   }
 
   return recommendWithLocalScoring(missionId, "engineering");
@@ -523,8 +526,12 @@ No extra text, no commentary, only the JSON object.`;
     const geminiResult = await callGeminiJSON(prompt);
     
     if (!geminiResult.ok) {
-      // Return the error from Gemini client
-      return geminiResult;
+      // Map GeminiResult error to SmartAiResult error
+      return {
+        ok: false,
+        reason: geminiResult.reason,
+        detail: geminiResult.detail,
+      };
     }
 
     // Parse the JSON response

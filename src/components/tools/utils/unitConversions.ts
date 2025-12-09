@@ -1,48 +1,87 @@
 /**
- * Unit Conversion Utilities for Wing Loading Calculator
+ * Unit Conversion Utilities
  * 
- * Handles conversions between SI and Imperial units
- * All calculations are performed in SI internally
+ * Pure conversion functions for SI and Imperial units.
+ * Used by Wing Loading Calculator and other tools.
  */
 
 export type UnitSystem = 'SI' | 'Imperial';
 
-// Conversion factors (to SI)
-const CONVERSIONS = {
-  // Mass
-  lbToKg: 0.453592,
-  kgToLb: 1 / 0.453592,
-  
-  // Weight/Force
-  lbfToN: 4.44822,
-  nToLbf: 1 / 4.44822,
-  
-  // Area
-  ft2ToM2: 0.092903,
-  m2ToFt2: 1 / 0.092903,
-  
-  // Length
-  ftToM: 0.3048,
-  mToFt: 1 / 0.3048,
-  
-  // Velocity
-  ktsToMs: 0.514444,
-  msToKts: 1 / 0.514444,
-  
-  // Wing Loading
-  lbFt2ToKgM2: 4.88243, // 1 lb/ft² = 4.88243 kg/m²
-  kgM2ToLbFt2: 1 / 4.88243,
-  
-  lbFt2ToNm2: 47.8803, // 1 lb/ft² = 47.8803 N/m²
-  nm2ToLbFt2: 1 / 47.8803,
-};
+// Mass conversions
+export function kgToLb(kg: number): number {
+  return kg * 2.2046226218;
+}
+
+export function lbToKg(lb: number): number {
+  return lb / 2.2046226218;
+}
+
+// Area conversions
+export function m2ToFt2(m2: number): number {
+  return m2 * 10.7639104167;
+}
+
+export function ft2ToM2(ft2: number): number {
+  return ft2 / 10.7639104167;
+}
+
+// Force/Weight conversions
+export function nToLbf(n: number): number {
+  return n / 4.44822;
+}
+
+export function lbfToN(lbf: number): number {
+  return lbf * 4.44822;
+}
+
+// Wing loading: N/m^2 <-> lbf/ft^2
+export function nPerM2ToLbPerFt2(nPerM2: number): number {
+  // 1 N/m^2 ≈ 0.020885434233150127 lbf/ft^2
+  return nPerM2 * 0.0208854342;
+}
+
+export function lbPerFt2ToNPerM2(lbPerFt2: number): number {
+  return lbPerFt2 / 0.0208854342;
+}
+
+// Wing loading: kg/m^2 <-> lb/ft^2
+export function kgPerM2ToLbPerFt2(kgPerM2: number): number {
+  // 1 kg/m^2 = 0.204816143622521 lb/ft^2
+  return kgPerM2 * 0.2048161436;
+}
+
+export function lbPerFt2ToKgPerM2(lbPerFt2: number): number {
+  return lbPerFt2 / 0.2048161436;
+}
+
+// Velocity conversions
+export function mpsToKts(v: number): number {
+  return v * 1.94384;
+}
+
+export function ktsToMps(vKts: number): number {
+  return vKts / 1.94384;
+}
+
+// Length conversions
+export function mToFt(m: number): number {
+  return m / 0.3048;
+}
+
+export function ftToM(ft: number): number {
+  return ft * 0.3048;
+}
+
+// ============================================================================
+// Wing Loading Calculator specific conversion functions
+// ============================================================================
 
 /**
  * Convert mass from input unit system to SI (kg)
  */
 export function convertMassToSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.lbToKg;
+    return lbToKg(value);
   }
   return value; // Already in kg
 }
@@ -52,7 +91,7 @@ export function convertMassToSI(value: number, unitSystem: UnitSystem): number {
  */
 export function convertMassFromSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.kgToLb;
+    return kgToLb(value);
   }
   return value; // Already in kg
 }
@@ -62,7 +101,7 @@ export function convertMassFromSI(value: number, unitSystem: UnitSystem): number
  */
 export function convertWeightToSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.lbfToN;
+    return lbfToN(value);
   }
   return value; // Already in N
 }
@@ -72,7 +111,7 @@ export function convertWeightToSI(value: number, unitSystem: UnitSystem): number
  */
 export function convertWeightFromSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.nToLbf;
+    return nToLbf(value);
   }
   return value; // Already in N
 }
@@ -82,7 +121,7 @@ export function convertWeightFromSI(value: number, unitSystem: UnitSystem): numb
  */
 export function convertAreaToSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.ft2ToM2;
+    return ft2ToM2(value);
   }
   return value; // Already in m²
 }
@@ -92,7 +131,7 @@ export function convertAreaToSI(value: number, unitSystem: UnitSystem): number {
  */
 export function convertAreaFromSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.m2ToFt2;
+    return m2ToFt2(value);
   }
   return value; // Already in m²
 }
@@ -102,7 +141,7 @@ export function convertAreaFromSI(value: number, unitSystem: UnitSystem): number
  */
 export function convertAltitudeToSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.ftToM;
+    return ftToM(value);
   }
   return value; // Already in m
 }
@@ -112,7 +151,7 @@ export function convertAltitudeToSI(value: number, unitSystem: UnitSystem): numb
  */
 export function convertAltitudeFromSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.mToFt;
+    return mToFt(value);
   }
   return value; // Already in m
 }
@@ -122,7 +161,7 @@ export function convertAltitudeFromSI(value: number, unitSystem: UnitSystem): nu
  */
 export function convertWingLoadingNm2FromSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.nm2ToLbFt2;
+    return nPerM2ToLbPerFt2(value);
   }
   return value; // Already in N/m²
 }
@@ -132,7 +171,7 @@ export function convertWingLoadingNm2FromSI(value: number, unitSystem: UnitSyste
  */
 export function convertWingLoadingKgm2FromSI(value: number, unitSystem: UnitSystem): number {
   if (unitSystem === 'Imperial') {
-    return value * CONVERSIONS.kgM2ToLbFt2;
+    return kgPerM2ToLbPerFt2(value);
   }
   return value; // Already in kg/m²
 }
@@ -143,7 +182,7 @@ export function convertWingLoadingKgm2FromSI(value: number, unitSystem: UnitSyst
 export function convertVelocityFromSI(value: number, unitSystem: UnitSystem): { value: number; unit: string } {
   if (unitSystem === 'Imperial') {
     // For Imperial, we still show knots (standard aviation unit)
-    return { value: value * CONVERSIONS.msToKts, unit: 'kts' };
+    return { value: mpsToKts(value), unit: 'kts' };
   }
   return { value, unit: 'm/s' };
 }

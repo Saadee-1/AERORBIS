@@ -46,7 +46,7 @@ import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
 import { loadPolarForComparison, loadEnhancedPolarForComparison, AIRFOIL_COLORS, detectStallIndex, getPolarDataQuality, getDataQualityBadge } from "@/lib/polarChartUtils";
 import type { EnhancedPolar } from "@/core/stallModel";
 import { useGraphSetups } from "@/hooks/useGraphSetups";
-import type { GraphMode as GraphModeType } from "@/types/graphSetup";
+import type { GraphMode } from "@/types/graphSetup";
 import { useChartExport } from "@/hooks/useChartExport";
 import { ChartExportButtons } from "@/components/charts/ChartExportButtons";
 
@@ -194,8 +194,6 @@ const CustomLegend = ({ items }: CustomLegendProps) => {
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type AirfoilKey = keyof typeof AIRFOIL_DATA | "custom";
-// Graph mode type for main comparison chart
-type GraphMode = "ld" | "cl" | "cd" | "cm" | "dragPolar";
 
 // Interface for the airfoil database
 interface Airfoil {
@@ -356,7 +354,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
     baseAirfoilId: inputs.airfoil,
     comparedAirfoilIds,
     reynolds: REYNOLDS,
-    mode: graphMode as GraphModeType,
+    mode: graphMode,
     onLoadSetup: (setup) => {
       // Update base airfoil
       setInputs({ ...inputs, airfoil: setup.baseAirfoilId as AirfoilKey });
