@@ -482,8 +482,8 @@ export function WingLoadingGraphs({
                 />
               );
             })}
-            {/* Show center point as bar - different color */}
-            <Bar dataKey="wsCenter" fill={GRAPH_STYLES.envelopeBarColor} name="Center W/S" radius={[0, 4, 4, 0]} stroke={GRAPH_STYLES.envelopeBarColor} strokeWidth={1}>
+            {/* Show center point as bar - different color, smaller size */}
+            <Bar dataKey="wsCenter" fill={GRAPH_STYLES.envelopeBarColor} name="Center W/S" radius={[0, 4, 4, 0]} stroke={GRAPH_STYLES.envelopeBarColor} strokeWidth={1} barSize={24}>
               {missionEnvelopeData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={GRAPH_STYLES.envelopeBarColor} stroke={GRAPH_STYLES.envelopeBarColor} />
               ))}
