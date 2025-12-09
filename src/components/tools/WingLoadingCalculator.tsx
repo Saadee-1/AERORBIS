@@ -953,6 +953,33 @@ const WingLoadingCalculator = () => {
         {/* LEFT COLUMN: INPUTS */}
         <div>
           <div className={spacingVertical.L}>
+            {/* Mode Selector */}
+            <AeroCard
+              title="Calculator Mode"
+              description="Select complexity level (calculations remain identical)"
+              icon={Settings2}
+            >
+              <AeroFormField label="Mode">
+                <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
+                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Beginner">Beginner</SelectItem>
+                    <SelectItem value="University">University</SelectItem>
+                    <SelectItem value="Expert">Expert</SelectItem>
+                  </SelectContent>
+                </Select>
+              </AeroFormField>
+              <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
+                <p className="text-xs text-gray-300">
+                  {calculatorMode === 'Beginner' && 'Simplified interface with essential features only.'}
+                  {calculatorMode === 'University' && 'Standard features with full functionality.'}
+                  {calculatorMode === 'Expert' && 'All features including advanced settings and ISA deviation.'}
+                </p>
+              </div>
+            </AeroCard>
+            
             {/* Aircraft Preset Selection */}
             <AeroCard
               title="Aircraft Preset"
@@ -983,33 +1010,6 @@ const WingLoadingCalculator = () => {
                   </p>
                 </div>
               )}
-            </AeroCard>
-            
-            {/* Mode Selector */}
-            <AeroCard
-              title="Calculator Mode"
-              description="Select complexity level (calculations remain identical)"
-              icon={Settings2}
-            >
-              <AeroFormField label="Mode">
-                <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
-                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Beginner">Beginner</SelectItem>
-                    <SelectItem value="University">University</SelectItem>
-                    <SelectItem value="Expert">Expert</SelectItem>
-                  </SelectContent>
-                </Select>
-              </AeroFormField>
-              <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
-                <p className="text-xs text-gray-300">
-                  {calculatorMode === 'Beginner' && 'Simplified interface with essential features only.'}
-                  {calculatorMode === 'University' && 'Standard features with full functionality.'}
-                  {calculatorMode === 'Expert' && 'All features including advanced settings and ISA deviation.'}
-                </p>
-              </div>
             </AeroCard>
             
             {/* Mission Type Selection */}
