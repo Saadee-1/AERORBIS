@@ -953,34 +953,87 @@ const WingLoadingCalculator = () => {
         {/* LEFT COLUMN: INPUTS */}
         <div>
           <div className={spacingVertical.L}>
-            {/* Mode Selector */}
-            <AeroCard
-              title="Calculator Mode"
-              description="Select complexity level (calculations remain identical)"
-              icon={Settings2}
-            >
-              <AeroFormField label="Mode">
-                <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
-                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Beginner">Beginner</SelectItem>
-                    <SelectItem value="University">University</SelectItem>
-                    <SelectItem value="Expert">Expert</SelectItem>
-                  </SelectContent>
-                </Select>
-              </AeroFormField>
-              <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
-                <p className="text-xs text-gray-300">
-                  {calculatorMode === 'Beginner' && 'Simplified interface with essential features only.'}
-                  {calculatorMode === 'University' && 'Standard features with full functionality.'}
-                  {calculatorMode === 'Expert' && 'All features including advanced settings and ISA deviation.'}
-                </p>
-              </div>
-            </AeroCard>
+            {/* Row 1: Calculator Mode and Mission Type side-by-side */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* Mode Selector */}
+              <AeroCard
+                title="Calculator Mode"
+                description="Select complexity level (calculations remain identical)"
+                icon={Settings2}
+              >
+                <AeroFormField label="Mode">
+                  <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
+                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Beginner">Beginner</SelectItem>
+                      <SelectItem value="University">University</SelectItem>
+                      <SelectItem value="Expert">Expert</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </AeroFormField>
+                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
+                  <p className="text-xs text-gray-300">
+                    {calculatorMode === 'Beginner' && 'Simplified interface with essential features only.'}
+                    {calculatorMode === 'University' && 'Standard features with full functionality.'}
+                    {calculatorMode === 'Expert' && 'All features including advanced settings and ISA deviation.'}
+                  </p>
+                </div>
+              </AeroCard>
+              
+              {/* Mission Type Selection */}
+              <AeroCard
+                title="Mission Type"
+                description="Select aircraft mission type to auto-adapt CL,max and classification ranges"
+                icon={Plane}
+              >
+                <Tabs value={missionType} onValueChange={(v) => setMissionType(v as MissionType)}>
+                  <TabsList className={`w-full bg-slate-700/50 border border-cyan-400/30 grid ${missionType === 'None' ? 'grid-cols-6' : 'grid-cols-6'}`}>
+                    <TabsTrigger value="None" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
+                      None (Manual)
+                    </TabsTrigger>
+                    <TabsTrigger value="UAV" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
+                      UAV
+                    </TabsTrigger>
+                    <TabsTrigger value="Trainer" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
+                      Trainer
+                    </TabsTrigger>
+                    <TabsTrigger value="STOL" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
+                      STOL
+                    </TabsTrigger>
+                    <TabsTrigger value="Glider" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
+                      Glider
+                    </TabsTrigger>
+                    <TabsTrigger value="Jet" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
+                      Jet
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                {missionType !== 'None' && (
+                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                    <p className="text-sm text-gray-300">
+                      <span className="text-cyan-400 font-semibold">CL,max:</span> {currentClMax.toFixed(2)}
+                    </p>
+                    <p className="text-sm text-gray-300 mt-1">
+                      <span className="text-cyan-400 font-semibold">Typical W/S:</span> {getMissionData(missionType).wsMinKg}–{getMissionData(missionType).wsMaxKg} kg/m²
+                    </p>
+                    <p className="text-sm text-gray-300 mt-1">
+                      <span className="text-cyan-400 font-semibold">Typical V_s:</span> {getMissionData(missionType).vsMin}–{getMissionData(missionType).vsMax} m/s
+                    </p>
+                  </div>
+                )}
+                {missionType === 'None' && (
+                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                    <p className="text-sm text-gray-300">
+                      Mission-specific parameters will not auto-change. Use manual CL,max override if needed.
+                    </p>
+                  </div>
+                )}
+              </AeroCard>
+            </div>
             
-            {/* Aircraft Preset Selection */}
+            {/* Row 2: Aircraft Preset full-width */}
             <AeroCard
               title="Aircraft Preset"
               description="Select a real-world aircraft to auto-fill mission type, mass, and wing area"
@@ -1007,56 +1060,6 @@ const WingLoadingCalculator = () => {
                 <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
                   <p className="text-xs text-gray-300">
                     {AIRCRAFT_PRESETS[aircraftPreset].description}
-                  </p>
-                </div>
-              )}
-            </AeroCard>
-            
-            {/* Mission Type Selection */}
-            <AeroCard
-              title="Mission Type"
-              description="Select aircraft mission type to auto-adapt CL,max and classification ranges"
-              icon={Plane}
-            >
-              <Tabs value={missionType} onValueChange={(v) => setMissionType(v as MissionType)}>
-                <TabsList className={`w-full bg-slate-700/50 border border-cyan-400/30 grid ${missionType === 'None' ? 'grid-cols-6' : 'grid-cols-6'}`}>
-                  <TabsTrigger value="None" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                    None (Manual)
-                  </TabsTrigger>
-                  <TabsTrigger value="UAV" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                    UAV
-                  </TabsTrigger>
-                  <TabsTrigger value="Trainer" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                    Trainer
-                  </TabsTrigger>
-                  <TabsTrigger value="STOL" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                    STOL
-                  </TabsTrigger>
-                  <TabsTrigger value="Glider" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                    Glider
-                  </TabsTrigger>
-                  <TabsTrigger value="Jet" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                    Jet
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-              {missionType !== 'None' && (
-                <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                  <p className="text-sm text-gray-300">
-                    <span className="text-cyan-400 font-semibold">CL,max:</span> {currentClMax.toFixed(2)}
-                  </p>
-                  <p className="text-sm text-gray-300 mt-1">
-                    <span className="text-cyan-400 font-semibold">Typical W/S:</span> {getMissionData(missionType).wsMinKg}–{getMissionData(missionType).wsMaxKg} kg/m²
-                  </p>
-                  <p className="text-sm text-gray-300 mt-1">
-                    <span className="text-cyan-400 font-semibold">Typical V_s:</span> {getMissionData(missionType).vsMin}–{getMissionData(missionType).vsMax} m/s
-                  </p>
-                </div>
-              )}
-              {missionType === 'None' && (
-                <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                  <p className="text-sm text-gray-300">
-                    Mission-specific parameters will not auto-change. Use manual CL,max override if needed.
                   </p>
                 </div>
               )}
