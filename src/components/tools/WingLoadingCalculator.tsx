@@ -56,7 +56,6 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { calculateISADensity, getPresetAltitude, feetToMeters, metersToFeet } from "./utils/isaAtmosphere";
@@ -988,28 +987,21 @@ const WingLoadingCalculator = () => {
                 description="Select aircraft mission type to auto-adapt CL,max and classification ranges"
                 icon={Plane}
               >
-                <Tabs value={missionType} onValueChange={(v) => setMissionType(v as MissionType)}>
-                  <TabsList className={`w-full bg-slate-700/50 border border-cyan-400/30 grid ${missionType === 'None' ? 'grid-cols-6' : 'grid-cols-6'}`}>
-                    <TabsTrigger value="None" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                      None (Manual)
-                    </TabsTrigger>
-                    <TabsTrigger value="UAV" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                      UAV
-                    </TabsTrigger>
-                    <TabsTrigger value="Trainer" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                      Trainer
-                    </TabsTrigger>
-                    <TabsTrigger value="STOL" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                      STOL
-                    </TabsTrigger>
-                    <TabsTrigger value="Glider" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                      Glider
-                    </TabsTrigger>
-                    <TabsTrigger value="Jet" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300 text-xs">
-                      Jet
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <AeroFormField label="Mission Type">
+                  <Select value={missionType} onValueChange={(v) => setMissionType(v as MissionType)}>
+                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="None">None (Manual)</SelectItem>
+                      <SelectItem value="UAV">UAV</SelectItem>
+                      <SelectItem value="Trainer">Trainer</SelectItem>
+                      <SelectItem value="STOL">STOL</SelectItem>
+                      <SelectItem value="Glider">Glider</SelectItem>
+                      <SelectItem value="Jet">Jet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </AeroFormField>
                 {missionType !== 'None' && (
                   <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                     <p className="text-sm text-gray-300">
