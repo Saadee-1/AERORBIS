@@ -10,6 +10,7 @@ import type {
   AirfoilRecommendation,
   SmartAiResult,
   SmartAiError,
+  SmartAiErrorReason,
 } from "@/types/missionRecommendations";
 import { getAllAirfoilsWithMetricsForRe, type AirfoilWithMetrics, type AirfoilPolarMetrics } from "@/core/airfoilMetrics";
 import { getTargetReForMission } from "@/core/missionReMapping";
@@ -31,19 +32,18 @@ export async function recommendAirfoils(
     }
     
     // TypeScript narrowing: aiResult.ok is false here
-    if (!aiResult.ok) {
-      // Log one concise warning about the failure
-      console.warn("[Smart AI] Disabled or failed, falling back to Engineering:", aiResult.reason, aiResult.detail);
-      
-      // Fall back to engineering mode
-      const engineeringResult = await recommendWithLocalScoring(missionId, "engineering");
-      // Attach Smart AI error info to the result so UI can display it
-      engineeringResult.smartAiError = {
-        reason: aiResult.reason,
-        detail: aiResult.detail,
-      };
-      return engineeringResult;
-    }
+    // Use explicit type assertion since we've verified ok is false
+    const failedResult = aiResult as { ok: false; reason: SmartAiErrorReason; detail?: string };
+    console.warn("[Smart AI] Disabled or failed, falling back to Engineering:", failedResult.reason, failedResult.detail);
+    
+    // Fall back to engineering mode
+    const engineeringResult = await recommendWithLocalScoring(missionId, "engineering");
+    // Attach Smart AI error info to the result so UI can display it
+    engineeringResult.smartAiError = {
+      reason: failedResult.reason,
+      detail: failedResult.detail,
+    };
+    return engineeringResult;
   }
 
   return recommendWithLocalScoring(missionId, "engineering");
@@ -527,10 +527,12 @@ No extra text, no commentary, only the JSON object.`;
     
     if (!geminiResult.ok) {
       // Map GeminiResult error to SmartAiResult error
+      // Use explicit type assertion since we've verified ok is false
+      const failedGemini = geminiResult as { ok: false; reason: "AI_DISABLED" | "NETWORK_ERROR" | "BAD_RESPONSE"; detail?: string };
       return {
         ok: false,
-        reason: geminiResult.reason,
-        detail: geminiResult.detail,
+        reason: failedGemini.reason,
+        detail: failedGemini.detail,
       };
     }
 
