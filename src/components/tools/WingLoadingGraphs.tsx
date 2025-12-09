@@ -394,17 +394,31 @@ export function WingLoadingGraphs({
                 <>
                   <ReferenceLine
                     x={currentWsKgm2}
-                    stroke={GRAPH_STYLES.referenceLineColor}
+                    stroke="#fbbf24"
                     strokeWidth={2.5}
-                    strokeDasharray={GRAPH_STYLES.referenceLineDash}
-                    label={{ value: "Current", position: "insideTop", fill: GRAPH_STYLES.currentLabelColor, fontSize: 10, fontWeight: 600 }}
+                    strokeDasharray="6 6"
+                    label={{
+                      value: "Current",
+                      position: "top",
+                      fill: "#22d3ee",
+                      fontWeight: 600,
+                      fontSize: 12,
+                      textShadow: "0px 0px 6px rgba(34, 211, 238, 0.7)",
+                    }}
                   />
                   <ReferenceLine
                     y={currentVsMs}
-                    stroke={GRAPH_STYLES.referenceLineColor}
+                    stroke="#fbbf24"
                     strokeWidth={2.5}
-                    strokeDasharray={GRAPH_STYLES.referenceLineDash}
-                    label={{ value: `${currentVsMs.toFixed(1)} m/s`, position: "insideRight", fill: GRAPH_STYLES.valueLabelColor, fontSize: 10, fontWeight: 600 }}
+                    strokeDasharray="6 6"
+                    label={{
+                      value: `${currentVsMs.toFixed(1)} m/s`,
+                      position: "right",
+                      fill: "#22d3ee",
+                      fontWeight: 600,
+                      fontSize: 12,
+                      textShadow: "0px 0px 6px rgba(34, 211, 238, 0.7)",
+                    }}
                   />
                 </>
               )}
