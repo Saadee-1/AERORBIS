@@ -75,6 +75,7 @@ import {
   getInputUnits,
   getOutputUnits
 } from "./utils/unitConversions";
+import { WingLoadingGraphs } from "./WingLoadingGraphs";
 
 // ============================================================================
 // TYPES & CONSTANTS
@@ -1490,6 +1491,22 @@ const WingLoadingCalculator = () => {
                     </p>
                   </div>
                 </AeroCard>
+                
+                {/* Engineering Graphs */}
+                <WingLoadingGraphs
+                  currentWsKgm2={result.wingLoadingKgm2}
+                  currentVsMs={result.stallSpeedMs}
+                  currentVsKts={result.stallSpeedKts}
+                  weightN={result.weightN}
+                  wingAreaM2={result.weightN / (result.wingLoadingKgm2 * GRAVITY)}
+                  airDensity={currentAirDensity}
+                  clMax={currentClMax}
+                  missionType={missionType}
+                  missionData={missionData}
+                  airDensityMode={airDensityMode}
+                  airDensityPreset={airDensityPreset}
+                  airDensityAltitude={parseFloat(airDensityAltitude) || undefined}
+                />
                 
                 {/* Interpretation Card - Hidden in Beginner mode */}
                 {calculatorMode !== 'Beginner' && (
