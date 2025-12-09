@@ -60,7 +60,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { calculateISADensity, getPresetAltitude, feetToMeters, metersToFeet } from "./utils/isaAtmosphere";
-import {
+import { 
   UnitSystem,
   convertMassToSI,
   convertMassFromSI,
@@ -119,6 +119,13 @@ const TRAINER_STALL_LIMIT_KTS = 61; // Typical limit for normal category trainer
 
 // Aircraft presets with realistic MTOW and wing area values
 const AIRCRAFT_PRESETS: Record<Exclude<AircraftPreset, 'none'>, AircraftPresetData> = {
+  smallRCUAV: {
+    name: 'Small RC / Edu UAV',
+    missionType: 'UAV',
+    mtowKg: 2.5, // kg (5.5 lb) - very small educational UAV
+    wingAreaM2: 0.5, // m² (5.4 ft²)
+    description: 'Small educational/RC UAV, W/S ~5 kg/m² (very low)'
+  },
   cessna172: {
     name: 'Cessna 172 Skyhawk',
     missionType: 'Trainer',
@@ -127,32 +134,39 @@ const AIRCRAFT_PRESETS: Record<Exclude<AircraftPreset, 'none'>, AircraftPresetDa
     description: 'Popular trainer aircraft, W/S ~71 kg/m²'
   },
   ask21: {
-    name: 'ASK 21 Glider',
+    name: 'ASK 21',
     missionType: 'Glider',
     mtowKg: 600, // kg (1323 lb)
-    wingAreaM2: 18.0, // m² (193.8 ft²)
+    wingAreaM2: 17.95, // m² (193.2 ft²) - per Wikipedia
     description: 'Two-seat training glider, W/S ~33 kg/m²'
   },
   stolBush: {
-    name: 'STOL Bush Plane (Super Cub type)',
+    name: 'Generic STOL Bush Plane',
     missionType: 'STOL',
     mtowKg: 680, // kg (1500 lb)
-    wingAreaM2: 16.6, // m² (178.7 ft²)
-    description: 'Short takeoff/landing utility aircraft, W/S ~41 kg/m²'
-  },
-  lightJetTrainer: {
-    name: 'Light Jet Trainer (T-38 type)',
-    missionType: 'Jet',
-    mtowKg: 5488, // kg (12100 lb)
-    wingAreaM2: 15.79, // m² (170 ft²)
-    description: 'Supersonic jet trainer, W/S ~347 kg/m²'
+    wingAreaM2: 15.0, // m² (161.5 ft²) - adjusted for W/S ~45 kg/m²
+    description: 'Short takeoff/landing utility aircraft, W/S ~45 kg/m²'
   },
   maleUAV: {
-    name: 'MALE UAV (Predator type)',
+    name: 'MALE UAV Design Reference',
     missionType: 'UAV',
     mtowKg: 1020, // kg (2250 lb)
-    wingAreaM2: 55.0, // m² (592 ft²)
-    description: 'Medium-altitude long-endurance UAV, W/S ~18.5 kg/m²'
+    wingAreaM2: 20.4, // m² (219.6 ft²) - adjusted for W/S ~50 kg/m²
+    description: 'Typical design study, W/S ~50 kg/m²'
+  },
+  narrowbodyAirliner: {
+    name: 'Narrowbody Airliner Reference',
+    missionType: 'Jet',
+    mtowKg: 78000, // kg (171,960 lb) - typical 737/A320 class
+    wingAreaM2: 130.0, // m² (1399.3 ft²)
+    description: 'Typical airliner wing loading, W/S ~600 kg/m²'
+  },
+  highPerfJet: {
+    name: 'High-Performance Jet Reference',
+    missionType: 'Jet',
+    mtowKg: 18000, // kg (39,683 lb) - fighter/advanced trainer
+    wingAreaM2: 20.0, // m² (215.3 ft²)
+    description: 'High-performance jet, W/S ~900 kg/m²'
   }
 };
 
@@ -630,7 +644,7 @@ const WingLoadingCalculator = () => {
         const massDisplay = unitSystem === 'SI' ? massKgSI!.toFixed(2) : massInput!.toFixed(2);
         steps.push(`W = m × g = ${massDisplay} ${inputUnits.mass} × ${GRAVITY} m/s² = ${finalWeightN.toFixed(2)} N`);
         stepNum++;
-      } else {
+        } else {
         const weightDisplay = unitSystem === 'SI' ? weightNSI!.toFixed(2) : weightInput!.toFixed(2);
         steps.push(`**Step ${stepNum}: Weight**`);
         steps.push(`W = ${weightDisplay} ${inputUnits.weight} = ${finalWeightN.toFixed(2)} N (converted to SI)`);
@@ -680,7 +694,7 @@ const WingLoadingCalculator = () => {
       
       // Send calculation event
         const toolInputs = {
-        unitSystem,
+          unitSystem,
         missionType,
         weightMode,
         massKg: weightMode === 'mass' ? massInput : null,
@@ -863,13 +877,11 @@ const WingLoadingCalculator = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None (Manual Entry)</SelectItem>
-                    <SelectItem value="smallRCUAV">{AIRCRAFT_PRESETS.smallRCUAV.name}</SelectItem>
                     <SelectItem value="cessna172">{AIRCRAFT_PRESETS.cessna172.name}</SelectItem>
                     <SelectItem value="ask21">{AIRCRAFT_PRESETS.ask21.name}</SelectItem>
                     <SelectItem value="stolBush">{AIRCRAFT_PRESETS.stolBush.name}</SelectItem>
+                    <SelectItem value="lightJetTrainer">{AIRCRAFT_PRESETS.lightJetTrainer.name}</SelectItem>
                     <SelectItem value="maleUAV">{AIRCRAFT_PRESETS.maleUAV.name}</SelectItem>
-                    <SelectItem value="narrowbodyAirliner">{AIRCRAFT_PRESETS.narrowbodyAirliner.name}</SelectItem>
-                    <SelectItem value="highPerfJet">{AIRCRAFT_PRESETS.highPerfJet.name}</SelectItem>
                   </SelectContent>
                 </Select>
               </AeroFormField>
@@ -963,7 +975,7 @@ const WingLoadingCalculator = () => {
             </AeroCard>
 
             {/* Wing Area */}
-              <AeroCard
+            <AeroCard
               title="Wing Geometry"
               description="Enter wing area"
               icon={Gauge}
@@ -1014,7 +1026,7 @@ const WingLoadingCalculator = () => {
                     <SelectItem value="15000 ft">15000 ft</SelectItem>
                   </SelectContent>
                   </Select>
-                </AeroFormField>
+              </AeroFormField>
               )}
               
               {airDensityMode === 'altitude' && (
@@ -1028,7 +1040,7 @@ const WingLoadingCalculator = () => {
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder={`e.g., ${unitSystem === 'SI' ? '0' : '0'}`}
                     />
-                  </AeroFormField>
+              </AeroFormField>
                   <AeroFormField label="Temperature Deviation (ΔT, K)" helperText="Optional: deviation from ISA temperature">
                     <Input
                       type="number"
@@ -1038,7 +1050,7 @@ const WingLoadingCalculator = () => {
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder="e.g., 0"
                     />
-                  </AeroFormField>
+              </AeroFormField>
                 </>
               )}
               
@@ -1052,7 +1064,7 @@ const WingLoadingCalculator = () => {
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder="e.g., 1.225"
                   />
-                </AeroFormField>
+              </AeroFormField>
               )}
               
               <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
@@ -1066,10 +1078,10 @@ const WingLoadingCalculator = () => {
                   </p>
                 )}
                     </div>
-              </AeroCard>
-            
+            </AeroCard>
+
             {/* Advanced Settings */}
-            <AeroCard
+              <AeroCard
               title="Advanced Settings"
               description="Optional: CL,max override, MTOW, and landing weight analysis"
               icon={Info}
@@ -1090,7 +1102,7 @@ const WingLoadingCalculator = () => {
                     </div>
                     {useClMaxOverride && (
                       <AeroFormField label="User-specified CL,max" helperText={`Default: ${missionData[missionType].clMax.toFixed(2)} (${missionType})`}>
-                        <Input
+                      <Input 
                           type="number"
                           step="0.01"
                           value={clMaxOverride}
@@ -1105,8 +1117,8 @@ const WingLoadingCalculator = () => {
                     <div className="pt-2 border-t border-cyan-400/20">
                       <Label className="text-sm text-gray-300 mb-2 block">Weight Analysis (Optional)</Label>
                       <AeroFormField label={`MTOW (${weightMode === 'mass' ? inputUnits.mass : inputUnits.weight})`} helperText="Maximum Takeoff Weight">
-                        <Input
-                          type="number"
+                      <Input 
+                        type="number"
                           step="0.01"
                           value={mtow}
                           onChange={(e) => setMtow(e.target.value)}
@@ -1132,7 +1144,7 @@ const WingLoadingCalculator = () => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-            </AeroCard>
+              </AeroCard>
             
             {/* Calculate Button */}
             <AeroButton
@@ -1175,7 +1187,7 @@ const WingLoadingCalculator = () => {
                     </p>
                       <p className="text-sm text-gray-400 mt-1">
                         ({result.wingLoadingKgm2.toFixed(2)} kg/m²)
-                      </p>
+                    </p>
                   </div>
                     
                     <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
@@ -1209,8 +1221,8 @@ const WingLoadingCalculator = () => {
                             </p>
                           </>
                         )}
-                      </div>
-                    )}
+                </div>
+              )}
                     
                     <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading Classification</p>
@@ -1285,7 +1297,7 @@ const WingLoadingCalculator = () => {
                       >
                         <span>{(0.8 * missionData[missionType].wsMinKg).toFixed(0)}</span>
                         <span>{(1.2 * missionData[missionType].wsMaxKg).toFixed(0)}</span>
-                      </div>
+            </div>
                       
                       {/* Example aircraft label */}
                       {(() => {
@@ -1305,10 +1317,10 @@ const WingLoadingCalculator = () => {
                             style={{ left: `${Math.max(5, Math.min(95, center))}%`, transform: 'translateX(-50%)' }}
                           >
                             {example.label}
-                          </div>
+            </div>
                         );
                       })()}
-                    </div>
+          </div>
                     <p className="text-sm text-cyan-400 text-center">
                       Current: {result.wingLoadingKgm2.toFixed(2)} kg/m²
                     </p>
