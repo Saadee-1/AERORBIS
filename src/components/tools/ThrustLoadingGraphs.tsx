@@ -308,9 +308,7 @@ export function ThrustLoadingGraphs({
                 <Bar
                   dataKey="twRange"
                   barSize={18}
-                  barCategoryGap="20%"
                   radius={[0, 4, 4, 0]}
-                  base={({ payload }: any) => payload.twMin}
                 >
                   {missionEnvelopeData.map((entry, index) => {
                     const isSelected = entry.mission === missionType;
@@ -335,7 +333,6 @@ export function ThrustLoadingGraphs({
                       fill: GRAPH_STYLES.currentLabelColor,
                       fontWeight: 600,
                       fontSize: 12,
-                      textShadow: "0px 0px 6px rgba(34, 211, 238, 0.7)",
                     }}
                   />
                 )}
@@ -428,7 +425,6 @@ export function ThrustLoadingGraphs({
                         fill: GRAPH_STYLES.currentLabelColor,
                         fontWeight: 600,
                         fontSize: 12,
-                        textShadow: "0px 0px 6px rgba(34, 211, 238, 0.7)",
                       }}
                     />
                   )}
@@ -444,7 +440,6 @@ export function ThrustLoadingGraphs({
                         fill: GRAPH_STYLES.valueLabelColor,
                         fontWeight: 600,
                         fontSize: 12,
-                        textShadow: "0px 0px 6px rgba(34, 211, 238, 0.7)",
                       }}
                     />
                   )}

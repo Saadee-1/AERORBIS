@@ -107,6 +107,7 @@ interface MissionParams {
 }
 
 const missionData: Record<MissionType, MissionParams> = {
+  None:    { wsMinKg: 30,  wsMaxKg: 100, clMax: 1.8, vsMin: 18, vsMax: 35 }, // Generic defaults
   UAV:     { wsMinKg: 10,  wsMaxKg: 60,  clMax: 1.6, vsMin: 12, vsMax: 25 },
   Trainer: { wsMinKg: 40,  wsMaxKg: 80,  clMax: 2.2, vsMin: 20, vsMax: 30 },
   STOL:    { wsMinKg: 20,  wsMaxKg: 60,  clMax: 3.0, vsMin: 15, vsMax: 25 },
@@ -890,7 +891,7 @@ const WingLoadingCalculator = () => {
   
   // Calculate range bar position
   const getRangeBarPosition = (): { left: number; width: number } => {
-    if (missionType === 'None') return 50; // Fallback for None
+    if (missionType === 'None') return { left: 40, width: 20 }; // Fallback for None
     const params = getMissionData(missionType);
     const extendedMin = 0.8 * params.wsMinKg;
     const extendedMax = 1.2 * params.wsMaxKg;
