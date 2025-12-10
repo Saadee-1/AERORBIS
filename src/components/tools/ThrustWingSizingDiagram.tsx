@@ -49,6 +49,7 @@ interface SizingPoint {
   twClimb?: number;  // required T/W for climb
   twCruise?: number; // required T/W for cruise
   twTakeoff?: number; // required T/W for takeoff
+  twRequired?: number; // combined required T/W from all applicable constraints at this W/S
 }
 
 interface ThrustWingSizingDiagramProps {
@@ -254,6 +255,26 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
         }
       }
       
+      // Compute combined required T/W as maximum of all valid constraints
+      let twReq = -Infinity;
+      
+      // Only consider valid constraints
+      if (typeof point.twClimb === 'number' && Number.isFinite(point.twClimb) && point.twClimb > 0) {
+        twReq = Math.max(twReq, point.twClimb);
+      }
+      
+      if (typeof point.twCruise === 'number' && Number.isFinite(point.twCruise) && point.twCruise > 0) {
+        twReq = Math.max(twReq, point.twCruise);
+      }
+      
+      if (typeof point.twTakeoff === 'number' && Number.isFinite(point.twTakeoff) && point.twTakeoff > 0) {
+        twReq = Math.max(twReq, point.twTakeoff);
+      }
+      
+      if (twReq > 0 && Number.isFinite(twReq)) {
+        point.twRequired = twReq;
+      }
+      
       data.push(point);
     }
     
@@ -305,6 +326,79 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
   let stallStatus: 'unknown' | 'pass' | 'fail' = 'unknown';
   if (wsStallMax !== undefined && Number.isFinite(wsStallMax) && wsDesign !== undefined) {
     stallStatus = wsDesign <= wsStallMax + 1e-6 ? 'pass' : 'fail';
+  }
+
+  // Evaluate combined requirement and margin at design point
+  let twRequiredAtDesign: number | undefined;
+  let twClimbAtDesign: number | undefined;
+  let twCruiseAtDesign: number | undefined;
+  let twTakeoffAtDesign: number | undefined;
+
+  if (
+    wsDesign !== undefined &&
+    Number.isFinite(wsDesign) &&
+    chartData.length > 0
+  ) {
+    let closestPoint = chartData[0];
+    let minDelta = Math.abs(chartData[0].ws - wsDesign);
+
+    for (const p of chartData) {
+      const delta = Math.abs(p.ws - wsDesign);
+      if (delta < minDelta) {
+        minDelta = delta;
+        closestPoint = p;
+      }
+    }
+
+    twRequiredAtDesign = closestPoint.twRequired;
+    twClimbAtDesign = closestPoint.twClimb;
+    twCruiseAtDesign = closestPoint.twCruise;
+    twTakeoffAtDesign = closestPoint.twTakeoff;
+  }
+
+  // Compute margin
+  let twMargin: number | undefined = undefined;
+
+  if (
+    typeof thrustToWeight === 'number' &&
+    Number.isFinite(thrustToWeight) &&
+    typeof twRequiredAtDesign === 'number' &&
+    Number.isFinite(twRequiredAtDesign)
+  ) {
+    twMargin = thrustToWeight - twRequiredAtDesign;
+  }
+
+  // Identify limiting constraint
+  type LimitingConstraint = 'climb' | 'cruise' | 'takeoff' | 'none' | 'unknown';
+
+  let limitingConstraint: LimitingConstraint = 'unknown';
+
+  if (twRequiredAtDesign !== undefined && Number.isFinite(twRequiredAtDesign)) {
+    let maxTw = -Infinity;
+    let which: LimitingConstraint = 'none';
+
+    if (twClimbAtDesign && Number.isFinite(twClimbAtDesign) && twClimbAtDesign > 0) {
+      if (twClimbAtDesign > maxTw) {
+        maxTw = twClimbAtDesign;
+        which = 'climb';
+      }
+    }
+
+    if (twCruiseAtDesign && Number.isFinite(twCruiseAtDesign) && twCruiseAtDesign > 0) {
+      if (twCruiseAtDesign > maxTw) {
+        maxTw = twCruiseAtDesign;
+        which = 'cruise';
+      }
+    }
+
+    if (twTakeoffAtDesign && Number.isFinite(twTakeoffAtDesign) && twTakeoffAtDesign > 0) {
+      if (twTakeoffAtDesign > maxTw) {
+        maxTw = twTakeoffAtDesign;
+        which = 'takeoff';
+      }
+    }
+
+    limitingConstraint = which === 'none' ? 'unknown' : which;
   }
 
   if (!hasValidData) {
@@ -444,6 +538,18 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               />
             )}
             
+            {/* Combined required T/W envelope */}
+            <Line
+              type="monotone"
+              dataKey="twRequired"
+              stroke="#e5e7eb"
+              strokeWidth={2.5}
+              dot={false}
+              name="Required T/W (combined)"
+              strokeDasharray="6 3"
+              isAnimationActive={false}
+            />
+            
             {/* Current design point marker */}
             {hasDesignPoint && (
               <ReferenceDot
@@ -572,6 +678,59 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
           {stallStatus === 'unknown' && (
             <p className="text-slate-400">
               Run the Wing Loading calculator to provide stall speed, CL_max, and density for stall/landing constraints.
+            </p>
+          )}
+        </div>
+        
+        {/* Combined constraint summary */}
+        <div className="mt-2 text-[0.75rem]">
+          {twMargin !== undefined &&
+            twRequiredAtDesign !== undefined &&
+            Number.isFinite(twRequiredAtDesign) &&
+            Number.isFinite(twMargin) &&
+            thrustToWeight !== undefined &&
+            Number.isFinite(thrustToWeight) && (
+              <>
+                {twMargin >= 0 ? (
+                  <p className="text-emerald-300">
+                    ✓ At W/S ≈ {wsDesign?.toFixed(1)} kg/m², combined required T/W is{' '}
+                    {twRequiredAtDesign.toFixed(3)}, current T/W is{' '}
+                    {thrustToWeight.toFixed(3)}, margin ≈ {twMargin.toFixed(3)}.
+                  </p>
+                ) : (
+                  <p className="text-rose-300">
+                    ✕ At W/S ≈ {wsDesign?.toFixed(1)} kg/m², combined required T/W is{' '}
+                    {twRequiredAtDesign.toFixed(3)}, current T/W is{' '}
+                    {thrustToWeight.toFixed(3)}, deficit ≈ {Math.abs(twMargin).toFixed(3)}.
+                  </p>
+                )}
+
+                {limitingConstraint === 'climb' && (
+                  <p className="text-slate-300">
+                    Most limiting constraint at this W/S: climb performance.
+                  </p>
+                )}
+                {limitingConstraint === 'cruise' && (
+                  <p className="text-slate-300">
+                    Most limiting constraint at this W/S: cruise drag requirement.
+                  </p>
+                )}
+                {limitingConstraint === 'takeoff' && (
+                  <p className="text-slate-300">
+                    Most limiting constraint at this W/S: takeoff runway requirement.
+                  </p>
+                )}
+                {limitingConstraint === 'unknown' && (
+                  <p className="text-slate-400">
+                    Combined constraint could not be classified. Check that climb, cruise, or takeoff inputs are valid.
+                  </p>
+                )}
+              </>
+            )}
+
+          {twMargin === undefined && (
+            <p className="text-slate-400">
+              Compute T/W and provide valid climb, cruise, and takeoff inputs to see the combined T/W requirement and margin at the current wing loading.
             </p>
           )}
         </div>
