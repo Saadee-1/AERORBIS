@@ -65,6 +65,10 @@ interface ThrustWingSizingDiagramProps {
   vCruiseMs?: number; // Cruise speed in m/s
   densityKgM3?: number; // Air density in kg/m³
   
+  // Stall constraint parameters (from Wing Loading via designSession)
+  stallSpeedMs?: number; // Stall speed in m/s
+  clMaxUsed?: number; // Maximum lift coefficient used
+  
   // Calculator mode
   calculatorMode: 'Beginner' | 'University' | 'Expert';
 }
@@ -114,6 +118,8 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
   k,
   vCruiseMs,
   densityKgM3,
+  stallSpeedMs,
+  clMaxUsed,
   calculatorMode,
 }) => {
   const graphRef = useRef<HTMLDivElement>(null);
@@ -149,10 +155,35 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
     return 0.5 * densityKgM3! * vCruiseMs! * vCruiseMs!;
   }, [hasCruiseInputs, densityKgM3, vCruiseMs]);
 
+  // Compute stall-based W/S limit
+  const wsStallMax = useMemo(() => {
+    if (
+      typeof densityKgM3 === 'number' &&
+      densityKgM3 > 0 &&
+      typeof stallSpeedMs === 'number' &&
+      stallSpeedMs > 0 &&
+      typeof clMaxUsed === 'number' &&
+      clMaxUsed > 0
+    ) {
+      // Compute in N/m² first: W/S = 0.5 * rho * V_s² * C_Lmax
+      const wsStallMaxN = 0.5 * densityKgM3 * stallSpeedMs * stallSpeedMs * clMaxUsed;
+      // Convert from N/m² to kg/m²
+      const g = 9.81;
+      return wsStallMaxN / g;
+    }
+    return undefined;
+  }, [densityKgM3, stallSpeedMs, clMaxUsed]);
+
   // Determine W/S range
   const wsDesign = wingLoadingKgm2 && wingLoadingKgm2 > 0 ? wingLoadingKgm2 : undefined;
-  const wsMin = wsDesign ? Math.max(10, wsDesign * 0.4) : 20;
-  const wsMax = wsDesign ? wsDesign * 1.8 : 200;
+  let wsMin = wsDesign ? Math.max(10, wsDesign * 0.4) : 20;
+  let wsMax = wsDesign ? wsDesign * 1.8 : 200;
+  
+  // Adjust range to include stall limit if valid
+  if (wsStallMax !== undefined && Number.isFinite(wsStallMax)) {
+    wsMin = Math.min(wsMin, wsStallMax * 0.6);
+    wsMax = Math.max(wsMax, wsStallMax * 1.4);
+  }
 
   // Generate chart data: horizontal constraint line and cruise curve
   const chartData = useMemo((): SizingPoint[] => {
@@ -225,6 +256,12 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
   if (Number.isFinite(twClimbRequired) && currentTw !== undefined && Number.isFinite(currentTw)) {
     climbStatus = currentTw + 1e-6 >= twClimbRequired ? 'pass' : 'fail';
   }
+  
+  // Compute stall pass/fail status
+  let stallStatus: 'unknown' | 'pass' | 'fail' = 'unknown';
+  if (wsStallMax !== undefined && Number.isFinite(wsStallMax) && wsDesign !== undefined) {
+    stallStatus = wsDesign <= wsStallMax + 1e-6 ? 'pass' : 'fail';
+  }
 
   if (!hasValidData) {
     return (
@@ -294,6 +331,35 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
                 fill="rgba(34, 197, 94, 0.08)"
                 stroke="none"
               />
+            )}
+            
+            {/* Stall limit vertical line and shading */}
+            {wsStallMax !== undefined && Number.isFinite(wsStallMax) && (
+              <>
+                {/* Vertical stall/landing W/S limit */}
+                <ReferenceLine
+                  x={wsStallMax}
+                  stroke="#fb7185"
+                  strokeDasharray="4 4"
+                  strokeWidth={2}
+                  label={{
+                    value: 'Stall limit',
+                    position: 'top',
+                    fill: '#fecaca',
+                    fontSize: 11,
+                  }}
+                />
+                
+                {/* Shading to the right of the stall limit */}
+                <ReferenceArea
+                  x1={wsStallMax}
+                  x2={wsMax}
+                  y1={twMin}
+                  y2={twMax}
+                  fill="rgba(248, 113, 113, 0.08)"
+                  stroke="none"
+                />
+              </>
             )}
             
             {/* Climb constraint line (horizontal) */}
@@ -408,6 +474,27 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
           {hasCruiseInputs && (
             <p className="mt-1 text-[0.7rem] text-slate-400">
               Cruise curve shows T/W required to balance drag at the selected speed and drag polar.
+            </p>
+          )}
+        </div>
+        
+        {/* Stall Constraint Caption */}
+        <div className="mt-1 text-[0.7rem]">
+          {stallStatus === 'pass' && wsStallMax !== undefined && Number.isFinite(wsStallMax) && (
+            <p className="text-emerald-300">
+              ✓ Current wing loading is within the stall/landing limit.
+            </p>
+          )}
+          
+          {stallStatus === 'fail' && wsStallMax !== undefined && Number.isFinite(wsStallMax) && (
+            <p className="text-rose-300">
+              ✕ Current wing loading exceeds the stall/landing-based W/S limit. Consider increasing wing area or CL_max, or accepting a higher stall/approach speed.
+            </p>
+          )}
+          
+          {stallStatus === 'unknown' && (
+            <p className="text-slate-400">
+              Run the Wing Loading calculator to provide stall speed, CL_max, and density for stall/landing constraints.
             </p>
           )}
         </div>

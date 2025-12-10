@@ -1584,6 +1584,8 @@ const ThrustLoadingCalculator = () => {
                 k={Number.isFinite(k) && k > 0 ? k : undefined}
                 vCruiseMs={Number.isFinite(vCruiseMs) && vCruiseMs > 0 ? vCruiseMs : undefined}
                 densityKgM3={rho}
+                stallSpeedMs={designSession.stallSpeedMs}
+                clMaxUsed={designSession.clMaxUsed}
               />
             );
           })()}
