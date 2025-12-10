@@ -66,6 +66,7 @@ import {
   getOutputUnits
 } from "./utils/unitConversions";
 import { ThrustLoadingGraphs } from "./ThrustLoadingGraphs";
+import { ThrustWingSizingDiagram } from "./ThrustWingSizingDiagram";
 
 // ============================================================================
 // TYPES & CONSTANTS - BATCH 1
@@ -464,6 +465,7 @@ const ThrustLoadingCalculator = () => {
   const [engineType, setEngineType] = useState<EngineType>('Prop');
   const [vClimb, setVClimb] = useState<string>("");
   const [ldClimb, setLdClimb] = useState<string>("");
+  const [gammaReqPercent, setGammaReqPercent] = useState<string>("3"); // Default 3%
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [lastPayload, setLastPayload] = useState<any | null>(null);
   
@@ -490,6 +492,7 @@ const ThrustLoadingCalculator = () => {
         setEngineType(state.engineType || 'Prop');
         setVClimb(state.vClimb || "");
         setLdClimb(state.ldClimb || "");
+        setGammaReqPercent(state.gammaReqPercent || "3");
       } catch (e) {
         console.warn("Failed to load state:", e);
       }
@@ -515,10 +518,11 @@ const ThrustLoadingCalculator = () => {
       targetTW,
       engineType,
       vClimb,
-      ldClimb
+      ldClimb,
+      gammaReqPercent
     };
     localStorage.setItem("thrustLoadingCalc_state", JSON.stringify(state));
-  }, [unitSystem, calculatorMode, aircraftPreset, missionType, weightMode, massKg, weightN, thrustMode, totalThrust, perEngineThrust, numEngines, thrustUnit, calculationMode, targetTW, engineType, vClimb, ldClimb]);
+  }, [unitSystem, calculatorMode, aircraftPreset, missionType, weightMode, massKg, weightN, thrustMode, totalThrust, perEngineThrust, numEngines, thrustUnit, calculationMode, targetTW, engineType, vClimb, ldClimb, gammaReqPercent]);
   
   // Handle aircraft preset selection
   const handleAircraftPresetChange = (preset: AircraftPreset) => {
@@ -1228,7 +1232,7 @@ const ThrustLoadingCalculator = () => {
                           )}
                       </div>
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="outline"
                         onClick={() => {
                           if (!designSession.ldClimb) return;
@@ -1251,6 +1255,28 @@ const ThrustLoadingCalculator = () => {
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder="e.g., 12.0"
                   />
+                </AeroFormField>
+                
+                <AeroFormField 
+                  label="Required Climb Gradient (γ_req)" 
+                  helperText="Required climb gradient as percentage (e.g., 3% = 0.03)"
+                >
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={gammaReqPercent}
+                      onChange={(e) => setGammaReqPercent(e.target.value)}
+                      className="bg-slate-900/50 border-cyan-400/30"
+                      placeholder="e.g., 3.0"
+                    />
+                    <span className="text-sm text-gray-400 whitespace-nowrap">%</span>
+                  </div>
+                  {gammaReqPercent && !isNaN(parseFloat(gammaReqPercent)) && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      γ = {parseFloat(gammaReqPercent) / 100} ({parseFloat(gammaReqPercent)}%)
+                    </p>
+                  )}
                 </AeroFormField>
               </AeroCard>
             )}
@@ -1467,7 +1493,7 @@ const ThrustLoadingCalculator = () => {
 
       {/* Engineering Graphs - Full Width Section Below */}
       {result && (
-        <div className="mt-8 px-4">
+        <div className="mt-8 px-4 space-y-8">
           <ThrustLoadingGraphs
             currentTW={result.thrustToWeight}
             currentROC={result.rateOfClimb}
@@ -1477,6 +1503,17 @@ const ThrustLoadingCalculator = () => {
             missionType={missionType}
             calculatorMode={calculatorMode}
           />
+          
+          {/* T/W vs W/S Sizing Diagram (Expert mode only) */}
+          {calculatorMode === 'Expert' && (
+            <ThrustWingSizingDiagram
+              wingLoadingKgm2={designSession.wingLoadingKgm2}
+              thrustToWeight={result.thrustToWeight}
+              ldClimb={ldClimb ? parseFloat(ldClimb) : designSession.ldClimb}
+              gammaReq={gammaReqPercent ? parseFloat(gammaReqPercent) / 100 : 0.03}
+              calculatorMode={calculatorMode}
+            />
+          )}
         </div>
       )}
     </ToolWrapper>

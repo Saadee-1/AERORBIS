@@ -1,0 +1,298 @@
+/**
+ * T/W vs W/S Sizing Diagram Component
+ * 
+ * Engineering sizing diagram showing:
+ * - Climb constraint line (horizontal): T/W = 1/(L/D) + gamma
+ * - Current design point (W/S, T/W)
+ * 
+ * Expert mode only - requires W/S from designSession and T/W from calculation
+ */
+
+"use client";
+
+import React, { useMemo, useRef } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceDot,
+} from "recharts";
+import { globalAxisCommonProps, globalAxisTickStyle, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
+import { ChartCard } from "@/components/charts/ChartCard";
+import * as htmlToImage from 'html-to-image';
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+
+// High-contrast graph styling constants (same as ThrustLoadingGraphs)
+const GRAPH_STYLES = {
+  gridStroke: 'rgba(255,255,255,0.12)',
+  axisTickText: 'rgba(255,255,255,0.85)',
+  axisLabelText: '#fff',
+  constraintLineColor: '#fbbf24', // Yellow for constraint lines
+  constraintLineDash: '6 6',
+  constraintLineWidth: 2.5,
+  designPointColor: '#f97316', // Orange for design point
+  designPointFill: '#f97316',
+  designPointStroke: '#fff',
+  designPointRadius: 6,
+  tooltipBg: 'rgba(20, 20, 20, 0.92)',
+  tooltipText: '#00eaff',
+} as const;
+
+interface SizingPoint {
+  ws: number;        // W/S (kg/m²)
+  twClimb: number;   // required T/W for climb
+}
+
+interface ThrustWingSizingDiagramProps {
+  // Current design point
+  wingLoadingKgm2?: number; // W/S from designSession (kg/m²)
+  thrustToWeight?: number; // T/W from current calculation
+  
+  // Climb constraint parameters (Expert mode)
+  ldClimb?: number; // L/D during climb
+  gammaReq: number; // Required climb gradient (dimensionless)
+  
+  // Calculator mode
+  calculatorMode: 'Beginner' | 'University' | 'Expert';
+}
+
+/**
+ * Compute required T/W for climb constraint
+ * T/W = 1/(L/D) + gamma
+ */
+function computeClimbTwRequired(ldClimb: number, gammaReq: number): number {
+  if (!isFinite(ldClimb) || ldClimb <= 0) return NaN;
+  return 1 / ldClimb + gammaReq;
+}
+
+/**
+ * Custom tooltip for sizing diagram
+ */
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div 
+        className="backdrop-blur-sm border rounded-lg p-3 shadow-xl"
+        style={{ 
+          background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 35, 0.92) 100%)',
+          borderColor: `${GRAPH_STYLES.tooltipText}30`
+        }}
+      >
+        <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
+          {`W/S = ${label.toFixed(1)} kg/m²`}
+        </p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className="text-sm font-medium" style={{ color: entry.color || GRAPH_STYLES.tooltipText }}>
+            {`${entry.name}: ${entry.value.toFixed(3)}`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = ({
+  wingLoadingKgm2,
+  thrustToWeight,
+  ldClimb,
+  gammaReq,
+  calculatorMode,
+}) => {
+  const graphRef = useRef<HTMLDivElement>(null);
+
+  // Only show in Expert mode
+  if (calculatorMode !== 'Expert') {
+    return null;
+  }
+
+  // Determine effective L/D for climb
+  const ldClimbEffective = ldClimb && ldClimb > 0 ? ldClimb : undefined;
+
+  // Calculate climb constraint T/W
+  const twClimbRequired = useMemo(() => {
+    if (!ldClimbEffective || !isFinite(gammaReq)) return NaN;
+    return computeClimbTwRequired(ldClimbEffective, gammaReq);
+  }, [ldClimbEffective, gammaReq]);
+
+  // Determine W/S range
+  const wsDesign = wingLoadingKgm2 && wingLoadingKgm2 > 0 ? wingLoadingKgm2 : undefined;
+  const wsMin = wsDesign ? Math.max(10, wsDesign * 0.4) : 20;
+  const wsMax = wsDesign ? wsDesign * 1.8 : 200;
+
+  // Generate chart data: horizontal constraint line
+  const chartData = useMemo((): SizingPoint[] => {
+    if (!isFinite(twClimbRequired)) return [];
+    
+    const numPoints = 50;
+    const wsStep = (wsMax - wsMin) / numPoints;
+    const data: SizingPoint[] = [];
+    
+    for (let i = 0; i <= numPoints; i++) {
+      const ws = wsMin + i * wsStep;
+      data.push({
+        ws,
+        twClimb: twClimbRequired,
+      });
+    }
+    
+    return data;
+  }, [wsMin, wsMax, twClimbRequired]);
+
+  // Determine axis ranges
+  const twMin = isFinite(twClimbRequired) 
+    ? Math.max(0, twClimbRequired * 0.5)
+    : (thrustToWeight && thrustToWeight > 0 ? Math.max(0, thrustToWeight * 0.5) : 0);
+  const twMax = Math.max(
+    isFinite(twClimbRequired) ? twClimbRequired * 1.5 : 0,
+    thrustToWeight && thrustToWeight > 0 ? thrustToWeight * 1.5 : 0.5
+  );
+
+  // Export function
+  const handleExport = async () => {
+    if (!graphRef.current) return;
+    
+    try {
+      const dataUrl = await htmlToImage.toPng(graphRef.current, {
+        backgroundColor: '#0f172a',
+        pixelRatio: 2,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `T_W_vs_W_S_Sizing_Diagram.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error('Failed to export graph:', error);
+    }
+  };
+
+  // Check if we have valid data to show
+  const hasValidData = isFinite(twClimbRequired) && chartData.length > 0;
+  const hasDesignPoint = wsDesign && thrustToWeight && isFinite(thrustToWeight);
+
+  if (!hasValidData) {
+    return (
+      <ChartCard
+        title="Sizing Diagram: T/W vs W/S"
+        description="Early sizing view using current wing loading, thrust loading, and climb requirements."
+        height={260}
+      >
+        <div className="flex items-center justify-center h-full py-12">
+          <p className="text-xs text-slate-300">
+            Enter a valid climb L/D and compute thrust loading to view the sizing diagram.
+          </p>
+        </div>
+      </ChartCard>
+    );
+  }
+
+  return (
+    <ChartCard
+      title="Sizing Diagram: T/W vs W/S"
+      description="Early sizing view using current wing loading, thrust loading, and climb requirements."
+      height={400}
+      headerActions={
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleExport}
+          className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Export
+        </Button>
+      }
+    >
+      <div ref={graphRef}>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 20, right: 30, bottom: 60, left: 80 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke={GRAPH_STYLES.gridStroke} />
+            
+            <XAxis
+              {...globalAxisCommonProps}
+              dataKey="ws"
+              type="number"
+              domain={[wsMin, wsMax]}
+              tick={globalAxisTickStyle}
+              label={makeXAxisLabel("Wing Loading W/S (kg/m²)")}
+            />
+            
+            <YAxis
+              {...globalAxisCommonProps}
+              type="number"
+              domain={[twMin, twMax]}
+              tick={globalAxisTickStyle}
+              label={makeYAxisLabel("Thrust-to-Weight Ratio T/W")}
+            />
+            
+            <Tooltip content={<CustomTooltip />} />
+            
+            {/* Climb constraint line (horizontal) */}
+            <Line
+              type="monotone"
+              dataKey="twClimb"
+              stroke={GRAPH_STYLES.constraintLineColor}
+              strokeDasharray={GRAPH_STYLES.constraintLineDash}
+              strokeWidth={GRAPH_STYLES.constraintLineWidth}
+              dot={false}
+              name="Climb Constraint"
+              isAnimationActive={false}
+            />
+            
+            {/* Current design point marker */}
+            {hasDesignPoint && (
+              <ReferenceDot
+                x={wsDesign}
+                y={thrustToWeight}
+                r={GRAPH_STYLES.designPointRadius}
+                fill={GRAPH_STYLES.designPointFill}
+                stroke={GRAPH_STYLES.designPointStroke}
+                strokeWidth={2}
+              />
+            )}
+          </LineChart>
+        </ResponsiveContainer>
+        
+        {/* Legend */}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-4 h-4 border-t-2"
+              style={{
+                borderColor: GRAPH_STYLES.constraintLineColor,
+                borderStyle: 'dashed',
+              }}
+            />
+            <span className="text-gray-300">
+              Climb Constraint: T/W ≥ {twClimbRequired.toFixed(3)}
+            </span>
+          </div>
+          {hasDesignPoint && (
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-full border-2"
+                style={{
+                  backgroundColor: GRAPH_STYLES.designPointFill,
+                  borderColor: GRAPH_STYLES.designPointStroke,
+                }}
+              />
+              <span className="text-gray-300">
+                Design Point: W/S = {wsDesign.toFixed(1)} kg/m², T/W = {thrustToWeight.toFixed(3)}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </ChartCard>
+  );
+};
+
