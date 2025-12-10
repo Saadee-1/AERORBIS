@@ -540,6 +540,9 @@ const ThrustLoadingCalculator = () => {
             return;
           }
           totalThrustNSI = convertThrustToSI(thrustInput, thrustUnit);
+          // Calculate per-engine thrust from total (assume 1 engine if not specified)
+          const numEnginesInput = parseInt(numEngines) || 1;
+          perEngineThrustNSI = totalThrustNSI / numEnginesInput;
         } else {
           const perEngineInput = parseFloat(perEngineThrust);
           const numEnginesInput = parseInt(numEngines);
@@ -1161,20 +1164,32 @@ const ThrustLoadingCalculator = () => {
                     <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
                       <p className="text-sm text-gray-400 mb-1">Total Thrust</p>
                       <p className="text-2xl font-bold text-green-400">
-                        {convertThrustFromSI(result.totalThrustN, outputUnits.thrust === 'lbf' ? 'lbf' : outputUnits.thrust === 'kgf' ? 'kgf' : 'N').toFixed(0)} {outputUnits.thrust}
+                        {(() => {
+                          if (!result || result.totalThrustN === undefined || isNaN(result.totalThrustN)) return '0';
+                          const thrustUnit: ThrustUnit = outputUnits?.thrust === 'lbf' ? 'lbf' : outputUnits?.thrust === 'kgf' ? 'kgf' : 'N';
+                          const converted = convertThrustFromSI(result.totalThrustN, thrustUnit);
+                          if (isNaN(converted)) return result.totalThrustN.toFixed(0);
+                          return converted.toFixed(0);
+                        })()} {outputUnits?.thrust || 'N'}
                       </p>
                       <p className="text-sm text-gray-400 mt-1">
-                        ({result.totalThrustN.toFixed(0)} N)
+                        ({result?.totalThrustN?.toFixed(0) || '0'} N)
                       </p>
                     </div>
                     
                     <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                       <p className="text-sm text-gray-400 mb-1">Per-Engine Thrust</p>
                       <p className="text-xl font-bold text-cyan-300">
-                        {convertThrustFromSI(result.perEngineThrustN, outputUnits.thrust === 'lbf' ? 'lbf' : outputUnits.thrust === 'kgf' ? 'kgf' : 'N').toFixed(0)} {outputUnits.thrust}
+                        {(() => {
+                          if (!result || result.perEngineThrustN === undefined || isNaN(result.perEngineThrustN)) return '0';
+                          const thrustUnit: ThrustUnit = outputUnits?.thrust === 'lbf' ? 'lbf' : outputUnits?.thrust === 'kgf' ? 'kgf' : 'N';
+                          const converted = convertThrustFromSI(result.perEngineThrustN, thrustUnit);
+                          if (isNaN(converted)) return result.perEngineThrustN.toFixed(0);
+                          return converted.toFixed(0);
+                        })()} {outputUnits?.thrust || 'N'}
                       </p>
                       <p className="text-sm text-gray-400 mt-1">
-                        ({result.perEngineThrustN.toFixed(0)} N)
+                        ({result?.perEngineThrustN?.toFixed(0) || '0'} N)
                       </p>
                     </div>
                     
