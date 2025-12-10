@@ -118,108 +118,108 @@ const ToolsLauncher = () => {
               {!hideTabs && (
                 <>
                 {/* First Row - 8 tabs */}
-                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-2 gap-2 rounded-xl mb-3">
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-3 gap-3 rounded-xl mb-3">
                 <TabsTrigger 
                   value="thrust"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Rocket className="w-4 h-4 mr-2" />
-                  Thrust Calculator
+                  <Rocket className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Thrust Calculator</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="wing"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Plane className="w-4 h-4 mr-2" />
-                  Wing Loading Calculator
+                  <Plane className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Wing Loading Calculator</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="orbital"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Orbit className="w-4 h-4 mr-2" />
-                  Orbital Visualizer
+                  <Orbit className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Orbital Visualizer</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="liftdrag"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  L/D Analyzer
+                  <TrendingUp className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">L/D Analyzer</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="reynolds"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Wind className="w-4 h-4 mr-2" />
-                  Reynolds Number
+                  <Wind className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Reynolds Number</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="materials"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Database className="w-4 h-4 mr-2" />
-                  Materials DB
+                  <Database className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Materials DB</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="deltav"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Δv Planner
+                  <Zap className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Δv Planner</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="antenna"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Radio className="w-4 h-4 mr-2" />
-                  Antenna
+                  <Radio className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Antenna</span>
                 </TabsTrigger>
                 </TabsList>
                 
                 {/* Second Row - remaining tabs */}
-                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-2 gap-2 rounded-xl mb-8">
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-3 gap-3 rounded-xl mb-8">
                 <TabsTrigger 
                   value="atmosphere"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Cloud className="w-4 h-4 mr-2" />
-                  Atmosphere
+                  <Cloud className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Atmosphere</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="rocketengine"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Rocket className="w-4 h-4 mr-2" />
-                  Rocket Engine
+                  <Rocket className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Rocket Engine</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="stability"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Plane className="w-4 h-4 mr-2" />
-                  Stability
+                  <Plane className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Stability</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="power"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Battery className="w-4 h-4 mr-2" />
-                  Power System
+                  <Battery className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Power System</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="weight"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Scale className="w-4 h-4 mr-2" />
-                  Weight Estimator
+                  <Scale className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Weight Estimator</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="trajectory"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-5 py-3 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
-                  <Target className="w-4 h-4 mr-2" />
-                  Trajectory
+                  <Target className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Trajectory</span>
                 </TabsTrigger>
                 </TabsList>
                 </>
