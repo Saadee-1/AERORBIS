@@ -22,6 +22,7 @@ import StructuralWeightEstimator from "@/tools/weight";
 import TrajectorySimulator from "@/tools/trajectory";
 import RocketEngineCalculator from "@/tools/rocketEngine";
 import PowerSystemCalculator from "@/tools/power";
+import { DesignSessionProvider } from "@/contexts/designSession";
 
 // Mapping from tool names to tab IDs
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
@@ -108,13 +109,14 @@ const ToolsLauncher = () => {
               </Button>
             </motion.div>
           )}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-8"
-          >
-            <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
+          <DesignSessionProvider>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="mb-8"
+            >
+              <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
               {!hideTabs && (
                 <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
                 <TabsTrigger 
@@ -286,6 +288,7 @@ const ToolsLauncher = () => {
               </TabsContent>
             </Tabs>
           </motion.div>
+          </DesignSessionProvider>
         </div>
       </section>
 

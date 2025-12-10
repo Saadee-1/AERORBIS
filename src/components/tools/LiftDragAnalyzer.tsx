@@ -27,6 +27,7 @@ import { globalAxisTickStyle, globalAxisCommonProps, makeXAxisLabel, makeYAxisLa
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
+import { useDesignSession } from "@/contexts/designSession";
 import { LdPdfButton } from "@/components/tools/LdPdfButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
@@ -293,6 +294,7 @@ interface ComputedLD {
 
 const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: LiftDragAnalyzerProps = {}) => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { updateDesignSession } = useDesignSession();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
@@ -1388,6 +1390,29 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                     <p className="text-xl font-bold text-white">{result.CD.toFixed(4)}</p>
                   </div>
                 </div>
+
+                {/* Button to publish L/D to design session */}
+                {Number.isFinite(result.L_D_ratio) && result.L_D_ratio > 0 && (
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const alpha = parseFloat(inputs.angleOfAttack);
+                        if (Number.isFinite(alpha) && Number.isFinite(result.CL) && Number.isFinite(result.L_D_ratio)) {
+                          updateDesignSession({
+                            ldClimb: result.L_D_ratio,
+                            clClimb: result.CL,
+                            alphaClimbDeg: alpha,
+                          });
+                        }
+                      }}
+                      className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+                    >
+                      Use as climb L/D in Thrust Calculator
+                    </Button>
+                  </div>
+                )}
 
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="steps" className="border-cyan-400/20">

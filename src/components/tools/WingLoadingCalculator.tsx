@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Wind, Anchor, Settings2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
+import { useDesignSession } from "@/contexts/designSession";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
@@ -515,6 +516,7 @@ function generateBestUseCase(
 const WingLoadingCalculator = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { updateDesignSession } = useDesignSession();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   
   // State
@@ -779,6 +781,22 @@ const WingLoadingCalculator = () => {
       };
       
       setResult(calculationResult);
+      
+      // Update design session after successful calculation
+      if (Number.isFinite(finalWeightN) && Number.isFinite(areaM2SI) && Number.isFinite(wsKgm2) && Number.isFinite(vsMs)) {
+        const massKgValue = weightMode === 'mass' ? massKgSI! : undefined;
+        updateDesignSession({
+          massKg: massKgValue,
+          weightN: finalWeightN,
+          wingAreaM2: areaM2SI,
+          wingLoadingKgm2: wsKgm2,
+          missionType: missionType !== 'None' ? missionType : undefined,
+          densityKgM3: currentAirDensity,
+          clMaxUsed: currentClMax,
+          stallSpeedMs: vsMs,
+          stallSpeedKts: vsKts,
+        });
+      }
       
       // Send calculation event
         const toolInputs = {

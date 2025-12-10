@@ -23,9 +23,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Anchor, Settings2, Zap } from "lucide-react";
+import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Anchor, Settings2, Zap, Link2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
+import { useDesignSession } from "@/contexts/designSession";
+import { Button } from "@/components/ui/button";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
@@ -436,7 +438,13 @@ function generateInterpretation(
 const ThrustLoadingCalculator = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { data: designSession } = useDesignSession();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  
+  // Helper to detect if Wing Loading data exists
+  const hasWingLoadingData =
+    !!designSession &&
+    (!!designSession.massKg || !!designSession.weightN);
   
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
@@ -977,6 +985,48 @@ const ThrustLoadingCalculator = () => {
               )}
             </AeroCard>
 
+            {/* Wing Loading Data Banner */}
+            {hasWingLoadingData && (
+              <AeroCard
+                title="Wing Loading data available"
+                description="Reuse mass/weight and mission from your last Wing Loading run."
+                icon={Link2}
+              >
+                <div className="flex flex-wrap items-center gap-2 justify-between">
+                  <span className="text-xs text-slate-300">
+                    {designSession.massKg
+                      ? `Mass: ${designSession.massKg.toFixed(1)} kg`
+                      : designSession.weightN
+                      ? `Weight: ${designSession.weightN.toFixed(0)} N`
+                      : 'Design data detected'}
+                    {designSession.missionType && designSession.missionType !== 'None' && (
+                      <span className="ml-2">• Mission: {designSession.missionType}</span>
+                    )}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      // Use current weight mode to decide which field to prefill
+                      if (weightMode === 'mass' && designSession.massKg) {
+                        setMassKg(designSession.massKg.toString());
+                      } else if (weightMode === 'weight' && designSession.weightN) {
+                        setWeightN(designSession.weightN.toString());
+                      }
+                      
+                      // If missionType currently 'None', adopt the session missionType
+                      if (missionType === 'None' && designSession.missionType && designSession.missionType !== 'None') {
+                        setMissionType(designSession.missionType);
+                      }
+                    }}
+                    className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+                  >
+                    Use in this calculator
+                  </Button>
+                </div>
+              </AeroCard>
+            )}
+
             {/* Weight/Mass Input */}
             <AeroCard
               title="Aircraft Weight/Mass"
@@ -1153,6 +1203,44 @@ const ThrustLoadingCalculator = () => {
                     placeholder="e.g., 25.0"
                   />
                 </AeroFormField>
+                
+                {/* Helper for L/D from Lift/Drag Analyzer */}
+                {(() => {
+                  const hasClimbLdFromSession =
+                    calculatorMode === 'Expert' &&
+                    !!designSession &&
+                    typeof designSession.ldClimb === 'number' &&
+                    designSession.ldClimb > 0;
+                  
+                  return hasClimbLdFromSession ? (
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-cyan-400/30 bg-slate-900/60 px-3 py-2">
+                      <div className="text-xs text-slate-200">
+                        From Lift/Drag Analyzer:&nbsp;
+                        <span className="font-mono text-cyan-300">
+                          (L/D)_climb ≈ {designSession.ldClimb?.toFixed(1)}
+                        </span>
+                        {designSession.clClimb !== undefined &&
+                          designSession.alphaClimbDeg !== undefined && (
+                            <span className="ml-1 text-[0.7rem] text-slate-400">
+                              at CL ≈ {designSession.clClimb.toFixed(2)},
+                              α ≈ {designSession.alphaClimbDeg.toFixed(1)}°
+                            </span>
+                          )}
+                      </div>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => {
+                          if (!designSession.ldClimb) return;
+                          setLdClimb(designSession.ldClimb.toString());
+                        }}
+                        className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+                      >
+                        Use this L/D
+                      </Button>
+                    </div>
+                  ) : null;
+                })()}
                 
                 <AeroFormField label="Lift-to-Drag Ratio (L/D_climb)" helperText="L/D during climb phase">
                   <Input
