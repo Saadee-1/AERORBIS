@@ -12,7 +12,6 @@ import PageBreadcrumb from "@/components/PageBreadcrumb";
 const getToolUrl = (toolName: string): string => {
   const toolMap: { [key: string]: string } = {
     "Thrust Calculator": "thrust",
-    "Thrust Loading Calculator": "thrustloading",
     "Wing Loading Calculator": "wing",
     "Orbital Path Visualizer": "orbital",
     "Lift-to-Drag Ratio Analyzer": "liftdrag",

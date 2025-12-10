@@ -28,7 +28,6 @@ import { DesignSessionProvider } from "@/contexts/designSession";
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "Thrust Calculator": "thrust",
   "Wing Loading Calculator": "wing",
-  "Thrust Loading Calculator": "thrustloading",
   "Orbital Path Visualizer": "orbital",
   "Lift-to-Drag Ratio Analyzer": "liftdrag",
   "Reynolds Number Calculator": "reynolds",
@@ -44,7 +43,6 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
     // Also support direct tool IDs
   "thrust": "thrust",
   "wing": "wing",
-  "thrustloading": "thrustloading",
   "orbital": "orbital",
   "liftdrag": "liftdrag",
   "reynolds": "reynolds",
@@ -118,108 +116,101 @@ const ToolsLauncher = () => {
             >
               <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
               {!hideTabs && (
-                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-1 rounded-xl mb-8">
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-2 gap-2 rounded-xl mb-8">
                 <TabsTrigger 
                   value="thrust"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Rocket className="w-4 h-4 mr-2" />
                   Thrust Calculator
                 </TabsTrigger>
                 <TabsTrigger 
                   value="wing"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Plane className="w-4 h-4 mr-2" />
                   Wing Loading Calculator
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="thrustloading"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Thrust Loading Calculator
-                </TabsTrigger>
-                <TabsTrigger 
                   value="orbital"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Orbit className="w-4 h-4 mr-2" />
                   Orbital Visualizer
                 </TabsTrigger>
                 <TabsTrigger 
                   value="liftdrag"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <TrendingUp className="w-4 h-4 mr-2" />
                   L/D Analyzer
                 </TabsTrigger>
                 <TabsTrigger 
                   value="reynolds"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Wind className="w-4 h-4 mr-2" />
                   Reynolds Number
                 </TabsTrigger>
                 <TabsTrigger 
                   value="materials"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Database className="w-4 h-4 mr-2" />
                   Materials DB
                 </TabsTrigger>
                 <TabsTrigger 
                   value="deltav"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Zap className="w-4 h-4 mr-2" />
                   Δv Planner
                 </TabsTrigger>
                 <TabsTrigger 
                   value="antenna"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Radio className="w-4 h-4 mr-2" />
                   Antenna
                 </TabsTrigger>
                 <TabsTrigger 
                   value="atmosphere"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Cloud className="w-4 h-4 mr-2" />
                   Atmosphere
                 </TabsTrigger>
                 <TabsTrigger 
                   value="rocketengine"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Rocket className="w-4 h-4 mr-2" />
                   Rocket Engine
                 </TabsTrigger>
                 <TabsTrigger 
                   value="stability"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Plane className="w-4 h-4 mr-2" />
                   Stability
                 </TabsTrigger>
                 <TabsTrigger 
                   value="power"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Battery className="w-4 h-4 mr-2" />
                   Power System
                 </TabsTrigger>
                 <TabsTrigger 
                   value="weight"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Scale className="w-4 h-4 mr-2" />
                   Weight Estimator
                 </TabsTrigger>
                 <TabsTrigger 
                   value="trajectory"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
                 >
                   <Target className="w-4 h-4 mr-2" />
                   Trajectory
@@ -233,10 +224,6 @@ const ToolsLauncher = () => {
 
               <TabsContent value="wing" className="mt-0">
                 <WingLoadingCalculator />
-              </TabsContent>
-
-              <TabsContent value="thrustloading" className="mt-0">
-                <ThrustCalculator initialMode="aircraft" />
               </TabsContent>
 
               <TabsContent value="orbital" className="mt-0">
