@@ -116,7 +116,9 @@ const ToolsLauncher = () => {
             >
               <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
               {!hideTabs && (
-                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-2 gap-2 rounded-xl mb-8">
+                <>
+                {/* First Row - 8 tabs */}
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-2 gap-2 rounded-xl mb-3">
                 <TabsTrigger 
                   value="thrust"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
@@ -173,6 +175,10 @@ const ToolsLauncher = () => {
                   <Radio className="w-4 h-4 mr-2" />
                   Antenna
                 </TabsTrigger>
+                </TabsList>
+                
+                {/* Second Row - remaining tabs */}
+                <TabsList className="grid w-full max-w-8xl mx-auto grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-2 gap-2 rounded-xl mb-8">
                 <TabsTrigger 
                   value="atmosphere"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-4"
@@ -216,6 +222,7 @@ const ToolsLauncher = () => {
                   Trajectory
                 </TabsTrigger>
                 </TabsList>
+                </>
               )}
 
               <TabsContent value="thrust" className="mt-0">
