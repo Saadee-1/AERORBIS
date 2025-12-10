@@ -184,6 +184,7 @@ interface CalculationResult {
   weightN: number;
   wingLoadingNm2: number;
   wingLoadingKgm2: number;
+  wingAreaM2: number;
   stallSpeedMs: number;
   stallSpeedKts: number;
   wsClass: WingLoadingClass;
@@ -769,6 +770,7 @@ const WingLoadingCalculator = () => {
         weightN: finalWeightN,
         wingLoadingNm2: wsNm2,
         wingLoadingKgm2: wsKgm2,
+        wingAreaM2: areaM2SI,
         stallSpeedMs: vsMs,
         stallSpeedKts: vsKts,
         wsClass,
@@ -1565,7 +1567,7 @@ const WingLoadingCalculator = () => {
             currentVsMs={result.stallSpeedMs}
             currentVsKts={result.stallSpeedKts}
             weightN={result.weightN}
-            wingAreaM2={result.weightN / (result.wingLoadingKgm2 * GRAVITY)}
+            wingAreaM2={result.wingAreaM2}
             airDensity={currentAirDensity}
             clMax={currentClMax}
             missionType={missionType}

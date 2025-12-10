@@ -23,7 +23,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Anchor, Settings2, Zap, Link2 } from "lucide-react";
+import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Anchor, Settings2, Zap, Link2, Runway } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { useDesignSession } from "@/contexts/designSession";
@@ -106,6 +106,16 @@ const missionThrustData: Record<MissionType, MissionThrustParams> = {
   STOL:    { twMin: 0.20, twMax: 0.45 },
   Glider:  { twMin: 0.00, twMax: 0.05 }, // Gliders have minimal/no thrust
   Jet:     { twMin: 0.25, twMax: 0.80 }
+};
+
+// Mission-based default runway lengths (meters)
+const defaultRunwayByMission: Partial<Record<MissionType, number>> = {
+  None: 800,
+  UAV: 250,
+  Trainer: 800,
+  STOL: 300,
+  Glider: 400,
+  Jet: 2200,
 };
 
 // Aircraft presets with realistic MTOW and thrust values
@@ -469,6 +479,10 @@ const ThrustLoadingCalculator = () => {
   const [cd0Input, setCd0Input] = useState<string>('0.025'); // Zero-lift drag coefficient
   const [kInput, setKInput] = useState<string>('0.045'); // Induced drag factor
   const [vCruiseInput, setVCruiseInput] = useState<string>('90'); // Cruise speed in knots
+  const [runwayLengthInput, setRunwayLengthInput] = useState<string>(''); // meters
+  const [clToInput, setClToInput] = useState<string>(''); // C_L_TO
+  const [muRollInput, setMuRollInput] = useState<string>('0.03'); // μ_r, default paved
+  const [hasTouchedRunway, setHasTouchedRunway] = useState<boolean>(false);
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [lastPayload, setLastPayload] = useState<any | null>(null);
   
@@ -499,6 +513,10 @@ const ThrustLoadingCalculator = () => {
         setCd0Input(state.cd0Input || '0.025');
         setKInput(state.kInput || '0.045');
         setVCruiseInput(state.vCruiseInput || '90');
+        setRunwayLengthInput(state.runwayLengthInput || '');
+        setClToInput(state.clToInput || '');
+        setMuRollInput(state.muRollInput || '0.03');
+        setHasTouchedRunway(state.hasTouchedRunway || false);
       } catch (e) {
         console.warn("Failed to load state:", e);
       }
@@ -528,10 +546,32 @@ const ThrustLoadingCalculator = () => {
       gammaReqPercent,
       cd0Input,
       kInput,
-      vCruiseInput
+      vCruiseInput,
+      runwayLengthInput,
+      clToInput,
+      muRollInput,
+      hasTouchedRunway
     };
     localStorage.setItem("thrustLoadingCalc_state", JSON.stringify(state));
-  }, [unitSystem, calculatorMode, aircraftPreset, missionType, weightMode, massKg, weightN, thrustMode, totalThrust, perEngineThrust, numEngines, thrustUnit, calculationMode, targetTW, engineType, vClimb, ldClimb, gammaReqPercent, cd0Input, kInput, vCruiseInput]);
+  }, [unitSystem, calculatorMode, aircraftPreset, missionType, weightMode, massKg, weightN, thrustMode, totalThrust, perEngineThrust, numEngines, thrustUnit, calculationMode, targetTW, engineType, vClimb, ldClimb, gammaReqPercent, cd0Input, kInput, vCruiseInput, runwayLengthInput, clToInput, muRollInput, hasTouchedRunway]);
+  
+  // Auto-fill runway length based on mission type
+  useEffect(() => {
+    if (!hasTouchedRunway) {
+      const defaultRunway = defaultRunwayByMission[missionType];
+      if (defaultRunway && !runwayLengthInput) {
+        setRunwayLengthInput(defaultRunway.toString());
+      }
+    }
+  }, [missionType, hasTouchedRunway, runwayLengthInput]);
+  
+  // Auto-fill CL_TO based on designSession.clMaxUsed
+  useEffect(() => {
+    if (!clToInput && designSession?.clMaxUsed && designSession.clMaxUsed > 0) {
+      const suggestedClTo = 0.8 * designSession.clMaxUsed;
+      setClToInput(suggestedClTo.toFixed(2));
+    }
+  }, [clToInput, designSession?.clMaxUsed]);
   
   // Handle aircraft preset selection
   const handleAircraftPresetChange = (preset: AircraftPreset) => {
@@ -1336,6 +1376,62 @@ const ThrustLoadingCalculator = () => {
                 </div>
               </AeroCard>
             )}
+
+            {/* Expert Panel: Takeoff Constraint Inputs */}
+            {calculatorMode === 'Expert' && (
+              <AeroCard
+                title="Takeoff Constraint Inputs"
+                description="Runway length and takeoff lift for T/W–W/S sizing."
+                icon={Runway}
+              >
+                <div className="grid gap-3 md:grid-cols-3">
+                  <AeroFormField
+                    label="Runway length (S_TO)"
+                    helperText="Required takeoff distance in meters"
+                  >
+                    <Input
+                      type="number"
+                      step="1"
+                      value={runwayLengthInput}
+                      onChange={(e) => {
+                        setRunwayLengthInput(e.target.value);
+                        if (!hasTouchedRunway) setHasTouchedRunway(true);
+                      }}
+                      className="bg-slate-900/50 border-cyan-400/30"
+                      placeholder="e.g. 800"
+                    />
+                  </AeroFormField>
+
+                  <AeroFormField
+                    label="Takeoff lift (C_L_TO)"
+                    helperText="Effective CL during takeoff/rotation"
+                  >
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={clToInput}
+                      onChange={(e) => setClToInput(e.target.value)}
+                      className="bg-slate-900/50 border-cyan-400/30"
+                      placeholder="e.g. 1.6"
+                    />
+                  </AeroFormField>
+
+                  <AeroFormField
+                    label="Rolling friction (μ_r)"
+                    helperText="~0.02–0.04 (paved), higher for grass"
+                  >
+                    <Input
+                      type="number"
+                      step="0.001"
+                      value={muRollInput}
+                      onChange={(e) => setMuRollInput(e.target.value)}
+                      className="bg-slate-900/50 border-cyan-400/30"
+                      placeholder="0.03"
+                    />
+                  </AeroFormField>
+                </div>
+              </AeroCard>
+            )}
             
             {/* Calculate Button */}
             <AeroButton
@@ -1568,6 +1664,18 @@ const ThrustLoadingCalculator = () => {
             const vCruiseKt = parseFloat(vCruiseInput);
             const vCruiseMs = Number.isFinite(vCruiseKt) ? vCruiseKt * 0.514444 : NaN;
             
+            // Parse takeoff inputs
+            const runwayLengthMeters = parseFloat(runwayLengthInput);
+            const clTo = parseFloat(clToInput);
+            const muRoll = parseFloat(muRollInput);
+            
+            const runwayLengthValid =
+              Number.isFinite(runwayLengthMeters) && runwayLengthMeters > 0;
+            const clToValid =
+              Number.isFinite(clTo) && clTo > 0;
+            const muRollValid =
+              Number.isFinite(muRoll) && muRoll >= 0 && muRoll < 0.3; // simple sanity bound
+            
             // Get density: prefer designSession, fallback to ISA sea level
             const rho = designSession?.densityKgM3 && designSession.densityKgM3 > 0
               ? designSession.densityKgM3
@@ -1586,6 +1694,11 @@ const ThrustLoadingCalculator = () => {
                 densityKgM3={rho}
                 stallSpeedMs={designSession.stallSpeedMs}
                 clMaxUsed={designSession.clMaxUsed}
+                takeoffRunwayMeters={
+                  runwayLengthValid ? runwayLengthMeters : undefined
+                }
+                clTo={clToValid ? clTo : undefined}
+                muRoll={muRollValid ? muRoll : undefined}
               />
             );
           })()}

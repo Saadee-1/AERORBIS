@@ -48,6 +48,7 @@ interface SizingPoint {
   ws: number;        // W/S (kg/m²)
   twClimb?: number;  // required T/W for climb
   twCruise?: number; // required T/W for cruise
+  twTakeoff?: number; // required T/W for takeoff
 }
 
 interface ThrustWingSizingDiagramProps {
@@ -68,6 +69,11 @@ interface ThrustWingSizingDiagramProps {
   // Stall constraint parameters (from Wing Loading via designSession)
   stallSpeedMs?: number; // Stall speed in m/s
   clMaxUsed?: number; // Maximum lift coefficient used
+  
+  // Takeoff constraint parameters (Expert mode)
+  takeoffRunwayMeters?: number; // Required takeoff distance in meters
+  clTo?: number; // Takeoff lift coefficient
+  muRoll?: number; // Rolling friction coefficient
   
   // Calculator mode
   calculatorMode: 'Beginner' | 'University' | 'Expert';
@@ -120,6 +126,9 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
   densityKgM3,
   stallSpeedMs,
   clMaxUsed,
+  takeoffRunwayMeters,
+  clTo,
+  muRoll,
   calculatorMode,
 }) => {
   const graphRef = useRef<HTMLDivElement>(null);
@@ -148,6 +157,29 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
     vCruiseMs > 0 &&
     typeof densityKgM3 === 'number' &&
     densityKgM3 > 0;
+
+  // Validate takeoff inputs
+  const hasTakeoffInputs =
+    typeof densityKgM3 === 'number' &&
+    densityKgM3 > 0 &&
+    typeof takeoffRunwayMeters === 'number' &&
+    takeoffRunwayMeters > 0 &&
+    typeof clTo === 'number' &&
+    clTo > 0 &&
+    typeof muRoll === 'number' &&
+    muRoll >= 0 &&
+    muRoll < 0.3;
+
+  // Constants for takeoff calculation
+  const g = 9.81;
+  const rho0 = 1.225;
+  const sigma = useMemo(() => {
+    if (typeof densityKgM3 === 'number' && densityKgM3 > 0) {
+      return densityKgM3 / rho0;
+    }
+    return 1.0;
+  }, [densityKgM3]);
+  const K_TO = 20; // Aggregated empirical constant (Raymer-inspired)
 
   // Compute dynamic pressure for cruise
   const q = useMemo(() => {
@@ -210,11 +242,23 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
         }
       }
       
+      // Compute takeoff T/W if inputs are valid
+      if (hasTakeoffInputs) {
+        const wsN = wsKg * g; // Convert W/S from kg/m² to N/m²
+        const numerator = wsN; // W/S_N
+        const denominator = sigma * clTo! * K_TO * takeoffRunwayMeters!;
+        const twTakeoff = muRoll! + (denominator > 0 ? numerator / denominator : NaN);
+        
+        if (Number.isFinite(twTakeoff) && twTakeoff > 0) {
+          point.twTakeoff = twTakeoff;
+        }
+      }
+      
       data.push(point);
     }
     
     return data;
-  }, [wsMin, wsMax, twClimbRequired, hasCruiseInputs, q, cd0, k]);
+  }, [wsMin, wsMax, twClimbRequired, hasCruiseInputs, q, cd0, k, hasTakeoffInputs, sigma, clTo, takeoffRunwayMeters, muRoll]);
 
   // Determine axis ranges
   const twMin = isFinite(twClimbRequired) 
@@ -387,6 +431,19 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               />
             )}
             
+            {/* Takeoff constraint curve */}
+            {hasTakeoffInputs && (
+              <Line
+                type="monotone"
+                dataKey="twTakeoff"
+                stroke="#38bdf8"
+                strokeWidth={2}
+                dot={false}
+                name="Takeoff Constraint"
+                isAnimationActive={false}
+              />
+            )}
+            
             {/* Current design point marker */}
             {hasDesignPoint && (
               <ReferenceDot
@@ -435,6 +492,20 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               </span>
             </div>
           )}
+          {hasTakeoffInputs && (
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 border-t-2"
+                style={{
+                  borderColor: '#38bdf8',
+                  borderStyle: 'solid',
+                }}
+              />
+              <span className="text-gray-300">
+                Takeoff Constraint
+              </span>
+            </div>
+          )}
           {hasDesignPoint && (
             <div className="flex items-center gap-2">
               <div
@@ -474,6 +545,12 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
           {hasCruiseInputs && (
             <p className="mt-1 text-[0.7rem] text-slate-400">
               Cruise curve shows T/W required to balance drag at the selected speed and drag polar.
+            </p>
+          )}
+          
+          {hasTakeoffInputs && (
+            <p className="mt-1 text-[0.7rem] text-slate-400">
+              Takeoff curve shows T/W required to meet the runway length with the selected C_L_TO and rolling friction.
             </p>
           )}
         </div>

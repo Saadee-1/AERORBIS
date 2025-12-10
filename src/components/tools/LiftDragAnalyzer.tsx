@@ -1789,7 +1789,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
                     />
                     
                     {/* Stall line and post-stall shading for alpha-based charts */}
-                    {comparisonPolars.length > 0 && (
+                    {graphMode !== "dragPolar" && comparisonPolars.length > 0 && (
                       <>
                         {comparisonPolars.map((polar) => {
                           const stallAlpha = polar.data.meta.alphaStallDeg;
