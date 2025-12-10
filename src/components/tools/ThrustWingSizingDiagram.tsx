@@ -21,6 +21,7 @@ import {
   ResponsiveContainer,
   ReferenceDot,
   ReferenceArea,
+  ReferenceLine,
 } from "recharts";
 import { globalAxisCommonProps, globalAxisTickStyle, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
 import { ChartCard } from "@/components/charts/ChartCard";
