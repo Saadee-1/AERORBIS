@@ -23,7 +23,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Anchor, Settings2, Zap, Link2, Runway } from "lucide-react";
+import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Anchor, Settings2, Zap, Link2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { useDesignSession } from "@/contexts/designSession";
@@ -1384,7 +1384,7 @@ const ThrustLoadingCalculator = () => {
               <AeroCard
                 title="Takeoff Constraint Inputs"
                 description="Runway length and takeoff lift for T/W–W/S sizing."
-                icon={Runway}
+                icon={Plane}
               >
                 <div className="grid gap-3 md:grid-cols-3">
                   <AeroFormField
