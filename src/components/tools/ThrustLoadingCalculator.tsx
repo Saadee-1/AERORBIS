@@ -483,6 +483,8 @@ const ThrustLoadingCalculator = () => {
   const [clToInput, setClToInput] = useState<string>(''); // C_L_TO
   const [muRollInput, setMuRollInput] = useState<string>('0.03'); // μ_r, default paved
   const [hasTouchedRunway, setHasTouchedRunway] = useState<boolean>(false);
+  const [showUniHelp, setShowUniHelp] = useState(false);
+  const [showExpertHelp, setShowExpertHelp] = useState(false);
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [lastPayload, setLastPayload] = useState<any | null>(null);
   
@@ -1702,6 +1704,251 @@ const ThrustLoadingCalculator = () => {
               />
             );
           })()}
+
+          {/* University-level help – only rendered in University mode */}
+          {calculatorMode === 'University' && (
+            <AeroCard
+              title="How to use the T/W–W/S diagram"
+              description="University-level guidance for reading the sizing plot."
+              icon={Info}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-slate-300">
+                  Need a quick refresher on how to interpret this diagram?
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowUniHelp((prev) => !prev)}
+                >
+                  {showUniHelp ? 'Hide help' : 'Show help'}
+                </Button>
+              </div>
+
+              {showUniHelp && (
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-1 text-xs text-slate-200">
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      What this diagram shows
+                    </p>
+                    <p className="mt-1 text-slate-300">
+                      This plot compares wing loading (W/S) and thrust loading (T/W) for your aircraft
+                      against basic performance constraints: stall, climb, cruise and takeoff.
+                      It helps you see whether your current design point is realistic.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      Axes
+                    </p>
+                    <ul className="mt-1 list-disc list-inside space-y-1 text-slate-300">
+                      <li>
+                        <span className="font-medium text-slate-100">X-axis (W/S, kg/m²):</span>{' '}
+                        Wing loading. Higher W/S means a smaller wing, higher stall speed, and usually
+                        better cruise. Lower W/S means a larger wing, safer stall/takeoff, but more drag.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Y-axis (T/W):</span>{' '}
+                        Thrust loading. Higher T/W helps climb and takeoff, but costs mass and fuel.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      Main curves
+                    </p>
+                    <ul className="mt-1 list-disc list-inside space-y-1 text-slate-300">
+                      <li>
+                        <span className="font-medium text-slate-100">Climb line:</span>{' '}
+                        Minimum T/W required to meet the chosen climb gradient.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Cruise curve:</span>{' '}
+                        T/W required at each W/S to balance drag at the selected cruise speed.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Takeoff curve:</span>{' '}
+                        T/W required to meet the runway length with the given C<sub>L,TO</sub> and rolling friction.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Stall limit line:</span>{' '}
+                        Maximum wing loading allowed from stall/landing constraints.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Dashed envelope:</span>{' '}
+                        The combined minimum T/W from all active constraints.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      Your design point
+                    </p>
+                    <p className="mt-1 text-slate-300">
+                      The colored point on the diagram is your aircraft design (current W/S and T/W).
+                      The summary text below the plot reports how much T/W margin you have above the
+                      combined requirement and which constraint is most limiting.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      How to use this in a report
+                    </p>
+                    <ul className="mt-1 list-disc list-inside space-y-1 text-slate-300">
+                      <li>
+                        Show that your design point lies in the feasible region (above the dashed line and left of the stall limit).
+                      </li>
+                      <li>
+                        Identify which constraint is driving T/W (climb, cruise, or takeoff).
+                      </li>
+                      <li>
+                        Justify any design changes (wing area, thrust, runway requirement) using movement on this plot.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </AeroCard>
+          )}
+
+          {/* Expert-level help – only rendered in Expert mode */}
+          {calculatorMode === 'Expert' && (
+            <AeroCard
+              title="Expert Guide: T/W–W/S Sizing Diagram"
+              description="Interpret constraints and margins like a sizing engineer."
+              icon={Info}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-slate-300">
+                  Need a deeper explanation of what this sizing plot is telling you?
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowExpertHelp((prev) => !prev)}
+                >
+                  {showExpertHelp ? 'Hide help' : 'Show help'}
+                </Button>
+              </div>
+
+              {showExpertHelp && (
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-1 text-xs text-slate-200">
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      Purpose
+                    </p>
+                    <p className="mt-1 text-slate-300">
+                      This diagram shows which combinations of thrust loading (T/W) and wing loading (W/S)
+                      allow the aircraft to meet the selected performance requirements. Your current design
+                      is evaluated against these constraints.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      Axes
+                    </p>
+                    <ul className="mt-1 list-disc list-inside space-y-1 text-slate-300">
+                      <li>
+                        <span className="font-medium text-slate-100">X-axis (W/S, kg/m²):</span>{' '}
+                        Wing loading. Higher W/S → smaller wing, higher stall and takeoff speed,
+                        but faster cruise. Lower W/S → larger wing, safer stall/takeoff, but more drag at cruise.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Y-axis (T/W):</span>{' '}
+                        Thrust loading. Higher T/W → stronger climb and takeoff but higher fuel burn and weight.
+                        Lower T/W → efficient but may violate climb or takeoff constraints.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      Curves and Lines
+                    </p>
+                    <ul className="mt-1 list-disc list-inside space-y-1 text-slate-300">
+                      <li>
+                        <span className="font-medium text-slate-100">Climb line:</span>{' '}
+                        Horizontal line showing minimum T/W needed to achieve the specified climb gradient.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Cruise curve:</span>{' '}
+                        U-shaped line showing T/W required to balance drag at the chosen cruise speed and drag polar.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Takeoff curve:</span>{' '}
+                        Rising line showing T/W required to meet the selected runway length, C<sub>L,TO</sub>
+                        and rolling friction.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Stall limit:</span>{' '}
+                        Vertical line marking the maximum allowable wing loading from stall/landing constraints.
+                        The shaded region to the right is not permitted with the current C<sub>L,max</sub>, density
+                        and stall speed.
+                      </li>
+                      <li>
+                        <span className="font-medium text-slate-100">Dashed envelope line:</span>{' '}
+                        Combined required T/W. At each W/S it represents the maximum of all active constraints
+                        (climb, cruise, takeoff).
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      Design Point and Margin
+                    </p>
+                    <p className="mt-1 text-slate-300">
+                      The colored point shows your current design (W/S, T/W). The text below the diagram reports:
+                    </p>
+                    <ul className="mt-1 list-disc list-inside space-y-1 text-slate-300">
+                      <li>
+                        Whether your T/W is above or below the combined requirement at the current W/S.
+                      </li>
+                      <li>
+                        The margin or deficit in T/W (how much thrust loading you have above or below the minimum).
+                      </li>
+                      <li>
+                        Which constraint is most limiting at that W/S (climb, cruise, or takeoff).
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-slate-100">
+                      Practical Design Insight
+                    </p>
+                    <ul className="mt-1 list-disc list-inside space-y-1 text-slate-300">
+                      <li>
+                        Moving the point <span className="font-medium">right</span> (higher W/S) tends to improve cruise
+                        but makes stall and takeoff more demanding.
+                      </li>
+                      <li>
+                        Moving the point <span className="font-medium">left</span> (lower W/S) makes stall and takeoff easier,
+                        but increases drag and required T/W in cruise.
+                      </li>
+                      <li>
+                        Increasing <span className="font-medium">T/W</span> helps climb and takeoff but usually costs mass
+                        and efficiency.
+                      </li>
+                      <li>
+                        Increasing <span className="font-medium">C<sub>L,max</sub></span> or C<sub>L,TO</sub> relaxes stall/takeoff
+                        limits, at the cost of more high-lift complexity.
+                      </li>
+                    </ul>
+                    <p className="mt-1 text-slate-300">
+                      A good conceptual design usually sits just above the combined envelope with balanced margins,
+                      rather than oversizing thrust or wing area.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </AeroCard>
+          )}
         </div>
       )}
     </ToolWrapper>
