@@ -63,6 +63,7 @@ import {
   getInputUnits,
   getOutputUnits
 } from "./utils/unitConversions";
+import { ThrustLoadingGraphs } from "./ThrustLoadingGraphs";
 
 // ============================================================================
 // TYPES & CONSTANTS - BATCH 1
@@ -175,6 +176,7 @@ interface CalculationResult {
   climbGradient?: number; // Expert mode: climb gradient (rad)
   rateOfClimb?: number; // Expert mode: ROC (m/s)
   climbWarning?: string; // Expert mode: warning if climb performance insufficient
+  jetLowBandLabel?: string; // Jet low-band sub-label
 }
 
 // ============================================================================
@@ -240,17 +242,32 @@ function getMissionThrustData(missionType: MissionType): MissionThrustParams {
 
 /**
  * Classify thrust loading based on mission type
+ * Returns classification and low-band hint for Jet missions
  */
-function classifyThrustLoading(tw: number, missionType: MissionType): ThrustLoadingClass {
+function classifyThrustLoading(tw: number, missionType: MissionType): { 
+  twClass: ThrustLoadingClass; 
+  isJetLowBand: boolean;
+} {
   const params = getMissionThrustData(missionType);
   const lowLimit = 0.8 * params.twMin;
   const highLimit = 1.2 * params.twMax;
   
-  if (tw < lowLimit) return 'Very Low';
-  if (tw < params.twMin) return 'Low';
-  if (tw <= params.twMax) return 'Within';
-  if (tw <= highLimit) return 'High';
-  return 'Very High';
+  let twClass: ThrustLoadingClass;
+  if (tw < lowLimit) twClass = 'Very Low';
+  else if (tw < params.twMin) twClass = 'Low';
+  else if (tw <= params.twMax) twClass = 'Within';
+  else if (tw <= highLimit) twClass = 'High';
+  else twClass = 'Very High';
+  
+  // Detect Jet low band (bottom 35% of typical range)
+  let isJetLowBand = false;
+  if (missionType === 'Jet' && twClass === 'Within') {
+    const span = params.twMax - params.twMin;
+    const lowBandUpper = params.twMin + 0.35 * span;
+    isJetLowBand = tw >= params.twMin && tw < lowBandUpper;
+  }
+  
+  return { twClass, isJetLowBand };
 }
 
 // ============================================================================
@@ -265,8 +282,9 @@ function generateInterpretation(
   twClass: ThrustLoadingClass,
   tw: number,
   climbGradient?: number,
-  rateOfClimb?: number
-): { interpretation: string; climbWarning?: string } {
+  rateOfClimb?: number,
+  isJetLowBand?: boolean
+): { interpretation: string; climbWarning?: string; jetLowBandLabel?: string } {
   const params = getMissionThrustData(missionType);
   let interpretation = "";
   let climbWarning: string | undefined;
@@ -344,10 +362,22 @@ function generateInterpretation(
       break;
       
     case 'Jet':
-      if (twClass === 'Within' || twClass === 'High') {
+      if (isJetLowBand) {
+        // Low band: bottom 35% of typical Jet T/W range
+        interpretation += "For jet transports, this T/W is at the lower edge of the typical range. ";
+        interpretation += "Expect longer takeoff distances, especially at high weight and hot/high airports. ";
+        interpretation += "Climb gradients will be modest, and go-around margin will be reduced at heavy weights. ";
+        interpretation += "The aircraft may require longer runways and careful weight management for operations in challenging conditions. ";
+      } else if (twClass === 'Within' && !isJetLowBand) {
+        // Upper half of typical range
         interpretation += "This T/W is typical for jet transports and fighters. ";
-        interpretation += "The aircraft will have good takeoff performance and climb capability. ";
+        interpretation += "The aircraft will have good takeoff performance and healthy climb capability. ";
+        interpretation += "Go-around margin should be adequate even at heavy weights. ";
         interpretation += "Approach speeds will be higher than lighter aircraft, which is normal for this class. ";
+      } else if (twClass === 'High') {
+        interpretation += "This T/W is above typical for most jet transports, providing excellent performance. ";
+        interpretation += "The aircraft will have strong takeoff and climb capability. ";
+        interpretation += "Go-around margin will be generous even at maximum weight. ";
       } else if (twClass === 'Very High') {
         interpretation += "Very high T/W is characteristic of high-performance military jets. ";
         interpretation += "This configuration prioritizes acceleration, climb rate, and maneuverability. ";
@@ -390,7 +420,13 @@ function generateInterpretation(
     interpretation += "Consider adjusting installed thrust or weight to better match mission needs. ";
   }
   
-  return { interpretation, climbWarning };
+  // Generate Jet low-band label if applicable
+  let jetLowBandLabel: string | undefined;
+  if (missionType === 'Jet' && isJetLowBand) {
+    jetLowBandLabel = "Near lower edge of jet envelope";
+  }
+  
+  return { interpretation, climbWarning, jetLowBandLabel };
 }
 
 // ============================================================================
@@ -572,8 +608,8 @@ const ThrustLoadingCalculator = () => {
       // Calculate T/W
       const tw = calculateThrustToWeight(totalThrustNSI, finalWeightN);
       
-      // Classify
-      const twClass = classifyThrustLoading(tw, missionType);
+      // Classify (returns both class and Jet low-band hint)
+      const { twClass, isJetLowBand } = classifyThrustLoading(tw, missionType);
       
       // Climb performance (Expert mode only)
       let climbGradient: number | undefined;
@@ -590,12 +626,13 @@ const ThrustLoadingCalculator = () => {
       }
       
       // Generate interpretation
-      const { interpretation, climbWarning: cw } = generateInterpretation(
+      const { interpretation, climbWarning: cw, jetLowBandLabel } = generateInterpretation(
         missionType,
         twClass,
         tw,
         climbGradient,
-        rateOfClimb
+        rateOfClimb,
+        isJetLowBand
       );
       climbWarning = cw;
       
@@ -1198,6 +1235,11 @@ const ThrustLoadingCalculator = () => {
                       <p className={`text-xl font-bold ${getClassificationColor(result.twClass)}`}>
                         {result.twClass}
                       </p>
+                      {result.jetLowBandLabel && (
+                        <p className="text-xs text-yellow-400 mt-1 italic">
+                          {result.jetLowBandLabel}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </AeroCard>
@@ -1334,6 +1376,21 @@ const ThrustLoadingCalculator = () => {
           </div>
         </div>
       </ToolSection>
+
+      {/* Engineering Graphs - Full Width Section Below */}
+      {result && (
+        <div className="mt-8 px-4">
+          <ThrustLoadingGraphs
+            currentTW={result.thrustToWeight}
+            currentROC={result.rateOfClimb}
+            vClimb={calculatorMode === 'Expert' && vClimb ? parseFloat(vClimb) : undefined}
+            ldClimb={calculatorMode === 'Expert' && ldClimb ? parseFloat(ldClimb) : undefined}
+            missionThrustData={missionThrustData}
+            missionType={missionType}
+            calculatorMode={calculatorMode}
+          />
+        </div>
+      )}
     </ToolWrapper>
   );
 };
