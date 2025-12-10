@@ -39,14 +39,8 @@ const Tools = () => {
     {
       icon: Rocket,
       name: "Thrust Calculator",
-      description: "Calculate rocket thrust, specific impulse, and exhaust velocity for different propulsion systems.",
+      description: "Unified propulsion analysis: rocket engine thrust (Isp, exhaust velocity, mass flow) and aircraft thrust loading (T/W ratio, mission envelopes, climb performance).",
       category: "Propulsion",
-    },
-    {
-      icon: Zap,
-      name: "Thrust Loading Calculator",
-      description: "Calculate thrust-to-weight ratio (T/W) with mission-specific classification and engineering interpretations for aircraft design.",
-      category: "Aircraft Design",
     },
     {
       icon: Wind,
@@ -183,10 +177,10 @@ const Tools = () => {
                     <Button 
                       className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300"
                       asChild
-                      disabled={!["Thrust Calculator", "Thrust Loading Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator"].includes(tool.name)}
+                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator"].includes(tool.name)}
                     >
-                      <a href={["Thrust Calculator", "Thrust Loading Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
-                        {["Thrust Calculator", "Thrust Loading Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
+                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
+                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
                       </a>
                     </Button>
                   </CardFooter>

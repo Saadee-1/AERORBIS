@@ -403,7 +403,6 @@ export function WingLoadingGraphs({
                       fill: "#22d3ee",
                       fontWeight: 600,
                       fontSize: 12,
-                      textShadow: "0px 0px 6px rgba(34, 211, 238, 0.7)",
                     }}
                   />
                   <ReferenceLine
@@ -417,7 +416,6 @@ export function WingLoadingGraphs({
                       fill: "#22d3ee",
                       fontWeight: 600,
                       fontSize: 12,
-                      textShadow: "0px 0px 6px rgba(34, 211, 238, 0.7)",
                     }}
                   />
                 </>
@@ -585,7 +583,6 @@ export function WingLoadingGraphs({
                       fill: "#22d3ee",
                       fontWeight: 600,
                       fontSize: 12,
-                      textShadow: "0px 0px 6px rgba(34, 211, 238, 0.7)",
                     }}
                   />
                   {/* Marker at current altitude */}

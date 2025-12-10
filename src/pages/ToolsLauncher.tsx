@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale, Target, Battery } from "lucide-react";
 import ThrustCalculator from "@/components/tools/ThrustCalculator";
 import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
-import ThrustLoadingCalculator from "@/components/tools/ThrustLoadingCalculator";
 import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
 import { LaunchpadWithMissionPanel } from "@/components/tools/LaunchpadWithMissionPanel";
 import ReynoldsNumberCalculator from "@/components/tools/ReynoldsNumberCalculator";
@@ -235,7 +234,7 @@ const ToolsLauncher = () => {
               </TabsContent>
 
               <TabsContent value="thrustloading" className="mt-0">
-                <ThrustLoadingCalculator />
+                <ThrustCalculator initialMode="aircraft" />
               </TabsContent>
 
               <TabsContent value="orbital" className="mt-0">
