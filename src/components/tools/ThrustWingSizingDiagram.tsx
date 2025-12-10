@@ -20,6 +20,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceDot,
+  ReferenceArea,
 } from "recharts";
 import { globalAxisCommonProps, globalAxisTickStyle, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
 import { ChartCard } from "@/components/charts/ChartCard";
@@ -45,7 +46,8 @@ const GRAPH_STYLES = {
 
 interface SizingPoint {
   ws: number;        // W/S (kg/m²)
-  twClimb: number;   // required T/W for climb
+  twClimb?: number;  // required T/W for climb
+  twCruise?: number; // required T/W for cruise
 }
 
 interface ThrustWingSizingDiagramProps {
@@ -56,6 +58,12 @@ interface ThrustWingSizingDiagramProps {
   // Climb constraint parameters (Expert mode)
   ldClimb?: number; // L/D during climb
   gammaReq: number; // Required climb gradient (dimensionless)
+  
+  // Cruise constraint parameters (Expert mode)
+  cd0?: number; // Zero-lift drag coefficient
+  k?: number; // Induced drag factor
+  vCruiseMs?: number; // Cruise speed in m/s
+  densityKgM3?: number; // Air density in kg/m³
   
   // Calculator mode
   calculatorMode: 'Beginner' | 'University' | 'Expert';
@@ -102,6 +110,10 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
   thrustToWeight,
   ldClimb,
   gammaReq,
+  cd0,
+  k,
+  vCruiseMs,
+  densityKgM3,
   calculatorMode,
 }) => {
   const graphRef = useRef<HTMLDivElement>(null);
@@ -120,29 +132,58 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
     return computeClimbTwRequired(ldClimbEffective, gammaReq);
   }, [ldClimbEffective, gammaReq]);
 
+  // Validate cruise inputs
+  const hasCruiseInputs =
+    typeof cd0 === 'number' &&
+    cd0 > 0 &&
+    typeof k === 'number' &&
+    k > 0 &&
+    typeof vCruiseMs === 'number' &&
+    vCruiseMs > 0 &&
+    typeof densityKgM3 === 'number' &&
+    densityKgM3 > 0;
+
+  // Compute dynamic pressure for cruise
+  const q = useMemo(() => {
+    if (!hasCruiseInputs) return NaN;
+    return 0.5 * densityKgM3! * vCruiseMs! * vCruiseMs!;
+  }, [hasCruiseInputs, densityKgM3, vCruiseMs]);
+
   // Determine W/S range
   const wsDesign = wingLoadingKgm2 && wingLoadingKgm2 > 0 ? wingLoadingKgm2 : undefined;
   const wsMin = wsDesign ? Math.max(10, wsDesign * 0.4) : 20;
   const wsMax = wsDesign ? wsDesign * 1.8 : 200;
 
-  // Generate chart data: horizontal constraint line
+  // Generate chart data: horizontal constraint line and cruise curve
   const chartData = useMemo((): SizingPoint[] => {
     if (!isFinite(twClimbRequired)) return [];
     
     const numPoints = 50;
     const wsStep = (wsMax - wsMin) / numPoints;
     const data: SizingPoint[] = [];
+    const g = 9.81; // Gravitational acceleration
     
     for (let i = 0; i <= numPoints; i++) {
-      const ws = wsMin + i * wsStep;
-      data.push({
-        ws,
+      const wsKg = wsMin + i * wsStep;
+      const point: SizingPoint = {
+        ws: wsKg,
         twClimb: twClimbRequired,
-      });
+      };
+      
+      // Compute cruise T/W if inputs are valid
+      if (hasCruiseInputs && Number.isFinite(q)) {
+        const wsN = wsKg * g; // Convert W/S from kg/m² to N/m²
+        const twCruise = cd0! * q / wsN + k! * wsN / q;
+        if (Number.isFinite(twCruise) && twCruise > 0) {
+          point.twCruise = twCruise;
+        }
+      }
+      
+      data.push(point);
     }
     
     return data;
-  }, [wsMin, wsMax, twClimbRequired]);
+  }, [wsMin, wsMax, twClimbRequired, hasCruiseInputs, q, cd0, k]);
 
   // Determine axis ranges
   const twMin = isFinite(twClimbRequired) 
@@ -175,6 +216,15 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
   // Check if we have valid data to show
   const hasValidData = isFinite(twClimbRequired) && chartData.length > 0;
   const hasDesignPoint = wsDesign && thrustToWeight && isFinite(thrustToWeight);
+  
+  // Compute climb pass/fail status
+  const currentTw = thrustToWeight && isFinite(thrustToWeight) ? thrustToWeight : undefined;
+  const currentWs = wsDesign;
+  
+  let climbStatus: 'unknown' | 'pass' | 'fail' = 'unknown';
+  if (Number.isFinite(twClimbRequired) && currentTw !== undefined && Number.isFinite(currentTw)) {
+    climbStatus = currentTw + 1e-6 >= twClimbRequired ? 'pass' : 'fail';
+  }
 
   if (!hasValidData) {
     return (
@@ -236,6 +286,16 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
             
             <Tooltip content={<CustomTooltip />} />
             
+            {/* Feasible region shading above climb constraint line */}
+            {isFinite(twClimbRequired) && (
+              <ReferenceArea
+                y1={twClimbRequired}
+                y2={twMax}
+                fill="rgba(34, 197, 94, 0.08)"
+                stroke="none"
+              />
+            )}
+            
             {/* Climb constraint line (horizontal) */}
             <Line
               type="monotone"
@@ -248,15 +308,34 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               isAnimationActive={false}
             />
             
+            {/* Cruise constraint curve */}
+            {hasCruiseInputs && (
+              <Line
+                type="monotone"
+                dataKey="twCruise"
+                stroke="#f97316"
+                strokeWidth={2}
+                dot={false}
+                name="Cruise Constraint"
+                isAnimationActive={false}
+              />
+            )}
+            
             {/* Current design point marker */}
             {hasDesignPoint && (
               <ReferenceDot
                 x={wsDesign}
                 y={thrustToWeight}
                 r={GRAPH_STYLES.designPointRadius}
-                fill={GRAPH_STYLES.designPointFill}
-                stroke={GRAPH_STYLES.designPointStroke}
+                fill={climbStatus === 'pass' ? '#22c55e' : climbStatus === 'fail' ? '#ef4444' : GRAPH_STYLES.designPointFill}
+                stroke={climbStatus === 'pass' ? '#4ade80' : climbStatus === 'fail' ? '#fb7185' : GRAPH_STYLES.designPointStroke}
                 strokeWidth={2}
+                label={{
+                  value: climbStatus === 'pass' ? 'Design point' : climbStatus === 'fail' ? 'Below climb line' : 'Design point',
+                  position: 'top',
+                  fill: climbStatus === 'pass' ? '#4ade80' : climbStatus === 'fail' ? '#fca5a5' : GRAPH_STYLES.designPointFill,
+                  fontSize: 11,
+                }}
               />
             )}
           </LineChart>
@@ -276,19 +355,60 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               Climb Constraint: T/W ≥ {twClimbRequired.toFixed(3)}
             </span>
           </div>
+          {hasCruiseInputs && (
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 border-t-2"
+                style={{
+                  borderColor: '#f97316',
+                  borderStyle: 'solid',
+                }}
+              />
+              <span className="text-gray-300">
+                Cruise Constraint
+              </span>
+            </div>
+          )}
           {hasDesignPoint && (
             <div className="flex items-center gap-2">
               <div
                 className="w-4 h-4 rounded-full border-2"
                 style={{
-                  backgroundColor: GRAPH_STYLES.designPointFill,
-                  borderColor: GRAPH_STYLES.designPointStroke,
+                  backgroundColor: climbStatus === 'pass' ? '#22c55e' : climbStatus === 'fail' ? '#ef4444' : GRAPH_STYLES.designPointFill,
+                  borderColor: climbStatus === 'pass' ? '#4ade80' : climbStatus === 'fail' ? '#fb7185' : GRAPH_STYLES.designPointStroke,
                 }}
               />
               <span className="text-gray-300">
                 Design Point: W/S = {wsDesign.toFixed(1)} kg/m², T/W = {thrustToWeight.toFixed(3)}
               </span>
             </div>
+          )}
+        </div>
+        
+        {/* Pass/Fail Caption */}
+        <div className="mt-3 text-xs">
+          {climbStatus === 'pass' && (
+            <p className="text-emerald-300">
+              ✓ Current T/W meets or exceeds the climb requirement at this wing loading.
+            </p>
+          )}
+          
+          {climbStatus === 'fail' && (
+            <p className="text-rose-300">
+              ✕ Current T/W is below the climb requirement at this wing loading. Consider increasing thrust or reducing W/S.
+            </p>
+          )}
+          
+          {climbStatus === 'unknown' && (
+            <p className="text-slate-400">
+              Compute T/W and provide a valid climb L/D to evaluate climb feasibility.
+            </p>
+          )}
+          
+          {hasCruiseInputs && (
+            <p className="mt-1 text-[0.7rem] text-slate-400">
+              Cruise curve shows T/W required to balance drag at the selected speed and drag polar.
+            </p>
           )}
         </div>
       </div>

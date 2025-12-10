@@ -466,6 +466,9 @@ const ThrustLoadingCalculator = () => {
   const [vClimb, setVClimb] = useState<string>("");
   const [ldClimb, setLdClimb] = useState<string>("");
   const [gammaReqPercent, setGammaReqPercent] = useState<string>("3"); // Default 3%
+  const [cd0Input, setCd0Input] = useState<string>('0.025'); // Zero-lift drag coefficient
+  const [kInput, setKInput] = useState<string>('0.045'); // Induced drag factor
+  const [vCruiseInput, setVCruiseInput] = useState<string>('90'); // Cruise speed in knots
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [lastPayload, setLastPayload] = useState<any | null>(null);
   
@@ -493,6 +496,9 @@ const ThrustLoadingCalculator = () => {
         setVClimb(state.vClimb || "");
         setLdClimb(state.ldClimb || "");
         setGammaReqPercent(state.gammaReqPercent || "3");
+        setCd0Input(state.cd0Input || '0.025');
+        setKInput(state.kInput || '0.045');
+        setVCruiseInput(state.vCruiseInput || '90');
       } catch (e) {
         console.warn("Failed to load state:", e);
       }
@@ -519,10 +525,13 @@ const ThrustLoadingCalculator = () => {
       engineType,
       vClimb,
       ldClimb,
-      gammaReqPercent
+      gammaReqPercent,
+      cd0Input,
+      kInput,
+      vCruiseInput
     };
     localStorage.setItem("thrustLoadingCalc_state", JSON.stringify(state));
-  }, [unitSystem, calculatorMode, aircraftPreset, missionType, weightMode, massKg, weightN, thrustMode, totalThrust, perEngineThrust, numEngines, thrustUnit, calculationMode, targetTW, engineType, vClimb, ldClimb, gammaReqPercent]);
+  }, [unitSystem, calculatorMode, aircraftPreset, missionType, weightMode, massKg, weightN, thrustMode, totalThrust, perEngineThrust, numEngines, thrustUnit, calculationMode, targetTW, engineType, vClimb, ldClimb, gammaReqPercent, cd0Input, kInput, vCruiseInput]);
   
   // Handle aircraft preset selection
   const handleAircraftPresetChange = (preset: AircraftPreset) => {
@@ -1280,6 +1289,53 @@ const ThrustLoadingCalculator = () => {
                 </AeroFormField>
               </AeroCard>
             )}
+
+            {/* Expert Panel: Cruise Constraint Inputs */}
+            {calculatorMode === 'Expert' && (
+              <AeroCard
+                title="Cruise Constraint Inputs"
+                description="Drag polar and cruise speed for T/W–W/S sizing diagram"
+                icon={Plane}
+              >
+                <div className="grid gap-3 md:grid-cols-3">
+                  <AeroFormField label="Zero-lift drag (C_D0)" helperText="Parasite drag coefficient">
+                    <Input
+                      type="number"
+                      step="0.001"
+                      value={cd0Input}
+                      onChange={(e) => setCd0Input(e.target.value)}
+                      className="bg-slate-900/50 border-cyan-400/30"
+                      placeholder="e.g., 0.025"
+                    />
+                  </AeroFormField>
+
+                  <AeroFormField label="Induced factor (k)" helperText="Induced drag factor">
+                    <Input
+                      type="number"
+                      step="0.001"
+                      value={kInput}
+                      onChange={(e) => setKInput(e.target.value)}
+                      className="bg-slate-900/50 border-cyan-400/30"
+                      placeholder="e.g., 0.045"
+                    />
+                  </AeroFormField>
+
+                  <AeroFormField label="Cruise speed (V_cruise)" helperText="Cruise speed in knots">
+                    <Input
+                      type="number"
+                      step="1"
+                      value={vCruiseInput}
+                      onChange={(e) => setVCruiseInput(e.target.value)}
+                      className="bg-slate-900/50 border-cyan-400/30"
+                      placeholder="e.g., 90"
+                    />
+                    <p className="mt-1 text-[0.65rem] text-slate-400">
+                      Interpreted as knots (kt) for sizing diagram.
+                    </p>
+                  </AeroFormField>
+                </div>
+              </AeroCard>
+            )}
             
             {/* Calculate Button */}
             <AeroButton
@@ -1505,15 +1561,32 @@ const ThrustLoadingCalculator = () => {
           />
           
           {/* T/W vs W/S Sizing Diagram (Expert mode only) */}
-          {calculatorMode === 'Expert' && (
-            <ThrustWingSizingDiagram
-              wingLoadingKgm2={designSession.wingLoadingKgm2}
-              thrustToWeight={result.thrustToWeight}
-              ldClimb={ldClimb ? parseFloat(ldClimb) : designSession.ldClimb}
-              gammaReq={gammaReqPercent ? parseFloat(gammaReqPercent) / 100 : 0.03}
-              calculatorMode={calculatorMode}
-            />
-          )}
+          {calculatorMode === 'Expert' && (() => {
+            // Parse cruise inputs
+            const cd0 = parseFloat(cd0Input);
+            const k = parseFloat(kInput);
+            const vCruiseKt = parseFloat(vCruiseInput);
+            const vCruiseMs = Number.isFinite(vCruiseKt) ? vCruiseKt * 0.514444 : NaN;
+            
+            // Get density: prefer designSession, fallback to ISA sea level
+            const rho = designSession?.densityKgM3 && designSession.densityKgM3 > 0
+              ? designSession.densityKgM3
+              : 1.225;
+            
+            return (
+              <ThrustWingSizingDiagram
+                wingLoadingKgm2={designSession.wingLoadingKgm2}
+                thrustToWeight={result.thrustToWeight}
+                ldClimb={ldClimb ? parseFloat(ldClimb) : designSession.ldClimb}
+                gammaReq={gammaReqPercent ? parseFloat(gammaReqPercent) / 100 : 0.03}
+                calculatorMode={calculatorMode}
+                cd0={Number.isFinite(cd0) && cd0 > 0 ? cd0 : undefined}
+                k={Number.isFinite(k) && k > 0 ? k : undefined}
+                vCruiseMs={Number.isFinite(vCruiseMs) && vCruiseMs > 0 ? vCruiseMs : undefined}
+                densityKgM3={rho}
+              />
+            );
+          })()}
         </div>
       )}
     </ToolWrapper>
