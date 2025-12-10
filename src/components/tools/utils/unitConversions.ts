@@ -34,6 +34,23 @@ export function lbfToN(lbf: number): number {
   return lbf * 4.44822;
 }
 
+// Thrust conversions (kgf = kilogram-force)
+export function nToKgf(n: number): number {
+  return n / 9.80665; // 1 kgf = 9.80665 N
+}
+
+export function kgfToN(kgf: number): number {
+  return kgf * 9.80665;
+}
+
+export function kgfToLbf(kgf: number): number {
+  return kgf * 2.2046226218; // 1 kgf = 2.2046226218 lbf
+}
+
+export function lbfToKgf(lbf: number): number {
+  return lbf / 2.2046226218;
+}
+
 // Wing loading: N/m^2 <-> lbf/ft^2
 export function nPerM2ToLbPerFt2(nPerM2: number): number {
   // 1 N/m^2 ≈ 0.020885434233150127 lbf/ft^2
@@ -188,6 +205,30 @@ export function convertVelocityFromSI(value: number, unitSystem: UnitSystem): { 
 }
 
 /**
+ * Convert thrust from input unit to SI (N)
+ */
+export function convertThrustToSI(value: number, unit: 'N' | 'kgf' | 'lbf'): number {
+  if (unit === 'kgf') {
+    return kgfToN(value);
+  } else if (unit === 'lbf') {
+    return lbfToN(value);
+  }
+  return value; // Already in N
+}
+
+/**
+ * Convert thrust from SI (N) to output unit
+ */
+export function convertThrustFromSI(value: number, unit: 'N' | 'kgf' | 'lbf'): number {
+  if (unit === 'kgf') {
+    return nToKgf(value);
+  } else if (unit === 'lbf') {
+    return nToLbf(value);
+  }
+  return value; // Already in N
+}
+
+/**
  * Get unit labels for input fields
  */
 export function getInputUnits(unitSystem: UnitSystem): {
@@ -195,20 +236,23 @@ export function getInputUnits(unitSystem: UnitSystem): {
   weight: string;
   area: string;
   altitude: string;
+  thrust: string;
 } {
   if (unitSystem === 'Imperial') {
     return {
       mass: 'lb',
       weight: 'lbf',
       area: 'ft²',
-      altitude: 'ft'
+      altitude: 'ft',
+      thrust: 'lbf'
     };
   }
   return {
     mass: 'kg',
     weight: 'N',
     area: 'm²',
-    altitude: 'm'
+    altitude: 'm',
+    thrust: 'N'
   };
 }
 
@@ -219,18 +263,21 @@ export function getOutputUnits(unitSystem: UnitSystem): {
   wingLoadingNm2: string;
   wingLoadingKgm2: string;
   velocity: string;
+  thrust: string;
 } {
   if (unitSystem === 'Imperial') {
     return {
       wingLoadingNm2: 'lbf/ft²',
       wingLoadingKgm2: 'lb/ft²',
-      velocity: 'kts'
+      velocity: 'kts',
+      thrust: 'lbf'
     };
   }
   return {
     wingLoadingNm2: 'N/m²',
     wingLoadingKgm2: 'kg/m²',
-    velocity: 'm/s'
+    velocity: 'm/s',
+    thrust: 'N'
   };
 }
 

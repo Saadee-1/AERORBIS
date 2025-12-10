@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale, Target, Battery } from "lucide-react";
 import ThrustCalculator from "@/components/tools/ThrustCalculator";
 import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
+import ThrustLoadingCalculator from "@/components/tools/ThrustLoadingCalculator";
 import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
 import { LaunchpadWithMissionPanel } from "@/components/tools/LaunchpadWithMissionPanel";
 import ReynoldsNumberCalculator from "@/components/tools/ReynoldsNumberCalculator";
@@ -27,6 +28,7 @@ import PowerSystemCalculator from "@/tools/power";
 const TOOL_NAME_TO_TAB: { [key: string]: string } = {
   "Thrust Calculator": "thrust",
   "Wing Loading Calculator": "wing",
+  "Thrust Loading Calculator": "thrustloading",
   "Orbital Path Visualizer": "orbital",
   "Lift-to-Drag Ratio Analyzer": "liftdrag",
   "Reynolds Number Calculator": "reynolds",
@@ -42,6 +44,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
     // Also support direct tool IDs
   "thrust": "thrust",
   "wing": "wing",
+  "thrustloading": "thrustloading",
   "orbital": "orbital",
   "liftdrag": "liftdrag",
   "reynolds": "reynolds",
@@ -128,6 +131,13 @@ const ToolsLauncher = () => {
                 >
                   <Plane className="w-4 h-4 mr-2" />
                   Wing Loading Calculator
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="thrustloading"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Thrust Loading Calculator
                 </TabsTrigger>
                 <TabsTrigger 
                   value="orbital"
@@ -222,6 +232,10 @@ const ToolsLauncher = () => {
 
               <TabsContent value="wing" className="mt-0">
                 <WingLoadingCalculator />
+              </TabsContent>
+
+              <TabsContent value="thrustloading" className="mt-0">
+                <ThrustLoadingCalculator />
               </TabsContent>
 
               <TabsContent value="orbital" className="mt-0">
