@@ -45,6 +45,18 @@ const GRAPH_STYLES = {
   tooltipText: '#00eaff',
 } as const;
 
+// Graph domain configuration
+const GRAPH_DOMAINS = {
+  margin: { top: 20, right: 20, bottom: 60, left: 70 },
+  yAxis: {
+    tick: {
+      fontSize: 10,
+      fill: GRAPH_STYLES.axisTickText,
+    },
+    tickFormatter: (value: number) => value.toFixed(2),
+  },
+} as const;
+
 interface SizingPoint {
   ws: number;        // W/S (kg/m²)
   twClimb?: number;  // required T/W for climb
@@ -439,7 +451,7 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
         <ResponsiveContainer width="100%" height={400}>
           <LineChart
             data={chartData}
-            margin={{ top: 40, right: 30, bottom: 70, left: 80 }}
+            margin={GRAPH_DOMAINS.margin}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={GRAPH_STYLES.gridStroke} />
             
@@ -448,7 +460,7 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               dataKey="ws"
               type="number"
               domain={[wsMin, wsMax]}
-              tick={globalAxisTickStyle}
+              tick={GRAPH_DOMAINS.yAxis.tick}
               label={{
                 value: 'Wing Loading W/S (kg/m²)',
                 position: 'insideBottom',
@@ -462,7 +474,8 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               {...globalAxisCommonProps}
               type="number"
               domain={[twMin, twMax]}
-              tick={globalAxisTickStyle}
+              tick={GRAPH_DOMAINS.yAxis.tick}
+              tickFormatter={GRAPH_DOMAINS.yAxis.tickFormatter}
               width={80}
               label={{
                 value: 'Thrust-to-Weight Ratio (T/W)',
@@ -474,7 +487,13 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               }}
             />
             
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip 
+              content={<CustomTooltip />}
+              contentStyle={{
+                background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 35, 0.92) 100%)',
+                borderColor: `${GRAPH_STYLES.tooltipText}30`,
+              }}
+            />
             
             {/* Feasible region shading above climb constraint line */}
             {isFinite(twClimbRequired) && (
@@ -497,10 +516,9 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
                   strokeWidth={2}
                   label={{
                     value: 'Stall limit',
-                    position: 'top',
+                    position: 'insideTop',
                     fill: '#fecaca',
-                    fontSize: 11,
-                    dy: -6,
+                    fontSize: 10,
                   }}
                 />
                 
@@ -577,9 +595,9 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
                 strokeWidth={2}
                 label={{
                   value: climbStatus === 'pass' ? 'Design point' : climbStatus === 'fail' ? 'Below climb line' : 'Design point',
-                  position: 'top',
+                  position: 'insideTop',
                   fill: climbStatus === 'pass' ? '#4ade80' : climbStatus === 'fail' ? '#fca5a5' : GRAPH_STYLES.designPointFill,
-                  fontSize: 11,
+                  fontSize: 10,
                 }}
               />
             )}

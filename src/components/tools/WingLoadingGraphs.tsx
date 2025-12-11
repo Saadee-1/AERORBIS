@@ -59,6 +59,18 @@ const GRAPH_STYLES = {
   envelopeBarColor: '#8b5cf6', // Purple for mission envelope bars
 } as const;
 
+// Graph domain configuration
+const GRAPH_DOMAINS = {
+  margin: { top: 20, right: 20, bottom: 60, left: 70 },
+  yAxis: {
+    tick: {
+      fontSize: 10,
+      fill: GRAPH_STYLES.axisTickText,
+    },
+    tickFormatter: (value: number) => value.toFixed(2),
+  },
+} as const;
+
 interface WingLoadingGraphsProps {
   // Current calculation results
   currentWsKgm2: number;
@@ -333,14 +345,14 @@ export function WingLoadingGraphs({
           <ResponsiveContainer width="100%" height={380}>
             <LineChart
               data={wsVsData}
-              margin={{ top: 20, right: 30, bottom: 50, left: 70 }}
+              margin={GRAPH_DOMAINS.margin}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={GRAPH_STYLES.gridStroke} />
               <XAxis
                 dataKey="wsKg"
                 type="number"
                 {...globalAxisCommonProps}
-                tick={highContrastAxisTickStyle}
+                tick={GRAPH_DOMAINS.yAxis.tick}
                 tickFormatter={(val) => val.toFixed(0)}
                 height={34}
                 label={makeHighContrastXAxisLabel("Wing Loading (kg/m²)")}
@@ -351,8 +363,8 @@ export function WingLoadingGraphs({
               />
               <YAxis
                 {...globalAxisCommonProps}
-                tick={highContrastAxisTickStyle}
-                tickFormatter={(val) => val.toFixed(1)}
+                tick={GRAPH_DOMAINS.yAxis.tick}
+                tickFormatter={GRAPH_DOMAINS.yAxis.tickFormatter}
                 width={70}
                 label={makeHighContrastYAxisLabel("Stall Speed (m/s)")}
                 domain={[
@@ -362,6 +374,10 @@ export function WingLoadingGraphs({
               />
               <Tooltip
                 content={<CustomTooltip />}
+                contentStyle={{
+                  background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 35, 0.92) 100%)',
+                  borderColor: `${GRAPH_STYLES.tooltipText}30`,
+                }}
                 formatter={(value: number, name: string) => {
                   if (name === 'vsMs') {
                     return [`${value.toFixed(2)} m/s (${(value * KNOTS_TO_MS).toFixed(1)} kts)`, 'Stall Speed'];
@@ -399,10 +415,10 @@ export function WingLoadingGraphs({
                     strokeDasharray="6 6"
                     label={{
                       value: "Current",
-                      position: "top",
+                      position: "insideTop",
                       fill: "#22d3ee",
                       fontWeight: 600,
-                      fontSize: 12,
+                      fontSize: 10,
                     }}
                   />
                   <ReferenceLine
@@ -412,10 +428,10 @@ export function WingLoadingGraphs({
                     strokeDasharray="6 6"
                     label={{
                       value: `${currentVsMs.toFixed(1)} m/s`,
-                      position: "right",
+                      position: "insideRight",
                       fill: "#22d3ee",
                       fontWeight: 600,
-                      fontSize: 12,
+                      fontSize: 10,
                     }}
                   />
                 </>
@@ -441,7 +457,7 @@ export function WingLoadingGraphs({
         <ResponsiveContainer width="100%" height={380}>
           <BarChart
             data={missionEnvelopeData}
-            margin={{ top: 20, right: 30, bottom: 50, left: 90 }}
+            margin={GRAPH_DOMAINS.margin}
             layout="vertical"
             barCategoryGap="20%"
           >
@@ -465,11 +481,10 @@ export function WingLoadingGraphs({
             <Tooltip
               cursor={false}
               contentStyle={{
-                backgroundColor: "rgba(10, 15, 25, 0.92)",
-                border: "1px solid rgba(168, 85, 247, 0.45)",
+                background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 35, 0.92) 100%)',
+                borderColor: `${GRAPH_STYLES.tooltipText}30`,
                 borderRadius: 10,
                 padding: "8px 12px",
-                boxShadow: "0 0 8px rgba(168, 85, 247, 0.4)"
               }}
               labelStyle={{ color: "#22d3ee", fontWeight: 600 }}
               itemStyle={{ color: "#c084fc", fontWeight: 500 }}
@@ -527,14 +542,14 @@ export function WingLoadingGraphs({
           <ResponsiveContainer width="100%" height={380}>
             <LineChart
               data={altitudeData}
-              margin={{ top: 20, right: 30, bottom: 50, left: 70 }}
+              margin={GRAPH_DOMAINS.margin}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={GRAPH_STYLES.gridStroke} />
               <XAxis
                 dataKey="altitudeFt"
                 type="number"
                 {...globalAxisCommonProps}
-                tick={highContrastAxisTickStyle}
+                tick={GRAPH_DOMAINS.yAxis.tick}
                 tickFormatter={(val) => `${val.toFixed(0)}`}
                 height={34}
                 label={makeHighContrastXAxisLabel("Altitude (ft)")}
@@ -542,8 +557,8 @@ export function WingLoadingGraphs({
               />
               <YAxis
                 {...globalAxisCommonProps}
-                tick={highContrastAxisTickStyle}
-                tickFormatter={(val) => val.toFixed(1)}
+                tick={GRAPH_DOMAINS.yAxis.tick}
+                tickFormatter={GRAPH_DOMAINS.yAxis.tickFormatter}
                 width={70}
                 label={makeHighContrastYAxisLabel("Stall Speed (m/s)")}
                 domain={[
@@ -553,6 +568,10 @@ export function WingLoadingGraphs({
               />
               <Tooltip
                 content={<CustomTooltip />}
+                contentStyle={{
+                  background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 35, 0.92) 100%)',
+                  borderColor: `${GRAPH_STYLES.tooltipText}30`,
+                }}
                 formatter={(value: number, name: string) => {
                   if (name === 'vsMs') {
                     return [`${value.toFixed(2)} m/s (${(value * KNOTS_TO_MS).toFixed(1)} kts)`, 'Stall Speed'];
@@ -579,10 +598,10 @@ export function WingLoadingGraphs({
                     strokeDasharray="6 6"
                     label={{
                       value: `Current: ${currentAltitudeFt.toFixed(0)} ft`,
-                      position: "top",
+                      position: "insideTop",
                       fill: "#22d3ee",
                       fontWeight: 600,
-                      fontSize: 12,
+                      fontSize: 10,
                     }}
                   />
                   {/* Marker at current altitude */}

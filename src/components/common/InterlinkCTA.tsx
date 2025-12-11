@@ -124,3 +124,48 @@ export default function InterlinkCTA(props: Props) {
   );
 }
 
+/**
+ * Inline interlink hint component for displaying available data inline
+ */
+export function InlineInterlinkHint({
+  requiredFields,
+  sourceTool,
+  className,
+}: {
+  requiredFields: string[];
+  sourceTool?: string;
+  className?: string;
+}) {
+  const navigate = useNavigateToTool();
+  const availableFromSource = sourceTool ? getAvailableDataForTool(sourceTool) : {};
+  const availableAny = getAvailableDataAny();
+  const available = Object.keys(availableFromSource).length ? availableFromSource : availableAny;
+
+  const missing = useMemo(
+    () => requiredFields.filter((f) => available[f] === undefined),
+    [requiredFields, available]
+  );
+
+  const label = sourceTool
+    ? INTERLINK_PUBLISHERS.find((p) => p.toolId === sourceTool)?.label ?? sourceTool
+    : undefined;
+
+  if (missing.length === 0) {
+    return null; // Don't show if all fields are available
+  }
+
+  return (
+    <div className={`text-xs text-slate-400 ${className || ''}`}>
+      <span>
+        {missing.map((f) => labelForField(f)).join(', ')} available from{' '}
+        <button
+          onClick={() => navigate(sourceTool ?? 'tools')}
+          className="text-cyan-400 hover:text-cyan-300 underline"
+        >
+          {label ?? 'other calculators'}
+        </button>
+      </span>
+    </div>
+  );
+}
+

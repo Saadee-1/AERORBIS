@@ -1798,20 +1798,27 @@ const ThrustLoadingCalculator = () => {
       )}
 
       {/* Engineering Graphs - Full Width Section Below */}
-      {result && designSession?.wingAreaM2 && designSession?.weightN && (
-        <div className="mt-8 px-4 space-y-8">
-          <ThrustLoadingGraphs
-            currentTW={result.thrustToWeight}
-            currentROC={result.rateOfClimb}
-            vClimb={calculatorMode === 'Expert' && vClimb ? parseFloat(vClimb) : undefined}
-            ldClimb={calculatorMode === 'Expert' && ldClimb ? parseFloat(ldClimb) : undefined}
-            missionThrustData={missionThrustData}
-            missionType={missionType}
-            calculatorMode={calculatorMode}
-          />
-          
-          {/* Wing Loading Graphs (University and Expert modes) */}
-          {(calculatorMode === 'University' || calculatorMode === 'Expert') && (
+      {(() => {
+        const hasWingData = designSession?.wingAreaM2 && designSession?.weightN;
+        const showBasicGraphs = result && hasWingData;
+        const showAdvancedGraphs = hasWingData && (calculatorMode === 'University' || calculatorMode === 'Expert');
+        
+        if (!showBasicGraphs) return null;
+        
+        return (
+          <div className="mt-8 px-4 space-y-8">
+            <ThrustLoadingGraphs
+              currentTW={result.thrustToWeight}
+              currentROC={result.rateOfClimb}
+              vClimb={calculatorMode === 'Expert' && vClimb ? parseFloat(vClimb) : undefined}
+              ldClimb={calculatorMode === 'Expert' && ldClimb ? parseFloat(ldClimb) : undefined}
+              missionThrustData={missionThrustData}
+              missionType={missionType}
+              calculatorMode={calculatorMode}
+            />
+            
+            {/* Wing Loading Graphs (University and Expert modes) */}
+            {showAdvancedGraphs && (
             <WingLoadingGraphs
               currentWsKgm2={designSession?.wingLoadingKgm2 ?? 0}
               currentVsMs={designSession?.stallSpeedMs ?? 0}
@@ -2123,8 +2130,9 @@ const ThrustLoadingCalculator = () => {
               )}
             </AeroCard>
           )}
-        </div>
-      )}
+          </div>
+        );
+      })()}
     </ToolWrapper>
   );
 };
