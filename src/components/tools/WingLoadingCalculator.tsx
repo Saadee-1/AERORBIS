@@ -1105,7 +1105,7 @@ const WingLoadingCalculator = () => {
             )}
 
             {/* Interlink Card for reusable data - Show in all modes when data available */}
-            {hasReusable && !usedFromSession && (
+            {hasReusable && !usedFromSession && sources.length > 0 && (
               <InterlinkCard
                 reusableData={reusableData}
                 setters={{
@@ -1114,7 +1114,7 @@ const WingLoadingCalculator = () => {
                   setMissionType,
                   setUsedFromSession,
                 }}
-                sourceInfo={sources[0]} // Use first source (highest precedence)
+                sourceInfo={sources[0]}
                 currentToolId="wing"
                 getCurrentValues={() => ({
                   massKg,
