@@ -174,7 +174,7 @@ export function computeClimbPerformance(inputs: ClimbInputs): ClimbResult {
     if (pt.gamma !== undefined && Number.isFinite(pt.gamma) && pt.gamma > maxGamma) {
       maxGamma = pt.gamma;
       vX = pt.v;
-      rocVx = pt.roc;
+      rocVx = pt.roc !== undefined ? pt.roc : undefined; // Only assign if ROC is defined
       gammaVx = pt.gamma;
     }
   }

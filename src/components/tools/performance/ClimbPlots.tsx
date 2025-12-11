@@ -112,7 +112,7 @@ export function ClimbPlots({ result }: ClimbPlotsProps) {
       .map(pt => ({
         v: pt.v,
         dragN: pt.dragN,
-        thrustN: result.points[0]?.tEx !== undefined ? (pt.tEx || 0) + pt.dragN : undefined,
+        thrustN: pt.tEx !== undefined ? pt.tEx + pt.dragN : undefined,
         pReq: pt.pReq,
         pAvail: pt.pAvail,
         roc: pt.roc,
