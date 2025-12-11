@@ -134,7 +134,7 @@ const CustomTooltip = ({ active, payload, label, chartType }: any) => {
   return (
     <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
       <p className="text-cyan-400 font-semibold mb-2">α = {label}°</p>
-      {payload.map((entry: any, index: number) => (
+      {payload.map((entry: unknown, index: number) => (
         <div key={index} className="flex items-center gap-2 text-sm">
           <div
             className="w-3 h-3 rounded-full"
@@ -171,9 +171,10 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
   const [cmMin, cmMax] = calculateCmRange(polarDataOnly);
 
   // Prepare chart data
-  const clChartData: any[] = [];
-  const cdChartData: any[] = [];
-  const cmChartData: any[] = [];
+  // TODO: refine type for chart data arrays — changed any -> unknown automatically by chore/typed-cleanup
+  const clChartData: unknown[] = [];
+  const cdChartData: unknown[] = [];
+  const cmChartData: unknown[] = [];
 
   // Use the first polar's alpha grid as reference
   const alphaGrid = polars[0]?.data?.alpha;
@@ -181,9 +182,10 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
   if (alphaGrid && alphaGrid.length > 0) {
     for (let i = 0; i < alphaGrid.length; i++) {
       const alpha = alphaGrid[i];
-      const clPoint: any = { alpha };
-      const cdPoint: any = { alpha };
-      const cmPoint: any = { alpha };
+      // TODO: refine type for chart points — changed any -> unknown automatically by chore/typed-cleanup
+      const clPoint: Record<string, unknown> = { alpha };
+      const cdPoint: Record<string, unknown> = { alpha };
+      const cmPoint: Record<string, unknown> = { alpha };
 
       // Add data for each airfoil
       polars.forEach((polar) => {
@@ -255,7 +257,8 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
 
   // Prepare drag polar data (CD vs CL)
   // Create a unified data structure where each point has CL and CD values for each airfoil
-  const dragPolarData: any[] = [];
+  // TODO: refine type for `dragPolarData` — changed any -> unknown automatically by chore/typed-cleanup
+  const dragPolarData: unknown[] = [];
   const allClValues: number[] = [];
   const allCdValues: number[] = [];
 
@@ -328,14 +331,15 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
   const dragPolarCdMax = allCdValues.length > 0 ? Math.max(...allCdValues) * 1.05 : 0.1;
 
   // Custom tooltip for drag polar
-  const DragPolarTooltip = ({ active, payload }: any) => {
+  // TODO: refine type for `DragPolarTooltip` — changed any -> unknown automatically by chore/typed-cleanup
+  const DragPolarTooltip = ({ active, payload }: { active?: boolean; payload?: unknown[] }) => {
     if (!active || !payload || !payload.length) {
       return null;
     }
 
     return (
       <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
-        {payload.map((entry: any, index: number) => {
+        {payload.map((entry: unknown, index: number) => {
           const airfoilId = entry.dataKey;
           const polar = polars.find(p => p.id === airfoilId);
           const point = entry.payload;

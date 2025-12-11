@@ -57,7 +57,8 @@ interface ClimbPlotsProps {
 /**
  * Custom tooltip for climb plots
  */
-const CustomTooltip = ({ active, payload, label }: any) => {
+// TODO: refine type for `CustomTooltip` — changed any -> unknown automatically by chore/typed-cleanup
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: unknown }) => {
   if (active && payload && payload.length) {
     return (
       <div 

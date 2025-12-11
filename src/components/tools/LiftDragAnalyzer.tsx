@@ -243,11 +243,13 @@ interface LiftDragResult {
 /**
  * Check if a polar file appears to be placeholder/dummy data
  */
-function isPlaceholderPolar(polar: any): boolean {
+// TODO: refine type for `isPlaceholderPolar` — changed any -> unknown automatically by chore/typed-cleanup
+function isPlaceholderPolar(polar: unknown): boolean {
   // Check meta.source or meta.notes for placeholder indicators
-  if (polar?.meta) {
-    const source = (polar.meta.source || '').toLowerCase();
-    const notes = (polar.meta.notes || '').toLowerCase();
+  const polarObj = polar as { meta?: { source?: string; notes?: string } };
+  if (polarObj?.meta) {
+    const source = (polarObj.meta.source || '').toLowerCase();
+    const notes = (polarObj.meta.notes || '').toLowerCase();
     
     if (source.includes('todo') || source.includes('placeholder') || source.includes('stub') ||
         notes.includes('todo') || notes.includes('placeholder') || notes.includes('stub')) {
@@ -397,7 +399,8 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   const [computedLD, setComputedLD] = useState<ComputedLD[]>([]);
 
   // Unified graph selection state - single source of truth for all charts
-  const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: any }>>([]);
+  // TODO: refine type for `comparisonPolars` — changed any -> unknown automatically by chore/typed-cleanup
+  const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: unknown }>>([]);
   const [showComparisonLimitWarning, setShowComparisonLimitWarning] = useState(false);
   const [isPolarTableOpen, setIsPolarTableOpen] = useState(false);
   
@@ -874,7 +877,8 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   
   // FIXED: Use useMemo to prevent unnecessary recalculations
   // Custom tooltip with data quality badge
-  const CustomTooltipWithBadge = ({ active, payload, label }: any) => {
+  // TODO: refine type for `CustomTooltipWithBadge` — changed any -> unknown automatically by chore/typed-cleanup
+  const CustomTooltipWithBadge = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: unknown }) => {
     if (!active || !payload || !payload.length) {
       return null;
     }
@@ -896,16 +900,19 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
             Post-stall region (modeled)
           </p>
         )}
-        {payload.map((entry: any, index: number) => {
+        {payload.map((entry: unknown, index: number) => {
           // For drag polar, dataKey is "cd", so we need to find by name
           // For other modes, dataKey is the airfoilId
           let polar;
           if (graphMode === "dragPolar") {
-            const series = dragPolarSeries.find((s: any) => s.name === entry.name);
-            polar = series ? comparisonPolars.find((p: any) => p.id === series.airfoilId) : null;
+            // TODO: refine type for `series` — changed any -> unknown automatically by chore/typed-cleanup
+            const series = dragPolarSeries.find((s: unknown) => (s as { name?: string }).name === (entry as { name?: string }).name);
+            // TODO: refine type for `polar` — changed any -> unknown automatically by chore/typed-cleanup
+            polar = series ? comparisonPolars.find((p: unknown) => (p as { id?: string }).id === (series as { airfoilId?: string }).airfoilId) : null;
           } else {
-            const airfoilId = entry.dataKey;
-            polar = comparisonPolars.find((p: any) => p.id === airfoilId);
+            const airfoilId = (entry as { dataKey?: string }).dataKey;
+            // TODO: refine type for `polar` — changed any -> unknown automatically by chore/typed-cleanup
+            polar = comparisonPolars.find((p: unknown) => (p as { id?: string }).id === airfoilId);
           }
           
           const dataQuality = polar?.data ? getPolarDataQuality(polar.data, false) : 'estimated';
@@ -961,12 +968,14 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
     const referencePolar = comparisonPolars[0]?.data;
     if (!referencePolar || !referencePolar.alpha_deg) return [];
 
-    const chartData: any[] = [];
+    // TODO: refine type for `chartData` — changed any -> unknown automatically by chore/typed-cleanup
+    const chartData: unknown[] = [];
     const alphaGrid = referencePolar.alpha_deg;
 
     for (let i = 0; i < alphaGrid.length; i++) {
       const alpha = alphaGrid[i];
-      const point: any = { alpha };
+      // TODO: refine type for `point` — changed any -> unknown automatically by chore/typed-cleanup
+      const point: Record<string, unknown> = { alpha };
 
       comparisonPolars.forEach((polar) => {
         if (polar.data && polar.data.alpha_deg && polar.data.cl && polar.data.cd) {
@@ -1097,7 +1106,8 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   const yAxisConfig = getYAxisConfig(graphMode);
 
   // Compute auto-scaled Y-axis domain for alpha-based charts
-  const getAutoScaledYDomain = useCallback((mode: GraphMode, chartData: any[]): [number, number] => {
+  // TODO: refine type for `getAutoScaledYDomain` — changed any -> unknown automatically by chore/typed-cleanup
+  const getAutoScaledYDomain = useCallback((mode: GraphMode, chartData: unknown[]): [number, number] => {
     if (mode === "dragPolar") {
       // For drag polar, use a more conservative approach
       return [0, "auto" as any];

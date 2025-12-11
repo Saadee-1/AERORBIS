@@ -73,7 +73,8 @@ interface ThrustLoadingGraphsProps {
 /**
  * Custom tooltip for thrust loading graphs
  */
-const CustomTooltip = ({ active, payload, label }: any) => {
+// TODO: refine type for `CustomTooltip` — changed any -> unknown automatically by chore/typed-cleanup
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: unknown }) => {
   if (active && payload && payload.length) {
     return (
       <div 
@@ -297,7 +298,8 @@ export function ThrustLoadingGraphs({
                   }}
                   labelStyle={{ color: "#22d3ee", fontWeight: 600 }}
                   itemStyle={{ color: "#c084fc", fontWeight: 500 }}
-                  formatter={(value: number, name: string, props: any) => {
+                  // TODO: refine type for `formatter` — changed any -> unknown automatically by chore/typed-cleanup
+                  formatter={(value: number, name: string, props: unknown) => {
                     if (name === 'twRange') {
                       return [`${props.payload.twMin.toFixed(2)}–${props.payload.twMax.toFixed(2)}`, 'T/W Range'];
                     }

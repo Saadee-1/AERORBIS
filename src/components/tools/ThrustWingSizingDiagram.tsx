@@ -105,7 +105,8 @@ function computeClimbTwRequired(ldClimb: number, gammaReq: number): number {
 /**
  * Custom tooltip for sizing diagram
  */
-const CustomTooltip = ({ active, payload, label }: any) => {
+// TODO: refine type for `CustomTooltip` — changed any -> unknown automatically by chore/typed-cleanup
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: unknown }) => {
   if (active && payload && payload.length) {
     return (
       <div 
