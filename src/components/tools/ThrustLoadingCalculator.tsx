@@ -1670,19 +1670,16 @@ const ThrustLoadingCalculator = () => {
           />
           
           {/* Wing Loading Graphs (University and Expert modes) */}
-          {(calculatorMode === 'University' || calculatorMode === 'Expert') && designSession && 
-           designSession.wingLoadingKgm2 && 
-           designSession.weightN && 
-           designSession.wingAreaM2 && (
+          {(calculatorMode === 'University' || calculatorMode === 'Expert') && (
             <WingLoadingGraphs
-              currentWsKgm2={designSession.wingLoadingKgm2}
-              currentVsMs={designSession.stallSpeedMs ?? 0}
-              currentVsKts={designSession.stallSpeedKts ?? 0}
-              weightN={designSession.weightN}
-              wingAreaM2={designSession.wingAreaM2}
-              airDensity={designSession.densityKgM3 ?? 1.225}
-              clMax={designSession.clMaxUsed ?? 1.8}
-              missionType={designSession.missionType ?? missionType}
+              currentWsKgm2={designSession?.wingLoadingKgm2 ?? 0}
+              currentVsMs={designSession?.stallSpeedMs ?? 0}
+              currentVsKts={designSession?.stallSpeedKts ?? 0}
+              weightN={designSession?.weightN ?? 0}
+              wingAreaM2={designSession?.wingAreaM2 ?? 0}
+              airDensity={designSession?.densityKgM3 ?? 1.225}
+              clMax={designSession?.clMaxUsed ?? 1.8}
+              missionType={designSession?.missionType ?? missionType}
               missionData={missionWingLoadingData}
               airDensityMode="preset"
               airDensityPreset="ISA Sea Level"
