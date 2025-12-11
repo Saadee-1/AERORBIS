@@ -45,14 +45,47 @@ interface DesignSessionContextValue {
 
 const DesignSessionContext = createContext<DesignSessionContextValue | undefined>(undefined);
 
+const DESIGN_SESSION_STORAGE_KEY = 'aeroverse_design_session';
+
+export function getDesignSession(): DesignSessionData {
+  if (typeof window === 'undefined') return {};
+  try {
+    const stored = localStorage.getItem(DESIGN_SESSION_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveDesignSession(data: DesignSessionData): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(DESIGN_SESSION_STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 export function DesignSessionProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<DesignSessionData>({});
+  const [data, setData] = useState<DesignSessionData>(() => {
+    // Initialize from localStorage
+    return getDesignSession();
+  });
 
   const updateDesignSession = (partial: Partial<DesignSessionData>) => {
-    setData(prev => ({ ...prev, ...partial }));
+    setData(prev => {
+      const updated = { ...prev, ...partial };
+      saveDesignSession(updated);
+      return updated;
+    });
   };
 
-  const clearDesignSession = () => setData({});
+  const clearDesignSession = () => {
+    setData({});
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(DESIGN_SESSION_STORAGE_KEY);
+    }
+  };
 
   return (
     <DesignSessionContext.Provider value={{ data, updateDesignSession, clearDesignSession }}>

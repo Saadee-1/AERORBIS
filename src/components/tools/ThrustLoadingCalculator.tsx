@@ -79,6 +79,7 @@ import {
   SourceInfo
 } from "./utils/interlink";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import InterlinkCTA from "@/components/common/InterlinkCTA";
 
 // ============================================================================
 // TYPES & CONSTANTS - BATCH 1
@@ -1782,8 +1783,22 @@ const ThrustLoadingCalculator = () => {
         </div>
       </ToolSection>
 
+      {/* Interlink CTA for Wing Loading Data */}
+      {(!designSession?.wingAreaM2 || !designSession?.weightN) && (
+        <ToolSection>
+          <InterlinkCTA
+            requiredFields={['wingAreaM2', 'weightN']}
+            sourceTool="wingloading"
+            targetTool="thrustloading"
+            importMapping={{ wingAreaM2: 'wingAreaM2', weightN: 'weightN' }}
+            title="Wing Loading Data Needed"
+            description="Thrust loading requires wing area and weight. Compute them in Wing Loading if unavailable."
+          />
+        </ToolSection>
+      )}
+
       {/* Engineering Graphs - Full Width Section Below */}
-      {result && (
+      {result && designSession?.wingAreaM2 && designSession?.weightN && (
         <div className="mt-8 px-4 space-y-8">
           <ThrustLoadingGraphs
             currentTW={result.thrustToWeight}

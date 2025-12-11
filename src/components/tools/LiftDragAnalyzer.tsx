@@ -39,6 +39,8 @@ import { ToolActions } from "@/components/layout/ToolActions";
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
+import InterlinkCTA from "@/components/common/InterlinkCTA";
+import { useDesignSession } from "@/contexts/designSession";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
@@ -1181,6 +1183,18 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {/* Interlink CTA for Geometry Data */}
+      <ToolSection>
+        <InterlinkCTA
+          requiredFields={['wingAreaM2', 'massKg']}
+          sourceTool="wingloading"
+          targetTool="ld"
+          importMapping={{ wingAreaM2: 'wingAreaM2', massKg: 'massKg' }}
+          title="Geometry Data Available"
+          description="Wing area and mass detected from Wing Loading."
+        />
+      </ToolSection>
 
       <ToolSection gridCols={2}>
         {/* Input Panel */}

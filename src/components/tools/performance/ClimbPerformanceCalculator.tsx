@@ -48,6 +48,7 @@ import {
   SourceInfo
 } from "../utils/interlink";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import InterlinkCTA from "@/components/common/InterlinkCTA";
 import { computeClimbPerformance, msToKts, msToFpm, ClimbResult } from "./utils/climb";
 import { ClimbPlots } from "./ClimbPlots";
 import { isaAtAltitudeMeters, calculateISADensity } from "../utils/isaAtmosphere";
@@ -458,6 +459,34 @@ export default function ClimbPerformanceCalculator() {
             }}
             getCurrentValues={getCurrentValues}
             showDismiss={false}
+          />
+        </ToolSection>
+      )}
+
+      {/* Interlink CTA for Thrust */}
+      {!totalThrustN && (
+        <ToolSection>
+          <InterlinkCTA
+            requiredFields={['totalThrustN']}
+            sourceTool="thrust"
+            targetTool="climb"
+            importMapping={{ totalThrustN: 'totalThrustN' }}
+            title="Engine Thrust Required"
+            description="Climb performance requires installed thrust. Compute thrust in the Thrust Calculator."
+          />
+        </ToolSection>
+      )}
+
+      {/* Interlink CTA for Drag Polar */}
+      {(!cd0 || !k) && (
+        <ToolSection>
+          <InterlinkCTA
+            requiredFields={['cd0', 'k']}
+            sourceTool="ld"
+            targetTool="climb"
+            importMapping={{ cd0: 'cd0', k: 'k' }}
+            title="Aerodynamic Polar Needed"
+            description="Climb model requires CD0 and k. You can compute these in the L/D Analyzer."
           />
         </ToolSection>
       )}

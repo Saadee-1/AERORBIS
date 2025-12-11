@@ -79,6 +79,7 @@ import {
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
 import { InterlinkCard } from "./InterlinkCard";
 import { InterlinkSourcesRow } from "./InterlinkSourcesRow";
+import InterlinkCTA from "@/components/common/InterlinkCTA";
 import { 
   getReusableDataForCalculator, 
   hasReusableData,
@@ -1168,6 +1169,16 @@ const WingLoadingCalculator = () => {
                 previousValues={previousValues}
               />
             )}
+
+            {/* Interlink CTA for Density */}
+            <InterlinkCTA
+              requiredFields={['densityKgM3']}
+              sourceTool="atmosphere"
+              targetTool="wingloading"
+              importMapping={{ densityKgM3: 'densityKgM3' }}
+              title="ISA Density Available"
+              description="Import air density from Atmosphere tool."
+            />
 
             {/* Imported badge */}
             {importedFrom && (
