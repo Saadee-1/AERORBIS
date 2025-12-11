@@ -21,6 +21,7 @@ import {
   ResponsiveContainer,
   ReferenceDot,
   ReferenceArea,
+  ReferenceLine,
 } from "recharts";
 import { globalAxisCommonProps, globalAxisTickStyle, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
 import { ChartCard } from "@/components/charts/ChartCard";
@@ -434,11 +435,11 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
         </Button>
       }
     >
-      <div ref={graphRef}>
+      <div ref={graphRef} className="w-full pb-12">
         <ResponsiveContainer width="100%" height={400}>
           <LineChart
             data={chartData}
-            margin={{ top: 20, right: 30, bottom: 60, left: 80 }}
+            margin={{ top: 40, right: 30, bottom: 70, left: 80 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={GRAPH_STYLES.gridStroke} />
             
@@ -448,7 +449,13 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               type="number"
               domain={[wsMin, wsMax]}
               tick={globalAxisTickStyle}
-              label={makeXAxisLabel("Wing Loading W/S (kg/m²)")}
+              label={{
+                value: 'Wing Loading W/S (kg/m²)',
+                position: 'insideBottom',
+                dy: 22,
+                fill: '#94a3b8',
+                fontSize: 12,
+              }}
             />
             
             <YAxis
@@ -456,7 +463,15 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               type="number"
               domain={[twMin, twMax]}
               tick={globalAxisTickStyle}
-              label={makeYAxisLabel("Thrust-to-Weight Ratio T/W")}
+              width={80}
+              label={{
+                value: 'Thrust-to-Weight Ratio (T/W)',
+                angle: -90,
+                position: 'insideLeft',
+                dy: -12,
+                fill: '#94a3b8',
+                fontSize: 12,
+              }}
             />
             
             <Tooltip content={<CustomTooltip />} />
@@ -485,6 +500,7 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
                     position: 'top',
                     fill: '#fecaca',
                     fontSize: 11,
+                    dy: -6,
                   }}
                 />
                 
@@ -571,7 +587,7 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
         </ResponsiveContainer>
         
         {/* Legend */}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm">
+        <div className="mt-6 mb-2 flex flex-wrap items-center justify-center gap-6 text-sm">
           <div className="flex items-center gap-2">
             <div
               className="w-4 h-4 border-t-2"
@@ -629,7 +645,7 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
         </div>
         
         {/* Pass/Fail Caption */}
-        <div className="mt-3 text-xs">
+        <div className="mt-3 text-sm">
           {climbStatus === 'pass' && (
             <p className="text-emerald-300">
               ✓ Current T/W meets or exceeds the climb requirement at this wing loading.

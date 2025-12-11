@@ -1684,24 +1684,28 @@ const ThrustLoadingCalculator = () => {
               : 1.225;
             
             return (
-              <ThrustWingSizingDiagram
-                wingLoadingKgm2={designSession.wingLoadingKgm2}
-                thrustToWeight={result.thrustToWeight}
-                ldClimb={ldClimb ? parseFloat(ldClimb) : designSession.ldClimb}
-                gammaReq={gammaReqPercent ? parseFloat(gammaReqPercent) / 100 : 0.03}
-                calculatorMode={calculatorMode}
-                cd0={Number.isFinite(cd0) && cd0 > 0 ? cd0 : undefined}
-                k={Number.isFinite(k) && k > 0 ? k : undefined}
-                vCruiseMs={Number.isFinite(vCruiseMs) && vCruiseMs > 0 ? vCruiseMs : undefined}
-                densityKgM3={rho}
-                stallSpeedMs={designSession.stallSpeedMs}
-                clMaxUsed={designSession.clMaxUsed}
-                takeoffRunwayMeters={
-                  runwayLengthValid ? runwayLengthMeters : undefined
-                }
-                clTo={clToValid ? clTo : undefined}
-                muRoll={muRollValid ? muRoll : undefined}
-              />
+              <div className="w-full pb-12 mb-6 overflow-x-auto">
+                <div className="min-w-[640px]">
+                  <ThrustWingSizingDiagram
+                    wingLoadingKgm2={designSession.wingLoadingKgm2}
+                    thrustToWeight={result.thrustToWeight}
+                    ldClimb={ldClimb ? parseFloat(ldClimb) : designSession.ldClimb}
+                    gammaReq={gammaReqPercent ? parseFloat(gammaReqPercent) / 100 : 0.03}
+                    calculatorMode={calculatorMode}
+                    cd0={Number.isFinite(cd0) && cd0 > 0 ? cd0 : undefined}
+                    k={Number.isFinite(k) && k > 0 ? k : undefined}
+                    vCruiseMs={Number.isFinite(vCruiseMs) && vCruiseMs > 0 ? vCruiseMs : undefined}
+                    densityKgM3={rho}
+                    stallSpeedMs={designSession.stallSpeedMs}
+                    clMaxUsed={designSession.clMaxUsed}
+                    takeoffRunwayMeters={
+                      runwayLengthValid ? runwayLengthMeters : undefined
+                    }
+                    clTo={clToValid ? clTo : undefined}
+                    muRoll={muRollValid ? muRoll : undefined}
+                  />
+                </div>
+              </div>
             );
           })()}
 
