@@ -1,7 +1,8 @@
 import { INTERLINK_PUBLISHERS, FieldKey, ToolId } from './interlinkConfig';
-import { getDesignSession, saveDesignSession } from '@/contexts/designSession';
+import { getDesignSession, saveDesignSession, DesignSessionData as ContextDesignSessionData } from '@/contexts/designSession';
 
-export type DesignSessionData = Partial<Record<FieldKey, number | string>>;
+// Use the context's DesignSessionData type, but allow for additional fields via FieldKey
+export type DesignSessionData = Partial<Record<FieldKey, number | string>> & Partial<ContextDesignSessionData>;
 
 export function getAvailableDataForTool(toolId?: ToolId): DesignSessionData {
   const ds = getDesignSession();

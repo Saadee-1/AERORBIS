@@ -155,17 +155,15 @@ export function InlineInterlinkHint({
   }
 
   return (
-    <div className={`text-xs text-slate-400 ${className || ''}`}>
-      <span>
-        {missing.map((f) => labelForField(f)).join(', ')} available from{' '}
-        <button
-          onClick={() => navigate(sourceTool ?? 'tools')}
-          className="text-cyan-400 hover:text-cyan-300 underline"
-        >
-          {label ?? 'other calculators'}
-        </button>
-      </span>
-    </div>
+    <span className={`text-xs text-slate-400 ${className || ''}`}>
+      Missing {missing.map((f) => labelForField(f)).join(', ')}.
+      <button
+        onClick={() => navigate(sourceTool ?? 'tools', { focus: 'inputs' })}
+        className="ml-1 text-cyan-400 hover:underline"
+      >
+        Compute in {label ?? 'other calculators'}
+      </button>
+    </span>
   );
 }
 

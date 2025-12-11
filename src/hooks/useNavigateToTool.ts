@@ -1,15 +1,22 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, createSearchParams } from 'react-router-dom';
+import { ToolId } from '@/components/tools/utils/interlinkConfig';
 
 export function useNavigateToTool() {
   const navigate = useNavigate();
 
-  return (toolId: string, options?: { focus?: string }) => {
+  const navigateToTool = (toolId: ToolId | 'tools', options?: { focus?: 'inputs' | 'results' | 'graphs' }) => {
     const params = new URLSearchParams();
-    params.set('tool', toolId);
     if (options?.focus) {
       params.set('focus', options.focus);
     }
-    navigate(`/tools/launch?${params.toString()}`);
+    if (toolId === 'tools') {
+      navigate(`/tools/launch?${params.toString()}`);
+    } else {
+      params.set('tool', toolId);
+      navigate(`/tools/launch?${params.toString()}`);
+    }
   };
+
+  return navigateToTool;
 }
 
