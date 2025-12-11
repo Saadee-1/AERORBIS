@@ -46,11 +46,14 @@ export function buildAeroversePayload({
   requestId?: string;
   toolName: string;
   toolVersion?: string;
-  inputs?: Record<string, any>;
-  results?: Record<string, any>;
+  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
+  inputs?: Record<string, unknown>;
+  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
+  results?: Record<string, unknown>;
   units?: Record<string, string>;
   charts?: Array<{ id: string; title: string; dataSummary?: string; imageBase64?: string }>;
-  configuration?: Record<string, any>;
+  // TODO: refine type for `configuration` — changed any -> unknown automatically by chore/typed-cleanup
+  configuration?: Record<string, unknown>;
   userNotes?: string;
   metadata?: {
     steps?: string[];

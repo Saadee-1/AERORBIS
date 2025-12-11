@@ -102,7 +102,7 @@ export default function ClimbPerformanceCalculator() {
   const [nPoints, setNPoints] = useState<string>('200');
   const [result, setResult] = useState<ClimbResult | null>(null);
   const [usedFromSession, setUsedFromSession] = useState(false);
-  const [previousValues, setPreviousValues] = useState<Record<string, any>>({});
+  const [previousValues, setPreviousValues] = useState<Record<string, unknown>>({});
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
 
   // Handle returnTo flow

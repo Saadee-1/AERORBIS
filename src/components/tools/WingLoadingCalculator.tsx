@@ -547,7 +547,7 @@ const WingLoadingCalculator = () => {
   
   // Track imported data
   const [importedFrom, setImportedFrom] = useState<{ sourceId: string; keys: string[] } | null>(null);
-  const [previousValues, setPreviousValues] = useState<Record<string, any>>({});
+  const [previousValues, setPreviousValues] = useState<Record<string, unknown>>({});
   
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');

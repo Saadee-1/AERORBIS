@@ -76,8 +76,10 @@ const STORAGE_KEY_CUSTOM_ORBITS = "orbitalVisualizer_customOrbits";
 
 type ToolPayload = {
   tool: string;
-  inputs: Record<string, any>;
-  results: Record<string, any>;
+  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
+  inputs: Record<string, unknown>;
+  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
+  results: Record<string, unknown>;
 };
 
 const OrbitalVisualizer = () => {

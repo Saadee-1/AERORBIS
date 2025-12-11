@@ -66,7 +66,8 @@ export function buildTrajectoryPayload(
   }
 
   // Format inputs
-  const formattedInputs: Record<string, any> = {
+  // TODO: refine type for `formattedInputs` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedInputs: Record<string, unknown> = {
     'Simulation Mode': mode,
     'Planet': planet.name,
     'Surface Gravity': `${planet.surfaceGravity.toFixed(2)} m/s²`,
@@ -91,7 +92,8 @@ export function buildTrajectoryPayload(
   }
 
   // Format results
-  const formattedResults: Record<string, any> = {};
+  // TODO: refine type for `formattedResults` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedResults: Record<string, unknown> = {};
   
   if (result) {
     if (result.maxQ) {

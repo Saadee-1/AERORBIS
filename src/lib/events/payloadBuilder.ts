@@ -3,8 +3,10 @@ import type { CalculationEventPayload } from '@/hooks/useToolContext';
 type CalculationEventArgs = {
   toolId: string;
   toolName: string;
-  inputs: Record<string, any>;
-  results: Record<string, any>;
+  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
+  inputs: Record<string, unknown>;
+  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
+  results: Record<string, unknown>;
   steps?: string[];
   attachments?: CalculationEventPayload['attachments'];
   metadata?: CalculationEventPayload['metadata'];

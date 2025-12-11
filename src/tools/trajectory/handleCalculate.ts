@@ -7,7 +7,8 @@ import { Guidance3D } from './utils/solver/run3d';
 import { buildTrajectoryPayload, AdvancedFeatures } from './utils/payloadBuilder';
 import { isDevEnv } from '@/lib/env';
 
-type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, any>; results: Record<string, any> }) => void;
+// TODO: refine type for `ToolContextUpdater` — changed any -> unknown automatically by chore/typed-cleanup
+type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, unknown>; results: Record<string, unknown> }) => void;
 
 export interface TrajectoryHandleOptions {
   planetId?: string;

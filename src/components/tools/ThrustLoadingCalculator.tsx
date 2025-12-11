@@ -489,7 +489,7 @@ const ThrustLoadingCalculator = () => {
   
   // Track imported data
   const [importedFrom, setImportedFrom] = useState<{ sourceId: string; keys: string[] } | null>(null);
-  const [previousValues, setPreviousValues] = useState<Record<string, any>>({});
+  const [previousValues, setPreviousValues] = useState<Record<string, unknown>>({});
   const [usedFromSession, setUsedFromSession] = useState(false);
   
   // Handle return flow

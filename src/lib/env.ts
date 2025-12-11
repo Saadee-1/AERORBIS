@@ -1,7 +1,8 @@
 export type RuntimeEnv = {
   DEV?: boolean | string;
   VITE_DEBUG_VISUALIZER?: boolean | string;
-  [key: string]: any;
+  // TODO: refine type for index signature — changed any -> unknown automatically by chore/typed-cleanup
+  [key: string]: unknown;
 };
 
 const getRuntimeEnv = (): RuntimeEnv => {

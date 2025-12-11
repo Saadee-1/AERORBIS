@@ -11,7 +11,8 @@ export interface ValidationResult {
 
 export interface ValidationRule {
   field: string;
-  validator: (value: any) => boolean | string;
+  // TODO: refine type for `validator` — changed any -> unknown automatically by chore/typed-cleanup
+  validator: (value: unknown) => boolean | string;
   errorMessage?: string;
   warningMessage?: string;
 }
@@ -19,8 +20,9 @@ export interface ValidationRule {
 /**
  * Validate a number is finite and positive
  */
+// TODO: refine type for `value` — changed any -> unknown automatically by chore/typed-cleanup
 export function validatePositiveNumber(
-  value: any,
+  value: unknown,
   fieldName: string,
   min: number = 0,
   max?: number
@@ -109,8 +111,9 @@ export function formatNumber(
 /**
  * Validate object with multiple rules
  */
+// TODO: refine type for `validateObject` — changed any -> unknown automatically by chore/typed-cleanup
 export function validateObject(
-  obj: Record<string, any>,
+  obj: Record<string, unknown>,
   rules: ValidationRule[]
 ): ValidationResult {
   const errors: string[] = [];
@@ -143,8 +146,9 @@ export function validateObject(
 /**
  * Sanitize number input - convert to number and validate
  */
+// TODO: refine type for `value` — changed any -> unknown automatically by chore/typed-cleanup
 export function sanitizeNumber(
-  value: any,
+  value: unknown,
   defaultValue: number = 0
 ): number {
   if (value === undefined || value === null || value === '') {

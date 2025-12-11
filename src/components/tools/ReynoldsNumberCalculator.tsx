@@ -64,8 +64,10 @@ type FlowRegime = "Laminar" | "Transitional" | "Turbulent";
 
 type ToolPayload = {
   tool: string;
-  inputs: Record<string, any>;
-  results: Record<string, any>;
+  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
+  inputs: Record<string, unknown>;
+  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
+  results: Record<string, unknown>;
 };
 
 interface PresetScenario {
@@ -210,7 +212,8 @@ const ReynoldsNumberCalculator = () => {
 
   // --- Effects for LocalStorage ---
   useEffect(() => {
-    const loadFromStorage = (key: string, setter: Function, defaultValue: any) => {
+    // TODO: refine type for `setter` and `defaultValue` — changed Function/any -> unknown automatically by chore/typed-cleanup
+    const loadFromStorage = (key: string, setter: (...args: unknown[]) => unknown, defaultValue: unknown) => {
       const storedValue = localStorage.getItem(key);
       if (storedValue) {
         try {

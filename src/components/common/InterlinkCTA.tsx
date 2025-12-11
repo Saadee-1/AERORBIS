@@ -1,10 +1,18 @@
+// src/components/common/InterlinkCTA.tsx
 import React, { useMemo, useState } from 'react';
-import { getAvailableDataForTool, importDataToSession, labelForField, getAvailableDataAny } from '@/components/tools/utils/interlink';
+import {
+  getAvailableDataForTool,
+  getAvailableDataAny,
+  importDataToSession,
+  labelForField,
+} from '@/components/tools/utils/interlink';
 import { INTERLINK_PUBLISHERS } from '@/components/tools/utils/interlinkConfig';
-import { AeroCard } from '@/components/common/AeroCard';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AeroCard } from '@/components/ui/AeroCard';
+import { Button } from '@/components/ui/Button';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { useNavigateToTool } from '@/hooks/useNavigateToTool';
+
+type InlineData = Partial<Record<string, number | string>>;
 
 type Props = {
   requiredFields: string[];
@@ -17,20 +25,53 @@ type Props = {
   className?: string;
 };
 
+export function InlineInterlinkHint({
+  fieldKey,
+  sourceTool,
+}: {
+  fieldKey: string;
+  sourceTool?: string;
+}) {
+  const available = sourceTool ? getAvailableDataForTool(sourceTool) : getAvailableDataAny();
+  const exists = available[fieldKey] !== undefined && available[fieldKey] !== null;
+  const navigate = useNavigateToTool();
+  if (exists) {
+    return <span className="text-xs text-slate-300 ml-2">{String(available[fieldKey])}</span>;
+  }
+  return (
+    <button
+      className="text-xs text-amber-400 underline ml-2"
+      onClick={() => navigate(sourceTool ?? 'tools', { focus: 'inputs' })}
+      aria-label={`Find ${labelForField(fieldKey)} in ${sourceTool ?? 'tools'}`}
+    >
+      Find out here
+    </button>
+  );
+}
+
 export default function InterlinkCTA(props: Props) {
-  const { requiredFields, sourceTool, targetTool, title, description, importMapping, showUndo = true, className } = props;
+  const {
+    requiredFields,
+    sourceTool,
+    targetTool,
+    title,
+    description,
+    importMapping,
+    showUndo = true,
+    className,
+  } = props;
 
   const navigate = useNavigateToTool();
   const availableFromSource = sourceTool ? getAvailableDataForTool(sourceTool) : {};
   const availableAny = getAvailableDataAny();
-  const available = Object.keys(availableFromSource).length ? availableFromSource : availableAny;
+  const available: InlineData = Object.keys(availableFromSource).length ? availableFromSource : availableAny;
 
   const missing = useMemo(
-    () => requiredFields.filter((f) => available[f] === undefined),
+    () => requiredFields.filter((f) => available[f] === undefined || available[f] === null),
     [requiredFields, available]
   );
 
-  const [prevData, setPrevData] = useState<any>(null);
+  const [prevData, setPrevData] = useState<InlineData | null>(null);
   const [importedAt, setImportedAt] = useState<number | null>(null);
 
   const label = sourceTool
@@ -44,7 +85,7 @@ export default function InterlinkCTA(props: Props) {
 
   const handleImport = () => {
     const prev = importDataToSession(available as any, importMapping);
-    setPrevData(prev);
+    setPrevData(prev as InlineData);
     setImportedAt(Date.now());
   };
 
@@ -60,12 +101,11 @@ export default function InterlinkCTA(props: Props) {
       <AeroCard title={title ?? `${labelForField(missing[0])} Needed`} className={className}>
         <div className="p-3">
           <p className="text-sm text-slate-300">
-            {description ??
-              `This calculator requires: ${missing.map((f) => labelForField(f)).join(', ')}`}
+            {description ?? `This calculator requires: ${missing.map((f) => labelForField(f)).join(', ')}`}
           </p>
 
           <div className="mt-4 flex gap-2">
-            <Button onClick={goCompute}>
+            <Button variant="primary" onClick={goCompute}>
               Compute in {label}
             </Button>
             <Button variant="ghost" onClick={() => navigate('tools')}>
@@ -78,36 +118,27 @@ export default function InterlinkCTA(props: Props) {
   }
 
   return (
-    <AeroCard
-      title={title ?? `Data available from ${label ?? 'other calculators'}`}
-      className={className}
-    >
+    <AeroCard title={title ?? `Data available from ${label ?? 'other calculators'}`} className={className}>
       <div className="p-3">
         <div className="grid grid-cols-2 gap-3">
           {requiredFields.map((f) => (
             <div key={f} className="flex items-center gap-2">
               <span className="text-xs text-slate-400">{labelForField(f)}</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="ml-auto text-cyan-300"
-                      onClick={() => navigator.clipboard.writeText(String(available[f]))}
-                    >
-                      {String(available[f])}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Copy value</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip content="Copy value">
+                <button
+                  className="ml-auto text-cyan-300"
+                  onClick={() => navigator.clipboard.writeText(String(available[f] ?? ''))}
+                  aria-label={`Copy ${labelForField(f)}`}
+                >
+                  {String(available[f] ?? '')}
+                </button>
+              </Tooltip>
             </div>
           ))}
         </div>
 
         <div className="mt-4 flex gap-3">
-          <Button onClick={handleImport}>
+          <Button variant="primary" onClick={handleImport}>
             Use this data {targetTool ? `in ${targetTool}` : ''}
           </Button>
           <Button variant="ghost" onClick={() => navigate(sourceTool ?? 'tools')}>
@@ -119,51 +150,9 @@ export default function InterlinkCTA(props: Props) {
             </button>
           )}
         </div>
+
+        {importedAt && <div className="mt-2 text-xs text-slate-400">Imported {new Date(importedAt).toLocaleString()}</div>}
       </div>
     </AeroCard>
   );
 }
-
-/**
- * Inline interlink hint component for displaying available data inline
- */
-export function InlineInterlinkHint({
-  requiredFields,
-  sourceTool,
-  className,
-}: {
-  requiredFields: string[];
-  sourceTool?: string;
-  className?: string;
-}) {
-  const navigate = useNavigateToTool();
-  const availableFromSource = sourceTool ? getAvailableDataForTool(sourceTool) : {};
-  const availableAny = getAvailableDataAny();
-  const available = Object.keys(availableFromSource).length ? availableFromSource : availableAny;
-
-  const missing = useMemo(
-    () => requiredFields.filter((f) => available[f] === undefined),
-    [requiredFields, available]
-  );
-
-  const label = sourceTool
-    ? INTERLINK_PUBLISHERS.find((p) => p.toolId === sourceTool)?.label ?? sourceTool
-    : undefined;
-
-  if (missing.length === 0) {
-    return null; // Don't show if all fields are available
-  }
-
-  return (
-    <span className={`text-xs text-slate-400 ${className || ''}`}>
-      Missing {missing.map((f) => labelForField(f)).join(', ')}.
-      <button
-        onClick={() => navigate(sourceTool ?? 'tools', { focus: 'inputs' })}
-        className="ml-1 text-cyan-400 hover:underline"
-      >
-        Compute in {label ?? 'other calculators'}
-      </button>
-    </span>
-  );
-}
-

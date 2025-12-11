@@ -3,7 +3,8 @@ import { RocketEngineInputs, calculateRocketEngine } from './utils/calcEngine';
 import { validateRocketEngineInputs } from './validation/schema';
 import { buildRocketEnginePayload } from './utils/payloadBuilder';
 
-type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, any>; results: Record<string, any> }) => void;
+// TODO: refine type for `ToolContextUpdater` — changed any -> unknown automatically by chore/typed-cleanup
+type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, unknown>; results: Record<string, unknown> }) => void;
 
 export interface RocketEngineHandleOptions {
   inputs?: RocketEngineInputs;

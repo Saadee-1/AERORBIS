@@ -1,7 +1,8 @@
 import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { calculateAtmosphere } from './utils/calcAtmosphere';
 
-type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, any>; results: Record<string, any> }) => void;
+// TODO: refine type for `ToolContextUpdater` — changed any -> unknown automatically by chore/typed-cleanup
+type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, unknown>; results: Record<string, unknown> }) => void;
 
 export interface AtmosphereHandleOptions {
   altitudeMeters?: number;

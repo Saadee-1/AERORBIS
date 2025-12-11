@@ -87,7 +87,8 @@ export function buildStabilityPayload(
   }
 
   // Format inputs for display
-  const formattedInputs: Record<string, any> = {
+  // TODO: refine type for `formattedInputs` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedInputs: Record<string, unknown> = {
     'Wing area': `${inputs.S_w.toFixed(2)} m²`,
     'Wing AR': inputs.AR.toFixed(2),
     'MAC': `${inputs.c_bar.toFixed(3)} m`,
@@ -100,7 +101,8 @@ export function buildStabilityPayload(
   };
 
   // Format results for display
-  const formattedResults: Record<string, any> = {
+  // TODO: refine type for `formattedResults` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedResults: Record<string, unknown> = {
     'a_w': `${stability.a_w.toFixed(3)} /rad`,
     'a_t': `${stability.a_t.toFixed(3)} /rad`,
     'ε_α': stability.epsilon_alpha.toFixed(4),

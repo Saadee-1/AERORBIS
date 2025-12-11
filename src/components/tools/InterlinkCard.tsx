@@ -38,21 +38,24 @@ export interface InterlinkCardProps {
   /** Current tool ID for return flow */
   currentToolId?: string;
   /** Function to get current values for undo */
-  getCurrentValues?: () => Record<string, any>;
+  // TODO: refine type for `getCurrentValues` — changed any -> unknown automatically by chore/typed-cleanup
+  getCurrentValues?: () => Record<string, unknown>;
   /** Additional options */
   options?: {
     weightMode?: 'mass' | 'weight';
     unitSystem?: 'SI' | 'Imperial';
-    onApplied?: (keys: string[], previousValues: Record<string, any>) => void;
+    // TODO: refine type for `onApplied` — changed any -> unknown automatically by chore/typed-cleanup
+    onApplied?: (keys: string[], previousValues: Record<string, unknown>) => void;
     onDismiss?: () => void;
-    onUndo?: (previousValues: Record<string, any>) => void;
+    // TODO: refine type for `onUndo` — changed any -> unknown automatically by chore/typed-cleanup
+    onUndo?: (previousValues: Record<string, unknown>) => void;
   };
   /** Whether to show dismiss button */
   showDismiss?: boolean;
   /** Whether data is already imported */
   imported?: boolean;
   /** Previous values for undo */
-  previousValues?: Record<string, any>;
+  previousValues?: Record<string, unknown>;
 }
 
 export function InterlinkCard({
@@ -73,7 +76,7 @@ export function InterlinkCard({
   const location = useLocation();
   const [dismissed, setDismissed] = useState(false);
   const [imported, setImported] = useState(importedProp || false);
-  const [previousValues, setPreviousValues] = useState<Record<string, any>>(previousValuesProp || {});
+  const [previousValues, setPreviousValues] = useState<Record<string, unknown>>(previousValuesProp || {});
 
   const effectiveSourceName = sourceInfo?.name || sourceName || "Wing Loading";
   const sourcePath = sourceInfo?.path || '/tools/launch?tool=wing';

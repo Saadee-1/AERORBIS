@@ -205,7 +205,8 @@ const AdvancedThrustCalculator = () => {
 
   // --- Effects for LocalStorage ---
   useEffect(() => {
-    const loadFromStorage = (key: string, setter: Function, defaultValue: any) => {
+    // TODO: refine type for `setter` and `defaultValue` — changed Function/any -> unknown automatically by chore/typed-cleanup
+    const loadFromStorage = (key: string, setter: (...args: unknown[]) => unknown, defaultValue: unknown) => {
       const storedValue = localStorage.getItem(key);
       if (storedValue) {
         try {
@@ -344,7 +345,8 @@ const AdvancedThrustCalculator = () => {
 
       const validated = performanceSchema.parse(rawValues);
       const solveFor = emptyFields[0][0];
-      let resultData: any = {};
+      // TODO: refine type for `resultData` — changed any -> unknown automatically by chore/typed-cleanup
+      let resultData: Record<string, unknown> = {};
       let steps: CalculationStep[] = [{ equation: `Ve = Isp × g₀ (where g₀ ≈ ${g0.toFixed(2)})`, description: "Performance equation" }];
 
       if (solveFor === "exhaustVelocity") {
@@ -422,7 +424,8 @@ const AdvancedThrustCalculator = () => {
 
       const validated = thrustSchema.parse(rawValues);
       const solveFor = emptyFields[0][0];
-      let resultData: any = {};
+      // TODO: refine type for `resultData` — changed any -> unknown automatically by chore/typed-cleanup
+      let resultData: Record<string, unknown> = {};
       // Physics: Thrust equation F = ṁVe + (Pe - Pa)Ae
       // where ṁ = mass flow rate, Ve = exhaust velocity, Pe = exit pressure, Pa = ambient pressure, Ae = exit area
       let steps: CalculationStep[] = [{ equation: "F = ṁVe + (Pe - Pa)Ae", description: "Thrust equation" }];

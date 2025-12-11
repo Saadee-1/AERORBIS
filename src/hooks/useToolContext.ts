@@ -4,8 +4,10 @@ import { useAIAssistant, ToolContext } from "@/contexts/AIAssistantContext";
 export interface CalculationEventPayload {
   toolId: string;
   toolName: string;
-  inputs: Record<string, any>;
-  results: Record<string, any>;
+  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
+  inputs: Record<string, unknown>;
+  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
+  results: Record<string, unknown>;
   steps?: string[];
   attachments?: {
     charts?: Array<{ mime: string; data: string }>;
@@ -187,7 +189,8 @@ export const useToolContext = () => {
       requestId: string,
       payload: {
         progress?: number;
-        intermediateResults?: Record<string, any>;
+        // TODO: refine type for `intermediateResults` — changed any -> unknown automatically by chore/typed-cleanup
+        intermediateResults?: Record<string, unknown>;
         sequenceId: number;
         isFinal?: boolean;
       },
@@ -260,7 +263,7 @@ export const useToolContext = () => {
     (context: any) => {
       // Backwards-compatible normalizer:
       // Converts any legacy or partial tool context into the new canonical format:
-      // { tool: string, inputs: Record<string, any>, results: Record<string, any> }
+      // { tool: string, inputs: Record<string, unknown>, results: Record<string, unknown> }
 
       try {
         let normalized: any = context;
