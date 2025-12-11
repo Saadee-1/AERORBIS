@@ -1785,6 +1785,14 @@ const ThrustLoadingCalculator = () => {
         </div>
       </ToolSection>
 
+      {/* Wing Area Hint - Required for Graphs */}
+      {!designSession?.wingAreaM2 && (
+        <ToolSection>
+          <div className="px-4 py-2">
+            <InlineInterlinkHint requiredFields={['wingAreaM2']} sourceTool="wingloading" />
+          </div>
+        </ToolSection>
+      )}
 
       {/* Engineering Graphs - Full Width Section Below */}
       {(() => {
