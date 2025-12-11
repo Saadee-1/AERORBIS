@@ -116,7 +116,8 @@ export function buildAeroversePayload({
  * @param payload - Payload to validate
  * @returns True if valid, throws error if invalid
  */
-export function validateAeroversePayload(payload: any): payload is AeroverseAIPayload {
+// TODO: refine type for `payload` — changed any -> unknown automatically by chore/typed-cleanup
+export function validateAeroversePayload(payload: unknown): payload is AeroverseAIPayload {
   if (!payload || typeof payload !== 'object') {
     throw new Error('Payload must be an object');
   }

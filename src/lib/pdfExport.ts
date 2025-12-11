@@ -356,7 +356,7 @@ export async function downloadHTMLAsPDF(
   filename: string = 'calculation-report.pdf'
 ) {
   // Try using html2pdf if available
-  if (typeof window !== 'undefined' && (window as any).html2pdf) {
+  if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).html2pdf) {
     try {
       const opt = {
         margin: 1,
@@ -365,7 +365,7 @@ export async function downloadHTMLAsPDF(
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
       };
-      await (window as any).html2pdf().set(opt).from(html).save();
+      await ((window as unknown as Record<string, unknown>).html2pdf as () => { set: (opt: unknown) => { from: (html: string) => { save: () => Promise<void> } } })()().set(opt).from(html).save();
       return;
     } catch (error) {
       console.warn('html2pdf failed, falling back to print:', error);

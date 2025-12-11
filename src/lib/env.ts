@@ -6,8 +6,8 @@ export type RuntimeEnv = {
 };
 
 const getRuntimeEnv = (): RuntimeEnv => {
-  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
-    return (import.meta as any).env as RuntimeEnv;
+  if (typeof import.meta !== 'undefined' && (import.meta as unknown as Record<string, unknown>).env) {
+    return ((import.meta as unknown as Record<string, unknown>).env) as RuntimeEnv;
   }
   if (typeof process !== 'undefined' && process.env) {
     return process.env as RuntimeEnv;

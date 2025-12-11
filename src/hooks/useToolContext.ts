@@ -260,13 +260,15 @@ export const useToolContext = () => {
   );
 
   const updateToolContext = useCallback(
-    (context: any) => {
+    // TODO: refine type for `context` — changed any -> unknown automatically by chore/typed-cleanup
+    (context: unknown) => {
       // Backwards-compatible normalizer:
       // Converts any legacy or partial tool context into the new canonical format:
       // { tool: string, inputs: Record<string, unknown>, results: Record<string, unknown> }
 
       try {
-        let normalized: any = context;
+        // TODO: refine type for `normalized` — changed any -> unknown automatically by chore/typed-cleanup
+        let normalized: unknown = context;
 
         // Case 1 — already correct
         if (

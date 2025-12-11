@@ -7,9 +7,9 @@ import {
   labelForField,
 } from '@/components/tools/utils/interlink';
 import { INTERLINK_PUBLISHERS } from '@/components/tools/utils/interlinkConfig';
-import { AeroCard } from '@/components/ui/AeroCard';
+import { AeroCard } from '@/components/common/AeroCard';
 import { Button } from '@/components/ui/Button';
-import { Tooltip } from '@/components/ui/Tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigateToTool } from '@/hooks/useNavigateToTool';
 
 type InlineData = Partial<Record<string, number | string>>;
@@ -84,14 +84,14 @@ export default function InterlinkCTA(props: Props) {
   };
 
   const handleImport = () => {
-    const prev = importDataToSession(available as any, importMapping);
+    const prev = importDataToSession(available as unknown, importMapping);
     setPrevData(prev as InlineData);
     setImportedAt(Date.now());
   };
 
   const undoImport = () => {
     if (!prevData) return;
-    importDataToSession(prevData as any);
+    importDataToSession(prevData as unknown);
     setPrevData(null);
     setImportedAt(null);
   };
@@ -124,15 +124,22 @@ export default function InterlinkCTA(props: Props) {
           {requiredFields.map((f) => (
             <div key={f} className="flex items-center gap-2">
               <span className="text-xs text-slate-400">{labelForField(f)}</span>
-              <Tooltip content="Copy value">
-                <button
-                  className="ml-auto text-cyan-300"
-                  onClick={() => navigator.clipboard.writeText(String(available[f] ?? ''))}
-                  aria-label={`Copy ${labelForField(f)}`}
-                >
-                  {String(available[f] ?? '')}
-                </button>
-              </Tooltip>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="ml-auto text-cyan-300"
+                      onClick={() => navigator.clipboard.writeText(String(available[f] ?? ''))}
+                      aria-label={`Copy ${labelForField(f)}`}
+                    >
+                      {String(available[f] ?? '')}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Copy value</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           ))}
         </div>
