@@ -7,7 +7,7 @@ import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackg
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale, Target, Battery } from "lucide-react";
+import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale, Target, Battery, ArrowUp } from "lucide-react";
 import ThrustCalculator from "@/components/tools/ThrustCalculator";
 import WingLoadingCalculator from "@/components/tools/WingLoadingCalculator";
 import OrbitalVisualizer from "@/components/tools/OrbitalVisualizer";
@@ -22,6 +22,7 @@ import StructuralWeightEstimator from "@/tools/weight";
 import TrajectorySimulator from "@/tools/trajectory";
 import RocketEngineCalculator from "@/tools/rocketEngine";
 import PowerSystemCalculator from "@/tools/power";
+import ClimbPerformanceCalculator from "@/components/tools/performance/ClimbPerformanceCalculator";
 import { DesignSessionProvider } from "@/contexts/designSession";
 
 // Mapping from tool names to tab IDs
@@ -40,6 +41,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
     "Battery & Solar Power System": "power",
     "Structural Weight Estimator": "weight",
     "Rocket Trajectory Simulator": "trajectory",
+    "Climb Performance Calculator": "climb",
     // Also support direct tool IDs
   "thrust": "thrust",
   "wing": "wing",
@@ -55,6 +57,7 @@ const TOOL_NAME_TO_TAB: { [key: string]: string } = {
     "power": "power",
     "weight": "weight",
     "trajectory": "trajectory",
+    "climb": "climb",
 };
 
 const ToolsLauncher = () => {
@@ -215,6 +218,13 @@ const ToolsLauncher = () => {
                   <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
                   <span className="text-xs sm:text-sm truncate">Trajectory</span>
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="climb"
+                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
+                >
+                  <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm truncate">Climb Performance</span>
+                </TabsTrigger>
                 </TabsList>
               )}
 
@@ -272,6 +282,10 @@ const ToolsLauncher = () => {
 
               <TabsContent value="trajectory" className="mt-0">
                 <TrajectorySimulator />
+              </TabsContent>
+
+              <TabsContent value="climb" className="mt-0">
+                <ClimbPerformanceCalculator />
               </TabsContent>
             </Tabs>
           </motion.div>

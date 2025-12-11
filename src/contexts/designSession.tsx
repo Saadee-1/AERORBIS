@@ -24,6 +24,17 @@ export interface DesignSessionData {
   ldCruise?: number;     // optional future use
   clCruise?: number;
   alphaCruiseDeg?: number;
+
+  // From Climb Performance Calculator
+  vClimbVyMs?: number;   // Best rate of climb speed (m/s)
+  vClimbVxMs?: number;   // Best angle of climb speed (m/s)
+  rocVyMs?: number;      // Rate of climb at V_y (m/s)
+  gammaVy?: number;      // Climb gradient at V_y (unitless)
+  
+  // Drag polar (for climb calculator)
+  cd0?: number;          // Zero-lift drag coefficient
+  k?: number;            // Induced drag factor
+  totalThrustN?: number; // Total installed thrust (N)
 }
 
 interface DesignSessionContextValue {

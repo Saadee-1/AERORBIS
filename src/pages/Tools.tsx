@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database, Zap, Radio, Cloud, Plane, Scale, Target, Battery } from "lucide-react";
+import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database, Zap, Radio, Cloud, Plane, Scale, Target, Battery, ArrowUp } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +25,7 @@ const getToolUrl = (toolName: string): string => {
     "Battery & Solar Power System": "power",
     "Structural Weight Estimator": "weight",
     "Rocket Trajectory Simulator": "trajectory",
+    "Climb Performance Calculator": "climb",
   };
   const toolId = toolMap[toolName];
   return toolId ? `/tools/launch?tool=${toolId}` : "/tools/launch";
@@ -119,6 +120,12 @@ const Tools = () => {
       description: "High-fidelity 1D, 2D, and 3D trajectory simulation with atmospheric flight, staging, orbital mechanics, and 3D visualization.",
       category: "Space Systems",
     },
+    {
+      icon: ArrowUp,
+      name: "Climb Performance Calculator",
+      description: "Compute climb speeds (V_y — best rate, V_x — best angle), rate of climb, and climb gradient with interactive plots.",
+      category: "Aircraft Performance",
+    },
   ];
 
   return (
@@ -176,10 +183,10 @@ const Tools = () => {
                     <Button 
                       className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300"
                       asChild
-                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator"].includes(tool.name)}
+                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator", "Climb Performance Calculator"].includes(tool.name)}
                     >
-                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
-                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
+                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator", "Climb Performance Calculator"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
+                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator", "Climb Performance Calculator"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
                       </a>
                     </Button>
                   </CardFooter>

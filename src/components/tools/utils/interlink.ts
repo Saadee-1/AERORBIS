@@ -46,6 +46,13 @@ export interface ReusableData {
   ldClimb?: number;
   clClimb?: number;
   alphaClimbDeg?: number;
+  totalThrustN?: number;
+  cd0?: number;
+  k?: number;
+  vClimbVyMs?: number;
+  vClimbVxMs?: number;
+  rocVyMs?: number;
+  gammaVy?: number;
   [key: string]: number | string | MissionType | undefined;
 }
 
@@ -123,6 +130,33 @@ export function getReusableDataForCalculator(
   }
 
   if (tool === 'liftdrag' || tool === 'LiftDragAnalyzer') {
+    if (typeof designSession.clMaxUsed === 'number' && Number.isFinite(designSession.clMaxUsed) && designSession.clMaxUsed > 0) {
+      reused.clMaxUsed = designSession.clMaxUsed;
+    }
+  }
+
+  if (tool === 'climb' || tool === 'ClimbPerformanceCalculator') {
+    if (typeof designSession.massKg === 'number' && Number.isFinite(designSession.massKg) && designSession.massKg > 0) {
+      reused.massKg = designSession.massKg;
+    }
+    if (typeof designSession.weightN === 'number' && Number.isFinite(designSession.weightN) && designSession.weightN > 0) {
+      reused.weightN = designSession.weightN;
+    }
+    if (typeof designSession.wingAreaM2 === 'number' && Number.isFinite(designSession.wingAreaM2) && designSession.wingAreaM2 > 0) {
+      reused.wingAreaM2 = designSession.wingAreaM2;
+    }
+    if (typeof designSession.cd0 === 'number' && Number.isFinite(designSession.cd0) && designSession.cd0 >= 0) {
+      reused.cd0 = designSession.cd0;
+    }
+    if (typeof designSession.k === 'number' && Number.isFinite(designSession.k) && designSession.k >= 0) {
+      reused.k = designSession.k;
+    }
+    if (typeof designSession.totalThrustN === 'number' && Number.isFinite(designSession.totalThrustN) && designSession.totalThrustN > 0) {
+      reused.totalThrustN = designSession.totalThrustN;
+    }
+    if (typeof designSession.densityKgM3 === 'number' && Number.isFinite(designSession.densityKgM3) && designSession.densityKgM3 > 0) {
+      reused.densityKgM3 = designSession.densityKgM3;
+    }
     if (typeof designSession.clMaxUsed === 'number' && Number.isFinite(designSession.clMaxUsed) && designSession.clMaxUsed > 0) {
       reused.clMaxUsed = designSession.clMaxUsed;
     }
@@ -326,6 +360,13 @@ const FIELD_LABELS: Record<string, string> = {
   ldClimb: 'L/D Climb',
   clClimb: 'CL Climb',
   alphaClimbDeg: 'Alpha Climb',
+  totalThrustN: 'Thrust',
+  cd0: 'CD0',
+  k: 'k',
+  vClimbVyMs: 'V_y',
+  vClimbVxMs: 'V_x',
+  rocVyMs: 'ROC',
+  gammaVy: 'Gradient',
 };
 
 /**
@@ -353,30 +394,44 @@ const SOURCE_DEFINITIONS: Record<string, Omit<SourceInfo, 'fields'>> = {
     path: '/tools/launch?tool=atmosphere',
     confidence: 5,
   },
+  climb: {
+    name: 'Climb Performance',
+    id: 'climb',
+    color: '#f59e0b', // amber
+    path: '/tools/launch?tool=climb',
+    confidence: 9,
+  },
 };
 
 /**
  * Field to source mapping (which sources can provide which fields)
  */
 const FIELD_SOURCE_MAP: Record<string, string[]> = {
-  massKg: ['wing', 'liftdrag'],
-  weightN: ['wing', 'liftdrag'],
-  wingAreaM2: ['wing'],
+  massKg: ['wing', 'liftdrag', 'climb'],
+  weightN: ['wing', 'liftdrag', 'climb'],
+  wingAreaM2: ['wing', 'climb'],
   wingLoadingKgm2: ['wing'],
   stallSpeedMs: ['wing'],
   stallSpeedKts: ['wing'],
-  clMaxUsed: ['wing', 'liftdrag'],
-  densityKgM3: ['wing', 'atmosphere'],
+  clMaxUsed: ['wing', 'liftdrag', 'climb'],
+  densityKgM3: ['wing', 'atmosphere', 'climb'],
   missionType: ['wing', 'liftdrag'],
   ldClimb: ['liftdrag'],
   clClimb: ['liftdrag'],
   alphaClimbDeg: ['liftdrag'],
+  totalThrustN: ['climb'],
+  cd0: ['liftdrag', 'climb'],
+  k: ['liftdrag', 'climb'],
+  vClimbVyMs: ['climb'],
+  vClimbVxMs: ['climb'],
+  rocVyMs: ['climb'],
+  gammaVy: ['climb'],
 };
 
 /**
  * Precedence order for resolving conflicts (higher index = higher priority)
  */
-const SOURCE_PRECEDENCE: string[] = ['wing', 'liftdrag', 'atmosphere'];
+const SOURCE_PRECEDENCE: string[] = ['wing', 'liftdrag', 'climb', 'atmosphere'];
 
 /**
  * Find all sources that can provide at least one of the target fields
@@ -542,13 +597,14 @@ export function applyReusableDataToSetters(
   for (const { key, setter } of fieldMappings) {
     const value = reusable[key];
     if (value !== undefined && setter) {
-      previousValues[key] = getCurrent(key as string);
+      const keyStr = String(key);
+      previousValues[keyStr] = getCurrent(keyStr);
       if (typeof value === 'number') {
         setter(value.toString());
       } else {
         setter(value);
       }
-      appliedKeys.push(key as string);
+      appliedKeys.push(keyStr);
     }
   }
 
