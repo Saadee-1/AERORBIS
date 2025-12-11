@@ -542,7 +542,7 @@ export function applyReusableDataToSetters(
   for (const { key, setter } of fieldMappings) {
     const value = reusable[key];
     if (value !== undefined && setter) {
-      previousValues[key] = getCurrent(key);
+      previousValues[key] = getCurrent(key as string);
       if (typeof value === 'number') {
         setter(value.toString());
       } else {

@@ -548,24 +548,6 @@ const WingLoadingCalculator = () => {
   const [importedFrom, setImportedFrom] = useState<{ sourceId: string; keys: string[] } | null>(null);
   const [previousValues, setPreviousValues] = useState<Record<string, any>>({});
   
-  // Handle return flow - redirect back after calculation if returnTo is present
-  useEffect(() => {
-    const returnTo = searchParams.get('returnTo');
-    const referrer = searchParams.get('referrer');
-    
-    // Only redirect if we have a result AND returnTo param (user came from another calculator)
-    if (returnTo && result && referrer && result.wingLoadingKgm2) {
-      // After calculation completes and designSession is updated, redirect back
-      const returnPath = `${returnTo}${returnTo.includes('?') ? '&' : '?'}importFrom=${referrer}`;
-      // Small delay to ensure designSession is updated
-      const timeoutId = setTimeout(() => {
-        navigate(returnPath, { replace: true });
-      }, 1000);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [result, searchParams, navigate]);
-  
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
   const [calculatorMode, setCalculatorMode] = useState<CalculatorMode>('University');
@@ -586,6 +568,24 @@ const WingLoadingCalculator = () => {
   const [landingWeightFraction, setLandingWeightFraction] = useState<string>("0.7");
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [lastPayload, setLastPayload] = useState<any | null>(null);
+  
+  // Handle return flow - redirect back after calculation if returnTo is present
+  useEffect(() => {
+    const returnTo = searchParams.get('returnTo');
+    const referrer = searchParams.get('referrer');
+    
+    // Only redirect if we have a result AND returnTo param (user came from another calculator)
+    if (returnTo && result && referrer && result.wingLoadingKgm2) {
+      // After calculation completes and designSession is updated, redirect back
+      const returnPath = `${returnTo}${returnTo.includes('?') ? '&' : '?'}importFrom=${referrer}`;
+      // Small delay to ensure designSession is updated
+      const timeoutId = setTimeout(() => {
+        navigate(returnPath, { replace: true });
+      }, 1000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [result, searchParams, navigate]);
   
   // Load from localStorage
   useEffect(() => {
