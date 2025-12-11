@@ -470,6 +470,10 @@ const ThrustLoadingCalculator = () => {
     !!designSession &&
     (!!designSession.massKg || !!designSession.weightN);
   
+  // Get reusable data for this calculator
+  const reusableData = getReusableDataForCalculator(designSession, 'thrust');
+  const hasReusable = hasReusableData(reusableData);
+  
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
   const [calculatorMode, setCalculatorMode] = useState<CalculatorMode>('University');
@@ -1058,10 +1062,9 @@ const ThrustLoadingCalculator = () => {
               <InterlinkCard
                 reusableData={reusableData}
                 setters={{
-                  setMassKg,
-                  setWeightN,
+                  setMassKg: (v) => setMassKg(String(v)),
+                  setWeightN: (v) => setWeightN(String(v)),
                   setMissionType,
-                  setUsedFromSession,
                 }}
                 sourceName="Wing Loading"
                 description="Reuse mass/weight and mission from your last Wing Loading run."
