@@ -253,13 +253,14 @@ export function ThrustLoadingGraphs({
 
   return (
     <div className="space-y-6">
-      {/* Graph B: Mission Thrust Loading Envelopes (always show) */}
-      <ChartCard
-        title="Mission Thrust Loading Envelopes"
-        description="Typical T/W ranges for different mission types"
-        height={350}
-        headerActions={<ExportButtons graphRef={graph2Ref} title="Mission_Thrust_Loading_Envelopes" />}
-      >
+      {/* Graph B: Mission Thrust Loading Envelopes (University and Expert modes) */}
+      {(calculatorMode === 'University' || calculatorMode === 'Expert') && (
+        <ChartCard
+          title="Mission Thrust Loading Envelopes"
+          description="Typical T/W ranges for different mission types"
+          height={350}
+          headerActions={<ExportButtons graphRef={graph2Ref} title="Mission_Thrust_Loading_Envelopes" />}
+        >
         <div ref={graph2Ref}>
           {missionEnvelopeData.length > 0 ? (
             <ResponsiveContainer width="100%" height={350}>
@@ -345,6 +346,7 @@ export function ThrustLoadingGraphs({
           )}
         </div>
       </ChartCard>
+      )}
 
       {/* Graph A: T/W vs Climb Rate (Expert mode only) */}
       {calculatorMode === 'Expert' && (
