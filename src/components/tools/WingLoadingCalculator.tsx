@@ -77,6 +77,9 @@ import {
   getOutputUnits
 } from "./utils/unitConversions";
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
+import { InterlinkCard } from "./InterlinkCard";
+import { getReusableDataForCalculator, hasReusableData } from "./utils/interlink";
+import { useDesignSession } from "@/contexts/designSession";
 
 // ============================================================================
 // TYPES & CONSTANTS
@@ -517,8 +520,13 @@ function generateBestUseCase(
 const WingLoadingCalculator = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
-  const { updateDesignSession } = useDesignSession();
+  const { data: designSession, updateDesignSession } = useDesignSession();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [usedFromSession, setUsedFromSession] = useState(false);
+  
+  // Get reusable data for this calculator
+  const reusableData = getReusableDataForCalculator(designSession, 'wing');
+  const hasReusable = hasReusableData(reusableData);
   
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
@@ -1046,6 +1054,49 @@ const WingLoadingCalculator = () => {
                 )}
               </AeroCard>
             </div>
+            
+            {/* Interlink Card for reusable data */}
+            {hasReusable && (
+              <InterlinkCard
+                reusableData={reusableData}
+                setters={{
+                  setMassKg,
+                  setWeightN,
+                  setMissionType,
+                  setUsedFromSession,
+                }}
+                sourceName="Thrust Loading"
+                description="Reuse mass/weight and mission from your last Thrust Loading run."
+                options={{
+                  weightMode,
+                  unitSystem,
+                  onApplied: (keys) => {
+                    // Persist to localStorage
+                    const state = {
+                      unitSystem,
+                      calculatorMode,
+                      aircraftPreset,
+                      missionType: reusableData.missionType || missionType,
+                      weightMode,
+                      massKg: reusableData.massKg?.toString() || massKg,
+                      weightN: reusableData.weightN?.toString() || weightN,
+                      wingAreaM2,
+                      airDensityMode,
+                      airDensityPreset,
+                      airDensityAltitude,
+                      airDensityDeltaT,
+                      airDensityCustom,
+                      clMaxOverride,
+                      useClMaxOverride,
+                      mtow,
+                      landingWeightFraction,
+                    };
+                    localStorage.setItem("wingLoadingCalc_state", JSON.stringify(state));
+                  },
+                }}
+                showDismiss={true}
+              />
+            )}
             
             {/* Row 2: Aircraft Preset full-width */}
             <AeroCard

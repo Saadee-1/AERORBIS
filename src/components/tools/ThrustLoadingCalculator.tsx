@@ -68,6 +68,8 @@ import {
 import { ThrustLoadingGraphs } from "./ThrustLoadingGraphs";
 import { ThrustWingSizingDiagram } from "./ThrustWingSizingDiagram";
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
+import { InterlinkCard } from "./InterlinkCard";
+import { getReusableDataForCalculator, hasReusableData } from "./utils/interlink";
 
 // ============================================================================
 // TYPES & CONSTANTS - BATCH 1
@@ -1051,46 +1053,55 @@ const ThrustLoadingCalculator = () => {
               )}
             </AeroCard>
 
-            {/* Wing Loading Data Banner */}
-            {hasWingLoadingData && (
-              <AeroCard
-                title="Wing Loading data available"
+            {/* Interlink Card for reusable data */}
+            {hasReusable && (
+              <InterlinkCard
+                reusableData={reusableData}
+                setters={{
+                  setMassKg,
+                  setWeightN,
+                  setMissionType,
+                  setUsedFromSession,
+                }}
+                sourceName="Wing Loading"
                 description="Reuse mass/weight and mission from your last Wing Loading run."
-                icon={Link2}
-              >
-                <div className="flex flex-wrap items-center gap-2 justify-between">
-                  <span className="text-xs text-slate-300">
-                    {designSession.massKg
-                      ? `Mass: ${designSession.massKg.toFixed(1)} kg`
-                      : designSession.weightN
-                      ? `Weight: ${designSession.weightN.toFixed(0)} N`
-                      : 'Design data detected'}
-                    {designSession.missionType && designSession.missionType !== 'None' && (
-                      <span className="ml-2">• Mission: {designSession.missionType}</span>
-                    )}
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      // Use current weight mode to decide which field to prefill
-                      if (weightMode === 'mass' && designSession.massKg) {
-                        setMassKg(designSession.massKg.toString());
-                      } else if (weightMode === 'weight' && designSession.weightN) {
-                        setWeightN(designSession.weightN.toString());
-                      }
-                      
-                      // If missionType currently 'None', adopt the session missionType
-                      if (missionType === 'None' && designSession.missionType && designSession.missionType !== 'None') {
-                        setMissionType(designSession.missionType);
-                      }
-                    }}
-                    className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-                  >
-                    Use in this calculator
-                  </Button>
-                </div>
-              </AeroCard>
+                options={{
+                  weightMode,
+                  unitSystem,
+                  onApplied: (keys) => {
+                    // Persist to localStorage if calculator uses it
+                    const state = {
+                      unitSystem,
+                      calculatorMode,
+                      aircraftPreset,
+                      missionType: reusableData.missionType || missionType,
+                      weightMode,
+                      massKg: reusableData.massKg?.toString() || massKg,
+                      weightN: reusableData.weightN?.toString() || weightN,
+                      thrustMode,
+                      totalThrust,
+                      perEngineThrust,
+                      numEngines,
+                      thrustUnit,
+                      calculationMode,
+                      targetTW,
+                      engineType,
+                      vClimb,
+                      ldClimb,
+                      gammaReqPercent,
+                      cd0Input,
+                      kInput,
+                      vCruiseInput,
+                      runwayLengthInput,
+                      clToInput,
+                      muRollInput,
+                      hasTouchedRunway,
+                    };
+                    localStorage.setItem("thrustLoadingCalc_state", JSON.stringify(state));
+                  },
+                }}
+                showDismiss={true}
+              />
             )}
 
             {/* Weight/Mass Input */}
