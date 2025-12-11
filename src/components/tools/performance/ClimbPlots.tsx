@@ -318,6 +318,7 @@ export function ClimbPlots({ result }: ClimbPlotsProps) {
               )}
               {result.vX !== undefined && (
                 <ReferenceLine
+                  yAxisId="roc"
                   x={result.vX}
                   stroke={GRAPH_STYLES.referenceLineColor}
                   strokeDasharray={GRAPH_STYLES.referenceLineDash}
@@ -326,6 +327,7 @@ export function ClimbPlots({ result }: ClimbPlotsProps) {
               )}
               {result.vY !== undefined && (
                 <ReferenceLine
+                  yAxisId="roc"
                   x={result.vY}
                   stroke={GRAPH_STYLES.referenceLineColor}
                   strokeDasharray={GRAPH_STYLES.referenceLineDash}
