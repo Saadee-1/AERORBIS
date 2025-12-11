@@ -48,7 +48,7 @@ import {
   SourceInfo
 } from "../utils/interlink";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import InterlinkCTA from "@/components/common/InterlinkCTA";
+import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
 import { computeClimbPerformance, msToKts, msToFpm, ClimbResult } from "./utils/climb";
 import { ClimbPlots } from "./ClimbPlots";
 import { isaAtAltitudeMeters, calculateISADensity } from "../utils/isaAtmosphere";
@@ -463,33 +463,6 @@ export default function ClimbPerformanceCalculator() {
         </ToolSection>
       )}
 
-      {/* Interlink CTA for Thrust */}
-      {!totalThrustN && (
-        <ToolSection>
-          <InterlinkCTA
-            requiredFields={['totalThrustN']}
-            sourceTool="thrust"
-            targetTool="climb"
-            importMapping={{ totalThrustN: 'totalThrustN' }}
-            title="Engine Thrust Required"
-            description="Climb performance requires installed thrust. Compute thrust in the Thrust Calculator."
-          />
-        </ToolSection>
-      )}
-
-      {/* Interlink CTA for Drag Polar */}
-      {(!cd0 || !k) && (
-        <ToolSection>
-          <InterlinkCTA
-            requiredFields={['cd0', 'k']}
-            sourceTool="ld"
-            targetTool="climb"
-            importMapping={{ cd0: 'cd0', k: 'k' }}
-            title="Aerodynamic Polar Needed"
-            description="Climb model requires CD0 and k. You can compute these in the L/D Analyzer."
-          />
-        </ToolSection>
-      )}
 
       {/* Inputs */}
       <ToolSection>
@@ -551,6 +524,7 @@ export default function ClimbPerformanceCalculator() {
                 onChange={(e) => setTotalThrustN(e.target.value)}
                 placeholder="3000"
               />
+              <InlineInterlinkHint requiredFields={['totalThrustN']} sourceTool="thrust" className="mt-1" />
             </AeroFormField>
 
             <AeroFormField label="CD0" helperText="Zero-lift drag coefficient">
@@ -561,6 +535,7 @@ export default function ClimbPerformanceCalculator() {
                 placeholder="0.025"
                 step="0.001"
               />
+              <InlineInterlinkHint requiredFields={['cd0']} sourceTool="ld" className="mt-1" />
             </AeroFormField>
 
             <AeroFormField label="k" helperText="Induced drag factor">
@@ -571,6 +546,7 @@ export default function ClimbPerformanceCalculator() {
                 placeholder="0.045"
                 step="0.001"
               />
+              <InlineInterlinkHint requiredFields={['k']} sourceTool="ld" className="mt-1" />
             </AeroFormField>
 
             <AeroFormField label="CL_max (optional)" helperText="Maximum lift coefficient">

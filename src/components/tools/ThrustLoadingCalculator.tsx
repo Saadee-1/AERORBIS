@@ -79,7 +79,7 @@ import {
   SourceInfo
 } from "./utils/interlink";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import InterlinkCTA from "@/components/common/InterlinkCTA";
+import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
 
 // ============================================================================
 // TYPES & CONSTANTS - BATCH 1
@@ -1247,7 +1247,8 @@ const ThrustLoadingCalculator = () => {
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '10000' : '22046'}`}
                   />
-                </AeroFormField>
+                  <InlineInterlinkHint requiredFields={['massKg']} sourceTool="wingloading" className="mt-1" />
+              </AeroFormField>
               ) : (
                 <AeroFormField label={`Aircraft Weight (${inputUnits.weight})`} helperText={`Enter weight in ${inputUnits.weight}`}>
                   <Input
@@ -1258,7 +1259,8 @@ const ThrustLoadingCalculator = () => {
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
                   />
-                </AeroFormField>
+                  <InlineInterlinkHint requiredFields={['weightN']} sourceTool="wingloading" className="mt-1" />
+              </AeroFormField>
               )}
             </AeroCard>
 
@@ -1783,19 +1785,6 @@ const ThrustLoadingCalculator = () => {
         </div>
       </ToolSection>
 
-      {/* Interlink CTA for Wing Loading Data */}
-      {(!designSession?.wingAreaM2 || !designSession?.weightN) && (
-        <ToolSection>
-          <InterlinkCTA
-            requiredFields={['wingAreaM2', 'weightN']}
-            sourceTool="wingloading"
-            targetTool="thrustloading"
-            importMapping={{ wingAreaM2: 'wingAreaM2', weightN: 'weightN' }}
-            title="Wing Loading Data Needed"
-            description="Thrust loading requires wing area and weight. Compute them in Wing Loading if unavailable."
-          />
-        </ToolSection>
-      )}
 
       {/* Engineering Graphs - Full Width Section Below */}
       {(() => {

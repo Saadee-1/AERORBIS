@@ -39,7 +39,7 @@ import { ToolActions } from "@/components/layout/ToolActions";
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
-import InterlinkCTA from "@/components/common/InterlinkCTA";
+import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
 import { useDesignSession } from "@/contexts/designSession";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
@@ -1184,17 +1184,6 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
         </Alert>
       )}
 
-      {/* Interlink CTA for Geometry Data */}
-      <ToolSection>
-        <InterlinkCTA
-          requiredFields={['wingAreaM2', 'massKg']}
-          sourceTool="wingloading"
-          targetTool="ld"
-          importMapping={{ wingAreaM2: 'wingAreaM2', massKg: 'massKg' }}
-          title="Geometry Data Available"
-          description="Wing area and mass detected from Wing Loading."
-        />
-      </ToolSection>
 
       <ToolSection gridCols={2}>
         {/* Input Panel */}
@@ -1233,6 +1222,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
               <div className="grid grid-cols-2 gap-4">
                 <AeroFormField label={`Wing Area (${getUnit("area")})`}>
                   <Input id="wingArea" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                  <InlineInterlinkHint requiredFields={['wingAreaM2']} sourceTool="wingloading" className="mt-1" />
                 </AeroFormField>
                 <AeroFormField label={`Wing Span (${getUnit("span")})`}>
                   <Input id="wingSpan" type="number" value={inputs.wingSpan} onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
