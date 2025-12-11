@@ -67,6 +67,7 @@ import {
 } from "./utils/unitConversions";
 import { ThrustLoadingGraphs } from "./ThrustLoadingGraphs";
 import { ThrustWingSizingDiagram } from "./ThrustWingSizingDiagram";
+import { WingLoadingGraphs } from "./WingLoadingGraphs";
 
 // ============================================================================
 // TYPES & CONSTANTS - BATCH 1
@@ -116,6 +117,16 @@ const defaultRunwayByMission: Partial<Record<MissionType, number>> = {
   STOL: 300,
   Glider: 400,
   Jet: 2200,
+};
+
+// Mission-specific W/S ranges for WingLoadingGraphs (kg/m²)
+const missionWingLoadingData: Record<MissionType, { wsMinKg: number; wsMaxKg: number }> = {
+  None:    { wsMinKg: 30,  wsMaxKg: 100 },
+  UAV:     { wsMinKg: 10,  wsMaxKg: 60 },
+  Trainer: { wsMinKg: 40,  wsMaxKg: 80 },
+  STOL:    { wsMinKg: 20,  wsMaxKg: 60 },
+  Glider:  { wsMinKg: 25,  wsMaxKg: 55 },
+  Jet:     { wsMinKg: 200, wsMaxKg: 800 }
 };
 
 // Aircraft presets with realistic MTOW and thrust values
@@ -1657,6 +1668,27 @@ const ThrustLoadingCalculator = () => {
             missionType={missionType}
             calculatorMode={calculatorMode}
           />
+          
+          {/* Wing Loading Graphs (University and Expert modes) */}
+          {(calculatorMode === 'University' || calculatorMode === 'Expert') && designSession && 
+           designSession.wingLoadingKgm2 && 
+           designSession.weightN && 
+           designSession.wingAreaM2 && (
+            <WingLoadingGraphs
+              currentWsKgm2={designSession.wingLoadingKgm2}
+              currentVsMs={designSession.stallSpeedMs ?? 0}
+              currentVsKts={designSession.stallSpeedKts ?? 0}
+              weightN={designSession.weightN}
+              wingAreaM2={designSession.wingAreaM2}
+              airDensity={designSession.densityKgM3 ?? 1.225}
+              clMax={designSession.clMaxUsed ?? 1.8}
+              missionType={designSession.missionType ?? missionType}
+              missionData={missionWingLoadingData}
+              airDensityMode="preset"
+              airDensityPreset="ISA Sea Level"
+              airDensityAltitude={undefined}
+            />
+          )}
           
           {/* T/W vs W/S Sizing Diagram (Expert mode only) */}
           {calculatorMode === 'Expert' && (() => {
