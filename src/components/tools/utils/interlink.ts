@@ -6,8 +6,32 @@
  */
 
 import { DesignSessionData, MissionType } from "@/contexts/designSession";
+import { ReactNode } from "react";
 
 export type CalculatorTool = 'thrust' | 'wing' | 'reynolds' | 'liftdrag' | 'atmosphere' | string;
+
+/**
+ * Source information for interlinking
+ */
+export interface SourceInfo {
+  name: string; // e.g., 'Wing Loading'
+  id: string; // e.g., 'wing'
+  icon?: ReactNode;
+  color?: string; // CSS color string
+  fields: { key: string; label: string }[]; // e.g. [{key:'wingLoadingKgm2', label: 'W/S'}]
+  confidence?: number; // optional tie-breaker (higher = better)
+  path?: string; // route path to calculator
+}
+
+/**
+ * Field mapping for calculators
+ */
+export interface FieldMapping {
+  [fieldKey: string]: {
+    label: string;
+    sources: string[]; // source IDs that can provide this field
+  };
+}
 
 export interface ReusableData {
   massKg?: number;
@@ -284,5 +308,262 @@ export function getReusableDataSummary(reused: ReusableData): string {
  */
 export function hasReusableData(reused: ReusableData): boolean {
   return Object.keys(reused).length > 0;
+}
+
+/**
+ * Field label mappings
+ */
+const FIELD_LABELS: Record<string, string> = {
+  massKg: 'Mass',
+  weightN: 'Weight',
+  wingAreaM2: 'Wing Area',
+  wingLoadingKgm2: 'W/S',
+  stallSpeedMs: 'Stall Speed',
+  stallSpeedKts: 'Stall Speed',
+  clMaxUsed: 'CL Max',
+  densityKgM3: 'Density',
+  missionType: 'Mission',
+  ldClimb: 'L/D Climb',
+  clClimb: 'CL Climb',
+  alphaClimbDeg: 'Alpha Climb',
+};
+
+/**
+ * Source definitions with field mappings
+ */
+const SOURCE_DEFINITIONS: Record<string, Omit<SourceInfo, 'fields'>> = {
+  wing: {
+    name: 'Wing Loading',
+    id: 'wing',
+    color: '#06b6d4', // cyan
+    path: '/tools/launch?tool=wing',
+    confidence: 10,
+  },
+  liftdrag: {
+    name: 'L/D Analyzer',
+    id: 'liftdrag',
+    color: '#10b981', // emerald
+    path: '/tools/launch?tool=liftdrag',
+    confidence: 8,
+  },
+  atmosphere: {
+    name: 'Atmosphere',
+    id: 'atmosphere',
+    color: '#8b5cf6', // violet
+    path: '/tools/launch?tool=atmosphere',
+    confidence: 5,
+  },
+};
+
+/**
+ * Field to source mapping (which sources can provide which fields)
+ */
+const FIELD_SOURCE_MAP: Record<string, string[]> = {
+  massKg: ['wing', 'liftdrag'],
+  weightN: ['wing', 'liftdrag'],
+  wingAreaM2: ['wing'],
+  wingLoadingKgm2: ['wing'],
+  stallSpeedMs: ['wing'],
+  stallSpeedKts: ['wing'],
+  clMaxUsed: ['wing', 'liftdrag'],
+  densityKgM3: ['wing', 'atmosphere'],
+  missionType: ['wing', 'liftdrag'],
+  ldClimb: ['liftdrag'],
+  clClimb: ['liftdrag'],
+  alphaClimbDeg: ['liftdrag'],
+};
+
+/**
+ * Precedence order for resolving conflicts (higher index = higher priority)
+ */
+const SOURCE_PRECEDENCE: string[] = ['wing', 'liftdrag', 'atmosphere'];
+
+/**
+ * Find all sources that can provide at least one of the target fields
+ */
+export function findSourceList(
+  designSession: DesignSessionData | undefined | null,
+  targetFields: string[]
+): SourceInfo[] {
+  if (!designSession) {
+    return [];
+  }
+
+  const sourcesMap = new Map<string, SourceInfo>();
+
+  // Check each target field
+  for (const fieldKey of targetFields) {
+    const sourceIds = FIELD_SOURCE_MAP[fieldKey] || [];
+    
+    for (const sourceId of sourceIds) {
+      // Check if this source actually has the field in designSession
+      const hasField = checkFieldInSession(designSession, fieldKey, sourceId);
+      
+      if (hasField) {
+        if (!sourcesMap.has(sourceId)) {
+          const sourceDef = SOURCE_DEFINITIONS[sourceId];
+          if (sourceDef) {
+            sourcesMap.set(sourceId, {
+              ...sourceDef,
+              fields: [],
+            });
+          }
+        }
+        
+        const source = sourcesMap.get(sourceId)!;
+        if (!source.fields.some(f => f.key === fieldKey)) {
+          source.fields.push({
+            key: fieldKey,
+            label: FIELD_LABELS[fieldKey] || fieldKey,
+          });
+        }
+      }
+    }
+  }
+
+  // Convert to array and sort by confidence (precedence)
+  const sources = Array.from(sourcesMap.values());
+  sources.sort((a, b) => {
+    const aPrec = SOURCE_PRECEDENCE.indexOf(a.id);
+    const bPrec = SOURCE_PRECEDENCE.indexOf(b.id);
+    if (aPrec !== bPrec) {
+      return bPrec - aPrec; // Higher precedence first
+    }
+    return (b.confidence || 0) - (a.confidence || 0);
+  });
+
+  return sources;
+}
+
+/**
+ * Check if a field exists in designSession for a given source
+ */
+function checkFieldInSession(
+  designSession: DesignSessionData,
+  fieldKey: string,
+  sourceId: string
+): boolean {
+  const value = (designSession as any)[fieldKey];
+  
+  if (value === undefined || value === null) {
+    return false;
+  }
+
+  // Type-specific checks
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0;
+  }
+
+  if (typeof value === 'string') {
+    return value !== '' && value !== 'None';
+  }
+
+  return true;
+}
+
+/**
+ * Get reusable data with source tracking (returns which source provides each field)
+ */
+export function getReusableDataWithSources(
+  designSession: DesignSessionData | undefined | null,
+  targetFields: string[]
+): { data: ReusableData; sources: Record<string, string> } {
+  if (!designSession) {
+    return { data: {}, sources: {} };
+  }
+
+  const data: ReusableData = {};
+  const sources: Record<string, string> = {};
+
+  // Resolve fields with precedence
+  for (const fieldKey of targetFields) {
+    const sourceIds = FIELD_SOURCE_MAP[fieldKey] || [];
+    
+    // Try sources in precedence order
+    for (const sourceId of SOURCE_PRECEDENCE) {
+      if (sourceIds.includes(sourceId)) {
+        const hasField = checkFieldInSession(designSession, fieldKey, sourceId);
+        if (hasField) {
+          const value = (designSession as any)[fieldKey];
+          (data as any)[fieldKey] = value;
+          sources[fieldKey] = sourceId;
+          break; // Use first available source (highest precedence)
+        }
+      }
+    }
+  }
+
+  return { data, sources };
+}
+
+/**
+ * Apply reusable data to setters with undo support
+ * Returns applied keys and previous values for undo
+ */
+export function applyReusableDataToSetters(
+  reusable: ReusableData,
+  setters: StateSetters,
+  getCurrentValues?: () => Record<string, any>
+): { appliedKeys: string[]; previousValues: Record<string, any> } {
+  const appliedKeys: string[] = [];
+  const previousValues: Record<string, any> = {};
+  const currentValues = getCurrentValues ? getCurrentValues() : {};
+
+  // Helper to get current value
+  const getCurrent = (key: string) => {
+    return currentValues[key] ?? '';
+  };
+
+  // Apply mass/weight
+  if (reusable.massKg !== undefined && setters.setMassKg) {
+    previousValues.massKg = getCurrent('massKg');
+    setters.setMassKg(reusable.massKg.toString());
+    appliedKeys.push('massKg');
+  }
+  if (reusable.weightN !== undefined && setters.setWeightN) {
+    previousValues.weightN = getCurrent('weightN');
+    setters.setWeightN(reusable.weightN.toString());
+    appliedKeys.push('weightN');
+  }
+
+  // Apply other fields
+  const fieldMappings: Array<{ key: keyof ReusableData; setter?: (value: string | number) => void }> = [
+    { key: 'wingAreaM2', setter: setters.setWingAreaM2 },
+    { key: 'wingLoadingKgm2', setter: setters.setWingLoadingKgm2 },
+    { key: 'stallSpeedMs', setter: setters.setStallSpeedMs },
+    { key: 'stallSpeedKts', setter: setters.setStallSpeedKts },
+    { key: 'clMaxUsed', setter: setters.setClMaxUsed },
+    { key: 'densityKgM3', setter: setters.setDensityKgM3 },
+    { key: 'ldClimb', setter: setters.setLdClimb },
+    { key: 'clClimb', setter: setters.setClClimb },
+    { key: 'alphaClimbDeg', setter: setters.setAlphaClimbDeg },
+  ];
+
+  for (const { key, setter } of fieldMappings) {
+    const value = reusable[key];
+    if (value !== undefined && setter) {
+      previousValues[key] = getCurrent(key);
+      if (typeof value === 'number') {
+        setter(value.toString());
+      } else {
+        setter(value);
+      }
+      appliedKeys.push(key as string);
+    }
+  }
+
+  // Apply mission type
+  if (reusable.missionType !== undefined && setters.setMissionType) {
+    previousValues.missionType = getCurrent('missionType');
+    setters.setMissionType(reusable.missionType);
+    appliedKeys.push('missionType');
+  }
+
+  // Mark as imported
+  if (setters.setUsedFromSession) {
+    setters.setUsedFromSession(true);
+  }
+
+  return { appliedKeys, previousValues };
 }
 

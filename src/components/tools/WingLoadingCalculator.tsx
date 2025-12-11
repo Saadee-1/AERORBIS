@@ -78,7 +78,16 @@ import {
 } from "./utils/unitConversions";
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
 import { InterlinkCard } from "./InterlinkCard";
-import { getReusableDataForCalculator, hasReusableData } from "./utils/interlink";
+import { InterlinkSourcesRow } from "./InterlinkSourcesRow";
+import { 
+  getReusableDataForCalculator, 
+  hasReusableData,
+  findSourceList,
+  getReusableDataWithSources,
+  applyReusableDataToSetters,
+  SourceInfo
+} from "./utils/interlink";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 // ============================================================================
 // TYPES & CONSTANTS
@@ -520,12 +529,42 @@ const WingLoadingCalculator = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { data: designSession, updateDesignSession } = useDesignSession();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [usedFromSession, setUsedFromSession] = useState(false);
   
-  // Get reusable data for this calculator
-  const reusableData = getReusableDataForCalculator(designSession, 'wing');
+  // Required fields for this calculator
+  const requiredFields = ['massKg', 'weightN', 'missionType'];
+  
+  // Find available sources
+  const sources = findSourceList(designSession, requiredFields);
+  
+  // Get reusable data with source tracking
+  const { data: reusableData, sources: fieldSources } = getReusableDataWithSources(designSession, requiredFields);
   const hasReusable = hasReusableData(reusableData);
+  
+  // Track imported data
+  const [importedFrom, setImportedFrom] = useState<{ sourceId: string; keys: string[] } | null>(null);
+  const [previousValues, setPreviousValues] = useState<Record<string, any>>({});
+  
+  // Handle return flow - redirect back after calculation if returnTo is present
+  useEffect(() => {
+    const returnTo = searchParams.get('returnTo');
+    const referrer = searchParams.get('referrer');
+    
+    // Only redirect if we have a result AND returnTo param (user came from another calculator)
+    if (returnTo && result && referrer && result.wingLoadingKgm2) {
+      // After calculation completes and designSession is updated, redirect back
+      const returnPath = `${returnTo}${returnTo.includes('?') ? '&' : '?'}importFrom=${referrer}`;
+      // Small delay to ensure designSession is updated
+      const timeoutId = setTimeout(() => {
+        navigate(returnPath, { replace: true });
+      }, 1000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [result, searchParams, navigate]);
   
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
@@ -1054,8 +1093,19 @@ const WingLoadingCalculator = () => {
               </AeroCard>
             </div>
             
-            {/* Interlink Card for reusable data */}
-            {hasReusable && (
+            {/* Interlink Sources Row */}
+            {sources.length > 0 && (
+              <InterlinkSourcesRow
+                sources={sources}
+                onSelectSource={(sourceId) => {
+                  console.info('[Interlink] Selected source:', sourceId);
+                }}
+                compact={false}
+              />
+            )}
+
+            {/* Interlink Card for reusable data - Show in all modes when data available */}
+            {hasReusable && !usedFromSession && (
               <InterlinkCard
                 reusableData={reusableData}
                 setters={{
@@ -1064,12 +1114,21 @@ const WingLoadingCalculator = () => {
                   setMissionType,
                   setUsedFromSession,
                 }}
-                sourceName="Thrust Loading"
-                description="Reuse mass/weight and mission from your last Thrust Loading run."
+                sourceInfo={sources[0]} // Use first source (highest precedence)
+                currentToolId="wing"
+                getCurrentValues={() => ({
+                  massKg,
+                  weightN,
+                  missionType,
+                })}
                 options={{
                   weightMode,
                   unitSystem,
-                  onApplied: (keys) => {
+                  onApplied: (keys, prevVals) => {
+                    setImportedFrom({ sourceId: sources[0]?.id || 'unknown', keys });
+                    setPreviousValues(prevVals);
+                    setUsedFromSession(true);
+                    
                     // Persist to localStorage
                     const state = {
                       unitSystem,
@@ -1091,10 +1150,49 @@ const WingLoadingCalculator = () => {
                       landingWeightFraction,
                     };
                     localStorage.setItem("wingLoadingCalc_state", JSON.stringify(state));
+                    console.info('[Interlink] Applied reused data to Wing Loading Calculator:', keys);
+                  },
+                  onUndo: (prevVals) => {
+                    // Restore previous values
+                    if (prevVals.massKg !== undefined) setMassKg(String(prevVals.massKg || ''));
+                    if (prevVals.weightN !== undefined) setWeightN(String(prevVals.weightN || ''));
+                    if (prevVals.missionType !== undefined) setMissionType(prevVals.missionType as MissionType);
+                    setImportedFrom(null);
+                    setPreviousValues({});
+                    setUsedFromSession(false);
+                    console.info('[Interlink] Undid imported data');
                   },
                 }}
                 showDismiss={true}
+                imported={!!importedFrom}
+                previousValues={previousValues}
               />
+            )}
+
+            {/* Imported badge */}
+            {importedFrom && (
+              <div className="mb-3 px-3 py-2 bg-emerald-400/10 border border-emerald-400/30 rounded-lg flex items-center justify-between">
+                <span className="text-xs text-emerald-400">
+                  ✓ Imported {importedFrom.keys.length} fields from {sources.find(s => s.id === importedFrom.sourceId)?.name || 'source'}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    // Restore previous values
+                    if (previousValues.massKg !== undefined) setMassKg(String(previousValues.massKg || ''));
+                    if (previousValues.weightN !== undefined) setWeightN(String(previousValues.weightN || ''));
+                    if (previousValues.missionType !== undefined) setMissionType(previousValues.missionType as MissionType);
+                    setImportedFrom(null);
+                    setPreviousValues({});
+                    setUsedFromSession(false);
+                    console.info('[Interlink] Undid imported data');
+                  }}
+                  className="h-6 px-2 text-xs text-yellow-400 hover:bg-yellow-400/10"
+                >
+                  Undo
+                </Button>
+              </div>
             )}
             
             {/* Row 2: Aircraft Preset full-width */}
