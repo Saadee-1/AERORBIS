@@ -80,10 +80,12 @@ export default function StructuralWeightEstimator() {
   } | null>(null);
 
   // Handle input changes (nested path support)
-  const handleInputChange = useCallback((path: string[], value: any) => {
+  // TODO: refine type for `handleInputChange` — changed any -> unknown automatically by chore/typed-cleanup
+  const handleInputChange = useCallback((path: string[], value: unknown) => {
     setInputs(prev => {
       const newInputs = { ...prev };
-      let current: any = newInputs;
+      // TODO: refine type for `current` — changed any -> unknown automatically by chore/typed-cleanup
+      let current: Record<string, unknown> = newInputs;
       
       for (let i = 0; i < path.length - 1; i++) {
         current = current[path[i]] = { ...current[path[i]] };
