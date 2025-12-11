@@ -79,7 +79,6 @@ import {
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
 import { InterlinkCard } from "./InterlinkCard";
 import { getReusableDataForCalculator, hasReusableData } from "./utils/interlink";
-import { useDesignSession } from "@/contexts/designSession";
 
 // ============================================================================
 // TYPES & CONSTANTS
@@ -1060,8 +1059,8 @@ const WingLoadingCalculator = () => {
               <InterlinkCard
                 reusableData={reusableData}
                 setters={{
-                  setMassKg,
-                  setWeightN,
+                  setMassKg: (v) => setMassKg(String(v)),
+                  setWeightN: (v) => setWeightN(String(v)),
                   setMissionType,
                   setUsedFromSession,
                 }}
