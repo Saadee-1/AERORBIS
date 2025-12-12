@@ -23,7 +23,7 @@ export interface PowerWorkerMessage {
 export interface PowerWorkerResponse {
   type: 'result' | 'progress' | 'error' | 'complete';
   id: string;
-  result?: any;
+  result?: unknown;
   progress?: number;
   error?: string;
 }
@@ -65,7 +65,7 @@ self.onmessage = (e: MessageEvent<PowerWorkerMessage>) => {
     } else {
       throw new Error('Missing required parameters for simulation');
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (currentJobId === id) {
       self.postMessage({
         type: 'error',

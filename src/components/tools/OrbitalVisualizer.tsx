@@ -76,8 +76,10 @@ const STORAGE_KEY_CUSTOM_ORBITS = "orbitalVisualizer_customOrbits";
 
 type ToolPayload = {
   tool: string;
-  inputs: Record<string, any>;
-  results: Record<string, any>;
+  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
+  inputs: Record<string, unknown>;
+  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
+  results: Record<string, unknown>;
 };
 
 const OrbitalVisualizer = () => {
@@ -180,8 +182,8 @@ const OrbitalVisualizer = () => {
     }
   };
 
-  const [orbitResult, setOrbitResult] = useState<any>(null);
-  const [maneuverResult, setManeuverResult] = useState<any>(null);
+  const [orbitResult, setOrbitResult] = useState<unknown>(null);
+  const [maneuverResult, setManeuverResult] = useState<unknown>(null);
   const [error, setError] = useState<string>("");
   const [visualizerError, setVisualizerError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

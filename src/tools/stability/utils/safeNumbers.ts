@@ -6,7 +6,8 @@
 /**
  * Safely convert a value to a number, with fallback
  */
-export function safeNumber(value: any, fallback: number = 0): number {
+// TODO: refine type for `value` — changed any -> unknown automatically by chore/typed-cleanup
+export function safeNumber(value: unknown, fallback: number = 0): number {
   if (value === null || value === undefined || value === '') {
     return fallback;
   }
@@ -17,7 +18,8 @@ export function safeNumber(value: any, fallback: number = 0): number {
 /**
  * Safely format a number with toFixed, handling null/undefined/NaN
  */
-export function safeToFixed(value: any, decimals: number = 3, fallback: string = 'N/A'): string {
+// TODO: refine type for `value` — changed any -> unknown automatically by chore/typed-cleanup
+export function safeToFixed(value: unknown, decimals: number = 3, fallback: string = 'N/A'): string {
   const num = safeNumber(value);
   if (num === 0 && value !== 0 && value !== '0') {
     return fallback;
@@ -28,8 +30,9 @@ export function safeToFixed(value: any, decimals: number = 3, fallback: string =
 /**
  * Ensure all values in an object are numbers
  */
-export function ensureNumbers<T extends Record<string, any>>(obj: T): T {
-  const result = { ...obj } as any;
+// TODO: refine type for `ensureNumbers` — changed any -> unknown automatically by chore/typed-cleanup
+export function ensureNumbers<T extends Record<string, unknown>>(obj: T): T {
+  const result = { ...obj } as unknown;
   for (const key in result) {
     if (typeof result[key] === 'string') {
       result[key] = safeNumber(result[key], result[key] === '' ? undefined : 0);

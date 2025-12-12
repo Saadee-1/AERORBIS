@@ -46,7 +46,8 @@ export function buildRocketEnginePayload(
   }
   
   // Format inputs for display
-  const formattedInputs: Record<string, any> = {
+  // TODO: refine type for `formattedInputs` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedInputs: Record<string, unknown> = {
     'Chamber pressure': `${(inputs.Pc / 1e5).toFixed(1)} bar`,
     'Chamber temperature': `${inputs.Tc.toFixed(0)} K`,
     'Throat area': `${(inputs.At * 1e4).toFixed(2)} cm²`,
@@ -59,7 +60,8 @@ export function buildRocketEnginePayload(
   };
   
   // Format results for display
-  const formattedResults: Record<string, any> = {
+  // TODO: refine type for `formattedResults` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedResults: Record<string, unknown> = {
     'Mass flow': `${results.mdot.toFixed(3)} kg/s`,
     'c*': `${results.cStar.toFixed(1)} m/s`,
     'Exit Mach': results.Me.toFixed(3),

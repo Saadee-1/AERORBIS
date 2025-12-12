@@ -82,7 +82,8 @@ export interface ValidationResult {
 /**
  * Validate weight estimation inputs
  */
-export function validateWeightEstimationInputs(inputs: any): ValidationResult {
+// TODO: refine type for `validateWeightEstimationInputs` — changed any -> unknown automatically by chore/typed-cleanup
+export function validateWeightEstimationInputs(inputs: unknown): ValidationResult {
   const result: ValidationResult = {
     valid: true,
     errors: [],

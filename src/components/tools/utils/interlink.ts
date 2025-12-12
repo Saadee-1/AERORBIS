@@ -1,16 +1,17 @@
+// src/components/tools/utils/interlink.ts
 import { INTERLINK_PUBLISHERS, FieldKey, ToolId } from './interlinkConfig';
-import { getDesignSession, saveDesignSession, DesignSessionData as ContextDesignSessionData } from '@/contexts/designSession';
+import { getDesignSession, saveDesignSession } from '@/contexts/designSession';
 
-// Use the context's DesignSessionData type, but allow for additional fields via FieldKey
-export type DesignSessionData = Partial<Record<FieldKey, number | string>> & Partial<ContextDesignSessionData>;
+// Strongly-typed mapping for design session keys we use
+export type DesignSessionData = Partial<Record<FieldKey, number | string>>;
 
 export function getAvailableDataForTool(toolId?: ToolId): DesignSessionData {
   const ds = getDesignSession();
   const out: DesignSessionData = {};
   const pubs = INTERLINK_PUBLISHERS.find((p) => p.toolId === toolId)?.publishes ?? [];
-
   for (const k of pubs) {
-    if (ds[k] !== undefined && ds[k] !== null) out[k] = ds[k];
+    const val = (ds as unknown as Record<string, unknown>)[k];
+    if (val !== undefined && val !== null) out[k as FieldKey] = val as unknown;
   }
   return out;
 }
@@ -18,26 +19,37 @@ export function getAvailableDataForTool(toolId?: ToolId): DesignSessionData {
 export function getAvailableDataAny(): DesignSessionData {
   const ds = getDesignSession();
   const out: DesignSessionData = {};
-
   const known = new Set<FieldKey>();
   INTERLINK_PUBLISHERS.forEach((p) => p.publishes.forEach((f) => known.add(f)));
-
-  for (const k of known) {
-    if (ds[k] !== undefined && ds[k] !== null) out[k] = ds[k];
+  for (const k of Array.from(known)) {
+    const val = (ds as unknown as Record<string, unknown>)[k];
+    if (val !== undefined && val !== null) out[k] = val as unknown;
   }
   return out;
 }
 
-export function importDataToSession(data: DesignSessionData, mapping?: Record<string, string>) {
+/**
+ * Import `data` into designSession using optional mapping srcKey->targetKey.
+ * Returns previous values for undo.
+ */
+export function importDataToSession(
+  data: DesignSessionData,
+  mapping?: Record<string, string>
+): DesignSessionData {
   const ds = getDesignSession();
   const prev: DesignSessionData = {};
-
-  for (const key of Object.keys(data)) {
-    const target = (mapping && mapping[key]) || key;
-    prev[target as FieldKey] = ds[target as FieldKey];
-    (ds as any)[target] = (data as any)[key];
+  for (const rawKey of Object.keys(data)) {
+    const targetKey = (mapping && mapping[rawKey]) ?? rawKey;
+    prev[targetKey as FieldKey] = (ds as unknown as Record<string, unknown>)[targetKey as FieldKey] as unknown;
+    (ds as unknown as Record<string, unknown>)[targetKey as FieldKey] = (data as unknown as Record<string, unknown>)[rawKey];
   }
   saveDesignSession(ds);
+  // Emit event so other components can refresh if they listen
+  try {
+    window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'import' } }));
+  } catch (e) {
+    // noop in non-browser env
+  }
   return prev;
 }
 
@@ -59,11 +71,12 @@ export function labelForField(k: FieldKey | string) {
   return map[k] ?? k;
 }
 
-// Type aliases for compatibility
+// Compatibility exports for existing components
 export type ReusableData = DesignSessionData;
 
+// TODO: refine type for `StateSetters` — changed any -> unknown automatically by chore/typed-cleanup
 export interface StateSetters {
-  [key: string]: ((value: any) => void) | undefined;
+  [key: string]: ((value: unknown) => void) | undefined;
 }
 
 export interface SourceInfo {
@@ -100,13 +113,15 @@ export function getReusableDataSummary(data: ReusableData): string {
   return parts.join(' • ') || 'Design data available';
 }
 
+// TODO: refine type for `applyReusableDataToSetters` — changed any -> unknown automatically by chore/typed-cleanup
 export function applyReusableDataToSetters(
   reusable: ReusableData,
   setters: StateSetters,
-  getCurrentValues?: () => Record<string, any>
-): { appliedKeys: string[]; previousValues: Record<string, any> } {
+  getCurrentValues?: () => Record<string, unknown>
+): { appliedKeys: string[]; previousValues: Record<string, unknown> } {
   const appliedKeys: string[] = [];
-  const previousValues: Record<string, any> = {};
+  // TODO: refine type for `previousValues` — changed any -> unknown automatically by chore/typed-cleanup
+  const previousValues: Record<string, unknown> = {};
   const currentValues = getCurrentValues ? getCurrentValues() : {};
 
   const getCurrent = (key: string) => {

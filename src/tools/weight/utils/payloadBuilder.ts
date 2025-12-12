@@ -105,7 +105,8 @@ export function buildWeightEstimatorPayload(
   }
   
   // Format results for display
-  const formattedResults: Record<string, any> = {
+  // TODO: refine type for `formattedResults` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedResults: Record<string, unknown> = {
     'Wing weight': `${(components.wing / 9.81).toFixed(1)} kg`,
     'Fuselage weight': `${(components.fuselage / 9.81).toFixed(1)} kg`,
     'Horizontal tail weight': `${(components.horizontalTail / 9.81).toFixed(1)} kg`,
@@ -132,7 +133,8 @@ export function buildWeightEstimatorPayload(
   }
   
   // Format inputs for display
-  const formattedInputs: Record<string, any> = {
+  // TODO: refine type for `formattedInputs` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedInputs: Record<string, unknown> = {
     'Wing area': `${inputs.geometry.S_w.toFixed(2)} m²`,
     'Aspect ratio': inputs.geometry.AR.toFixed(2),
     'Taper ratio': inputs.geometry.lambda.toFixed(2),

@@ -119,7 +119,7 @@ Respond: "I can't help with harmful applications. But I can explain the physics 
       : chatSystemPrompt;
 
     // For calculation mode, payload is already in user message - no need to add context
-    let enhancedSystemPrompt = systemPrompt;
+    const enhancedSystemPrompt = systemPrompt;
 
     // Determine response length based on mode - shorter for calculation mode
     const maxTokens = mode === 'summarize' ? 500 : isCalculationMode ? 600 : 1000;

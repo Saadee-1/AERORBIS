@@ -126,7 +126,7 @@ export default function StabilityCalculator() {
   const [alpha, setAlpha] = useState(5);
 
   // Handle input changes
-  const handleInputChange = useCallback((field: keyof StabilityInputs, value: any) => {
+  const handleInputChange = useCallback((field: keyof StabilityInputs, value: unknown) => {
     setInputs(prev => ({ ...prev, [field]: value }));
   }, []);
 
@@ -309,8 +309,8 @@ export default function StabilityCalculator() {
           C_l_delta_a_base: stabilityResults.C_l_delta_a,
           C_m_delta_e_base: stabilityResults.C_m_delta_e,
           C_n_delta_r_base: stabilityResults.C_n_delta_r,
-          motor_mixing_matrix: (MIXING_PRESETS as any)[motorMixingPreset]?.matrix,
-          motor_gains: (MIXING_PRESETS as any)[motorMixingPreset]?.gains,
+          motor_mixing_matrix: (MIXING_PRESETS as unknown)[motorMixingPreset]?.matrix,
+          motor_gains: (MIXING_PRESETS as unknown)[motorMixingPreset]?.gains,
         };
         extended.mixing = calculateControlMixing(mixingInputs);
       }

@@ -7,7 +7,8 @@ import { ComponentLocation, calculateCG, calculateMAC, calculateCGonMAC, calcula
 import { validateWeightEstimationInputs } from './validation/schema';
 import { createDefaultWeightInputs, createDefaultMissionProfile } from './defaults';
 
-type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, any>; results: Record<string, any> }) => void;
+// TODO: refine type for `ToolContextUpdater` — changed any -> unknown automatically by chore/typed-cleanup
+type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, unknown>; results: Record<string, unknown> }) => void;
 
 export interface WeightHandleOptions {
   inputs?: WeightEstimationInputs;

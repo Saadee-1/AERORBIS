@@ -12,9 +12,9 @@ interface ThreeDVisualizerProps {
   trajectory?: Array<{ position: [number, number, number]; altitude: number }>;
   currentState?: {
     position: [number, number, number];
-    attitude?: any;
+    attitude?: unknown;
   };
-  result?: any;
+  result?: unknown;
   mode?: '1D' | '2D' | '3D';
 }
 

@@ -19,14 +19,17 @@ async function fetchSpaceflightNews(): Promise<NewsArticle[]> {
     const response = await fetch('https://api.spaceflightnewsapi.net/v4/articles/?limit=6');
     const data = await response.json();
     
-    return data.results.map((article: any) => ({
-      title: article.title,
-      summary: article.summary,
-      url: article.url,
-      image_url: article.image_url,
-      source: 'Spaceflight News',
-      published: article.published_at,
-    }));
+    return data.results.map((article: unknown) => {
+      const a = article as { title: string; summary: string; url: string; image_url: string; published_at: string };
+      return {
+        title: a.title,
+        summary: a.summary,
+        url: a.url,
+        image_url: a.image_url,
+        source: 'Spaceflight News',
+        published: a.published_at,
+      };
+    });
   } catch (error) {
     console.error('Error fetching Spaceflight News:', error);
     return [];
@@ -38,14 +41,17 @@ async function fetchNASANews(): Promise<NewsArticle[]> {
     const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.nasa.gov/rss/dyn/breaking_news.rss');
     const data = await response.json();
     
-    return data.items.slice(0, 6).map((item: any) => ({
-      title: item.title,
-      summary: item.description?.replace(/<[^>]*>/g, '').substring(0, 200) + '...',
-      url: item.link,
-      image_url: item.enclosure?.link || item.thumbnail,
-      source: 'NASA',
-      published: item.pubDate,
-    }));
+    return data.items.slice(0, 6).map((item: unknown) => {
+      const i = item as { title: string; description?: string; link: string; pubDate: string };
+      return {
+        title: i.title,
+        summary: i.description?.replace(/<[^>]*>/g, '').substring(0, 200) + '...',
+        url: i.link,
+        image_url: (item as { enclosure?: { link?: string }; thumbnail?: string }).enclosure?.link || (item as { thumbnail?: string }).thumbnail,
+        source: 'NASA',
+        published: i.pubDate,
+      };
+    });
   } catch (error) {
     console.error('Error fetching NASA news:', error);
     return [];
@@ -57,14 +63,17 @@ async function fetchESANews(): Promise<NewsArticle[]> {
     const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.esa.int/rssfeed/Our_Activities/Space_News');
     const data = await response.json();
     
-    return data.items.slice(0, 6).map((item: any) => ({
-      title: item.title,
-      summary: item.description?.replace(/<[^>]*>/g, '').substring(0, 200) + '...',
-      url: item.link,
-      image_url: item.enclosure?.link || item.thumbnail,
-      source: 'ESA',
-      published: item.pubDate,
-    }));
+    return data.items.slice(0, 6).map((item: unknown) => {
+      const i = item as { title: string; description?: string; link: string; pubDate: string };
+      return {
+        title: i.title,
+        summary: i.description?.replace(/<[^>]*>/g, '').substring(0, 200) + '...',
+        url: i.link,
+        image_url: (item as { enclosure?: { link?: string }; thumbnail?: string }).enclosure?.link || (item as { thumbnail?: string }).thumbnail,
+        source: 'ESA',
+        published: i.pubDate,
+      };
+    });
   } catch (error) {
     console.error('Error fetching ESA news:', error);
     return [];

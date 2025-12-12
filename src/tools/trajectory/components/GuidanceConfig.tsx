@@ -44,7 +44,7 @@ export function GuidanceConfig({
           <AeroFormField label="Guidance Type" helperText="" htmlFor="guidance-type">
             <Select
               value={guidance2D.type}
-              onValueChange={(value: any) => onGuidance2DChange({ ...guidance2D, type: value })}
+              onValueChange={(value: unknown) => onGuidance2DChange({ ...guidance2D, type: value })}
             >
               <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
                 <SelectValue />

@@ -2,7 +2,8 @@ import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { StabilityInputs, calculateStability } from './utils/calcStability';
 import { buildStabilityPayload, ExtendedStabilityResults } from './utils/payloadBuilder';
 
-type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, any>; results: Record<string, any> }) => void;
+// TODO: refine type for `ToolContextUpdater` — changed any -> unknown automatically by chore/typed-cleanup
+type ToolContextUpdater = (ctx: { tool: string; inputs: Record<string, unknown>; results: Record<string, unknown> }) => void;
 
 export interface StabilityHandleOptions {
   inputs?: StabilityInputs;

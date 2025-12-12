@@ -36,15 +36,15 @@ export function StageEditor({ stages, onStagesChange }: StageEditorProps) {
     onStagesChange(stages.filter((_, i) => i !== index));
   };
 
-  const updateStage = (index: number, field: keyof Stage, value: any) => {
+  const updateStage = (index: number, field: keyof Stage, value: unknown) => {
     const newStages = [...stages];
-    (newStages[index] as any)[field] = value;
+    (newStages[index] as unknown)[field] = value;
     onStagesChange(newStages);
   };
 
-  const updateStageEngine = (stageIndex: number, engineIndex: number, field: string, value: any) => {
+  const updateStageEngine = (stageIndex: number, engineIndex: number, field: string, value: unknown) => {
     const newStages = [...stages];
-    (newStages[stageIndex].engines[engineIndex] as any)[field] = value;
+    (newStages[stageIndex].engines[engineIndex] as unknown)[field] = value;
     onStagesChange(newStages);
   };
 

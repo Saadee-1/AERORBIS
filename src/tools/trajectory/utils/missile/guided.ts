@@ -63,8 +63,8 @@ export function calculateGuidedTrajectory(inputs: GuidedMissileInputs): GuidedMi
   } = inputs;
 
   const states: GuidedMissileState[] = [];
-  let position: [number, number, number] = [...initialPosition];
-  let velocity: [number, number, number] = [...initialVelocity];
+  const position: [number, number, number] = [...initialPosition];
+  const velocity: [number, number, number] = [...initialVelocity];
   let currentMass = mass;
 
   let interceptTime: number | undefined;

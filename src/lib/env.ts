@@ -1,12 +1,13 @@
 export type RuntimeEnv = {
   DEV?: boolean | string;
   VITE_DEBUG_VISUALIZER?: boolean | string;
-  [key: string]: any;
+  // TODO: refine type for index signature — changed any -> unknown automatically by chore/typed-cleanup
+  [key: string]: unknown;
 };
 
 const getRuntimeEnv = (): RuntimeEnv => {
-  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
-    return (import.meta as any).env as RuntimeEnv;
+  if (typeof import.meta !== 'undefined' && (import.meta as unknown as Record<string, unknown>).env) {
+    return ((import.meta as unknown as Record<string, unknown>).env) as RuntimeEnv;
   }
   if (typeof process !== 'undefined' && process.env) {
     return process.env as RuntimeEnv;

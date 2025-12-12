@@ -12,7 +12,8 @@ import { WeightEstimationInputs } from '../utils/weightEngine';
 
 interface FlightConditionsPanelProps {
   inputs: WeightEstimationInputs;
-  onInputChange: (path: string[], value: any) => void;
+  // TODO: refine type for `onInputChange` — changed any -> unknown automatically by chore/typed-cleanup
+  onInputChange: (path: string[], value: unknown) => void;
 }
 
 export function FlightConditionsPanel({ inputs, onInputChange }: FlightConditionsPanelProps) {

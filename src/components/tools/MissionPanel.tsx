@@ -30,7 +30,8 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [smartAiUnavailableReason, setSmartAiUnavailableReason] = useState<"AI_DISABLED" | "NETWORK_ERROR" | "BAD_RESPONSE" | null>(null);
   const [selectedAirfoilId, setSelectedAirfoilId] = useState<string | undefined>();
-  const [airfoilMetricsMap, setAirfoilMetricsMap] = useState<Map<string, any>>(new Map());
+ // TODO: refine type for `airfoilMetricsMap` — changed any -> unknown automatically by chore/typed-cleanup
+const [airfoilMetricsMap, setAirfoilMetricsMap] = useState<Map<string, unknown>>(new Map());
 
   async function handleRecommend() {
     if (!selectedMission) return;
@@ -55,7 +56,7 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
         const [base, ...rest] = airfoilIds.slice(0, maxItems);
         onApplyRecommendations(base, rest.slice(0, 4));
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("MissionPanel recommend error:", e);
       setError("Could not compute recommendations.");
     } finally {

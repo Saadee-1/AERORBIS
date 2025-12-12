@@ -41,7 +41,7 @@ export function AeroButton({
 
   return (
     <Button
-      variant={buttonVariant as any}
+      variant={buttonVariant as unknown}
       className={cn(
         'h-[42px] min-h-[44px] rounded-lg font-medium',
         customClassName,

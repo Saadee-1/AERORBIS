@@ -105,7 +105,8 @@ function computeClimbTwRequired(ldClimb: number, gammaReq: number): number {
 /**
  * Custom tooltip for sizing diagram
  */
-const CustomTooltip = ({ active, payload, label }: any) => {
+// TODO: refine type for `CustomTooltip` — changed any -> unknown automatically by chore/typed-cleanup
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: unknown }) => {
   if (active && payload && payload.length) {
     return (
       <div 
@@ -118,7 +119,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
           {`W/S = ${label.toFixed(1)} kg/m²`}
         </p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry: unknown, index: number) => (
           <p key={index} className="text-sm font-medium" style={{ color: entry.color || GRAPH_STYLES.tooltipText }}>
             {`${entry.name}: ${entry.value.toFixed(3)}`}
           </p>

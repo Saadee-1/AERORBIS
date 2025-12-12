@@ -18,8 +18,10 @@ export interface ChatSession {
 
 export interface ToolContext {
   tool: "WingLoading" | "LiftDrag" | "OrbitalPath" | "DeltaV" | "Reynolds" | "MaterialsDB" | "Thrust" | "Antenna" | string;
-  inputs: Record<string, any>;
-  results: Record<string, any>;
+  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
+  inputs: Record<string, unknown>;
+  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
+  results: Record<string, unknown>;
 }
 
 interface AIAssistantContextType {
@@ -518,7 +520,7 @@ Error: ${data.error}`;
           inputs: parsed.inputs || {},
           results: parsed.results || {},
           units: parsed.units || {},
-          charts: parsed.attachments?.charts?.map((c: any, idx: number) => ({
+          charts: parsed.attachments?.charts?.map((c: unknown, idx: number) => ({
             id: `chart-${idx}`,
             title: c.title || `Chart ${idx + 1}`
           })) || [],

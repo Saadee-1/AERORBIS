@@ -30,10 +30,12 @@ export interface AeroverseAIPayload {
   toolVersion?: string;
   
   /** Input parameters used for calculation */
-  inputs: Record<string, any>;
+  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
+  inputs: Record<string, unknown>;
   
   /** Calculated results */
-  results: Record<string, any>;
+  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
+  results: Record<string, unknown>;
   
   /** Unit information for inputs and results */
   units?: Record<string, string>;
@@ -42,7 +44,8 @@ export interface AeroverseAIPayload {
   charts?: ChartRef[];
   
   /** Tool-specific configuration (computation mode, resolution, etc.) */
-  configuration?: Record<string, any>;
+  // TODO: refine type for `configuration` — changed any -> unknown automatically by chore/typed-cleanup
+  configuration?: Record<string, unknown>;
   
   /** Optional user notes */
   userNotes?: string;

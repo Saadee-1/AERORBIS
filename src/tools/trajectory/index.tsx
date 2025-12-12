@@ -331,7 +331,7 @@ export default function TrajectorySimulator() {
         title: 'Simulation Complete',
         description: `Trajectory calculated successfully`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Simulation Error',
         description: error.message || 'An error occurred during simulation',

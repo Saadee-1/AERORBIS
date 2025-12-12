@@ -18,7 +18,7 @@ const sectionCues: Record<string, { type: "chime" | "whoosh" | "pad"; freq?: num
 };
 
 function fadeGain(gainNode: GainNode, from: number, to: number, duration = 0.25, audioCtx?: AudioContext) {
-  const now = (audioCtx ?? (gainNode as any).__ctx).currentTime;
+  const now = (audioCtx ?? (gainNode as unknown).__ctx).currentTime;
   gainNode.gain.cancelScheduledValues(now);
   gainNode.gain.setValueAtTime(from, now);
   gainNode.gain.linearRampToValueAtTime(to, now + duration);
@@ -42,7 +42,7 @@ export default function AudioManager() {
     let ctx = audioCtxRef.current;
     if (!ctx) {
       try {
-        ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        ctx = new (window.AudioContext || (window as unknown).webkitAudioContext)();
         audioCtxRef.current = ctx;
       } catch (e) {
         console.warn("AudioContext not available:", e);
@@ -67,7 +67,7 @@ export default function AudioManager() {
     if (cue.type === "chime") {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      (gain as any).__ctx = ctx;
+      (gain as unknown).__ctx = ctx;
       osc.type = "sine";
       osc.frequency.value = cue.freq ?? 660;
       gain.gain.value = 0;
@@ -101,7 +101,7 @@ export default function AudioManager() {
       const o2 = ctx.createOscillator();
       const gain = ctx.createGain();
       const lp = ctx.createBiquadFilter();
-      (gain as any).__ctx = ctx;
+      (gain as unknown).__ctx = ctx;
 
       o1.type = "sine";
       o2.type = "sine";
@@ -140,7 +140,7 @@ export default function AudioManager() {
       const source = ctx.createBufferSource();
       source.buffer = buffer;
       const gain = ctx.createGain();
-      (gain as any).__ctx = ctx;
+      (gain as unknown).__ctx = ctx;
 
       const filter = ctx.createBiquadFilter();
       filter.type = "lowpass";
@@ -164,7 +164,7 @@ export default function AudioManager() {
       }, 900);
     }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [location.pathname]);
 
   return null;

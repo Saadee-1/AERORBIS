@@ -12,9 +12,9 @@ import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
 
 interface ChartsPanelProps {
   mode: '1D' | '2D' | '3D';
-  result1D?: any;
-  result2D?: any;
-  result3D?: any;
+  result1D?: unknown;
+  result2D?: unknown;
+  result3D?: unknown;
 }
 
 export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelProps) {
@@ -33,7 +33,7 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
   // Prepare chart data (downsample if too many points)
   const maxPoints = 500;
   const step = Math.max(1, Math.floor(result.states.length / maxPoints));
-  const chartData = result.states.filter((_: any, i: number) => i % step === 0).map((state: any) => ({
+  const chartData = result.states.filter((_: unknown, i: number) => i % step === 0).map((state: unknown) => ({
     time: state.t,
     altitude: state.altitude / 1000, // km
     velocity: state.velocity / 1000, // km/s

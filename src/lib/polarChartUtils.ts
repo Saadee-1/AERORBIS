@@ -335,7 +335,7 @@ export async function loadPolarForComparison(
     }
 
     // Parse JSON with error handling
-    let json: any;
+    let json: unknown;
     try {
       json = await res.json();
     } catch (err) {
@@ -473,8 +473,8 @@ export async function exportChartAsPNG(
 ): Promise<void> {
   try {
     // Use html2canvas if available
-    if (typeof window !== 'undefined' && (window as any).html2canvas) {
-      const canvas = await (window as any).html2canvas(chartElement);
+    if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).html2canvas) {
+      const canvas = await ((window as unknown as Record<string, unknown>).html2canvas as (el: HTMLElement) => Promise<HTMLCanvasElement>)(chartElement);
       const dataUrl = canvas.toDataURL('image/png');
       
       const link = document.createElement('a');

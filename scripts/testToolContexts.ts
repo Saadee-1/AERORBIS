@@ -20,22 +20,25 @@ interface TestResult {
   toolName: string;
   passed: boolean;
   message: string;
-  context?: any;
+  // TODO: refine type for `context` — changed any -> unknown automatically by chore/typed-cleanup
+  context?: unknown;
 }
 
 const results: TestResult[] = [];
 
-const fakeUpdateToolContext = (toolName: string, context: any) => {
+// TODO: refine type for `context` — changed any -> unknown automatically by chore/typed-cleanup
+const fakeUpdateToolContext = (toolName: string, context: unknown) => {
   if (!context) {
     throw new Error("No context received.");
   }
-  if (!context.tool) throw new Error("Missing 'tool' field.");
-  if (!context.inputs) throw new Error("Missing 'inputs' field.");
-  if (!context.results) throw new Error("Missing 'results' field.");
-  if (typeof context.inputs !== "object") throw new Error("'inputs' is not an object.");
-  if (typeof context.results !== "object") throw new Error("'results' is not an object.");
-  if (!Object.keys(context.inputs).length) throw new Error("Inputs object is empty.");
-  if (!Object.keys(context.results).length) throw new Error("Results object is empty.");
+  const ctx = context as Record<string, unknown>;
+  if (!ctx.tool) throw new Error("Missing 'tool' field.");
+  if (!ctx.inputs) throw new Error("Missing 'inputs' field.");
+  if (!ctx.results) throw new Error("Missing 'results' field.");
+  if (typeof ctx.inputs !== "object") throw new Error("'inputs' is not an object.");
+  if (typeof ctx.results !== "object") throw new Error("'results' is not an object.");
+  if (!Object.keys(ctx.inputs as object).length) throw new Error("Inputs object is empty.");
+  if (!Object.keys(ctx.results as object).length) throw new Error("Results object is empty.");
 
   return context;
 };
@@ -88,12 +91,14 @@ const sampleInputs = {
       const fileUrl = pathToFileURL(indexFile).href;
 
       // Dynamically import the module (ESM loader wants file:// URLs on Windows)
-      const toolModule: any = await import(fileUrl);
+      // TODO: refine type for `toolModule` — changed any -> unknown automatically by chore/typed-cleanup
+      const toolModule: unknown = await import(fileUrl);
 
       // Detect a handler to call
+      const mod = toolModule as Record<string, unknown>;
       const handler =
-        toolModule.handleCalculate ||
-        toolModule.default?.handleCalculate ||
+        (mod.handleCalculate as (...args: unknown[]) => unknown) ||
+        ((mod.default as Record<string, unknown>)?.handleCalculate as (...args: unknown[]) => unknown) ||
         null;
 
       if (!handler) {
@@ -106,8 +111,10 @@ const sampleInputs = {
       }
 
       // Interceptor to capture the context the tool sends
-      let capturedContext: any = null;
-      const wrappedUpdate = (ctx: any) => {
+      // TODO: refine type for `capturedContext` — changed any -> unknown automatically by chore/typed-cleanup
+      let capturedContext: unknown = null;
+      // TODO: refine type for `ctx` — changed any -> unknown automatically by chore/typed-cleanup
+      const wrappedUpdate = (ctx: unknown) => {
         capturedContext = ctx;
       };
 
@@ -117,16 +124,16 @@ const sampleInputs = {
         const maybePromise = handler({
           ...sampleInputs,
           updateToolContext: wrappedUpdate,
-        });
+        }) as unknown;
 
-        if (maybePromise && typeof maybePromise.then === "function") {
-          await maybePromise;
+        if (maybePromise && typeof (maybePromise as { then?: unknown }).then === "function") {
+          await (maybePromise as Promise<unknown>);
         }
-      } catch (invokeErr: any) {
+      } catch (invokeErr: unknown) {
         results.push({
           toolName: toolFolder,
           passed: false,
-          message: "❌ Error executing handler: " + (invokeErr?.message || String(invokeErr)),
+          message: "❌ Error executing handler: " + ((invokeErr as Error)?.message || String(invokeErr)),
         });
         continue;
       }
@@ -141,7 +148,8 @@ const sampleInputs = {
         continue;
       }
 
-      if (!capturedContext.tool) {
+      const ctx = capturedContext as Record<string, unknown>;
+      if (!ctx.tool) {
         results.push({
           toolName: toolFolder,
           passed: false,
@@ -151,7 +159,7 @@ const sampleInputs = {
         continue;
       }
 
-      if (!capturedContext.inputs) {
+      if (!ctx.inputs) {
         results.push({
           toolName: toolFolder,
           passed: false,
@@ -161,7 +169,7 @@ const sampleInputs = {
         continue;
       }
 
-      if (!capturedContext.results) {
+      if (!ctx.results) {
         results.push({
           toolName: toolFolder,
           passed: false,
@@ -178,11 +186,11 @@ const sampleInputs = {
         message: "✅ Context OK",
         context: capturedContext,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       results.push({
         toolName: toolFolder,
         passed: false,
-        message: "❌ Error: " + (err?.message || String(err)),
+        message: "❌ Error: " + ((err as Error)?.message || String(err)),
       });
     }
   }
@@ -194,9 +202,10 @@ const sampleInputs = {
   for (const r of results) {
     console.log(`${r.passed ? "🟢" : "🔴"} ${r.toolName}: ${r.message}`);
     if (r.context) {
-      console.log("   → tool:", r.context.tool);
-      console.log("   → inputs keys:", Object.keys(r.context.inputs));
-      console.log("   → results keys:", Object.keys(r.context.results));
+      const ctx = r.context as Record<string, unknown>;
+      console.log("   → tool:", ctx.tool);
+      console.log("   → inputs keys:", Object.keys(ctx.inputs as object));
+      console.log("   → results keys:", Object.keys(ctx.results as object));
     }
   }
 

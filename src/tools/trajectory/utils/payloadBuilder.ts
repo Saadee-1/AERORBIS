@@ -26,9 +26,9 @@ export interface TrajectoryResults {
   planet: Planet;
   stages: Stage[];
   guidance?: GuidanceProfile | Guidance3D;
-  result1D?: any;
-  result2D?: any;
-  result3D?: any;
+  result1D?: unknown;
+  result2D?: unknown;
+  result3D?: unknown;
   advancedFeatures?: AdvancedFeatures;
 }
 
@@ -66,7 +66,8 @@ export function buildTrajectoryPayload(
   }
 
   // Format inputs
-  const formattedInputs: Record<string, any> = {
+  // TODO: refine type for `formattedInputs` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedInputs: Record<string, unknown> = {
     'Simulation Mode': mode,
     'Planet': planet.name,
     'Surface Gravity': `${planet.surfaceGravity.toFixed(2)} m/s²`,
@@ -91,7 +92,8 @@ export function buildTrajectoryPayload(
   }
 
   // Format results
-  const formattedResults: Record<string, any> = {};
+  // TODO: refine type for `formattedResults` — changed any -> unknown automatically by chore/typed-cleanup
+  const formattedResults: Record<string, unknown> = {};
   
   if (result) {
     if (result.maxQ) {
@@ -148,7 +150,7 @@ export function buildTrajectoryPayload(
     });
   }
   if (result?.stagingEvents) {
-    result.stagingEvents.forEach((event: any) => {
+    result.stagingEvents.forEach((event: unknown) => {
       eventFrames.push({
         name: 'stageSep',
         t: event.time,

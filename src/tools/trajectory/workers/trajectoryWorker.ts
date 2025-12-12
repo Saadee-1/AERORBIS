@@ -16,7 +16,7 @@ export interface WorkerMessage {
 export interface WorkerResponse {
   type: 'result' | 'progress' | 'error' | 'complete';
   id: string;
-  result?: any;
+  result?: unknown;
   progress?: number;
   error?: string;
 }
@@ -37,7 +37,7 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
   currentJobId = id;
 
   try {
-    let result: any;
+    let result: unknown;
 
     if (type === 'run1d' && inputs) {
       result = run1D(inputs as Trajectory1DInputs);
@@ -56,7 +56,7 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
         result,
       } as WorkerResponse);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (currentJobId === id) {
       self.postMessage({
         type: 'error',

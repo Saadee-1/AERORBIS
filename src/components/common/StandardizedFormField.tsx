@@ -17,8 +17,10 @@ import { validatePositiveNumber, validateFiniteNumber, sanitizeNumber } from '@/
 
 export interface StandardizedFormFieldProps {
   label: string;
-  value: any;
-  onChange: (value: any) => void;
+  // TODO: refine type for `value` — changed any -> unknown automatically by chore/typed-cleanup
+  value: unknown;
+  // TODO: refine type for `onChange` — changed any -> unknown automatically by chore/typed-cleanup
+  onChange: (value: unknown) => void;
   type?: 'text' | 'number' | 'select' | 'textarea' | 'switch' | 'slider';
   unit?: string;
   min?: number;
@@ -56,7 +58,8 @@ export function StandardizedFormField({
   helpText,
   compact = false,
 }: StandardizedFormFieldProps) {
-  const handleChange = (newValue: any) => {
+  // TODO: refine type for `newValue` — changed any -> unknown automatically by chore/typed-cleanup
+  const handleChange = (newValue: unknown) => {
     if (type === 'number' && validation) {
       const sanitized = sanitizeNumber(newValue, value || 0);
       if (validation.type === 'positive') {
