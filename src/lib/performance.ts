@@ -61,8 +61,8 @@ class PerformanceMonitor {
     }
 
     // Get memory usage if available
-    const memoryUsage = (performance as any).memory
-      ? (performance as any).memory.usedJSHeapSize / 1048576 // Convert to MB
+    const memoryUsage = (performance as unknown).memory
+      ? (performance as unknown).memory.usedJSHeapSize / 1048576 // Convert to MB
       : undefined;
 
     // Notify listeners
@@ -106,8 +106,8 @@ class PerformanceMonitor {
         ? this.frameTimes[this.frameTimes.length - 1]
         : 0,
       simulationTime: this.simulationTime,
-      memoryUsage: (performance as any).memory
-        ? (performance as any).memory.usedJSHeapSize / 1048576
+      memoryUsage: (performance as unknown).memory
+        ? (performance as unknown).memory.usedJSHeapSize / 1048576
         : undefined,
     };
   }
@@ -179,7 +179,7 @@ export async function measureTimeAsync<T>(
 /**
  * Debounce function for expensive operations
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -201,7 +201,7 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * Throttle function for frequent events
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {

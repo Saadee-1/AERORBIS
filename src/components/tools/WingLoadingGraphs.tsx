@@ -96,7 +96,7 @@ interface WingLoadingGraphsProps {
 /**
  * Custom tooltip for wing loading graphs with mild gradient styling
  */
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: unknown) => {
   if (active && payload && payload.length) {
     return (
       <div 

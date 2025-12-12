@@ -52,7 +52,7 @@ export function validatePositiveNumber(
  * Validate a number is finite (can be negative)
  */
 export function validateFiniteNumber(
-  value: any,
+  value: unknown,
   fieldName: string
 ): string | null {
   if (value === undefined || value === null || value === '') {

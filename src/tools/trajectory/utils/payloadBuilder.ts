@@ -26,9 +26,9 @@ export interface TrajectoryResults {
   planet: Planet;
   stages: Stage[];
   guidance?: GuidanceProfile | Guidance3D;
-  result1D?: any;
-  result2D?: any;
-  result3D?: any;
+  result1D?: unknown;
+  result2D?: unknown;
+  result3D?: unknown;
   advancedFeatures?: AdvancedFeatures;
 }
 
@@ -150,7 +150,7 @@ export function buildTrajectoryPayload(
     });
   }
   if (result?.stagingEvents) {
-    result.stagingEvents.forEach((event: any) => {
+    result.stagingEvents.forEach((event: unknown) => {
       eventFrames.push({
         name: 'stageSep',
         t: event.time,

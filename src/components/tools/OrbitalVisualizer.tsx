@@ -182,8 +182,8 @@ const OrbitalVisualizer = () => {
     }
   };
 
-  const [orbitResult, setOrbitResult] = useState<any>(null);
-  const [maneuverResult, setManeuverResult] = useState<any>(null);
+  const [orbitResult, setOrbitResult] = useState<unknown>(null);
+  const [maneuverResult, setManeuverResult] = useState<unknown>(null);
   const [error, setError] = useState<string>("");
   const [visualizerError, setVisualizerError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -331,17 +331,17 @@ function describeMission(missionId: MissionId): string {
  * Safety: All parsing attempts are wrapped in try-catch to prevent crashes
  * Never throws - always returns null on failure
  */
-function safeParseGeminiJson(raw: string | null | undefined): { items?: any[] } | null {
+function safeParseGeminiJson(raw: string | null | undefined): { items?: unknown[] } | null {
   if (!raw || typeof raw !== "string") return null;
 
   // Helper to normalize parsed result (map 'id' to 'airfoilId' if needed)
-  const normalizeResult = (obj: any): { items?: any[] } | null => {
+  const normalizeResult = (obj: unknown): { items?: unknown[] } | null => {
     try {
       if (!obj || typeof obj !== "object") return null;
       
       // If items array exists, normalize each item
       if (Array.isArray(obj.items)) {
-        obj.items = obj.items.map((item: any) => {
+        obj.items = obj.items.map((item: unknown) => {
           if (item && typeof item === "object") {
             // Map 'id' to 'airfoilId' if airfoilId is missing
             if (!item.airfoilId && item.id) {
@@ -355,7 +355,7 @@ function safeParseGeminiJson(raw: string | null | undefined): { items?: any[] } 
       
       // If the object itself is an array, wrap it
       if (Array.isArray(obj)) {
-        const normalized = obj.map((item: any) => {
+        const normalized = obj.map((item: unknown) => {
           if (item && typeof item === "object" && !item.airfoilId && item.id) {
             item.airfoilId = item.id;
           }
@@ -371,7 +371,8 @@ function safeParseGeminiJson(raw: string | null | undefined): { items?: any[] } 
   };
 
   // Helper to safely parse a string
-  const safeParse = (str: string): any => {
+// TODO: refine type for `safeParse` — changed any -> unknown automatically by chore/typed-cleanup
+const safeParse = (str: string): unknown => {
     try {
       return JSON.parse(str);
     } catch {
@@ -556,8 +557,8 @@ No extra text, no commentary, only the JSON object.`;
     // Validate, map to AirfoilRecommendation[]
     const validIds = new Set(airfoils.map(a => a.airfoilId));
     const items: AirfoilRecommendation[] = parsed.items
-      .filter((item: any) => item && typeof item.airfoilId === "string" && validIds.has(item.airfoilId))
-      .map((item: any, index: number) => {
+      .filter((item: unknown) => item && typeof item.airfoilId === "string" && validIds.has(item.airfoilId))
+      .map((item: unknown, index: number) => {
         const airfoilId = item.airfoilId;
         const score = typeof item.score === "number" && isFinite(item.score)
           ? Math.max(0, Math.min(1, item.score))

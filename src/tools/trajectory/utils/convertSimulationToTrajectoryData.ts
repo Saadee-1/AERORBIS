@@ -60,7 +60,7 @@ const isValidFrame = (frame: TrajectoryFrame | undefined): frame is TrajectoryFr
 };
 
 export function convertSimulationToTrajectoryData(
-  result: any,
+  result: unknown,
   mode: '1D' | '2D' | '3D',
   planet: PlanetLite,
 ): TrajectoryData {

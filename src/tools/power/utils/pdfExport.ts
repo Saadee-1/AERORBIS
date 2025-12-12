@@ -475,7 +475,7 @@ export function convertPayloadToPDFData(
   payload: AeroverseAIPayload,
   steps?: string[]
 ): PowerSystemPDFData {
-  const config = payload.configuration as any;
+  const config = payload.configuration as unknown;
   return {
     toolName: payload.toolName,
     requestId: payload.requestId || `power-${Date.now()}`,
@@ -487,9 +487,9 @@ export function convertPayloadToPDFData(
       location: config?.location || {},
       dayOfYear: config?.dayOfYear || 0,
     },
-    results: payload.results as any,
-    warnings: (payload.metadata as any)?.warnings || [],
-    recommendations: (payload.results as any)?.recommendations || [],
+    results: payload.results as unknown,
+    warnings: (payload.metadata as unknown)?.warnings || [],
+    recommendations: (payload.results as unknown)?.recommendations || [],
     steps,
   };
 }

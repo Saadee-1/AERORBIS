@@ -531,7 +531,7 @@ const ThrustLoadingCalculator = () => {
   const [showUniHelp, setShowUniHelp] = useState(false);
   const [showExpertHelp, setShowExpertHelp] = useState(false);
   const [result, setResult] = useState<CalculationResult | null>(null);
-  const [lastPayload, setLastPayload] = useState<any | null>(null);
+  const [lastPayload, setLastPayload] = useState<unknown | null>(null);
   
   // Load from localStorage
   useEffect(() => {

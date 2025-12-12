@@ -20,7 +20,7 @@ import { VisualizerScene } from './VisualizerScene';
 interface ThreeDVisualizerProps {
   trajectoryData?: TrajectoryData;
   planet: Planet;
-  result?: any;
+  result?: unknown;
   mode: '1D' | '2D' | '3D';
   onSnapshot?: (base64: string) => void;
 }

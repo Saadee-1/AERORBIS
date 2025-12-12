@@ -11,7 +11,8 @@ export interface Stage {
     id: string;
     count: number;
     isp: number;
-    thrust: number | any; // Thrust or thrust curve
+    // TODO: refine type for `thrust` — changed any -> unknown automatically by chore/typed-cleanup
+thrust: number | unknown; // Thrust or thrust curve
   }>;
   Cd: number;
   area: number; // m²

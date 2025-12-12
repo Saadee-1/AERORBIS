@@ -846,7 +846,8 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
       : [activeAirfoilKey, ...comparedAirfoilIds].filter((v, i, a) => a.indexOf(v) === i);
 
     for (let alpha = -5; alpha <= 20; alpha += 1) {
-      const point: any = { alpha };
+     // TODO: refine type for `point` — changed any -> unknown automatically by chore/typed-cleanup
+const point: Record<string, unknown> = { alpha };
 
       // Calculate only for selected airfoils
       airfoilKeysToPlot.forEach((key) => {
@@ -1110,7 +1111,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   const getAutoScaledYDomain = useCallback((mode: GraphMode, chartData: unknown[]): [number, number] => {
     if (mode === "dragPolar") {
       // For drag polar, use a more conservative approach
-      return [0, "auto" as any];
+      return [0, "auto" as unknown];
     }
 
     // Extract valid values from chart data

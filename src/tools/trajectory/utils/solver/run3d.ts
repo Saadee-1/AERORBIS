@@ -159,8 +159,8 @@ export function run3D(inputs: Trajectory3DInputs): Trajectory3DResult {
   const stagingEvents: Trajectory3DResult['stagingEvents'] = [];
   
   let t = 0;
-  let position: [number, number, number] = [...initialPosition];
-  let velocity: [number, number, number] = [...initialVelocity];
+  const position: [number, number, number] = [...initialPosition];
+  const velocity: [number, number, number] = [...initialVelocity];
   let attitude: Quaternion = [...initialAttitude];
   let angularVelocity: [number, number, number] = [...initialAngularVelocity];
   let stageIndex = 0;

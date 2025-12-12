@@ -335,7 +335,7 @@ export async function loadPolarForComparison(
     }
 
     // Parse JSON with error handling
-    let json: any;
+    let json: unknown;
     try {
       json = await res.json();
     } catch (err) {

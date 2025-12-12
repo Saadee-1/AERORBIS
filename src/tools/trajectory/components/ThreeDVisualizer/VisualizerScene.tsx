@@ -123,7 +123,7 @@ export const VisualizerScene = memo(function VisualizerScene({
   }, [frames, settings.simpleMode, settings.lowPowerMode]);
 
   const handleMarkerClick = useCallback(
-    (marker: any) => {
+    (marker: unknown) => {
       try {
         onMarkerClick(marker);
       } catch (error) {

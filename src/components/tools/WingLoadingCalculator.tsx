@@ -503,7 +503,7 @@ function generateBestUseCase(
   }
   
   // Mismatch cases
-  let mismatchReasons: string[] = [];
+  const mismatchReasons: string[] = [];
   if (!wsWithinRange) {
     if (wsKgm2 < params.wsMinKg) {
       mismatchReasons.push("wing loading is below typical range");
@@ -568,7 +568,7 @@ const WingLoadingCalculator = () => {
   const [mtow, setMtow] = useState<string>("");
   const [landingWeightFraction, setLandingWeightFraction] = useState<string>("0.7");
   const [result, setResult] = useState<CalculationResult | null>(null);
-  const [lastPayload, setLastPayload] = useState<any | null>(null);
+  const [lastPayload, setLastPayload] = useState<unknown | null>(null);
   
   // Handle return flow - redirect back after calculation if returnTo is present
   useEffect(() => {

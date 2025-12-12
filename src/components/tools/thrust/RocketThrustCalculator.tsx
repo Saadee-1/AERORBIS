@@ -145,9 +145,9 @@ const AdvancedThrustCalculator = () => {
     thrust: "1.0",
   });
 
-  const [thrustResult, setThrustResult] = useState<any | null>(null);
-  const [performanceResult, setPerformanceResult] = useState<any | null>(null);
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [thrustResult, setThrustResult] = useState<unknown | null>(null);
+  const [performanceResult, setPerformanceResult] = useState<unknown | null>(null);
+  const [chartData, setChartData] = useState<unknown[]>([]);
   const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
@@ -347,7 +347,7 @@ const AdvancedThrustCalculator = () => {
       const solveFor = emptyFields[0][0];
       // TODO: refine type for `resultData` — changed any -> unknown automatically by chore/typed-cleanup
       let resultData: Record<string, unknown> = {};
-      let steps: CalculationStep[] = [{ equation: `Ve = Isp × g₀ (where g₀ ≈ ${g0.toFixed(2)})`, description: "Performance equation" }];
+      const steps: CalculationStep[] = [{ equation: `Ve = Isp × g₀ (where g₀ ≈ ${g0.toFixed(2)})`, description: "Performance equation" }];
 
       if (solveFor === "exhaustVelocity") {
         const isp = validated.isp!;
@@ -428,7 +428,7 @@ const AdvancedThrustCalculator = () => {
       let resultData: Record<string, unknown> = {};
       // Physics: Thrust equation F = ṁVe + (Pe - Pa)Ae
       // where ṁ = mass flow rate, Ve = exhaust velocity, Pe = exit pressure, Pa = ambient pressure, Ae = exit area
-      let steps: CalculationStep[] = [{ equation: "F = ṁVe + (Pe - Pa)Ae", description: "Thrust equation" }];
+      const steps: CalculationStep[] = [{ equation: "F = ṁVe + (Pe - Pa)Ae", description: "Thrust equation" }];
 
       // FIXED: Add validation for physical constraints
       if (validated.massFlowRate !== undefined && validated.massFlowRate < 0) {

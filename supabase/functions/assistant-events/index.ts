@@ -13,8 +13,10 @@ interface CalculationEvent {
   requestId: string;
   userId: string;
   timestamp: string;
-  inputs: Record<string, any>;
-  results: Record<string, any>;
+  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
+  inputs: Record<string, unknown>;
+  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
+  results: Record<string, unknown>;
   steps?: string[];
   attachments?: {
     charts?: Array<{ mime: string; data: string }>;
@@ -29,7 +31,8 @@ interface CalculationEvent {
   sequenceId?: number;
   isFinal?: boolean;
   progress?: number;
-  intermediateResults?: Record<string, any>;
+  // TODO: refine type for `intermediateResults` — changed any -> unknown automatically by chore/typed-cleanup
+  intermediateResults?: Record<string, unknown>;
 }
 
 serve(async (req) => {
@@ -382,8 +385,10 @@ async function handlePDFExport(req: Request): Promise<Response> {
   });
 }
 
-function generatePDFHTML(context: CalculationEvent, options: any): string {
-  const { includeAssistantExplanation = true, explanationLevel = 'detailed', includeCharts = true, author = 'User' } = options;
+// TODO: refine type for `options` — changed any -> unknown automatically by chore/typed-cleanup
+function generatePDFHTML(context: CalculationEvent, options: unknown): string {
+  const opts = options as { includeAssistantExplanation?: boolean; explanationLevel?: string; includeCharts?: boolean; author?: string };
+  const { includeAssistantExplanation = true, explanationLevel = 'detailed', includeCharts = true, author = 'User' } = opts;
   const stored = calculationContexts.get(context.requestId);
   const explanation = stored?.explanation || '';
   
@@ -610,7 +615,7 @@ async function handleCalculationUpdateWithBody(event: CalculationEvent): Promise
     }
     // Update progress if provided
     if (event.progress !== undefined) {
-      (existing as any).progress = event.progress;
+      (existing as unknown as { progress?: number }).progress = event.progress;
     }
     calculationContexts.set(event.requestId, existing);
   } else {
@@ -667,8 +672,10 @@ async function handleBatchExport(req: Request): Promise<Response> {
   });
 }
 
-function generateBatchPDFHTML(contexts: any[], options: any): string {
-  const { includeAssistantExplanation = true, explanationLevel = 'detailed' } = options;
+// TODO: refine type for `contexts` and `options` — changed any -> unknown automatically by chore/typed-cleanup
+function generateBatchPDFHTML(contexts: unknown[], options: unknown): string {
+  const opts = options as { includeAssistantExplanation?: boolean; explanationLevel?: string };
+  const { includeAssistantExplanation = true, explanationLevel = 'detailed' } = opts;
   
   const contextsHTML = contexts.map((context, idx) => `
     <div style="page-break-after: always;">

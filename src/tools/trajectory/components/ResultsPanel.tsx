@@ -8,9 +8,9 @@ import { CheckCircle2, AlertTriangle } from 'lucide-react';
 
 interface ResultsPanelProps {
   mode: '1D' | '2D' | '3D';
-  result1D?: any;
-  result2D?: any;
-  result3D?: any;
+  result1D?: unknown;
+  result2D?: unknown;
+  result3D?: unknown;
 }
 
 export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPanelProps) {
@@ -105,7 +105,7 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
       {result.stagingEvents && result.stagingEvents.length > 0 && (
         <AeroCard title="Staging Events">
           <div className="space-y-2">
-            {result.stagingEvents.map((event: any, i: number) => (
+            {result.stagingEvents.map((event: unknown, i: number) => (
               <div key={i} className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
                 <div className="flex justify-between items-center">
                   <span className="text-cyan-400 font-semibold">

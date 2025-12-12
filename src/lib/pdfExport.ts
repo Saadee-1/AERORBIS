@@ -44,7 +44,7 @@ function generatePDFFromLocalStorage(requestId: string, options: PDFExportOption
 
     // Extract chart data if available
     const charts = attachments.charts || [];
-    const chartImages = charts.map((chart: any) => chart.data || '').filter(Boolean);
+    const chartImages = charts.map((chart: unknown) => chart.data || '').filter(Boolean);
 
     // Generate HTML
     const html = `
@@ -1689,7 +1689,7 @@ export async function assemblePdfDocument(options: {
     }
 
     // Helper to add text with safe formatting using embedded Unicode font
-    const addText = (page: any, text: string, x: number, y: number, size: number = 12, color = rgb(0, 0, 0)) => {
+    const addText = (page: unknown, text: string, x: number, y: number, size: number = 12, color = rgb(0, 0, 0)) => {
       page.drawText(text, { x, y, size, color, font: robotoFont });
     };
 

@@ -15,7 +15,7 @@ import { safeNumber } from '../utils/safeNumbers';
 
 interface InputPanelProps {
   inputs: StabilityInputs;
-  onInputChange: (field: keyof StabilityInputs, value: any) => void;
+  onInputChange: (field: keyof StabilityInputs, value: unknown) => void;
 }
 
 export function InputPanel({ inputs, onInputChange }: InputPanelProps) {

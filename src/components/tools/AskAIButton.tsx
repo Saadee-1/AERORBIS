@@ -51,7 +51,7 @@ export function AskAIButton({
       if (payload) {
         // If payload is provided, build it using the helper
         try {
-          finalPayload = buildAeroversePayload(payload as any);
+          finalPayload = buildAeroversePayload(payload as unknown);
           finalRequestId = finalPayload.requestId || requestId || `calc-${Date.now()}`;
           finalPayload.requestId = finalRequestId;
           

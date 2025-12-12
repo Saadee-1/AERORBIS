@@ -90,7 +90,7 @@ export function HighLiftDevicesPanel({
               <AeroFormField label="Type">
                 <Select
                   value={device.type}
-                  onValueChange={(value) => updateDevice(index, { type: value as any })}
+                  onValueChange={(value) => updateDevice(index, { type: value as unknown })}
                 >
                   <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
                     <SelectValue />
@@ -144,7 +144,7 @@ export function HighLiftDevicesPanel({
               <AeroFormField label="Position">
                 <Select
                   value={device.position}
-                  onValueChange={(value) => updateDevice(index, { position: value as any })}
+                  onValueChange={(value) => updateDevice(index, { position: value as unknown })}
                 >
                   <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
                     <SelectValue />

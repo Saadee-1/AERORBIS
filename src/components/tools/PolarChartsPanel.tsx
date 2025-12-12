@@ -126,7 +126,7 @@ const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string =
 /**
  * Custom tooltip for polar charts
  */
-const CustomTooltip = ({ active, payload, label, chartType }: any) => {
+const CustomTooltip = ({ active, payload, label, chartType }: unknown) => {
   if (!active || !payload || !payload.length) {
     return null;
   }
@@ -286,7 +286,8 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     const sortedClValues = Array.from(clSet).sort((a, b) => a - b);
     
     sortedClValues.forEach(cl => {
-      const point: any = { cl };
+      // TODO: refine type for `point` — changed any -> unknown automatically by chore/typed-cleanup
+      const point: Record<string, unknown> = { cl };
       
       // For each airfoil, find the closest CD value for this CL
       polars.forEach((polar) => {

@@ -14,7 +14,7 @@ import { barToPa, cm2ToM2 } from '../utils/units';
 
 interface InputPanelProps {
   inputs: RocketEngineInputs;
-  onInputChange: (field: keyof RocketEngineInputs, value: any) => void;
+  onInputChange: (field: keyof RocketEngineInputs, value: unknown) => void;
   useBar?: boolean; // Display pressure in bar
   useCm2?: boolean; // Display area in cm²
 }

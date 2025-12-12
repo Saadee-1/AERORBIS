@@ -121,7 +121,7 @@ export default function RocketEngineCalculator() {
   );
 
   // Handle input changes
-  const handleInputChange = useCallback((field: keyof RocketEngineInputs, value: any) => {
+  const handleInputChange = useCallback((field: keyof RocketEngineInputs, value: unknown) => {
     setInputs(prev => ({ ...prev, [field]: value }));
   }, []);
 

@@ -43,7 +43,7 @@ const AudioVisualizer = () => {
     scene.add(light);
 
     const audioContext = new (window.AudioContext ||
-      (window as any).webkitAudioContext)();
+      (window as unknown).webkitAudioContext)();
     const source = audioContext.createMediaElementSource(audioElement);
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 256;

@@ -18,7 +18,7 @@ export interface StabilityWorkerMessage {
 export interface StabilityWorkerResponse {
   type: 'result' | 'progress' | 'error' | 'complete';
   id: string;
-  result?: any;
+  result?: unknown;
   progress?: number;
   error?: string;
 }
@@ -39,7 +39,7 @@ self.onmessage = (e: MessageEvent<StabilityWorkerMessage>) => {
   currentJobId = id;
 
   try {
-    let result: any;
+    let result: unknown;
 
     if (type === 'calculate' && inputs) {
       // Base stability calculation
@@ -63,7 +63,7 @@ self.onmessage = (e: MessageEvent<StabilityWorkerMessage>) => {
         result,
       } as StabilityWorkerResponse);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (currentJobId === id) {
       self.postMessage({
         type: 'error',
