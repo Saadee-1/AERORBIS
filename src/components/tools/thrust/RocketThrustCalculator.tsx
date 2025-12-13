@@ -755,10 +755,10 @@ const AdvancedThrustCalculator = () => {
               {performanceResult && typeof performanceResult === 'object' && 'solvedFor' in performanceResult && (
                 <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30 mb-4">
                   <p className="text-sm font-semibold text-green-400 mb-2">Part 1 Result (Performance)</p>
-                  <p className="text-gray-400 text-sm mb-1">Solved: {(performanceResult as { solvedFor?: string }).solvedFor}</p>
+                  <p className="text-gray-400 text-sm mb-1">Solved: {(performanceResult as unknown as { solvedFor?: string }).solvedFor}</p>
                   <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
-                    {(performanceResult as { isp?: number }).isp ? `${((performanceResult as { isp: number }).isp).toFixed(1)} ${getUnit("isp")}`
-                    : `${convertFromSI((performanceResult as { exhaustVelocity: number }).exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
+                    {(performanceResult as unknown as { isp?: number }).isp ? `${((performanceResult as unknown as { isp: number }).isp).toFixed(1)} ${getUnit("isp")}`
+                    : `${convertFromSI((performanceResult as unknown as { exhaustVelocity: number }).exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
                     }
                   </p>
                 </div>
@@ -791,7 +791,7 @@ const AdvancedThrustCalculator = () => {
                       </div>
                       <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                         <p className="text-gray-400 text-xs mb-1">Specific Impulse</p>
-                        <p className="text-lg font-semibold text-blue-400">{(thrustResult as { isp?: number }).isp ? (thrustResult as { isp: number }).isp.toFixed(1) : "N/A"} s</p>
+                        <p className="text-lg font-semibold text-blue-400">{(thrustResult as unknown as { isp?: number }).isp ? (thrustResult as unknown as { isp: number }).isp.toFixed(1) : "N/A"} s</p>
                       </div>
                     </div>
                   </div>

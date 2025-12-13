@@ -267,8 +267,14 @@ export const useToolContext = () => {
       // { tool: string, inputs: Record<string, unknown>, results: Record<string, unknown> }
 
       try {
-        // TODO: refine type for `normalized` — changed any -> unknown automatically by chore/typed-cleanup
-        let normalized: unknown = context;
+        // Define the normalized context type
+        interface NormalizedContext {
+          tool: string;
+          inputs: Record<string, unknown>;
+          results: Record<string, unknown> & { metadata?: unknown };
+        }
+        
+        let normalized: NormalizedContext;
 
         // Case 1 — already correct
         if (
@@ -278,10 +284,11 @@ export const useToolContext = () => {
           "inputs" in context &&
           "results" in context
         ) {
+          const ctx = context as { tool: unknown; inputs: unknown; results: unknown };
           normalized = {
-            tool: context.tool,
-            inputs: context.inputs || {},
-            results: context.results || {},
+            tool: String(ctx.tool || "Unknown"),
+            inputs: (ctx.inputs as Record<string, unknown>) || {},
+            results: (ctx.results as Record<string, unknown>) || {},
           };
 
           // Case 2 — legacy shape: { toolName, lastCalculation }
@@ -324,7 +331,9 @@ export const useToolContext = () => {
         }
 
         // Attempt to preserve metadata (warnings, steps)
-        normalized.results = normalized.results || {};
+        if (!normalized.results) {
+          normalized.results = {};
+        }
         const contextObj = context as { metadata?: unknown; lastCalculation?: { metadata?: unknown } } | null;
         if (!normalized.results.metadata && contextObj?.metadata) {
           normalized.results.metadata = contextObj.metadata;

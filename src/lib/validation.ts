@@ -31,7 +31,7 @@ export function validatePositiveNumber(
     return `${fieldName} is required`;
   }
 
-  const num = typeof value === 'string' ? parseFloat(value) : value;
+  const num = typeof value === 'string' ? parseFloat(value) : (value as number);
 
   if (isNaN(num) || !isFinite(num)) {
     return `${fieldName} must be a valid number`;
@@ -59,7 +59,7 @@ export function validateFiniteNumber(
     return `${fieldName} is required`;
   }
 
-  const num = typeof value === 'string' ? parseFloat(value) : value;
+  const num = typeof value === 'string' ? parseFloat(value) : (value as number);
 
   if (isNaN(num) || !isFinite(num)) {
     return `${fieldName} must be a valid number`;
@@ -155,7 +155,7 @@ export function sanitizeNumber(
     return defaultValue;
   }
 
-  const num = typeof value === 'string' ? parseFloat(value) : value;
+  const num = typeof value === 'string' ? parseFloat(value) : (value as number);
 
   if (isNaN(num) || !isFinite(num)) {
     return defaultValue;

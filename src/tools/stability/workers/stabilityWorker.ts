@@ -43,12 +43,13 @@ self.onmessage = (e: MessageEvent<StabilityWorkerMessage>) => {
 
     if (type === 'calculate' && inputs) {
       // Base stability calculation
-      result = calculateStability(inputs);
+      const baseResult = calculateStability(inputs);
 
       // Add dynamic derivatives if inputs provided
       if (dynamicInputs) {
-        result.dynamic = calculateDynamicDerivatives(dynamicInputs);
+        (baseResult as unknown as Record<string, unknown>).dynamic = calculateDynamicDerivatives(dynamicInputs);
       }
+      result = baseResult;
     } else if (type === 'sweepCG' && inputs && cgRange) {
       // CG sweep calculation
       result = sweepCGPosition(inputs, cgRange.min, cgRange.max, cgRange.steps);
@@ -68,7 +69,7 @@ self.onmessage = (e: MessageEvent<StabilityWorkerMessage>) => {
       self.postMessage({
         type: 'error',
         id,
-        error: error.message || 'Unknown error',
+        error: (error as Error).message || 'Unknown error',
       } as StabilityWorkerResponse);
     }
   }

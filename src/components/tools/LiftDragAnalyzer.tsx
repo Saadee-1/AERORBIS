@@ -398,18 +398,8 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   const [computedLD, setComputedLD] = useState<ComputedLD[]>([]);
 
   // Unified graph selection state - single source of truth for all charts
-  // Define proper polar data interface
-  interface ComparisonPolarData {
-    alpha_deg: number[];
-    cl: number[];
-    cd: number[];
-    cm?: number[];
-    meta: {
-      alphaStallDeg?: number;
-      [key: string]: unknown;
-    };
-  }
-  type ComparisonPolar = { id: string; name: string; data: ComparisonPolarData };
+  // ComparisonPolar uses EnhancedPolar directly (which includes proper meta types)
+  type ComparisonPolar = { id: string; name: string; data: EnhancedPolar };
   const [comparisonPolars, setComparisonPolars] = useState<ComparisonPolar[]>([]);
   const [showComparisonLimitWarning, setShowComparisonLimitWarning] = useState(false);
   const [isPolarTableOpen, setIsPolarTableOpen] = useState(false);
@@ -1830,7 +1820,7 @@ const point: Record<string, unknown> = { alpha };
                           const maxAlpha = polar.data.alpha_deg.length > 0
                             ? Math.max(...polar.data.alpha_deg)
                             : currentChartData.length > 0
-                            ? Math.max(...currentChartData.map(d => d.alpha as number))
+                            ? Math.max(...currentChartData.map(d => (d as { alpha: number }).alpha))
                             : 20;
                           
                           return (
