@@ -21,11 +21,11 @@ export default function SpaceNewsFeed() {
         AGENCY_FEEDS.map(async (feed) => {
           const res = await fetch(feed.url);
           const json = await res.json();
-          return json.items.map((item: unknown) => ({
+          return json.items.map((item: { title?: string; link?: string; pubDate?: string }) => ({
             agency: feed.name,
-            title: item.title,
-            link: item.link,
-            date: item.pubDate,
+            title: item.title || '',
+            link: item.link || '',
+            date: item.pubDate || '',
           }));
         })
       );

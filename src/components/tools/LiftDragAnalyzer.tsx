@@ -243,10 +243,9 @@ interface LiftDragResult {
 /**
  * Check if a polar file appears to be placeholder/dummy data
  */
-// TODO: refine type for `isPlaceholderPolar` — changed any -> unknown automatically by chore/typed-cleanup
 function isPlaceholderPolar(polar: unknown): boolean {
+  const polarObj = polar as { meta?: { source?: string; notes?: string }; alpha?: unknown[]; cl?: unknown[]; cd?: unknown[] } | null;
   // Check meta.source or meta.notes for placeholder indicators
-  const polarObj = polar as { meta?: { source?: string; notes?: string } };
   if (polarObj?.meta) {
     const source = (polarObj.meta.source || '').toLowerCase();
     const notes = (polarObj.meta.notes || '').toLowerCase();
@@ -258,9 +257,9 @@ function isPlaceholderPolar(polar: unknown): boolean {
   }
   
   // Check if arrays have < 15 data points
-  const alphaCount = polar?.alpha?.length || 0;
-  const clCount = polar?.cl?.length || 0;
-  const cdCount = polar?.cd?.length || 0;
+  const alphaCount = polarObj?.alpha?.length || 0;
+  const clCount = polarObj?.cl?.length || 0;
+  const cdCount = polarObj?.cd?.length || 0;
   
   if (alphaCount < 15 || clCount < 15 || cdCount < 15) {
     return true;

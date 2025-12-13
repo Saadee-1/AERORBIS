@@ -30,8 +30,20 @@ export function MissionPanel({ onApplyRecommendations }: MissionPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [smartAiUnavailableReason, setSmartAiUnavailableReason] = useState<"AI_DISABLED" | "NETWORK_ERROR" | "BAD_RESPONSE" | null>(null);
   const [selectedAirfoilId, setSelectedAirfoilId] = useState<string | undefined>();
- // TODO: refine type for `airfoilMetricsMap` — changed any -> unknown automatically by chore/typed-cleanup
-const [airfoilMetricsMap, setAirfoilMetricsMap] = useState<Map<string, unknown>>(new Map());
+  
+  // Type for airfoil metrics
+  interface AirfoilMetrics {
+    re?: number;
+    clMax?: number;
+    ldMax?: number;
+    stallAlpha?: number;
+    alphaAtClMax?: number;
+    cdMin?: number;
+    stallSoftness?: number | null;
+    cmRange?: number | null;
+    cmMean?: number | null;
+  }
+  const [airfoilMetricsMap, setAirfoilMetricsMap] = useState<Map<string, AirfoilMetrics>>(new Map());
 
   async function handleRecommend() {
     if (!selectedMission) return;

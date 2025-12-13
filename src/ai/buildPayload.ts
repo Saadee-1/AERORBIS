@@ -116,29 +116,31 @@ export function buildAeroversePayload({
  * @param payload - Payload to validate
  * @returns True if valid, throws error if invalid
  */
-// TODO: refine type for `payload` — changed any -> unknown automatically by chore/typed-cleanup
 export function validateAeroversePayload(payload: unknown): payload is AeroverseAIPayload {
   if (!payload || typeof payload !== 'object') {
     throw new Error('Payload must be an object');
   }
 
-  if (!payload.toolName || typeof payload.toolName !== 'string') {
+  const p = payload as Record<string, unknown>;
+
+  if (!p.toolName || typeof p.toolName !== 'string') {
     throw new Error('Payload must have a valid toolName');
   }
 
-  if (!payload.inputs || typeof payload.inputs !== 'object') {
+  if (!p.inputs || typeof p.inputs !== 'object') {
     throw new Error('Payload must have an inputs object');
   }
 
-  if (!payload.results || typeof payload.results !== 'object') {
+  if (!p.results || typeof p.results !== 'object') {
     throw new Error('Payload must have a results object');
   }
 
-  if (!payload.metadata || typeof payload.metadata !== 'object') {
+  if (!p.metadata || typeof p.metadata !== 'object') {
     throw new Error('Payload must have a metadata object');
   }
 
-  if (!payload.metadata.timestamp || !payload.metadata.version) {
+  const meta = p.metadata as Record<string, unknown>;
+  if (!meta.timestamp || !meta.version) {
     throw new Error('Payload metadata must include timestamp and version');
   }
 

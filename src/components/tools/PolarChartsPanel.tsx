@@ -126,7 +126,20 @@ const getAirfoilLegendLabel = (airfoilId: string, airfoilName: string): string =
 /**
  * Custom tooltip for polar charts
  */
-const CustomTooltip = ({ active, payload, label, chartType }: unknown) => {
+interface TooltipEntry {
+  color: string;
+  name: string;
+  value: number | string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string;
+  chartType?: string;
+}
+
+const CustomTooltip = ({ active, payload, label, chartType }: CustomTooltipProps) => {
   if (!active || !payload || !payload.length) {
     return null;
   }
@@ -134,7 +147,7 @@ const CustomTooltip = ({ active, payload, label, chartType }: unknown) => {
   return (
     <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
       <p className="text-cyan-400 font-semibold mb-2">α = {label}°</p>
-      {payload.map((entry: unknown, index: number) => (
+      {payload.map((entry, index: number) => (
         <div key={index} className="flex items-center gap-2 text-sm">
           <div
             className="w-3 h-3 rounded-full"
