@@ -7,6 +7,16 @@ import { useLocation } from "react-router-dom";
  * No audio files required. Works best after a user interaction (browser autoplay policy).
  */
 
+// Extended GainNode type with context reference
+interface GainNodeWithCtx extends GainNode {
+  __ctx?: AudioContext;
+}
+
+// Extended window type for webkit prefix
+interface WindowWithWebkit extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 const sectionCues: Record<string, { type: "chime" | "whoosh" | "pad"; freq?: number }> = {
   "/": { type: "pad", freq: 220 },
   "/learn": { type: "chime", freq: 880 },
@@ -18,7 +28,7 @@ const sectionCues: Record<string, { type: "chime" | "whoosh" | "pad"; freq?: num
 };
 
 function fadeGain(gainNode: GainNode, from: number, to: number, duration = 0.25, audioCtx?: AudioContext) {
-  const now = (audioCtx ?? (gainNode as unknown).__ctx).currentTime;
+  const now = (audioCtx ?? (gainNode as GainNodeWithCtx).__ctx)?.currentTime ?? 0;
   gainNode.gain.cancelScheduledValues(now);
   gainNode.gain.setValueAtTime(from, now);
   gainNode.gain.linearRampToValueAtTime(to, now + duration);
@@ -42,7 +52,7 @@ export default function AudioManager() {
     let ctx = audioCtxRef.current;
     if (!ctx) {
       try {
-        ctx = new (window.AudioContext || (window as unknown).webkitAudioContext)();
+        ctx = new (window.AudioContext || (window as WindowWithWebkit).webkitAudioContext)();
         audioCtxRef.current = ctx;
       } catch (e) {
         console.warn("AudioContext not available:", e);
@@ -67,7 +77,7 @@ export default function AudioManager() {
     if (cue.type === "chime") {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      (gain as unknown).__ctx = ctx;
+      (gain as GainNodeWithCtx).__ctx = ctx;
       osc.type = "sine";
       osc.frequency.value = cue.freq ?? 660;
       gain.gain.value = 0;
@@ -101,7 +111,7 @@ export default function AudioManager() {
       const o2 = ctx.createOscillator();
       const gain = ctx.createGain();
       const lp = ctx.createBiquadFilter();
-      (gain as unknown).__ctx = ctx;
+      (gain as GainNodeWithCtx).__ctx = ctx;
 
       o1.type = "sine";
       o2.type = "sine";
@@ -140,7 +150,7 @@ export default function AudioManager() {
       const source = ctx.createBufferSource();
       source.buffer = buffer;
       const gain = ctx.createGain();
-      (gain as unknown).__ctx = ctx;
+      (gain as GainNodeWithCtx).__ctx = ctx;
 
       const filter = ctx.createBiquadFilter();
       filter.type = "lowpass";

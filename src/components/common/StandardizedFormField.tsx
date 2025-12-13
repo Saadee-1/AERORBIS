@@ -15,12 +15,12 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { validatePositiveNumber, validateFiniteNumber, sanitizeNumber } from '@/lib/validation';
 
+export type FormFieldValue = string | number | boolean | readonly string[] | undefined;
+
 export interface StandardizedFormFieldProps {
   label: string;
-  // TODO: refine type for `value` — changed any -> unknown automatically by chore/typed-cleanup
-  value: unknown;
-  // TODO: refine type for `onChange` — changed any -> unknown automatically by chore/typed-cleanup
-  onChange: (value: unknown) => void;
+  value: FormFieldValue;
+  onChange: (value: FormFieldValue) => void;
   type?: 'text' | 'number' | 'select' | 'textarea' | 'switch' | 'slider';
   unit?: string;
   min?: number;
@@ -58,14 +58,12 @@ export function StandardizedFormField({
   helpText,
   compact = false,
 }: StandardizedFormFieldProps) {
-  // TODO: refine type for `newValue` — changed any -> unknown automatically by chore/typed-cleanup
-  const handleChange = (newValue: unknown) => {
+  const handleChange = (newValue: FormFieldValue) => {
     if (type === 'number' && validation) {
-      const sanitized = sanitizeNumber(newValue, value || 0);
+      const sanitized = sanitizeNumber(newValue as number, (value as number) || 0);
       if (validation.type === 'positive') {
         const error = validatePositiveNumber(sanitized, label, validation.min, validation.max);
         if (error) {
-          // Still allow change but could show error
           onChange(sanitized);
           return;
         }
@@ -87,7 +85,7 @@ export function StandardizedFormField({
       case 'text':
         return (
           <Input
-            value={value || ''}
+            value={String(value ?? '')}
             onChange={(e) => handleChange(e.target.value)}
             placeholder={placeholder}
             disabled={disabled}
@@ -100,7 +98,7 @@ export function StandardizedFormField({
           <div className="flex items-center gap-2">
             <Input
               type="number"
-              value={value ?? ''}
+              value={value !== undefined ? String(value) : ''}
               onChange={(e) => handleChange(e.target.value)}
               min={min}
               max={max}
@@ -115,7 +113,7 @@ export function StandardizedFormField({
       
       case 'select':
         return (
-          <Select value={value} onValueChange={handleChange} disabled={disabled}>
+          <Select value={String(value ?? '')} onValueChange={handleChange} disabled={disabled}>
             <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
@@ -132,7 +130,7 @@ export function StandardizedFormField({
       case 'textarea':
         return (
           <Textarea
-            value={value || ''}
+            value={String(value ?? '')}
             onChange={(e) => handleChange(e.target.value)}
             placeholder={placeholder}
             disabled={disabled}
@@ -144,7 +142,7 @@ export function StandardizedFormField({
       case 'switch':
         return (
           <Switch
-            checked={value || false}
+            checked={Boolean(value)}
             onCheckedChange={handleChange}
             disabled={disabled}
           />
@@ -154,7 +152,7 @@ export function StandardizedFormField({
         return (
           <div className="space-y-2">
             <Slider
-              value={[value ?? min ?? 0]}
+              value={[Number(value ?? min ?? 0)]}
               onValueChange={([val]) => handleChange(val)}
               min={min}
               max={max}

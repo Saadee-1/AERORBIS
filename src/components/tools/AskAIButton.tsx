@@ -48,10 +48,10 @@ export function AskAIButton({
       let finalPayload: AeroverseAIPayload | undefined = undefined;
       let finalRequestId: string;
 
-      if (payload) {
-        // If payload is provided, build it using the helper
+      if (payload && payload.toolName) {
+        // If payload is provided with a toolName, build it using the helper
         try {
-          finalPayload = buildAeroversePayload(payload as unknown);
+          finalPayload = buildAeroversePayload(payload as Parameters<typeof buildAeroversePayload>[0]);
           finalRequestId = finalPayload.requestId || requestId || `calc-${Date.now()}`;
           finalPayload.requestId = finalRequestId;
           

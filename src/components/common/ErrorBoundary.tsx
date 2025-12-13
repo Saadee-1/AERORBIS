@@ -53,8 +53,9 @@ export class ErrorBoundary extends Component<Props, State> {
     });
 
     // Log to error tracking service if available
-    if (typeof window !== 'undefined' && (window as unknown).errorTracker) {
-      (window as unknown).errorTracker.log(error, {
+    const win = window as { errorTracker?: { log: (error: Error, info: Record<string, unknown>) => void } };
+    if (typeof window !== 'undefined' && win.errorTracker) {
+      win.errorTracker.log(error, {
         componentStack: errorInfo.componentStack,
         toolName: this.props.toolName,
       });

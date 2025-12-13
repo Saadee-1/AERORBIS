@@ -41,7 +41,7 @@ export function AeroButton({
 
   return (
     <Button
-      variant={buttonVariant as unknown}
+      variant={buttonVariant as "default" | "destructive" | "ghost" | "link" | "outline" | "secondary" | undefined}
       className={cn(
         'h-[42px] min-h-[44px] rounded-lg font-medium',
         customClassName,

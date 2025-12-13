@@ -182,8 +182,26 @@ const OrbitalVisualizer = () => {
     }
   };
 
-  const [orbitResult, setOrbitResult] = useState<unknown>(null);
-  const [maneuverResult, setManeuverResult] = useState<unknown>(null);
+  interface OrbitResultData {
+    periapsisRadius: number;
+    periapsisVelocity: number;
+    apoapsisRadius: number;
+    apoapsisVelocity: number;
+    semiMajorAxis: number;
+    orbitalPeriod: number;
+    eccentricity: number;
+    apoapsisAltitude: number;
+  }
+  
+  interface ManeuverResultData {
+    delta_v1: number;
+    delta_v2: number;
+    total_dv: number;
+    transferTime: number;
+  }
+  
+  const [orbitResult, setOrbitResult] = useState<OrbitResultData | null>(null);
+  const [maneuverResult, setManeuverResult] = useState<ManeuverResultData | null>(null);
   const [error, setError] = useState<string>("");
   const [visualizerError, setVisualizerError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

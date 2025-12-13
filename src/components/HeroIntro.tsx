@@ -53,10 +53,10 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 6 }: Props) {
 
       // --- Random moving streaks ---
       const streaks = gsap.utils.toArray(".streak");
-      streaks.forEach((streak: unknown, i) => {
+      streaks.forEach((streak, i) => {
         const move = () => {
           gsap.fromTo(
-            streak,
+            streak as gsap.TweenTarget,
             {
               x: Math.random() * window.innerWidth - window.innerWidth / 2,
               y: Math.random() * window.innerHeight - window.innerHeight / 2,
