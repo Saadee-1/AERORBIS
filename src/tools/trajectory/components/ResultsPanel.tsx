@@ -4,13 +4,14 @@
 
 import { AeroCard } from '@/components/common/AeroCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import type { TrajectoryResult, StagingEvent } from '../types';
 
 interface ResultsPanelProps {
   mode: '1D' | '2D' | '3D';
-  result1D?: unknown;
-  result2D?: unknown;
-  result3D?: unknown;
+  result1D?: TrajectoryResult;
+  result2D?: TrajectoryResult;
+  result3D?: TrajectoryResult;
 }
 
 export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPanelProps) {
@@ -105,7 +106,7 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
       {result.stagingEvents && result.stagingEvents.length > 0 && (
         <AeroCard title="Staging Events">
           <div className="space-y-2">
-            {result.stagingEvents.map((event: unknown, i: number) => (
+            {result.stagingEvents.map((event: StagingEvent, i: number) => (
               <div key={i} className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
                 <div className="flex justify-between items-center">
                   <span className="text-cyan-400 font-semibold">

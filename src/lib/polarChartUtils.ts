@@ -384,17 +384,18 @@ export async function loadPolarForComparison(
           stall_alpha: jsonData.meta?.stall_alpha,
         },
       };
-    } else if (json.alpha && Array.isArray(json.alpha)) {
+    } else if ((json as { alpha?: unknown }).alpha && Array.isArray((json as { alpha: unknown[] }).alpha)) {
       // Flat schema (new format): { airfoil: "...", re: ..., mach: ..., alpha: [...], cl: [...], cd: [...], cm: [...] }
+      const flatJson = json as { airfoil?: string; re?: number; mach?: number; alpha: number[]; cl: number[]; cd: number[]; cm?: number[]; meta?: unknown };
       normalized = {
-        airfoil: json.airfoil || airfoilId,
-        re: json.re ?? re,
-        mach: json.mach ?? 0.0,
-        alpha: json.alpha,
-        cl: json.cl,
-        cd: json.cd,
-        cm: json.cm,
-        meta: json.meta,
+        airfoil: flatJson.airfoil || airfoilId,
+        re: flatJson.re ?? re,
+        mach: flatJson.mach ?? 0.0,
+        alpha: flatJson.alpha,
+        cl: flatJson.cl,
+        cd: flatJson.cd,
+        cm: flatJson.cm,
+        meta: flatJson.meta,
       };
     } else {
       // Invalid schema

@@ -109,8 +109,8 @@ class PerformanceMonitor {
         ? this.frameTimes[this.frameTimes.length - 1]
         : 0,
       simulationTime: this.simulationTime,
-      memoryUsage: ((performance as { memory?: { usedJSHeapSize: number } }).memory)
-        ? ((performance as { memory: { usedJSHeapSize: number } }).memory.usedJSHeapSize / 1048576)
+      memoryUsage: ((performance as unknown as { memory?: { usedJSHeapSize: number } }).memory)
+        ? ((performance as unknown as { memory: { usedJSHeapSize: number } }).memory.usedJSHeapSize / 1048576)
         : undefined,
     };
   }

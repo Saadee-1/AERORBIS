@@ -475,7 +475,9 @@ export function convertPayloadToPDFData(
   payload: AeroverseAIPayload,
   steps?: string[]
 ): PowerSystemPDFData {
-  const config = payload.configuration as unknown;
+  const config = payload.configuration as { battery?: unknown; solar?: unknown; loads?: unknown; location?: unknown; dayOfYear?: number } | undefined;
+  const results = payload.results as { endurance_min?: number; endurance_hours?: number; solarFraction?: number; minPowerMargin_W?: number; maxVoltage?: number; minVoltage?: number; totalEnergyUsed_Wh?: number; totalSolarGenerated_Wh?: number; recommendations?: string[] } | undefined;
+  const metadata = payload.metadata as { warnings?: string[] } | undefined;
   return {
     toolName: payload.toolName,
     requestId: payload.requestId || `power-${Date.now()}`,
@@ -487,9 +489,9 @@ export function convertPayloadToPDFData(
       location: config?.location || {},
       dayOfYear: config?.dayOfYear || 0,
     },
-    results: payload.results as unknown,
-    warnings: (payload.metadata as unknown)?.warnings || [],
-    recommendations: (payload.results as unknown)?.recommendations || [],
+    results: results as PowerSystemPDFData['results'],
+    warnings: metadata?.warnings || [],
+    recommendations: results?.recommendations || [],
     steps,
   };
 }

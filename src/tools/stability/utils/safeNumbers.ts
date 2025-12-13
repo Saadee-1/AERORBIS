@@ -32,14 +32,14 @@ export function safeToFixed(value: unknown, decimals: number = 3, fallback: stri
  */
 // TODO: refine type for `ensureNumbers` — changed any -> unknown automatically by chore/typed-cleanup
 export function ensureNumbers<T extends Record<string, unknown>>(obj: T): T {
-  const result = { ...obj } as unknown;
+  const result = { ...obj } as Record<string, unknown>;
   for (const key in result) {
     if (typeof result[key] === 'string') {
-      result[key] = safeNumber(result[key], result[key] === '' ? undefined : 0);
+      result[key] = safeNumber(result[key] as string, result[key] === '' ? undefined : 0);
     } else if (result[key] === null || result[key] === undefined) {
       // Keep undefined/null for optional fields
       continue;
-    } else if (typeof result[key] === 'number' && !isFinite(result[key])) {
+    } else if (typeof result[key] === 'number' && !isFinite(result[key] as number)) {
       result[key] = 0;
     }
   }

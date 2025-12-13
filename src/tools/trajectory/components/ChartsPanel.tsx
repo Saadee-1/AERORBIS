@@ -4,17 +4,18 @@
 
 import { useRef } from 'react';
 import { AeroCard } from '@/components/common/AeroCard';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
-import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
 import { useChartExport } from '@/hooks/useChartExport';
 import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
+import { AeroverseLegend } from '@/components/charts/AeroverseLegend';
+import type { TrajectoryResult, TrajectoryState } from '../types';
 
 interface ChartsPanelProps {
   mode: '1D' | '2D' | '3D';
-  result1D?: unknown;
-  result2D?: unknown;
-  result3D?: unknown;
+  result1D?: TrajectoryResult;
+  result2D?: TrajectoryResult;
+  result3D?: TrajectoryResult;
 }
 
 export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelProps) {
@@ -33,15 +34,15 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
   // Prepare chart data (downsample if too many points)
   const maxPoints = 500;
   const step = Math.max(1, Math.floor(result.states.length / maxPoints));
-  const chartData = result.states.filter((_: unknown, i: number) => i % step === 0).map((state: unknown) => ({
+  const chartData = result.states.filter((_, i: number) => i % step === 0).map((state: TrajectoryState) => ({
     time: state.t,
     altitude: state.altitude / 1000, // km
     velocity: state.velocity / 1000, // km/s
-    dynamicPressure: state.dynamicPressure / 1000, // kPa
-    acceleration: state.acceleration,
-    mass: state.mass / 1000, // t
-    thrustToWeight: state.thrustToWeight,
-    downrange: mode === '2D' ? (state.downrange || 0) / 1000 : undefined,
+    dynamicPressure: (state.dynamicPressure || 0) / 1000, // kPa
+    acceleration: state.acceleration || 0,
+    mass: (state.mass || 0) / 1000, // t
+    thrustToWeight: state.thrustToWeight || 0,
+    downrange: mode === '2D' ? ((state.downrange || 0) / 1000) : undefined,
   }));
 
   // Refs for each chart card

@@ -1692,7 +1692,7 @@ export async function assemblePdfDocument(options: {
     }
 
     // Helper to add text with safe formatting using embedded Unicode font
-    const addText = (page: { drawText: (text: string, opts: { x: number; y: number; size: number; color: unknown; font: unknown }) => void }, text: string, x: number, y: number, size: number = 12, color = rgb(0, 0, 0)) => {
+    const addText = (page: ReturnType<typeof pdfDoc.addPage>, text: string, x: number, y: number, size: number = 12, color = rgb(0, 0, 0)) => {
       page.drawText(text, { x, y, size, color, font: robotoFont });
     };
 

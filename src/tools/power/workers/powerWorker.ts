@@ -70,7 +70,7 @@ self.onmessage = (e: MessageEvent<PowerWorkerMessage>) => {
       self.postMessage({
         type: 'error',
         id,
-        error: error.message || 'Unknown error',
+        error: (error as Error).message || 'Unknown error',
       } as PowerWorkerResponse);
     }
   }
