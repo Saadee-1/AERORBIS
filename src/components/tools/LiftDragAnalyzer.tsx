@@ -40,7 +40,7 @@ import { AeroCard } from "@/components/common/AeroCard";
 import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
-import { useDesignSession } from "@/contexts/designSession";
+// useDesignSession imported above
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";

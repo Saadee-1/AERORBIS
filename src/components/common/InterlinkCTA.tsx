@@ -1,16 +1,19 @@
 // src/components/common/InterlinkCTA.tsx
 import React, { useMemo, useState } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   getAvailableDataForTool,
   getAvailableDataAny,
   importDataToSession,
   labelForField,
 } from '@/components/tools/utils/interlink';
-import { INTERLINK_PUBLISHERS } from '@/components/tools/utils/interlinkConfig';
+import { INTERLINK_PUBLISHERS, FieldKey } from '@/components/tools/utils/interlinkConfig';
 import { AeroCard } from '@/components/common/AeroCard';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigateToTool } from '@/hooks/useNavigateToTool';
+import { cn } from '@/lib/utils';
 
 type InlineData = Partial<Record<string, number | string>>;
 
@@ -25,26 +28,78 @@ type Props = {
   className?: string;
 };
 
-export function InlineInterlinkHint({
-  fieldKey,
-  sourceTool,
-}: {
-  fieldKey: string;
-  sourceTool?: string;
-}) {
-  const available = sourceTool ? getAvailableDataForTool(sourceTool) : getAvailableDataAny();
-  const exists = available[fieldKey] !== undefined && available[fieldKey] !== null;
-  const navigate = useNavigateToTool();
-  if (exists) {
-    return <span className="text-xs text-slate-300 ml-2">{String(available[fieldKey])}</span>;
+/** Find which tool publishes a given field */
+function findPublisher(fieldKey: string) {
+  for (const pub of INTERLINK_PUBLISHERS) {
+    if (pub.publishes.includes(fieldKey as FieldKey)) {
+      return {
+        toolId: pub.toolId,
+        label: pub.label || pub.toolId,
+        path: `/tools/launch?tool=${pub.toolId}`,
+      };
+    }
   }
+  return null;
+}
+
+/** Get value from design session */
+function getSessionValue(fieldKey: string): number | string | undefined {
+  const available = getAvailableDataAny();
+  return available[fieldKey as FieldKey];
+}
+
+/**
+ * Inline interlink hint component - shows subtle hints below input fields
+ * Supports both old API (requiredFields) and new API (fieldKey)
+ */
+export function InlineInterlinkHint({
+  requiredFields,
+  sourceTool,
+  className,
+  fieldKey,
+}: {
+  requiredFields?: string[];
+  sourceTool?: string;
+  className?: string;
+  fieldKey?: string;
+}) {
+  const navigate = useNavigate();
+  
+  // Support both old and new API
+  const targetFieldKey = fieldKey || (requiredFields?.[0]);
+  if (!targetFieldKey) return null;
+  
+  // Find publisher for the field
+  const publisher = sourceTool 
+    ? INTERLINK_PUBLISHERS.find(p => p.toolId === sourceTool)
+    : findPublisher(targetFieldKey);
+  
+  if (!publisher) return null;
+  
+  const sessionValue = getSessionValue(targetFieldKey);
+  const hasData = sessionValue !== undefined && sessionValue !== null;
+  
+  const toolLabel = 'label' in publisher ? publisher.label : sourceTool;
+  const toolPath = 'path' in publisher ? publisher.path : `/tools/launch?tool=${sourceTool}`;
+  
+  if (hasData) {
+    return (
+      <div className={cn("text-[11px] text-cyan-400/60 mt-1", className)}>
+        Available from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}
+      </div>
+    );
+  }
+  
   return (
     <button
-      className="text-xs text-amber-400 underline ml-2"
-      onClick={() => navigate(sourceTool ?? 'tools', { focus: 'inputs' })}
-      aria-label={`Find ${labelForField(fieldKey)} in ${sourceTool ?? 'tools'}`}
+      onClick={() => navigate(toolPath)}
+      className={cn(
+        "text-[11px] text-slate-400 hover:text-cyan-400 mt-1 flex items-center gap-1",
+        className
+      )}
     >
-      Find out here
+      Don't know? Compute in {toolLabel}
+      <ArrowRight className="w-3 h-3" />
     </button>
   );
 }
@@ -105,7 +160,7 @@ export default function InterlinkCTA(props: Props) {
           </p>
 
           <div className="mt-4 flex gap-2">
-            <Button variant="primary" onClick={goCompute}>
+            <Button variant="default" onClick={goCompute}>
               Compute in {label}
             </Button>
             <Button variant="ghost" onClick={() => navigate('tools')}>
@@ -145,7 +200,7 @@ export default function InterlinkCTA(props: Props) {
         </div>
 
         <div className="mt-4 flex gap-3">
-          <Button variant="primary" onClick={handleImport}>
+          <Button variant="default" onClick={handleImport}>
             Use this data {targetTool ? `in ${targetTool}` : ''}
           </Button>
           <Button variant="ghost" onClick={() => navigate(sourceTool ?? 'tools')}>
