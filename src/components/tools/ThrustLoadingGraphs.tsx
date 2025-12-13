@@ -87,9 +87,9 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
         <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
           {`${label}`}
         </p>
-        {payload.map((entry: unknown, index: number) => (
+        {payload.map((entry: { color?: string; name?: string; value?: number; unit?: string }, index: number) => (
           <p key={index} className="text-sm font-medium" style={{ color: entry.color || GRAPH_STYLES.tooltipText }}>
-            {`${entry.name}: ${entry.value.toFixed(2)} ${entry.unit || ''}`}
+            {`${entry.name}: ${(entry.value ?? 0).toFixed(2)} ${entry.unit || ''}`}
           </p>
         ))}
       </div>
@@ -298,9 +298,8 @@ export function ThrustLoadingGraphs({
                   }}
                   labelStyle={{ color: "#22d3ee", fontWeight: 600 }}
                   itemStyle={{ color: "#c084fc", fontWeight: 500 }}
-                  // TODO: refine type for `formatter` — changed any -> unknown automatically by chore/typed-cleanup
-                  formatter={(value: number, name: string, props: unknown) => {
-                    if (name === 'twRange') {
+                  formatter={(value: number, name: string, props: { payload?: { twMin: number; twMax: number } }) => {
+                    if (name === 'twRange' && props.payload) {
                       return [`${props.payload.twMin.toFixed(2)}–${props.payload.twMax.toFixed(2)}`, 'T/W Range'];
                     }
                     return [value.toFixed(2), name];

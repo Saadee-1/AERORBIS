@@ -999,10 +999,10 @@ const WingLoadingCalculator = () => {
                 <AskAIButton
                   requestId={lastRequestId}
                   payload={buildAeroversePayload({
-                    toolName: lastPayload.tool,
+                    toolName: (lastPayload as { tool?: string }).tool || 'Wing Loading Calculator',
                     requestId: lastRequestId || undefined,
-                    inputs: lastPayload.inputs,
-                    results: lastPayload.results,
+                    inputs: (lastPayload as { inputs?: Record<string, unknown> }).inputs,
+                    results: (lastPayload as { results?: Record<string, unknown> }).results,
                   })}
                   disabled={!lastPayload}
                 />
@@ -1135,7 +1135,7 @@ const WingLoadingCalculator = () => {
                       unitSystem,
                       calculatorMode,
                       aircraftPreset,
-                      missionType: reusableData.missionType || missionType,
+                      missionType: (reusableData as { missionType?: MissionType }).missionType || missionType,
                       weightMode,
                       massKg: reusableData.massKg?.toString() || massKg,
                       weightN: reusableData.weightN?.toString() || weightN,

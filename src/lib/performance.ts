@@ -61,8 +61,11 @@ class PerformanceMonitor {
     }
 
     // Get memory usage if available
-    const memoryUsage = (performance as unknown).memory
-      ? (performance as unknown).memory.usedJSHeapSize / 1048576 // Convert to MB
+    interface PerformanceWithMemory extends Performance {
+      memory?: { usedJSHeapSize: number };
+    }
+    const memoryUsage = (performance as PerformanceWithMemory).memory
+      ? (performance as PerformanceWithMemory).memory!.usedJSHeapSize / 1048576 // Convert to MB
       : undefined;
 
     // Notify listeners
@@ -106,8 +109,8 @@ class PerformanceMonitor {
         ? this.frameTimes[this.frameTimes.length - 1]
         : 0,
       simulationTime: this.simulationTime,
-      memoryUsage: (performance as unknown).memory
-        ? (performance as unknown).memory.usedJSHeapSize / 1048576
+      memoryUsage: ((performance as { memory?: { usedJSHeapSize: number } }).memory)
+        ? ((performance as { memory: { usedJSHeapSize: number } }).memory.usedJSHeapSize / 1048576)
         : undefined,
     };
   }

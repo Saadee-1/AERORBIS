@@ -520,7 +520,7 @@ Error: ${data.error}`;
           inputs: parsed.inputs || {},
           results: parsed.results || {},
           units: parsed.units || {},
-          charts: parsed.attachments?.charts?.map((c: unknown, idx: number) => ({
+          charts: (parsed.attachments?.charts as Array<{ title?: string }> | undefined)?.map((c, idx: number) => ({
             id: `chart-${idx}`,
             title: c.title || `Chart ${idx + 1}`
           })) || [],

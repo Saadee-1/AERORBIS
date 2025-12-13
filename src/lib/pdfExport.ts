@@ -44,7 +44,7 @@ function generatePDFFromLocalStorage(requestId: string, options: PDFExportOption
 
     // Extract chart data if available
     const charts = attachments.charts || [];
-    const chartImages = charts.map((chart: unknown) => chart.data || '').filter(Boolean);
+    const chartImages = (charts as Array<{ data?: string }>).map((chart) => chart.data || '').filter(Boolean);
 
     // Generate HTML
     const html = `
@@ -365,7 +365,10 @@ export async function downloadHTMLAsPDF(
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
       };
-      await ((window as unknown as Record<string, unknown>).html2pdf as () => { set: (opt: unknown) => { from: (html: string) => { save: () => Promise<void> } } })()().set(opt).from(html).save();
+      const html2pdfLib = (window as unknown as { html2pdf?: () => { set: (opt: unknown) => { from: (html: string) => { save: () => Promise<void> } } } }).html2pdf;
+      if (html2pdfLib) {
+        await html2pdfLib().set(opt).from(html).save();
+      }
       return;
     } catch (error) {
       console.warn('html2pdf failed, falling back to print:', error);
@@ -1689,7 +1692,7 @@ export async function assemblePdfDocument(options: {
     }
 
     // Helper to add text with safe formatting using embedded Unicode font
-    const addText = (page: unknown, text: string, x: number, y: number, size: number = 12, color = rgb(0, 0, 0)) => {
+    const addText = (page: { drawText: (text: string, opts: { x: number; y: number; size: number; color: unknown; font: unknown }) => void }, text: string, x: number, y: number, size: number = 12, color = rgb(0, 0, 0)) => {
       page.drawText(text, { x, y, size, color, font: robotoFont });
     };
 

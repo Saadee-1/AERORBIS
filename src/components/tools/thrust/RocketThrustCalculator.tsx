@@ -752,45 +752,46 @@ const AdvancedThrustCalculator = () => {
               }
             >
               {/* Performance Result */}
-              {performanceResult && (
+              {performanceResult && typeof performanceResult === 'object' && 'solvedFor' in performanceResult && (
                 <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30 mb-4">
                   <p className="text-sm font-semibold text-green-400 mb-2">Part 1 Result (Performance)</p>
-                  <p className="text-gray-400 text-sm mb-1">Solved: {performanceResult.solvedFor}</p>
+                  <p className="text-gray-400 text-sm mb-1">Solved: {(performanceResult as { solvedFor?: string }).solvedFor}</p>
                   <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
-                    {performanceResult.isp ? `${performanceResult.isp.toFixed(1)} ${getUnit("isp")}`
-                    : `${convertFromSI(performanceResult.exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
+                    {(performanceResult as { isp?: number }).isp ? `${((performanceResult as { isp: number }).isp).toFixed(1)} ${getUnit("isp")}`
+                    : `${convertFromSI((performanceResult as { exhaustVelocity: number }).exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
                     }
                   </p>
                 </div>
               )}
               
               {/* Thrust Result */}
-              {thrustResult && (
+              {thrustResult && typeof thrustResult === 'object' && 'solvedFor' in thrustResult && (
                 <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
                   <p className="text-sm font-semibold text-cyan-400 mb-2">Part 2 Result (Thrust)</p>
-                    <p className="text-gray-400 text-sm mb-1">Solved: {thrustResult.solvedFor}</p>
+                    <p className="text-gray-400 text-sm mb-1">Solved: {(thrustResult as { solvedFor?: string }).solvedFor}</p>
                     <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
-                      {
-                        thrustResult.thrust ? `${convertFromSI(thrustResult.thrust, "thrust").toFixed(2)} ${getUnit("thrust")}`
-                        : thrustResult.massFlowRate ? `${convertFromSI(thrustResult.massFlowRate, "massFlowRate").toFixed(4)} ${getUnit("massFlowRate")}`
-                        : thrustResult.exhaustVelocity ? `${convertFromSI(thrustResult.exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
-                        : thrustResult.exitArea ? `${convertFromSI(thrustResult.exitArea, "exitArea").toFixed(6)} ${getUnit("exitArea")}`
-                        : thrustResult.exitPressure ? `${convertFromSI(thrustResult.exitPressure, "exitPressure").toFixed(0)} ${getUnit("exitPressure")}`
-                        : `${convertFromSI(thrustResult.ambientPressure, "ambientPressure").toFixed(0)} ${getUnit("ambientPressure")}`
-                      }
+                      {(() => {
+                        const tr = thrustResult as { thrust?: number; massFlowRate?: number; exhaustVelocity?: number; exitArea?: number; exitPressure?: number; ambientPressure?: number };
+                        if (tr.thrust) return `${convertFromSI(tr.thrust, "thrust").toFixed(2)} ${getUnit("thrust")}`;
+                        if (tr.massFlowRate) return `${convertFromSI(tr.massFlowRate, "massFlowRate").toFixed(4)} ${getUnit("massFlowRate")}`;
+                        if (tr.exhaustVelocity) return `${convertFromSI(tr.exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`;
+                        if (tr.exitArea) return `${convertFromSI(tr.exitArea, "exitArea").toFixed(6)} ${getUnit("exitArea")}`;
+                        if (tr.exitPressure) return `${convertFromSI(tr.exitPressure, "exitPressure").toFixed(0)} ${getUnit("exitPressure")}`;
+                        return `${convertFromSI(tr.ambientPressure ?? 0, "ambientPressure").toFixed(0)} ${getUnit("ambientPressure")}`;
+                      })()}
                     </p>
                     <div className="mt-4 grid grid-cols-3 gap-3">
                       <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                         <p className="text-gray-400 text-xs mb-1">Momentum Thrust</p>
-                        <p className="text-lg font-semibold text-blue-400">{convertFromSI(thrustResult.momentumThrust, "thrust").toFixed(2)} {getUnit("thrust")}</p>
+                        <p className="text-lg font-semibold text-blue-400">{convertFromSI((thrustResult as { momentumThrust?: number }).momentumThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
                       </div>
                       <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                         <p className="text-gray-400 text-xs mb-1">Pressure Thrust</p>
-                        <p className="text-lg font-semibold text-blue-400">{convertFromSI(thrustResult.pressureThrust, "thrust").toFixed(2)} {getUnit("thrust")}</p>
+                        <p className="text-lg font-semibold text-blue-400">{convertFromSI((thrustResult as { pressureThrust?: number }).pressureThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
                       </div>
                       <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                         <p className="text-gray-400 text-xs mb-1">Specific Impulse</p>
-                        <p className="text-lg font-semibold text-blue-400">{thrustResult.isp ? thrustResult.isp.toFixed(1) : "N/A"} s</p>
+                        <p className="text-lg font-semibold text-blue-400">{(thrustResult as { isp?: number }).isp ? (thrustResult as { isp: number }).isp.toFixed(1) : "N/A"} s</p>
                       </div>
                     </div>
                   </div>
@@ -802,7 +803,7 @@ const AdvancedThrustCalculator = () => {
                     <AccordionItem value="steps" className="border-cyan-400/20">
                       <AccordionTrigger className="text-white hover:text-cyan-400"><div className="flex items-center gap-2"><Info className="w-4 h-4 text-cyan-400" />Step-by-Step Solution</div></AccordionTrigger>
                       <AccordionContent className="pt-2">
-                        <CalculationSteps steps={(thrustResult?.steps || performanceResult?.steps) || []} />
+                        <CalculationSteps steps={((thrustResult as { steps?: string[] })?.steps || (performanceResult as { steps?: string[] })?.steps) || []} />
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
