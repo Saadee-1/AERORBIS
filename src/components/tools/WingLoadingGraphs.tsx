@@ -93,10 +93,24 @@ interface WingLoadingGraphsProps {
   airDensityAltitude?: number;
 }
 
+/** Tooltip entry type */
+interface TooltipEntry {
+  color?: string;
+  name?: string;
+  value?: number;
+  unit?: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string | number;
+}
+
 /**
  * Custom tooltip for wing loading graphs with mild gradient styling
  */
-const CustomTooltip = ({ active, payload, label }: unknown) => {
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div 
@@ -109,9 +123,9 @@ const CustomTooltip = ({ active, payload, label }: unknown) => {
         <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
           {`${label}`}
         </p>
-        {payload.map((entry: unknown, index: number) => (
+        {payload.map((entry: TooltipEntry, index: number) => (
           <p key={index} className="text-sm font-medium" style={{ color: entry.color || GRAPH_STYLES.tooltipText }}>
-            {`${entry.name}: ${entry.value.toFixed(2)} ${entry.unit || ''}`}
+            {`${entry.name}: ${(entry.value ?? 0).toFixed(2)} ${entry.unit || ''}`}
           </p>
         ))}
       </div>

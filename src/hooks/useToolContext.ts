@@ -291,11 +291,12 @@ export const useToolContext = () => {
           "toolName" in context &&
           "lastCalculation" in context
         ) {
-          const last = context.lastCalculation || {};
+          const ctx = context as { toolName?: string; tool?: string; inputs?: Record<string, unknown>; results?: Record<string, unknown>; lastCalculation?: { inputs?: Record<string, unknown>; results?: Record<string, unknown>; payload?: unknown; toolId?: string } };
+          const last = ctx.lastCalculation || {};
           normalized = {
-            tool: context.tool || context.toolName || "Unknown",
-            inputs: last.inputs || context.inputs || {},
-            results: last.results || context.results || last.payload || {},
+            tool: ctx.tool || ctx.toolName || "Unknown",
+            inputs: last.inputs || ctx.inputs || {},
+            results: last.results || ctx.results || (last.payload as Record<string, unknown>) || {},
           };
 
           // Case 3 — legacy shape: { lastCalculation } only
@@ -304,31 +305,34 @@ export const useToolContext = () => {
           typeof context === "object" &&
           "lastCalculation" in context
         ) {
-          const last = context.lastCalculation || {};
+          const ctx = context as { tool?: string; toolName?: string; inputs?: Record<string, unknown>; results?: Record<string, unknown>; lastCalculation?: { toolId?: string; inputs?: Record<string, unknown>; results?: Record<string, unknown>; payload?: unknown } };
+          const last = ctx.lastCalculation || {};
           normalized = {
-            tool: context.tool || context.toolName || last.toolId || "Unknown",
-            inputs: last.inputs || context.inputs || {},
-            results: last.results || context.results || last.payload || {},
+            tool: ctx.tool || ctx.toolName || last.toolId || "Unknown",
+            inputs: last.inputs || ctx.inputs || {},
+            results: last.results || ctx.results || (last.payload as Record<string, unknown>) || {},
           };
 
           // Case 4 — unknown object but may contain inputs/results
         } else {
+          const ctx = context as { tool?: string; toolName?: string; inputs?: Record<string, unknown>; results?: Record<string, unknown> } | null;
           normalized = {
-            tool: context?.tool || context?.toolName || "Unknown",
-            inputs: context?.inputs || {},
-            results: context?.results || {},
+            tool: ctx?.tool || ctx?.toolName || "Unknown",
+            inputs: ctx?.inputs || {},
+            results: ctx?.results || {},
           };
         }
 
         // Attempt to preserve metadata (warnings, steps)
         normalized.results = normalized.results || {};
-        if (!normalized.results.metadata && context?.metadata) {
-          normalized.results.metadata = context.metadata;
+        const contextObj = context as { metadata?: unknown; lastCalculation?: { metadata?: unknown } } | null;
+        if (!normalized.results.metadata && contextObj?.metadata) {
+          normalized.results.metadata = contextObj.metadata;
         } else if (
           !normalized.results.metadata &&
-          context?.lastCalculation?.metadata
+          contextObj?.lastCalculation?.metadata
         ) {
-          normalized.results.metadata = context.lastCalculation.metadata;
+          normalized.results.metadata = contextObj.lastCalculation.metadata;
         }
 
         // Canonical enforcement
@@ -344,11 +348,12 @@ export const useToolContext = () => {
           "Failed to normalize tool context; applying minimal fallback.",
           err,
         );
-
+        
+        const ctx = context as { tool?: string; toolName?: string; inputs?: Record<string, unknown>; results?: Record<string, unknown> } | null;
         setToolContext({
-          tool: (context && (context.tool || context.toolName)) || "Unknown",
-          inputs: (context && context.inputs) || {},
-          results: (context && context.results) || {},
+          tool: ctx?.tool || ctx?.toolName || "Unknown",
+          inputs: ctx?.inputs || {},
+          results: ctx?.results || {},
         } as ToolContext);
       }
     },

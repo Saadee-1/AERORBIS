@@ -69,11 +69,11 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
         }}
       >
         <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
-          {`Speed: ${label?.toFixed(1) || 0} m/s`}
+          {`Speed: ${typeof label === 'number' ? label.toFixed(1) : label || 0} m/s`}
         </p>
-        {payload.map((entry: unknown, index: number) => (
+        {payload.map((entry: { color?: string; name?: string; value?: number; unit?: string }, index: number) => (
           <p key={index} className="text-sm font-medium" style={{ color: entry.color || GRAPH_STYLES.tooltipText }}>
-            {`${entry.name}: ${entry.value?.toFixed(2) || 0} ${entry.unit || ''}`}
+            {`${entry.name}: ${(entry.value ?? 0).toFixed(2)} ${entry.unit || ''}`}
           </p>
         ))}
       </div>

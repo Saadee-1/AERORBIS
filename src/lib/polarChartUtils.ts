@@ -353,23 +353,35 @@ export async function loadPolarForComparison(
     // Normalize schema: handle both nested (from convertAirfoilToolsPolar.ts) and flat (new format) schemas
     let normalized: PolarData;
     
-    if (json.data && json.data.alpha_deg) {
+    const jsonData = json as {
+      data?: { alpha_deg?: number[]; cl?: number[]; cd?: number[]; cm?: number[] };
+      meta?: { airfoil?: string; re?: number; mach?: number; source?: string; generated_at?: string; filter?: string; notes?: string; cm_estimated?: boolean; stall_alpha?: number };
+      alpha?: number[];
+      cl?: number[];
+      cd?: number[];
+      cm?: number[];
+      airfoil?: string;
+      re?: number;
+      mach?: number;
+    };
+    
+    if (jsonData.data && jsonData.data.alpha_deg) {
       // Nested schema from convertAirfoilToolsPolar.ts: { meta: {...}, data: { alpha_deg: [...], cl: [...], cd: [...], cm: [...] } }
       normalized = {
-        airfoil: json.meta?.airfoil || airfoilId,
-        re: json.meta?.re || re,
-        mach: json.meta?.mach ?? 0.0,
-        alpha: json.data.alpha_deg,
-        cl: json.data.cl,
-        cd: json.data.cd,
-        cm: json.data.cm,
+        airfoil: jsonData.meta?.airfoil || airfoilId,
+        re: jsonData.meta?.re || re,
+        mach: jsonData.meta?.mach ?? 0.0,
+        alpha: jsonData.data.alpha_deg,
+        cl: jsonData.data.cl ?? [],
+        cd: jsonData.data.cd ?? [],
+        cm: jsonData.data.cm,
         meta: {
-          source: json.meta?.source,
-          generated_at: json.meta?.generated_at,
-          filter: json.meta?.filter,
-          notes: json.meta?.notes,
-          cm_estimated: json.meta?.cm_estimated,
-          stall_alpha: json.meta?.stall_alpha,
+          source: jsonData.meta?.source,
+          generated_at: jsonData.meta?.generated_at,
+          filter: jsonData.meta?.filter,
+          notes: jsonData.meta?.notes,
+          cm_estimated: jsonData.meta?.cm_estimated,
+          stall_alpha: jsonData.meta?.stall_alpha,
         },
       };
     } else if (json.alpha && Array.isArray(json.alpha)) {

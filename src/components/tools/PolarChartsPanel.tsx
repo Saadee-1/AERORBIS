@@ -155,7 +155,7 @@ const CustomTooltip = ({ active, payload, label, chartType }: CustomTooltipProps
           />
           <span className="text-slate-300">{entry.name}:</span>
           <span className="text-white font-semibold">
-            {formatTooltipValue(entry.value, chartType)}
+            {formatTooltipValue(typeof entry.value === 'number' ? entry.value : 0, chartType as 'cl' | 'cd' | 'cm')}
           </span>
         </div>
       ))}
@@ -344,22 +344,28 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
   const dragPolarCdMin = 0; // Always start from 0
   const dragPolarCdMax = allCdValues.length > 0 ? Math.max(...allCdValues) * 1.05 : 0.1;
 
+  // Drag polar tooltip entry type
+  interface DragPolarTooltipEntry {
+    dataKey?: string;
+    value?: number;
+    payload?: Record<string, unknown>;
+  }
+
   // Custom tooltip for drag polar
-  // TODO: refine type for `DragPolarTooltip` — changed any -> unknown automatically by chore/typed-cleanup
-  const DragPolarTooltip = ({ active, payload }: { active?: boolean; payload?: unknown[] }) => {
+  const DragPolarTooltip = ({ active, payload }: { active?: boolean; payload?: DragPolarTooltipEntry[] }) => {
     if (!active || !payload || !payload.length) {
       return null;
     }
 
     return (
       <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
-        {payload.map((entry: unknown, index: number) => {
+        {payload.map((entry: DragPolarTooltipEntry, index: number) => {
           const airfoilId = entry.dataKey;
           const polar = polars.find(p => p.id === airfoilId);
           const point = entry.payload;
           const cl = point?.[`${airfoilId}_cl`] ?? point?.cl;
           const cd = entry.value;
-          const alpha = point?.[`${airfoilId}_alpha`];
+          const alpha = point?.[`${airfoilId}_alpha`] as number | undefined;
 
           return (
             <div key={index} className="mb-2 last:mb-0">
@@ -368,17 +374,17 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
               </p>
               <div className="text-sm space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-300">CL:</span>
-                  <span className="text-white font-semibold">{cl?.toFixed(3) ?? 'N/A'}</span>
+                  <span className="text-slate-400">CL:</span>
+                  <span className="text-white font-semibold">{typeof cl === 'number' ? cl.toFixed(3) : 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-300">CD:</span>
-                  <span className="text-white font-semibold">{cd?.toFixed(4) ?? 'N/A'}</span>
+                  <span className="text-slate-400">CD:</span>
+                  <span className="text-white font-semibold">{typeof cd === 'number' ? cd.toFixed(5) : 'N/A'}</span>
                 </div>
                 {alpha !== undefined && (
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-300">α:</span>
-                    <span className="text-white font-semibold">{alpha?.toFixed(1)}°</span>
+                    <span className="text-slate-400">α:</span>
+                    <span className="text-white font-semibold">{alpha.toFixed(1)}°</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2">

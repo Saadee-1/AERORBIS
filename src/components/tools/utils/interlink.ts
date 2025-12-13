@@ -11,7 +11,7 @@ export function getAvailableDataForTool(toolId?: ToolId): DesignSessionData {
   const pubs = INTERLINK_PUBLISHERS.find((p) => p.toolId === toolId)?.publishes ?? [];
   for (const k of pubs) {
     const val = (ds as unknown as Record<string, unknown>)[k];
-    if (val !== undefined && val !== null) out[k as FieldKey] = val as unknown;
+    if (val !== undefined && val !== null) out[k as FieldKey] = val as string | number;
   }
   return out;
 }
@@ -23,7 +23,7 @@ export function getAvailableDataAny(): DesignSessionData {
   INTERLINK_PUBLISHERS.forEach((p) => p.publishes.forEach((f) => known.add(f)));
   for (const k of Array.from(known)) {
     const val = (ds as unknown as Record<string, unknown>)[k];
-    if (val !== undefined && val !== null) out[k] = val as unknown;
+    if (val !== undefined && val !== null) out[k] = val as string | number;
   }
   return out;
 }
@@ -40,8 +40,8 @@ export function importDataToSession(
   const prev: DesignSessionData = {};
   for (const rawKey of Object.keys(data)) {
     const targetKey = (mapping && mapping[rawKey]) ?? rawKey;
-    prev[targetKey as FieldKey] = (ds as unknown as Record<string, unknown>)[targetKey as FieldKey] as unknown;
-    (ds as unknown as Record<string, unknown>)[targetKey as FieldKey] = (data as unknown as Record<string, unknown>)[rawKey];
+    prev[targetKey as FieldKey] = (ds as unknown as Record<string, string | number>)[targetKey] as string | number;
+    (ds as unknown as Record<string, string | number>)[targetKey] = (data as Record<string, string | number>)[rawKey];
   }
   saveDesignSession(ds);
   // Emit event so other components can refresh if they listen

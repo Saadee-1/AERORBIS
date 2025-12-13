@@ -398,8 +398,19 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   const [computedLD, setComputedLD] = useState<ComputedLD[]>([]);
 
   // Unified graph selection state - single source of truth for all charts
-  // TODO: refine type for `comparisonPolars` — changed any -> unknown automatically by chore/typed-cleanup
-  const [comparisonPolars, setComparisonPolars] = useState<Array<{ id: string; name: string; data: unknown }>>([]);
+  // Define proper polar data interface
+  interface ComparisonPolarData {
+    alpha_deg: number[];
+    cl: number[];
+    cd: number[];
+    cm?: number[];
+    meta: {
+      alphaStallDeg?: number;
+      [key: string]: unknown;
+    };
+  }
+  type ComparisonPolar = { id: string; name: string; data: ComparisonPolarData };
+  const [comparisonPolars, setComparisonPolars] = useState<ComparisonPolar[]>([]);
   const [showComparisonLimitWarning, setShowComparisonLimitWarning] = useState(false);
   const [isPolarTableOpen, setIsPolarTableOpen] = useState(false);
   
@@ -877,14 +888,21 @@ const point: Record<string, unknown> = { alpha };
   
   // FIXED: Use useMemo to prevent unnecessary recalculations
   // Custom tooltip with data quality badge
-  // TODO: refine type for `CustomTooltipWithBadge` — changed any -> unknown automatically by chore/typed-cleanup
-  const CustomTooltipWithBadge = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: unknown }) => {
+  // Recharts tooltip entry type
+  interface TooltipEntry {
+    color?: string;
+    name?: string;
+    value?: number | string;
+    dataKey?: string;
+  }
+
+  const CustomTooltipWithBadge = ({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string | number }) => {
     if (!active || !payload || !payload.length) {
       return null;
     }
 
     // Check if we're in post-stall region for any polar
-    const alpha = graphMode !== "dragPolar" ? parseFloat(label) : null;
+    const alpha = graphMode !== "dragPolar" ? parseFloat(String(label)) : null;
     const isPostStall = alpha !== null && comparisonPolars.some((p) => {
       const stallAlpha = p.data.meta.alphaStallDeg;
       return stallAlpha && Number.isFinite(stallAlpha) && alpha > stallAlpha;
@@ -900,23 +918,25 @@ const point: Record<string, unknown> = { alpha };
             Post-stall region (modeled)
           </p>
         )}
-        {payload.map((entry: unknown, index: number) => {
+        {payload.map((entry: TooltipEntry, index: number) => {
           // For drag polar, dataKey is "cd", so we need to find by name
           // For other modes, dataKey is the airfoilId
           let polar;
           if (graphMode === "dragPolar") {
-            // TODO: refine type for `series` — changed any -> unknown automatically by chore/typed-cleanup
-            const series = dragPolarSeries.find((s: unknown) => (s as { name?: string }).name === (entry as { name?: string }).name);
-            // TODO: refine type for `polar` — changed any -> unknown automatically by chore/typed-cleanup
-            polar = series ? comparisonPolars.find((p: unknown) => (p as { id?: string }).id === (series as { airfoilId?: string }).airfoilId) : null;
+            const series = dragPolarSeries.find((s) => s.name === entry.name);
+            polar = series ? comparisonPolars.find((p) => p.id === series.airfoilId) : null;
           } else {
-            const airfoilId = (entry as { dataKey?: string }).dataKey;
-            // TODO: refine type for `polar` — changed any -> unknown automatically by chore/typed-cleanup
-            polar = comparisonPolars.find((p: unknown) => (p as { id?: string }).id === airfoilId);
+            const airfoilId = entry.dataKey;
+            polar = comparisonPolars.find((p) => p.id === airfoilId);
           }
           
           const dataQuality = polar?.data ? getPolarDataQuality(polar.data, false) : 'estimated';
           const badge = getDataQualityBadge(dataQuality);
+          
+          const entryValue = entry.value;
+          const formattedValue = typeof entryValue === 'number' 
+            ? (graphMode === "cd" || graphMode === "dragPolar" ? entryValue.toFixed(4) : graphMode === "cm" ? entryValue.toFixed(3) : entryValue.toFixed(2))
+            : entryValue;
           
           return (
             <div key={index} className="mb-2 last:mb-0">
@@ -927,9 +947,7 @@ const point: Record<string, unknown> = { alpha };
                 />
                 <span className="text-slate-300">{entry.name}:</span>
                 <span className="text-white font-semibold">
-                  {typeof entry.value === 'number' 
-                    ? (graphMode === "cd" || graphMode === "dragPolar" ? entry.value.toFixed(4) : graphMode === "cm" ? entry.value.toFixed(3) : entry.value.toFixed(2))
-                    : entry.value}
+                  {formattedValue}
                 </span>
               </div>
               {polar?.data && (
@@ -1106,11 +1124,10 @@ const point: Record<string, unknown> = { alpha };
   const yAxisConfig = getYAxisConfig(graphMode);
 
   // Compute auto-scaled Y-axis domain for alpha-based charts
-  // TODO: refine type for `getAutoScaledYDomain` — changed any -> unknown automatically by chore/typed-cleanup
-  const getAutoScaledYDomain = useCallback((mode: GraphMode, chartData: unknown[]): [number, number] => {
+  const getAutoScaledYDomain = useCallback((mode: GraphMode, chartData: Array<Record<string, unknown>>): [number, number | string] => {
     if (mode === "dragPolar") {
       // For drag polar, use a more conservative approach
-      return [0, "auto" as unknown];
+      return [0, "auto"];
     }
 
     // Extract valid values from chart data

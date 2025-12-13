@@ -340,8 +340,9 @@ function safeParseGeminiJson(raw: string | null | undefined): { items?: unknown[
       if (!obj || typeof obj !== "object") return null;
       
       // If items array exists, normalize each item
-      if (Array.isArray(obj.items)) {
-        obj.items = obj.items.map((item: unknown) => {
+      const objRecord = obj as Record<string, unknown>;
+      if (Array.isArray(objRecord.items)) {
+        objRecord.items = (objRecord.items as Array<{ airfoilId?: string; id?: string }>).map((item) => {
           if (item && typeof item === "object") {
             // Map 'id' to 'airfoilId' if airfoilId is missing
             if (!item.airfoilId && item.id) {
@@ -350,18 +351,18 @@ function safeParseGeminiJson(raw: string | null | undefined): { items?: unknown[
           }
           return item;
         });
-        return obj;
+        return objRecord as { items: Array<{ airfoilId: string; score?: number; reason?: string }> };
       }
       
       // If the object itself is an array, wrap it
       if (Array.isArray(obj)) {
-        const normalized = obj.map((item: unknown) => {
+        const normalized = (obj as Array<{ airfoilId?: string; id?: string }>).map((item) => {
           if (item && typeof item === "object" && !item.airfoilId && item.id) {
             item.airfoilId = item.id;
           }
           return item;
         });
-        return { items: normalized };
+        return { items: normalized as Array<{ airfoilId: string; score?: number; reason?: string }> };
       }
       
       return null;
@@ -556,10 +557,10 @@ No extra text, no commentary, only the JSON object.`;
 
     // Validate, map to AirfoilRecommendation[]
     const validIds = new Set(airfoils.map(a => a.airfoilId));
-    const items: AirfoilRecommendation[] = parsed.items
-      .filter((item: unknown) => item && typeof item.airfoilId === "string" && validIds.has(item.airfoilId))
-      .map((item: unknown, index: number) => {
-        const airfoilId = item.airfoilId;
+    const items: AirfoilRecommendation[] = (parsed.items as Array<{ airfoilId?: string; score?: number; reason?: string }>)
+      .filter((item) => item && typeof item.airfoilId === "string" && validIds.has(item.airfoilId))
+      .map((item, index: number) => {
+        const airfoilId = item.airfoilId!;
         const score = typeof item.score === "number" && isFinite(item.score)
           ? Math.max(0, Math.min(1, item.score))
           : 0.5;
