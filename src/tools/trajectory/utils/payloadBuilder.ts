@@ -70,7 +70,10 @@ export function buildTrajectoryPayload(
     }
     
     if (result.burnout) {
-      steps.push(`Burnout: ${(result.burnout.altitude / 1000).toFixed(1)} km, ${(result.burnout.velocity / 1000).toFixed(2)} km/s`);
+      const burnoutVel = Array.isArray(result.burnout.velocity)
+        ? Math.sqrt(result.burnout.velocity[0]**2 + result.burnout.velocity[1]**2 + result.burnout.velocity[2]**2)
+        : result.burnout.velocity;
+      steps.push(`Burnout: ${(result.burnout.altitude / 1000).toFixed(1)} km, ${(burnoutVel / 1000).toFixed(2)} km/s`);
     }
     
     if (result.stagingEvents) {
@@ -115,8 +118,11 @@ export function buildTrajectoryPayload(
     }
     
     if (result.burnout) {
+      const burnoutVel = Array.isArray(result.burnout.velocity)
+        ? Math.sqrt(result.burnout.velocity[0]**2 + result.burnout.velocity[1]**2 + result.burnout.velocity[2]**2)
+        : result.burnout.velocity;
       formattedResults['Burnout Altitude'] = `${(result.burnout.altitude / 1000).toFixed(1)} km`;
-      formattedResults['Burnout Velocity'] = `${(result.burnout.velocity / 1000).toFixed(2)} km/s`;
+      formattedResults['Burnout Velocity'] = `${(burnoutVel / 1000).toFixed(2)} km/s`;
       formattedResults['Burnout Time'] = `${result.burnout.time.toFixed(1)} s`;
     }
     

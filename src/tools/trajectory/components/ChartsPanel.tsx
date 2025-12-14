@@ -10,6 +10,7 @@ import { useChartExport } from '@/hooks/useChartExport';
 import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
 import { AeroverseLegend } from '@/components/charts/AeroverseLegend';
 import type { TrajectoryResult, TrajectoryState } from '../types';
+import { getScalarVelocity } from '../types';
 
 interface ChartsPanelProps {
   mode: '1D' | '2D' | '3D';
@@ -37,9 +38,9 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
   const chartData = result.states.filter((_, i: number) => i % step === 0).map((state: TrajectoryState) => ({
     time: state.t,
     altitude: state.altitude / 1000, // km
-    velocity: state.velocity / 1000, // km/s
+    velocity: getScalarVelocity(state.velocity) / 1000, // km/s
     dynamicPressure: (state.dynamicPressure || 0) / 1000, // kPa
-    acceleration: state.acceleration || 0,
+    acceleration: typeof state.acceleration === 'number' ? state.acceleration : 0,
     mass: (state.mass || 0) / 1000, // t
     thrustToWeight: state.thrustToWeight || 0,
     downrange: mode === '2D' ? ((state.downrange || 0) / 1000) : undefined,
