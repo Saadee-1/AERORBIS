@@ -59,13 +59,20 @@ const isValidFrame = (frame: TrajectoryFrame | undefined): frame is TrajectoryFr
   return values.every((value) => typeof value === 'number' && Number.isFinite(value));
 };
 
+interface SimulationResultInput {
+  states?: Array<Record<string, unknown>>;
+  maxQ?: { time?: number };
+  stagingEvents?: Array<{ time?: number }>;
+}
+
 export function convertSimulationToTrajectoryData(
   result: unknown,
   mode: '1D' | '2D' | '3D',
   planet: PlanetLite,
 ): TrajectoryData {
   try {
-    if (!result || !Array.isArray(result.states) || result.states.length === 0) {
+    const typedResult = result as SimulationResultInput | null | undefined;
+    if (!typedResult || !Array.isArray(typedResult.states) || typedResult.states.length === 0) {
         if (isDevEnv()) {
           console.debug('TrajectoryConvert: frames=0', {
             reason: 'no-states',
@@ -79,7 +86,7 @@ export function convertSimulationToTrajectoryData(
     const planetRadius = sanitizeNumber(planet?.radius, 6_371_000);
     const frames: TrajectoryFrame[] = [];
 
-    for (const state of result.states) {
+    for (const state of typedResult.states) {
       const t = sanitizeNumber(state?.t, frames.length > 0 ? frames[frames.length - 1].t : 0);
 
       let pos: [number, number, number];
@@ -139,7 +146,7 @@ export function convertSimulationToTrajectoryData(
       }
 
       const events: string[] = [];
-      if (state?.dynamicPressure && result?.maxQ?.time !== undefined && Math.abs(t - result.maxQ.time) < 0.1) {
+      if (state?.dynamicPressure && typedResult?.maxQ?.time !== undefined && Math.abs(t - typedResult.maxQ.time) < 0.1) {
         events.push('maxQ');
       }
       if (state?.remainingFuel !== undefined && sanitizeNumber(state.remainingFuel, 0) <= 0) {
@@ -152,8 +159,8 @@ export function convertSimulationToTrajectoryData(
       frames.push(frame);
     }
 
-    if (Array.isArray(result?.stagingEvents)) {
-      for (const event of result.stagingEvents) {
+    if (Array.isArray(typedResult?.stagingEvents)) {
+      for (const event of typedResult.stagingEvents) {
         const eventTime = sanitizeNumber(event?.time, NaN);
         if (!Number.isFinite(eventTime)) continue;
         const frame = frames.find((f) => Math.abs(f.t - eventTime) < 0.1);
@@ -166,8 +173,8 @@ export function convertSimulationToTrajectoryData(
     if (isDevEnv()) {
       console.debug(`TrajectoryConvert: frames=${frames.length}`, {
         rawResult: {
-          hasStates: Boolean(result?.states),
-          totalStates: Array.isArray(result?.states) ? result.states.length : 0,
+          hasStates: Boolean(typedResult?.states),
+          totalStates: Array.isArray(typedResult?.states) ? typedResult.states.length : 0,
         },
         framesCount: frames.length,
         firstFrame: frames[0],

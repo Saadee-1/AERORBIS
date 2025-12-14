@@ -84,11 +84,11 @@ export default function StructuralWeightEstimator() {
   const handleInputChange = useCallback((path: string[], value: unknown) => {
     setInputs(prev => {
       const newInputs = { ...prev };
-      // TODO: refine type for `current` — changed any -> unknown automatically by chore/typed-cleanup
-      let current: Record<string, unknown> = newInputs;
+      let current: Record<string, unknown> = newInputs as Record<string, unknown>;
       
       for (let i = 0; i < path.length - 1; i++) {
-        current = current[path[i]] = { ...current[path[i]] };
+        const existingValue = current[path[i]];
+        current = current[path[i]] = { ...(typeof existingValue === 'object' && existingValue !== null ? existingValue : {}) } as Record<string, unknown>;
       }
       
       current[path[path.length - 1]] = value;

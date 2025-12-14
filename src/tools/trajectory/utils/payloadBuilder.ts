@@ -21,14 +21,27 @@ export interface AdvancedFeatures {
   downsampleOutput?: boolean;
 }
 
+/** Simulation result shape for trajectory (supports both 1D/2D and 3D) */
+interface SimulationResult {
+  states?: Array<{ 
+    altitude: number; 
+    velocity: number | [number, number, number];
+    t?: number;
+  }>;
+  maxQ?: { value: number; altitude: number; time: number };
+  burnout?: { altitude: number; velocity: number | [number, number, number]; time: number; downrange?: number };
+  stagingEvents?: Array<{ time: number; altitude: number; downrange?: number }>;
+  losses?: { gravity: number; drag: number; steering: number };
+}
+
 export interface TrajectoryResults {
   mode: '1D' | '2D' | '3D';
   planet: Planet;
   stages: Stage[];
   guidance?: GuidanceProfile | Guidance3D;
-  result1D?: unknown;
-  result2D?: unknown;
-  result3D?: unknown;
+  result1D?: SimulationResult;
+  result2D?: SimulationResult;
+  result3D?: SimulationResult;
   advancedFeatures?: AdvancedFeatures;
 }
 
@@ -40,7 +53,7 @@ export function buildTrajectoryPayload(
   requestId?: string
 ): AeroverseAIPayload {
   const { mode, planet, stages, guidance, result1D, result2D, result3D, advancedFeatures } = results;
-  const result = mode === '1D' ? result1D : mode === '2D' ? result2D : result3D;
+  const result: SimulationResult | undefined = mode === '1D' ? result1D : mode === '2D' ? result2D : result3D;
 
   // Format calculation steps
   const steps: string[] = [
@@ -110,7 +123,10 @@ export function buildTrajectoryPayload(
     if (result.states && result.states.length > 0) {
       const final = result.states[result.states.length - 1];
       formattedResults['Final Altitude'] = `${(final.altitude / 1000).toFixed(1)} km`;
-      formattedResults['Final Velocity'] = `${(final.velocity / 1000).toFixed(2)} km/s`;
+      const finalVelocity = Array.isArray(final.velocity) 
+        ? Math.sqrt(final.velocity[0]**2 + final.velocity[1]**2 + final.velocity[2]**2)
+        : final.velocity;
+      formattedResults['Final Velocity'] = `${(finalVelocity / 1000).toFixed(2)} km/s`;
     }
     
     if (mode === '2D' && result.losses) {
@@ -127,7 +143,12 @@ export function buildTrajectoryPayload(
     warnings.push('Max Q exceeds 80 kPa - structural loads may be high');
   }
   
-  if (result?.burnout && result.burnout.velocity < 7500) {
+  const burnoutVelocityScalar = result?.burnout 
+    ? (Array.isArray(result.burnout.velocity) 
+        ? Math.sqrt(result.burnout.velocity[0]**2 + result.burnout.velocity[1]**2 + result.burnout.velocity[2]**2)
+        : result.burnout.velocity)
+    : 0;
+  if (result?.burnout && burnoutVelocityScalar < 7500) {
     warnings.push('Burnout velocity below orbital velocity - may not reach orbit');
   }
 
@@ -150,7 +171,7 @@ export function buildTrajectoryPayload(
     });
   }
   if (result?.stagingEvents) {
-    result.stagingEvents.forEach((event: unknown) => {
+    result.stagingEvents.forEach((event) => {
       eventFrames.push({
         name: 'stageSep',
         t: event.time,

@@ -475,18 +475,23 @@ export function convertPayloadToPDFData(
   payload: AeroverseAIPayload,
   steps?: string[]
 ): PowerSystemPDFData {
-  const config = payload.configuration as { battery?: unknown; solar?: unknown; loads?: unknown; location?: unknown; dayOfYear?: number } | undefined;
+  const config = payload.configuration as { battery?: Record<string, unknown>; solar?: Record<string, unknown>; loads?: Record<string, number>; location?: Record<string, unknown>; dayOfYear?: number } | undefined;
   const results = payload.results as { endurance_min?: number; endurance_hours?: number; solarFraction?: number; minPowerMargin_W?: number; maxVoltage?: number; minVoltage?: number; totalEnergyUsed_Wh?: number; totalSolarGenerated_Wh?: number; recommendations?: string[] } | undefined;
   const metadata = payload.metadata as { warnings?: string[] } | undefined;
+  
+  const defaultBattery = { chemistry: '', capacity_mAh: 0, series: 0, parallel: 0, cycles: 0, temperature: 0 };
+  const defaultSolar = { area_m2: 0, efficiency: 0, mpptEfficiency: 0, tilt: 0, azimuth: 0 };
+  const defaultLocation = { latitude: 0, longitude: 0, altitude: 0 };
+  
   return {
     toolName: payload.toolName,
     requestId: payload.requestId || `power-${Date.now()}`,
     timestamp: new Date().toISOString(),
     inputs: {
-      battery: config?.battery || {},
-      solar: config?.solar || {},
-      loads: config?.loads || {},
-      location: config?.location || {},
+      battery: { ...defaultBattery, ...config?.battery } as PowerSystemPDFData['inputs']['battery'],
+      solar: { ...defaultSolar, ...config?.solar } as PowerSystemPDFData['inputs']['solar'],
+      loads: (config?.loads || {}) as Record<string, number>,
+      location: { ...defaultLocation, ...config?.location } as PowerSystemPDFData['inputs']['location'],
       dayOfYear: config?.dayOfYear || 0,
     },
     results: results as PowerSystemPDFData['results'],

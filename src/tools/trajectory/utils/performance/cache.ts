@@ -58,13 +58,17 @@ export const atmosphereCache = new LRUCache<string, number>(500, 60000);
 export const gravityCache = new LRUCache<string, number>(500, 60000);
 export const dragCache = new LRUCache<string, number>(1000, 60000);
 
+interface PlanetLike {
+  id: string;
+}
+
 /**
  * Memoized atmospheric density calculation
  */
 export function memoizedAtmosphericDensity(
-  planet: unknown,
+  planet: PlanetLike,
   altitude: number,
-  calculateFn: (planet: unknown, altitude: number) => number
+  calculateFn: (planet: PlanetLike, altitude: number) => number
 ): number {
   const cacheKey = `${planet.id}-${Math.round(altitude / 100)}`;
   const cached = atmosphereCache.get(cacheKey);
@@ -81,9 +85,9 @@ export function memoizedAtmosphericDensity(
  * Memoized gravity calculation
  */
 export function memoizedGravity(
-  planet: unknown,
+  planet: PlanetLike,
   altitude: number,
-  calculateFn: (planet: unknown, altitude: number) => number
+  calculateFn: (planet: PlanetLike, altitude: number) => number
 ): number {
   const cacheKey = `${planet.id}-${Math.round(altitude / 1000)}`;
   const cached = gravityCache.get(cacheKey);

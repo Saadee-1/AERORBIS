@@ -5,7 +5,8 @@
 import { AeroCard } from '@/components/common/AeroCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
-import type { TrajectoryResult, StagingEvent } from '../types';
+import type { TrajectoryResult, StagingEvent, getScalarVelocity as getScalarVelocityType } from '../types';
+import { getScalarVelocity } from '../types';
 
 interface ResultsPanelProps {
   mode: '1D' | '2D' | '3D';
@@ -69,10 +70,10 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
                 <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
                   <p className="text-xs text-gray-400 mb-1">Burnout Velocity</p>
                   <p className="text-green-400 font-bold text-xl">
-                    {formatNumber(result.burnout.velocity)} m/s
+                    {formatNumber(getScalarVelocity(result.burnout.velocity))} m/s
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {formatNumber(result.burnout.velocity / 1000)} km/s
+                    {formatNumber(getScalarVelocity(result.burnout.velocity) / 1000)} km/s
                   </p>
                 </div>
               )}
@@ -118,7 +119,7 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
                 </div>
                 <div className="text-xs text-gray-400 mt-1">
                   Altitude: {event.altitude != null && typeof event.altitude === 'number' ? (event.altitude / 1000).toFixed(1) : 'N/A'} km, 
-                  Velocity: {formatNumber(event.velocity)} m/s
+                  Velocity: {formatNumber(getScalarVelocity(event.velocity))} m/s
                 </div>
               </div>
             ))}
