@@ -82,7 +82,21 @@ export interface ValidationResult {
 /**
  * Validate weight estimation inputs
  */
-// TODO: refine type for `validateWeightEstimationInputs` — changed any -> unknown automatically by chore/typed-cleanup
+interface ValidatableInputs {
+  geometry?: {
+    b: number;
+    S_w: number;
+    AR: number;
+  };
+  propulsion?: {
+    type?: string;
+  };
+  W_to?: number;
+  flight?: {
+    N_ult: number;
+  };
+}
+
 export function validateWeightEstimationInputs(inputs: unknown): ValidationResult {
   const result: ValidationResult = {
     valid: true,
@@ -104,17 +118,18 @@ export function validateWeightEstimationInputs(inputs: unknown): ValidationResul
   }
   
   // Additional business logic validations
-  if (inputs.geometry) {
+  const typedInputs = inputs as ValidatableInputs | null | undefined;
+  if (typedInputs?.geometry) {
     // Check aspect ratio consistency
-    const AR_calculated = Math.pow(inputs.geometry.b, 2) / inputs.geometry.S_w;
-    if (Math.abs(AR_calculated - inputs.geometry.AR) > 0.1) {
+    const AR_calculated = Math.pow(typedInputs.geometry.b, 2) / typedInputs.geometry.S_w;
+    if (Math.abs(AR_calculated - typedInputs.geometry.AR) > 0.1) {
       result.warnings.push(
-        `Calculated AR (${AR_calculated.toFixed(2)}) differs from input AR (${inputs.geometry.AR.toFixed(2)})`
+        `Calculated AR (${AR_calculated.toFixed(2)}) differs from input AR (${typedInputs.geometry.AR.toFixed(2)})`
       );
     }
     
     // Check electric propulsion weight limit
-    if (inputs.propulsion?.type === 'electric' && inputs.W_to > 10000 * 9.81) {
+    if (typedInputs.propulsion?.type === 'electric' && typedInputs.W_to && typedInputs.W_to > 10000 * 9.81) {
       result.warnings.push(
         'Electric propulsion typically limited to aircraft < 1000 kg. Consider turbofan/turbojet for larger aircraft.'
       );
@@ -122,10 +137,10 @@ export function validateWeightEstimationInputs(inputs: unknown): ValidationResul
     
     // Check CG position (will be validated after calculation)
     // Check load factor
-    if (inputs.flight?.N_ult < 2.5) {
+    if (typedInputs.flight && typedInputs.flight.N_ult < 2.5) {
       result.warnings.push('Ultimate load factor < 2.5 may be too low for safe operation');
     }
-    if (inputs.flight?.N_ult > 12) {
+    if (typedInputs.flight && typedInputs.flight.N_ult > 12) {
       result.warnings.push('Ultimate load factor > 12 is very high (fighter aircraft typically 9 G)');
     }
   }

@@ -56,12 +56,12 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
         result,
       } as WorkerResponse);
     }
-  } catch (error: unknown) {
+  } catch (error) {
     if (currentJobId === id) {
       self.postMessage({
         type: 'error',
         id,
-        error: error.message || 'Unknown error',
+        error: (error as Error)?.message || 'Unknown error',
       } as WorkerResponse);
     }
   }

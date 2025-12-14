@@ -2,6 +2,14 @@
  * Staging system logic
  */
 
+/** Thrust curve types */
+export interface ThrustCurve {
+  type: 'constant' | 'piecewise' | 'function';
+  value?: number;
+  points?: Array<{ t: number; thrust: number }>;
+  function?: (time: number) => number;
+}
+
 export interface Stage {
   id: string;
   name?: string; // Human-readable name
@@ -11,8 +19,7 @@ export interface Stage {
     id: string;
     count: number;
     isp: number;
-    // TODO: refine type for `thrust` — changed any -> unknown automatically by chore/typed-cleanup
-thrust: number | unknown; // Thrust or thrust curve
+    thrust: number | ThrustCurve; // Thrust or thrust curve
   }>;
   Cd: number;
   area: number; // m²
@@ -83,12 +90,13 @@ export function getStageThrust(
     if (typeof engine.thrust === 'number') {
       engineThrust = engine.thrust;
     } else if (engine.thrust && typeof engine.thrust === 'object') {
+      const curve = engine.thrust as ThrustCurve;
       // Handle thrust curve
-      if (engine.thrust.type === 'constant' && engine.thrust.value !== undefined) {
-        engineThrust = engine.thrust.value;
-      } else if (engine.thrust.type === 'piecewise' && engine.thrust.points) {
+      if (curve.type === 'constant' && curve.value !== undefined) {
+        engineThrust = curve.value;
+      } else if (curve.type === 'piecewise' && curve.points) {
         // Linear interpolation
-        const points = engine.thrust.points;
+        const points = curve.points;
         if (time <= points[0].t) {
           engineThrust = points[0].thrust;
         } else if (time >= points[points.length - 1].t) {
@@ -105,8 +113,8 @@ export function getStageThrust(
             }
           }
         }
-      } else if (engine.thrust.type === 'function' && engine.thrust.function) {
-        engineThrust = engine.thrust.function(time);
+      } else if (curve.type === 'function' && curve.function) {
+        engineThrust = curve.function(time);
       }
     }
     
@@ -130,13 +138,14 @@ export function getStageIsp(stage: Stage): number {
     if (typeof engine.thrust === 'number') {
       engineThrust = engine.thrust;
     } else if (engine.thrust && typeof engine.thrust === 'object') {
+      const curve = engine.thrust as ThrustCurve;
       // Use initial thrust value for Isp calculation
-      if (engine.thrust.type === 'constant' && engine.thrust.value !== undefined) {
-        engineThrust = engine.thrust.value;
-      } else if (engine.thrust.type === 'piecewise' && engine.thrust.points && engine.thrust.points.length > 0) {
-        engineThrust = engine.thrust.points[0].thrust; // Use first point
-      } else if (engine.thrust.type === 'function' && engine.thrust.function) {
-        engineThrust = engine.thrust.function(0); // Use t=0
+      if (curve.type === 'constant' && curve.value !== undefined) {
+        engineThrust = curve.value;
+      } else if (curve.type === 'piecewise' && curve.points && curve.points.length > 0) {
+        engineThrust = curve.points[0].thrust; // Use first point
+      } else if (curve.type === 'function' && curve.function) {
+        engineThrust = curve.function(0); // Use t=0
       }
     }
     

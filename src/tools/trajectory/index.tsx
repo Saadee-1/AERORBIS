@@ -32,6 +32,7 @@ import { run1D, Trajectory1DResult } from './utils/solver/run1d';
 import { run2D, Trajectory2DResult } from './utils/solver/run2d';
 import { run3D, Trajectory3DResult } from './utils/solver/run3d';
 import { buildTrajectoryPayload } from './utils/payloadBuilder';
+import type { TrajectoryResult } from './types';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
 import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { STAGE_PRESETS, getStage } from './data/stagePresets';
@@ -229,7 +230,7 @@ export default function TrajectorySimulator() {
     if (stages.length > 0) {
       const firstStage = stages[0];
       const totalThrust = firstStage.engines.reduce((sum, eng) => {
-        const thrust = typeof eng.thrust === 'number' ? eng.thrust : eng.thrust?.value || 0;
+        const thrust = typeof eng.thrust === 'number' ? eng.thrust : (eng.thrust as { value?: number })?.value || 0;
         return sum + thrust * eng.count;
       }, 0);
       const totalMass = firstStage.dryMass + firstStage.fuelMass;
@@ -309,9 +310,9 @@ export default function TrajectorySimulator() {
         planet: selectedPlanet,
         stages,
         guidance: mode === '2D' ? guidance2D : mode === '3D' ? guidance3D : undefined,
-        result1D: nextResult1D,
-        result2D: nextResult2D,
-        result3D: nextResult3D,
+        result1D: nextResult1D as unknown as Parameters<typeof buildTrajectoryPayload>[0]['result1D'],
+        result2D: nextResult2D as unknown as Parameters<typeof buildTrajectoryPayload>[0]['result2D'],
+        result3D: nextResult3D as unknown as Parameters<typeof buildTrajectoryPayload>[0]['result3D'],
         advancedFeatures: {
           performanceMode: advancedSettings.performanceMode,
           enableJ2: advancedSettings.enableJ2,
@@ -331,10 +332,10 @@ export default function TrajectorySimulator() {
         title: 'Simulation Complete',
         description: `Trajectory calculated successfully`,
       });
-    } catch (error: unknown) {
+    } catch (error) {
       toast({
         title: 'Simulation Error',
-        description: error.message || 'An error occurred during simulation',
+        description: (error as Error)?.message || 'An error occurred during simulation',
         variant: 'destructive',
       });
     } finally {
@@ -527,7 +528,7 @@ export default function TrajectorySimulator() {
               mode={mode}
               result1D={result1D}
               result2D={result2D}
-              result3D={result3D}
+              result3D={result3D as unknown as TrajectoryResult}
             />
               {trajectoryData && (
                 <div className="mt-6">
@@ -562,7 +563,7 @@ export default function TrajectorySimulator() {
               mode={mode}
               result1D={result1D}
               result2D={result2D}
-              result3D={result3D}
+              result3D={result3D as unknown as TrajectoryResult}
             />
           </ToolSection>
         </TabsContent>
