@@ -9,6 +9,35 @@ import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
 import { RocketEngineInputs, RocketEngineResults } from './calcEngine';
 import { R_UNIVERSAL } from './constants';
 
+/** Formatted inputs for AI payload display */
+interface RocketEngineFormattedInputs {
+  [key: string]: string | undefined;
+  'Chamber pressure': string;
+  'Chamber temperature': string;
+  'Throat area': string;
+  'Expansion ratio': string;
+  'Ambient pressure': string;
+  'Gamma (γ)': string;
+  'Gas constant': string;
+  'Nozzle efficiency': string;
+  'c* efficiency': string;
+}
+
+/** Formatted results for AI payload display */
+interface RocketEngineFormattedResults {
+  [key: string]: string | undefined;
+  'Mass flow': string;
+  'c*': string;
+  'Exit Mach': string;
+  'Exit pressure': string;
+  'Exit velocity': string;
+  'Thrust': string;
+  'Vacuum thrust': string;
+  'Thrust coefficient': string;
+  'Isp': string;
+  'Vacuum Isp': string;
+}
+
 /**
  * Build AI payload from rocket engine calculation
  */
@@ -46,8 +75,7 @@ export function buildRocketEnginePayload(
   }
   
   // Format inputs for display
-  // TODO: refine type for `formattedInputs` — changed any -> unknown automatically by chore/typed-cleanup
-  const formattedInputs: Record<string, unknown> = {
+  const formattedInputs: RocketEngineFormattedInputs = {
     'Chamber pressure': `${(inputs.Pc / 1e5).toFixed(1)} bar`,
     'Chamber temperature': `${inputs.Tc.toFixed(0)} K`,
     'Throat area': `${(inputs.At * 1e4).toFixed(2)} cm²`,
@@ -60,8 +88,7 @@ export function buildRocketEnginePayload(
   };
   
   // Format results for display
-  // TODO: refine type for `formattedResults` — changed any -> unknown automatically by chore/typed-cleanup
-  const formattedResults: Record<string, unknown> = {
+  const formattedResults: RocketEngineFormattedResults = {
     'Mass flow': `${results.mdot.toFixed(3)} kg/s`,
     'c*': `${results.cStar.toFixed(1)} m/s`,
     'Exit Mach': results.Me.toFixed(3),

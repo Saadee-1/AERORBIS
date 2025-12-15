@@ -28,6 +28,56 @@ export interface ExtendedStabilityResults {
   nonlinear?: NonlinearControl;
 }
 
+/** Formatted inputs for AI payload display */
+interface StabilityFormattedInputs {
+  [key: string]: string | undefined;
+  'Wing area': string;
+  'Wing AR': string;
+  'MAC': string;
+  'Tail area': string;
+  'Tail AR': string;
+  'Tail arm': string;
+  'CG position': string;
+  'Wing AC': string;
+  'Downwash model': string;
+}
+
+/** Formatted results for AI payload display */
+interface StabilityFormattedResults {
+  [key: string]: string | undefined;
+  'a_w': string;
+  'a_t': string;
+  'ε_α': string;
+  'C_mα': string;
+  'x_np': string;
+  'SM': string;
+  'V_H': string;
+  'C_mδe'?: string;
+  'C_lδa'?: string;
+  'C_nδr'?: string;
+  'C_mq'?: string;
+  'C_lp'?: string;
+  'C_nr'?: string;
+  'C_lr'?: string;
+  'C_np'?: string;
+  'C_mδe_enhanced'?: string;
+  'C_lδa_enhanced'?: string;
+  'C_nδr_enhanced'?: string;
+  'C_hα'?: string;
+  'C_hδ'?: string;
+  'T_max'?: string;
+  'ΔCL'?: string;
+  'ΔCm'?: string;
+  'ΔCD'?: string;
+  'Roll rate'?: string;
+  'Roll time constant'?: string;
+  'Overall level'?: string;
+  'Longitudinal level'?: string;
+  'Lateral level'?: string;
+  'Phugoid damping'?: string;
+  'Dutch roll damping'?: string;
+}
+
 /**
  * Build AI payload from stability calculation
  */
@@ -87,8 +137,7 @@ export function buildStabilityPayload(
   }
 
   // Format inputs for display
-  // TODO: refine type for `formattedInputs` — changed any -> unknown automatically by chore/typed-cleanup
-  const formattedInputs: Record<string, unknown> = {
+  const formattedInputs: StabilityFormattedInputs = {
     'Wing area': `${inputs.S_w.toFixed(2)} m²`,
     'Wing AR': inputs.AR.toFixed(2),
     'MAC': `${inputs.c_bar.toFixed(3)} m`,
@@ -101,8 +150,7 @@ export function buildStabilityPayload(
   };
 
   // Format results for display
-  // TODO: refine type for `formattedResults` — changed any -> unknown automatically by chore/typed-cleanup
-  const formattedResults: Record<string, unknown> = {
+  const formattedResults: StabilityFormattedResults = {
     'a_w': `${stability.a_w.toFixed(3)} /rad`,
     'a_t': `${stability.a_t.toFixed(3)} /rad`,
     'ε_α': stability.epsilon_alpha.toFixed(4),

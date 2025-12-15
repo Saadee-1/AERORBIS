@@ -32,6 +32,61 @@ export interface WeightEstimationResults {
   };
 }
 
+/** Formatted inputs for AI payload display */
+interface WeightFormattedInputs {
+  [key: string]: string | number | undefined;
+  'Wing area': string;
+  'Aspect ratio': string;
+  'Taper ratio': string;
+  'Thickness/chord': string;
+  'Wing span': string;
+  'Horizontal tail area': string;
+  'Vertical tail area': string;
+  'Fuselage wetted area': string;
+  'Fuselage length': string;
+  'Dynamic pressure': string;
+  'Ultimate load factor': string;
+  'Propulsion type': string;
+  'Power/Thrust': string;
+  'Number of engines': number;
+  'Payload weight': string;
+  'Weight method (wing)': string;
+  'Weight method (fuselage)': string;
+  'Wing material'?: string;
+  'Fuselage material'?: string;
+  'Horizontal tail material'?: string;
+  'Vertical tail material'?: string;
+  'Spars material'?: string;
+  'Ribs material'?: string;
+  'Landing gear material'?: string;
+  'Nacelle material'?: string;
+}
+
+/** Formatted results for AI payload display */
+interface WeightFormattedResults {
+  [key: string]: string | undefined;
+  'Wing weight': string;
+  'Fuselage weight': string;
+  'Horizontal tail weight': string;
+  'Vertical tail weight': string;
+  'Landing gear weight': string;
+  'Engine weight': string;
+  'Fuel system weight': string;
+  'Controls weight': string;
+  'Avionics weight': string;
+  'Fixed equipment weight': string;
+  'Empty weight': string;
+  'Fuel weight': string;
+  'Takeoff weight': string;
+  'Aircraft class': string;
+  'Iteration converged': string;
+  'Iterations required': string;
+  'CG position'?: string;
+  'Ixx (Roll)'?: string;
+  'Iyy (Pitch)'?: string;
+  'Izz (Yaw)'?: string;
+}
+
 /**
  * Build AI payload from weight estimation results
  */
@@ -105,8 +160,7 @@ export function buildWeightEstimatorPayload(
   }
   
   // Format results for display
-  // TODO: refine type for `formattedResults` — changed any -> unknown automatically by chore/typed-cleanup
-  const formattedResults: Record<string, unknown> = {
+  const formattedResults: WeightFormattedResults = {
     'Wing weight': `${(components.wing / 9.81).toFixed(1)} kg`,
     'Fuselage weight': `${(components.fuselage / 9.81).toFixed(1)} kg`,
     'Horizontal tail weight': `${(components.horizontalTail / 9.81).toFixed(1)} kg`,
@@ -133,8 +187,7 @@ export function buildWeightEstimatorPayload(
   }
   
   // Format inputs for display
-  // TODO: refine type for `formattedInputs` — changed any -> unknown automatically by chore/typed-cleanup
-  const formattedInputs: Record<string, unknown> = {
+  const formattedInputs: WeightFormattedInputs = {
     'Wing area': `${inputs.geometry.S_w.toFixed(2)} m²`,
     'Aspect ratio': inputs.geometry.AR.toFixed(2),
     'Taper ratio': inputs.geometry.lambda.toFixed(2),
