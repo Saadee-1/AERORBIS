@@ -34,6 +34,35 @@ interface SimulationResult {
   losses?: { gravity: number; drag: number; steering: number };
 }
 
+/** Formatted inputs for AI payload display */
+interface TrajectoryFormattedInputs {
+  [key: string]: string | undefined;
+  'Simulation Mode': string;
+  'Planet': string;
+  'Surface Gravity': string;
+  'Planetary Radius': string;
+  'Has Atmosphere': string;
+  'Number of Stages': string;
+  'Guidance Type'?: string;
+  'Initial Pitch'?: string;
+  'Pitch Rate'?: string;
+}
+
+/** Formatted results for AI payload display */
+interface TrajectoryFormattedResults {
+  [key: string]: string | undefined;
+  'Max Q'?: string;
+  'Max Q Altitude'?: string;
+  'Burnout Altitude'?: string;
+  'Burnout Velocity'?: string;
+  'Burnout Time'?: string;
+  'Final Altitude'?: string;
+  'Final Velocity'?: string;
+  'Gravity Loss'?: string;
+  'Drag Loss'?: string;
+  'Steering Loss'?: string;
+}
+
 export interface TrajectoryResults {
   mode: '1D' | '2D' | '3D';
   planet: Planet;
@@ -82,8 +111,7 @@ export function buildTrajectoryPayload(
   }
 
   // Format inputs
-  // TODO: refine type for `formattedInputs` — changed any -> unknown automatically by chore/typed-cleanup
-  const formattedInputs: Record<string, unknown> = {
+  const formattedInputs: TrajectoryFormattedInputs = {
     'Simulation Mode': mode,
     'Planet': planet.name,
     'Surface Gravity': `${planet.surfaceGravity.toFixed(2)} m/s²`,
@@ -108,8 +136,7 @@ export function buildTrajectoryPayload(
   }
 
   // Format results
-  // TODO: refine type for `formattedResults` — changed any -> unknown automatically by chore/typed-cleanup
-  const formattedResults: Record<string, unknown> = {};
+  const formattedResults: TrajectoryFormattedResults = {};
   
   if (result) {
     if (result.maxQ) {
