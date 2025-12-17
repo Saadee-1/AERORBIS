@@ -189,9 +189,21 @@ export function InlineInterlinkHint({
   };
   
   const handleUndo = () => {
-    // PURE LOCAL REWIND: Only restore local value, do NOT modify designSession
+    // Restore local value AND remove imported value from designSession
     if (previousValue === null) {
       // No field found or no previous value - just clear state
+      // Still remove from designSession if it was imported
+      const ds = getDesignSession();
+      if (ds[targetFieldKey as FieldKey] !== undefined) {
+        delete (ds as Record<string, unknown>)[targetFieldKey];
+        saveDesignSession(ds);
+        // Dispatch event to notify other components
+        if (typeof window !== 'undefined') {
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
+          }, 0);
+        }
+      }
       setPreviousValue(null);
       if (onUndo) {
         onUndo(null);
@@ -221,6 +233,19 @@ export function InlineInterlinkHint({
           input.dispatchEvent(new Event('input', { bubbles: true }));
           input.dispatchEvent(new Event('change', { bubbles: true }));
         }
+      }
+    }
+    
+    // Remove the imported value from designSession
+    const ds = getDesignSession();
+    if (ds[targetFieldKey as FieldKey] !== undefined) {
+      delete (ds as Record<string, unknown>)[targetFieldKey];
+      saveDesignSession(ds);
+      // Dispatch event to notify other components
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
+        }, 0);
       }
     }
     
