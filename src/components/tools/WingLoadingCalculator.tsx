@@ -77,16 +77,10 @@ import {
   getOutputUnits
 } from "./utils/unitConversions";
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
-import { InterlinkCard } from "./InterlinkCard";
-import { InterlinkSourcesRow } from "./InterlinkSourcesRow";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
 import { 
   getReusableDataForCalculator, 
   hasReusableData,
-  findSourceList,
-  getReusableDataWithSources,
-  applyReusableDataToSetters,
-  SourceInfo
 } from "./utils/interlink";
 import { useSearchParams, useNavigate } from "react-router-dom";
 

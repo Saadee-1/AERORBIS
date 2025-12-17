@@ -37,15 +37,9 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { InterlinkCard } from "../InterlinkCard";
-import { InterlinkSourcesRow } from "../InterlinkSourcesRow";
 import { 
   getReusableDataForCalculator, 
   hasReusableData,
-  findSourceList,
-  getReusableDataWithSources,
-  applyReusableDataToSetters,
-  SourceInfo
 } from "../utils/interlink";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
@@ -101,57 +95,10 @@ export default function ClimbPerformanceCalculator() {
   const [customDensity, setCustomDensity] = useState<string>('1.225');
   const [nPoints, setNPoints] = useState<string>('200');
   const [result, setResult] = useState<ClimbResult | null>(null);
-  const [usedFromSession, setUsedFromSession] = useState(false);
-  const [previousValues, setPreviousValues] = useState<Record<string, unknown>>({});
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
-
-  // Handle returnTo flow
-  useEffect(() => {
-    const returnTo = searchParams.get('returnTo');
-    const referrer = searchParams.get('referrer');
-    
-    if (returnTo && referrer) {
-      // Auto-import data if available
-      const reused = getReusableDataForCalculator(designSession, 'climb');
-      if (hasReusableData(reused)) {
-        const settersForImport = {
-          setMassKg: (val: string | number) => setMassKg(val.toString()),
-          setWeightN: (val: string | number) => setWeightN(val.toString()),
-          setWingAreaM2: (val: string | number) => setWingAreaM2(val.toString()),
-          setTotalThrustN: (val: string | number) => setTotalThrustN(val.toString()),
-          setCd0: (val: string | number) => setCd0(val.toString()),
-          setK: (val: string | number) => setK(val.toString()),
-          setClMax: (val: string | number) => setClMax(val.toString()),
-          setCustomDensity: (val: string | number) => setCustomDensity(val.toString()),
-        };
-        
-        const getCurrentValues = () => ({
-          massKg,
-          weightN,
-          wingAreaM2,
-          totalThrustN,
-          cd0,
-          k,
-          clMax,
-          customDensity,
-        });
-        
-        const { previousValues: prev } = applyReusableDataToSetters(reused, settersForImport, getCurrentValues);
-        setPreviousValues(prev);
-        setUsedFromSession(true);
-        
-        toast({
-          title: 'Data imported',
-          description: 'Data from other calculators has been imported.',
-        });
-      }
-    }
-  }, []);
 
   // Get reusable data
   const requiredFields = ['massKg', 'weightN', 'wingAreaM2', 'cd0', 'k', 'totalThrustN', 'densityKgM3'];
-  const sources = findSourceList(designSession, requiredFields);
-  const { data: reusableData } = getReusableDataWithSources(designSession, requiredFields);
 
   // Compute current density
   const currentDensity = useMemo(() => {
@@ -339,36 +286,6 @@ export default function ClimbPerformanceCalculator() {
     }
   };
 
-  // Handle undo
-  const handleUndo = () => {
-    if (Object.keys(previousValues).length === 0) return;
-    
-    Object.entries(previousValues).forEach(([key, value]) => {
-      const setters: Record<string, (val: string) => void> = {
-        massKg: setMassKg,
-        weightN: setWeightN,
-        wingAreaM2: setWingAreaM2,
-        totalThrustN: setTotalThrustN,
-        cd0: setCd0,
-        k: setK,
-        clMax: setClMax,
-        customDensity: setCustomDensity,
-      };
-      
-      if (setters[key]) {
-        setters[key](value?.toString() || '');
-      }
-    });
-    
-    setPreviousValues({});
-    setUsedFromSession(false);
-    
-    toast({
-      title: 'Undone',
-      description: 'Previous values restored.',
-    });
-  };
-
   // Handle export to other calculators
   const handleExportVy = () => {
     if (!result || result.vY === undefined) {
@@ -393,30 +310,6 @@ export default function ClimbPerformanceCalculator() {
     });
   };
 
-  // Get current values for undo
-  const getCurrentValues = () => ({
-    massKg,
-    weightN,
-    wingAreaM2,
-    totalThrustN,
-    cd0,
-    k,
-    clMax,
-    customDensity,
-  });
-
-  // Setters for interlink (wrapped to accept string | number)
-  const setters = {
-    setMassKg: (val: string | number) => setMassKg(val.toString()),
-    setWeightN: (val: string | number) => setWeightN(val.toString()),
-    setWingAreaM2: (val: string | number) => setWingAreaM2(val.toString()),
-    setTotalThrustN: (val: string | number) => setTotalThrustN(val.toString()),
-    setCd0: (val: string | number) => setCd0(val.toString()),
-    setK: (val: string | number) => setK(val.toString()),
-    setClMax: (val: string | number) => setClMax(val.toString()),
-    setCustomDensity: (val: string | number) => setCustomDensity(val.toString()),
-  };
-
   return (
     <ToolWrapper>
       <ToolHeader
@@ -424,45 +317,6 @@ export default function ClimbPerformanceCalculator() {
         description="Compute climb speeds (V_y, V_x), rate of climb, and climb gradient"
         icon={TrendingUp}
       />
-
-      {/* Interlink Sources Row */}
-      {sources.length > 0 && (
-        <ToolSection>
-          <InterlinkSourcesRow
-            sources={sources}
-            onSelectSource={(sourceId) => {
-              const source = sources.find(s => s.id === sourceId);
-              if (source) {
-                // Navigate to source calculator
-                navigate(`${source.path}?returnTo=/tools/launch?tool=climb&referrer=${sourceId}`);
-              }
-            }}
-          />
-        </ToolSection>
-      )}
-
-      {/* Interlink Card */}
-      {hasReusableData(reusableData) && (
-        <ToolSection>
-          <InterlinkCard
-            reusableData={reusableData}
-            setters={setters}
-            sourceName="Other Calculators"
-            description="Import data from Wing Loading, Thrust Loading, or L/D Analyzer"
-            options={{
-              weightMode,
-              onApplied: (keys) => {
-                setUsedFromSession(true);
-                localStorage.setItem('climbUsedFromSession', 'true');
-              },
-              onUndo: handleUndo,
-            }}
-            getCurrentValues={getCurrentValues}
-            showDismiss={false}
-          />
-        </ToolSection>
-      )}
-
 
       {/* Inputs */}
       <ToolSection>
