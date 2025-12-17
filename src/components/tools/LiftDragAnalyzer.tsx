@@ -760,6 +760,18 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
       };
       setResult(resultData);
       
+      // Publish calculated data to designSession immediately
+      // Calculate cd0 and k from the drag polar
+      const cd0 = activeAirfoil.CD_0 || 0;
+      const k = k_factor;
+      if (Number.isFinite(cd0) && Number.isFinite(k)) {
+        updateDesignSession({
+          cd0: cd0,
+          k: k,
+          clMax: activeAirfoil.CL_max || undefined,
+        });
+      }
+      
       // Prepare calculation steps for event (machine-friendly format)
         const calculationSteps = [
         `Lift Coefficient: CL = CL₀ + CL_α × α = ${activeAirfoil.CL_0} + ${activeAirfoil.CL_alpha} × ${alpha}° = ${CL.toFixed(4)}`,

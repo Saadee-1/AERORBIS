@@ -1,5 +1,5 @@
 // src/components/tools/utils/interlink.ts
-import { INTERLINK_PUBLISHERS, FieldKey, ToolId } from './interlinkConfig';
+import { INTERLINK_PUBLISHERS, FieldKey, ToolId, TOOL_ROUTES } from './interlinkConfig';
 import { getDesignSession, saveDesignSession } from '@/contexts/designSession';
 
 // Strongly-typed mapping for design session keys we use
@@ -172,11 +172,13 @@ export function findSourceList(
     const publisher = INTERLINK_PUBLISHERS.find(p => p.publishes.includes(fieldKey as FieldKey));
     if (publisher && designSession[fieldKey as FieldKey] !== undefined) {
       if (!sourcesMap.has(publisher.toolId)) {
+        // Use TOOL_ROUTES for correct route
+        const route = TOOL_ROUTES[publisher.toolId] || `/tools/launch?tool=${publisher.toolId}`;
         sourcesMap.set(publisher.toolId, {
           name: publisher.label || publisher.toolId,
           id: publisher.toolId,
           fields: [],
-          path: `/tools/launch?tool=${publisher.toolId}`,
+          path: route,
         });
       }
       const source = sourcesMap.get(publisher.toolId)!;

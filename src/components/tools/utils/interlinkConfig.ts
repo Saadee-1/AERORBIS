@@ -47,3 +47,18 @@ export const INTERLINK_PUBLISHERS: ToolPublish[] = [
   { toolId: 'materials', publishes: ['other'], label: 'Materials DB' }
 ];
 
+/**
+ * SINGLE SOURCE OF TRUTH: ToolId → route mapping
+ * All navigation MUST use this mapping. Never hardcode routes.
+ */
+export const TOOL_ROUTES: Record<ToolId, string> = {
+  wingloading: '/tools/launch?tool=wing',
+  thrust: '/tools/launch?tool=thrust',
+  thrustloading: '/tools/launch?tool=thrust',
+  ld: '/tools/launch?tool=liftdrag',
+  climb: '/tools/launch?tool=climb',
+  atmosphere: '/tools/launch?tool=atmosphere',
+  materials: '/tools/launch?tool=materials',
+  reynolds: '/tools/launch?tool=reynolds',
+};
+

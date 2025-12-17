@@ -20,6 +20,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Cloud, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
+import { useDesignSession } from "@/contexts/designSession";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
@@ -66,6 +67,7 @@ type ToolPayload = {
 export default function StandardAtmosphereCalculator() {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { updateDesignSession } = useDesignSession();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<ToolPayload | null>(null);
 
@@ -228,6 +230,14 @@ export default function StandardAtmosphereCalculator() {
         });
 
         syncRequestId(eventResponse);
+        
+        // Publish density to designSession immediately
+        if (Number.isFinite(atmosphereResult.density)) {
+          updateDesignSession({
+            densityKgM3: atmosphereResult.density,
+          });
+        }
+        
         applyToolPayload({
           tool: "Standard Atmosphere Calculator",
           inputs: {

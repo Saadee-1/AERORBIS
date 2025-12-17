@@ -472,7 +472,7 @@ function generateInterpretation(
 const ThrustLoadingCalculator = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
-  const { data: designSession } = useDesignSession();
+  const { data: designSession, updateDesignSession } = useDesignSession();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
@@ -823,6 +823,15 @@ const ThrustLoadingCalculator = () => {
       };
       
       setResult(calculationResult);
+      
+      // Publish calculated data to designSession immediately
+      if (Number.isFinite(totalThrustNSI) && Number.isFinite(finalWeightN)) {
+        updateDesignSession({
+          totalThrustN: totalThrustNSI,
+          perEngineThrustN: perEngineThrustNSI,
+          numEngines: parseInt(numEngines) || 1,
+        });
+      }
       
       // Send calculation event
       const toolInputs = {

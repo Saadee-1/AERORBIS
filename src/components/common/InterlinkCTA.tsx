@@ -1,5 +1,5 @@
 // src/components/common/InterlinkCTA.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -8,7 +8,7 @@ import {
   importDataToSession,
   labelForField,
 } from '@/components/tools/utils/interlink';
-import { INTERLINK_PUBLISHERS, FieldKey } from '@/components/tools/utils/interlinkConfig';
+import { INTERLINK_PUBLISHERS, FieldKey, TOOL_ROUTES } from '@/components/tools/utils/interlinkConfig';
 import { AeroCard } from '@/components/common/AeroCard';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -32,10 +32,12 @@ type Props = {
 function findPublisher(fieldKey: string) {
   for (const pub of INTERLINK_PUBLISHERS) {
     if (pub.publishes.includes(fieldKey as FieldKey)) {
+      // Use TOOL_ROUTES for correct route
+      const route = TOOL_ROUTES[pub.toolId] || `/tools/launch?tool=${pub.toolId}`;
       return {
         toolId: pub.toolId,
         label: pub.label || pub.toolId,
-        path: `/tools/launch?tool=${pub.toolId}`,
+        path: route,
       };
     }
   }
@@ -51,6 +53,20 @@ function getSessionValue(fieldKey: string): number | string | undefined {
 /**
  * Inline interlink hint component - shows subtle hints below input fields
  * Supports both old API (requiredFields) and new API (fieldKey)
+ * 
+ * States:
+ * - Missing data: Shows link to compute in source tool
+ * - Data available: Shows available value with import option
+ * - After import: Shows undo option
+ */
+/**
+ * Inline interlink hint component - shows subtle hints below input fields
+ * Supports both old API (requiredFields) and new API (fieldKey)
+ * 
+ * States:
+ * - Missing data: Shows link to compute in source tool
+ * - Data available: Shows available value with import option
+ * - After import: Shows undo option
  */
 export function InlineInterlinkHint({
   requiredFields,
@@ -64,32 +80,174 @@ export function InlineInterlinkHint({
   fieldKey?: string;
 }) {
   const navigate = useNavigate();
+  const [importedValue, setImportedValue] = useState<number | string | null>(null);
+  const [previousValue, setPreviousValue] = useState<number | string | null>(null);
+  const [sessionValue, setSessionValue] = useState<number | string | undefined>(undefined);
   
   // Support both old and new API
   const targetFieldKey = fieldKey || (requiredFields?.[0]);
-  if (!targetFieldKey) return null;
   
   // Find publisher for the field
   const publisher = sourceTool 
     ? INTERLINK_PUBLISHERS.find(p => p.toolId === sourceTool)
-    : findPublisher(targetFieldKey);
+    : targetFieldKey ? findPublisher(targetFieldKey) : null;
   
-  if (!publisher) return null;
+  // Re-evaluate available data on mount and designSession changes
+  useEffect(() => {
+    const updateValue = () => {
+      if (!targetFieldKey) return;
+      const value = getSessionValue(targetFieldKey);
+      setSessionValue(value);
+    };
+    
+    updateValue();
+    
+    // Listen for designSession updates
+    const handleUpdate = () => {
+      updateValue();
+      // Reset imported state if session value changes externally
+      if (importedValue !== null) {
+        const current = getSessionValue(targetFieldKey);
+        if (current !== importedValue) {
+          setImportedValue(null);
+          setPreviousValue(null);
+        }
+      }
+    };
+    
+    window.addEventListener('designSessionUpdated', handleUpdate);
+    return () => window.removeEventListener('designSessionUpdated', handleUpdate);
+  }, [targetFieldKey, importedValue]);
   
-  const sessionValue = getSessionValue(targetFieldKey);
+  if (!targetFieldKey || !publisher) return null;
+  
   const hasData = sessionValue !== undefined && sessionValue !== null;
   
+  // Use TOOL_ROUTES for correct route
+  const toolId = 'toolId' in publisher ? publisher.toolId : sourceTool;
+  const toolPath = toolId && TOOL_ROUTES[toolId] 
+    ? TOOL_ROUTES[toolId] 
+    : ('path' in publisher ? publisher.path : `/tools/launch?tool=${sourceTool}`);
   const toolLabel = 'label' in publisher ? publisher.label : sourceTool;
-  const toolPath = 'path' in publisher ? publisher.path : `/tools/launch?tool=${sourceTool}`;
   
-  if (hasData) {
+  // Helper to find the input field associated with this hint
+  // Note: This works best if inputs have name attributes matching fieldKey
+  // If not found, designSession is still updated which is the main requirement
+  const findAssociatedInput = (): HTMLInputElement | HTMLTextAreaElement | null => {
+    try {
+      // Try by name attribute first (most reliable)
+      let input = document.querySelector(`input[name="${targetFieldKey}"], textarea[name="${targetFieldKey}"]`) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (input) return input;
+      
+      // Try by id matching fieldKey
+      input = document.querySelector(`input#${targetFieldKey}, textarea#${targetFieldKey}`) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (input) return input;
+      
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+  
+  const handleImport = () => {
+    if (!hasData || sessionValue === undefined) return;
+    
+    // Store previous value for undo - try to get from input field or use empty
+    let currentFieldValue: string | null = null;
+    const input = findAssociatedInput();
+    if (input) {
+      currentFieldValue = input.value || null;
+    }
+    setPreviousValue(currentFieldValue);
+    
+    // Import data to session (this updates designSession)
+    const data: Record<string, number | string> = {};
+    data[targetFieldKey] = sessionValue;
+    importDataToSession(data);
+    
+    // Also update input field value directly so user sees it immediately
+    if (input) {
+      input.value = String(sessionValue);
+      // Trigger change event so React state updates
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    
+    // Track imported value
+    setImportedValue(sessionValue);
+  };
+  
+  const handleUndo = () => {
+    if (previousValue === null) return;
+    
+    const input = findAssociatedInput();
+    
+    // Restore previous value to designSession
+    const data: Record<string, number | string> = {};
+    if (previousValue !== '') {
+      data[targetFieldKey] = previousValue;
+    } else {
+      // If previous was empty, remove from session
+      const ds = getDesignSession();
+      delete (ds as Record<string, unknown>)[targetFieldKey];
+      saveDesignSession(ds);
+      window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
+      setImportedValue(null);
+      setPreviousValue(null);
+      
+      // Also restore input field value
+      if (input) {
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      return;
+    }
+    
+    importDataToSession(data);
+    
+    // Also restore input field value
+    if (input) {
+      input.value = String(previousValue);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    
+    setImportedValue(null);
+    setPreviousValue(null);
+  };
+  
+  // After import: show undo option
+  if (importedValue !== null) {
     return (
-      <div className={cn("text-[11px] text-cyan-400/60 mt-1", className)}>
-        Available from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}
+      <div className={cn("text-[11px] text-cyan-400/80 mt-1 flex items-center gap-2", className)}>
+        <span>Imported: {typeof importedValue === 'number' ? importedValue.toPrecision(4) : importedValue}</span>
+        <button
+          onClick={handleUndo}
+          className="text-cyan-300 hover:text-cyan-200 underline"
+        >
+          Undo
+        </button>
       </div>
     );
   }
   
+  // Data available: show import option
+  if (hasData) {
+    return (
+      <div className={cn("text-[11px] text-cyan-400/60 mt-1 flex items-center gap-2", className)}>
+        <span>Available from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
+        <button
+          onClick={handleImport}
+          className="text-cyan-300 hover:text-cyan-200 underline"
+        >
+          Import
+        </button>
+      </div>
+    );
+  }
+  
+  // Missing data: show link to compute
   return (
     <button
       onClick={() => navigate(toolPath)}
