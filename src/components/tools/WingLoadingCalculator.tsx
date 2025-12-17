@@ -527,21 +527,9 @@ const WingLoadingCalculator = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
-  const [usedFromSession, setUsedFromSession] = useState(false);
   
   // Required fields for this calculator
   const requiredFields = ['massKg', 'weightN', 'missionType'];
-  
-  // Find available sources
-  const sources = findSourceList(designSession, requiredFields);
-  
-  // Get reusable data with source tracking
-  const { data: reusableData, sources: fieldSources } = getReusableDataWithSources(designSession, requiredFields);
-  const hasReusable = hasReusableData(reusableData);
-  
-  // Track imported data
-  const [importedFrom, setImportedFrom] = useState<{ sourceId: string; keys: string[] } | null>(null);
-  const [previousValues, setPreviousValues] = useState<Record<string, unknown>>({});
   
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
@@ -1088,109 +1076,6 @@ const WingLoadingCalculator = () => {
               </AeroCard>
             </div>
             
-            {/* Interlink Sources Row */}
-            {sources.length > 0 && (
-              <InterlinkSourcesRow
-                sources={sources}
-                onSelectSource={(sourceId) => {
-                  console.info('[Interlink] Selected source:', sourceId);
-                }}
-                compact={false}
-              />
-            )}
-
-            {/* Interlink Card for reusable data - Show in all modes when data available */}
-            {hasReusable && !usedFromSession && sources.length > 0 && (
-              <InterlinkCard
-                reusableData={reusableData}
-                setters={{
-                  setMassKg: (v) => setMassKg(String(v)),
-                  setWeightN: (v) => setWeightN(String(v)),
-                  setMissionType,
-                  setUsedFromSession,
-                }}
-                sourceInfo={sources[0]}
-                currentToolId="wing"
-                getCurrentValues={() => ({
-                  massKg,
-                  weightN,
-                  missionType,
-                })}
-                options={{
-                  weightMode,
-                  unitSystem,
-                  onApplied: (keys, prevVals) => {
-                    setImportedFrom({ sourceId: sources[0]?.id || 'unknown', keys });
-                    setPreviousValues(prevVals);
-                    setUsedFromSession(true);
-                    
-                    // Persist to localStorage
-                    const state = {
-                      unitSystem,
-                      calculatorMode,
-                      aircraftPreset,
-                      missionType: (reusableData as { missionType?: MissionType }).missionType || missionType,
-                      weightMode,
-                      massKg: reusableData.massKg?.toString() || massKg,
-                      weightN: reusableData.weightN?.toString() || weightN,
-                      wingAreaM2,
-                      airDensityMode,
-                      airDensityPreset,
-                      airDensityAltitude,
-                      airDensityDeltaT,
-                      airDensityCustom,
-                      clMaxOverride,
-                      useClMaxOverride,
-                      mtow,
-                      landingWeightFraction,
-                    };
-                    localStorage.setItem("wingLoadingCalc_state", JSON.stringify(state));
-                    console.info('[Interlink] Applied reused data to Wing Loading Calculator:', keys);
-                  },
-                  onUndo: (prevVals) => {
-                    // Restore previous values
-                    if (prevVals.massKg !== undefined) setMassKg(String(prevVals.massKg || ''));
-                    if (prevVals.weightN !== undefined) setWeightN(String(prevVals.weightN || ''));
-                    if (prevVals.missionType !== undefined) setMissionType(prevVals.missionType as MissionType);
-                    setImportedFrom(null);
-                    setPreviousValues({});
-                    setUsedFromSession(false);
-                    console.info('[Interlink] Undid imported data');
-                  },
-                }}
-                showDismiss={true}
-                imported={!!importedFrom}
-                previousValues={previousValues}
-              />
-            )}
-
-
-            {/* Imported badge */}
-            {importedFrom && (
-              <div className="mb-3 px-3 py-2 bg-emerald-400/10 border border-emerald-400/30 rounded-lg flex items-center justify-between">
-                <span className="text-xs text-emerald-400">
-                  ✓ Imported {importedFrom.keys.length} fields from {sources.find(s => s.id === importedFrom.sourceId)?.name || 'source'}
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    // Restore previous values
-                    if (previousValues.massKg !== undefined) setMassKg(String(previousValues.massKg || ''));
-                    if (previousValues.weightN !== undefined) setWeightN(String(previousValues.weightN || ''));
-                    if (previousValues.missionType !== undefined) setMissionType(previousValues.missionType as MissionType);
-                    setImportedFrom(null);
-                    setPreviousValues({});
-                    setUsedFromSession(false);
-                    console.info('[Interlink] Undid imported data');
-                  }}
-                  className="h-6 px-2 text-xs text-yellow-400 hover:bg-yellow-400/10"
-                >
-                  Undo
-                </Button>
-              </div>
-            )}
-            
             {/* Row 2: Aircraft Preset full-width */}
             <AeroCard
               title="Aircraft Preset"
@@ -1250,7 +1135,7 @@ const WingLoadingCalculator = () => {
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '10000' : '22046'}`}
                   />
-              </AeroFormField>
+                </AeroFormField>
               ) : (
                 <AeroFormField label={`Aircraft Weight (${inputUnits.weight})`} helperText={`Enter weight in ${inputUnits.weight}`}>
                   <Input
@@ -1261,7 +1146,7 @@ const WingLoadingCalculator = () => {
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
                   />
-              </AeroFormField>
+                </AeroFormField>
               )}
             </AeroCard>
 

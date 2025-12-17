@@ -35,6 +35,8 @@ export interface DesignSessionData {
   cd0?: number;          // Zero-lift drag coefficient
   k?: number;            // Induced drag factor
   totalThrustN?: number; // Total installed thrust (N)
+  perEngineThrustN?: number; // Per-engine thrust (N)
+  numEngines?: number;   // Number of engines
 }
 
 interface DesignSessionContextValue {
