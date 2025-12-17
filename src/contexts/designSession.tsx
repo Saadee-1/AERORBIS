@@ -21,6 +21,7 @@ export interface DesignSessionData {
   ldClimb?: number;      // L/D value to use in climb
   clClimb?: number;      // corresponding CL for that L/D (optional, for reference)
   alphaClimbDeg?: number;
+  clMax?: number;        // Maximum lift coefficient from airfoil
   ldCruise?: number;     // optional future use
   clCruise?: number;
   alphaCruiseDeg?: number;
@@ -78,6 +79,12 @@ export function DesignSessionProvider({ children }: { children: ReactNode }) {
     setData(prev => {
       const updated = { ...prev, ...partial };
       saveDesignSession(updated);
+      // Dispatch event after localStorage is updated (defer to next tick to ensure React state has processed)
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'updateDesignSession' } }));
+        }, 0);
+      }
       return updated;
     });
   };

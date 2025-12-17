@@ -1234,13 +1234,21 @@ const WingLoadingCalculator = () => {
                 <AeroFormField label="Custom Air Density (kg/m³)">
                       <Input 
                         type="number"
+                        name="densityKgM3"
                     step="0.001"
                     value={airDensityCustom}
                     onChange={(e) => setAirDensityCustom(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder="e.g., 1.225"
                   />
-                  <InlineInterlinkHint requiredFields={['densityKgM3']} sourceTool="atmosphere" className="mt-1" />
+                  <InlineInterlinkHint 
+                    requiredFields={['densityKgM3']} 
+                    sourceTool="atmosphere" 
+                    className="mt-1" 
+                    currentValue={airDensityCustom}
+                    onImport={(value) => setAirDensityCustom(String(value))}
+                    onUndo={(prevValue) => setAirDensityCustom(prevValue === null ? '' : String(prevValue))}
+                  />
               </AeroFormField>
               )}
               

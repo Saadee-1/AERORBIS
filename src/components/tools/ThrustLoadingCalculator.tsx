@@ -1107,7 +1107,13 @@ const ThrustLoadingCalculator = () => {
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '10000' : '22046'}`}
                   />
-                  <InlineInterlinkHint fieldKey="massKg" className="mt-1" />
+                  <InlineInterlinkHint 
+                    fieldKey="massKg" 
+                    className="mt-1" 
+                    currentValue={massKg}
+                    onImport={(value) => setMassKg(String(value))}
+                    onUndo={(prevValue) => setMassKg(prevValue === null ? '' : String(prevValue))}
+                  />
               </AeroFormField>
               ) : (
                 <AeroFormField label={`Aircraft Weight (${inputUnits.weight})`} helperText={`Enter weight in ${inputUnits.weight}`}>
@@ -1120,7 +1126,13 @@ const ThrustLoadingCalculator = () => {
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
                   />
-                  <InlineInterlinkHint fieldKey="weightN" className="mt-1" />
+                  <InlineInterlinkHint 
+                    fieldKey="weightN" 
+                    className="mt-1" 
+                    currentValue={weightN}
+                    onImport={(value) => setWeightN(String(value))}
+                    onUndo={(prevValue) => setWeightN(prevValue === null ? '' : String(prevValue))}
+                  />
               </AeroFormField>
               )}
             </AeroCard>
@@ -1308,7 +1320,13 @@ const ThrustLoadingCalculator = () => {
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder="e.g., 12.0"
                   />
-                  <InlineInterlinkHint fieldKey="ldClimb" className="mt-1" />
+                  <InlineInterlinkHint 
+                    fieldKey="ldClimb" 
+                    className="mt-1" 
+                    currentValue={ldClimb}
+                    onImport={(value) => setLdClimb(String(value))}
+                    onUndo={(prevValue) => setLdClimb(prevValue === null ? '' : String(prevValue))}
+                  />
                 </AeroFormField>
                 
                 <AeroFormField 

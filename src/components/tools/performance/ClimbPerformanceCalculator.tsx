@@ -351,7 +351,13 @@ export default function ClimbPerformanceCalculator() {
                   onChange={(e) => setMassKg(e.target.value)}
                   placeholder="250"
                 />
-                <InlineInterlinkHint fieldKey="massKg" className="mt-1" />
+                <InlineInterlinkHint 
+                  fieldKey="massKg" 
+                  className="mt-1" 
+                  currentValue={massKg}
+                  onImport={(value) => setMassKg(String(value))}
+                  onUndo={(prevValue) => setMassKg(prevValue === null ? '' : String(prevValue))}
+                />
               </AeroFormField>
             ) : (
               <AeroFormField label="Weight (N)" helperText="Aircraft total weight">
@@ -362,7 +368,13 @@ export default function ClimbPerformanceCalculator() {
                   onChange={(e) => setWeightN(e.target.value)}
                   placeholder="2452.5"
                 />
-                <InlineInterlinkHint fieldKey="weightN" className="mt-1" />
+                <InlineInterlinkHint 
+                  fieldKey="weightN" 
+                  className="mt-1" 
+                  currentValue={weightN}
+                  onImport={(value) => setWeightN(String(value))}
+                  onUndo={(prevValue) => setWeightN(prevValue === null ? '' : String(prevValue))}
+                />
               </AeroFormField>
             )}
 
@@ -374,7 +386,13 @@ export default function ClimbPerformanceCalculator() {
                 onChange={(e) => setWingAreaM2(e.target.value)}
                 placeholder="8.0"
               />
-              <InlineInterlinkHint fieldKey="wingAreaM2" className="mt-1" />
+              <InlineInterlinkHint 
+                fieldKey="wingAreaM2" 
+                className="mt-1" 
+                currentValue={wingAreaM2}
+                onImport={(value) => setWingAreaM2(String(value))}
+                onUndo={(prevValue) => setWingAreaM2(prevValue === null ? '' : String(prevValue))}
+              />
             </AeroFormField>
 
             <AeroFormField label="Total Thrust (N)" helperText="Total installed thrust">
@@ -385,7 +403,13 @@ export default function ClimbPerformanceCalculator() {
                 onChange={(e) => setTotalThrustN(e.target.value)}
                 placeholder="3000"
               />
-              <InlineInterlinkHint fieldKey="totalThrustN" className="mt-1" />
+              <InlineInterlinkHint 
+                fieldKey="totalThrustN" 
+                className="mt-1" 
+                currentValue={totalThrustN}
+                onImport={(value) => setTotalThrustN(String(value))}
+                onUndo={(prevValue) => setTotalThrustN(prevValue === null ? '' : String(prevValue))}
+              />
             </AeroFormField>
 
             <AeroFormField label="CD0" helperText="Zero-lift drag coefficient">
@@ -397,7 +421,13 @@ export default function ClimbPerformanceCalculator() {
                 placeholder="0.025"
                 step="0.001"
               />
-              <InlineInterlinkHint fieldKey="cd0" className="mt-1" />
+              <InlineInterlinkHint 
+                fieldKey="cd0" 
+                className="mt-1" 
+                currentValue={cd0}
+                onImport={(value) => setCd0(String(value))}
+                onUndo={(prevValue) => setCd0(prevValue === null ? '' : String(prevValue))}
+              />
             </AeroFormField>
 
             <AeroFormField label="k" helperText="Induced drag factor">
@@ -409,7 +439,13 @@ export default function ClimbPerformanceCalculator() {
                 placeholder="0.045"
                 step="0.001"
               />
-              <InlineInterlinkHint fieldKey="k" className="mt-1" />
+              <InlineInterlinkHint 
+                fieldKey="k" 
+                className="mt-1" 
+                currentValue={k}
+                onImport={(value) => setK(String(value))}
+                onUndo={(prevValue) => setK(prevValue === null ? '' : String(prevValue))}
+              />
             </AeroFormField>
 
             <AeroFormField label="CL_max (optional)" helperText="Maximum lift coefficient">
@@ -500,7 +536,13 @@ export default function ClimbPerformanceCalculator() {
                   placeholder="1.225"
                   step="0.001"
                 />
-                <InlineInterlinkHint fieldKey="densityKgM3" className="mt-1" />
+                <InlineInterlinkHint 
+                  fieldKey="densityKgM3" 
+                  className="mt-1" 
+                  currentValue={customDensity}
+                  onImport={(value) => setCustomDensity(String(value))}
+                  onUndo={(prevValue) => setCustomDensity(prevValue === null ? '' : String(prevValue))}
+                />
               </AeroFormField>
             )}
 

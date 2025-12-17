@@ -1252,8 +1252,15 @@ const point: Record<string, unknown> = { alpha };
 
               <div className="grid grid-cols-2 gap-4">
                 <AeroFormField label={`Wing Area (${getUnit("area")})`}>
-                  <Input id="wingArea" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
-                  <InlineInterlinkHint requiredFields={['wingAreaM2']} sourceTool="wingloading" className="mt-1" />
+                  <Input id="wingArea" name="wingAreaM2" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                  <InlineInterlinkHint 
+                    requiredFields={['wingAreaM2']} 
+                    sourceTool="wingloading" 
+                    className="mt-1" 
+                    currentValue={inputs.wingArea}
+                    onImport={(value) => setInputs({ ...inputs, wingArea: String(value) })}
+                    onUndo={(prevValue) => setInputs({ ...inputs, wingArea: prevValue === null ? '' : String(prevValue) })}
+                  />
                 </AeroFormField>
                 <AeroFormField label={`Wing Span (${getUnit("span")})`}>
                   <Input id="wingSpan" type="number" value={inputs.wingSpan} onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />

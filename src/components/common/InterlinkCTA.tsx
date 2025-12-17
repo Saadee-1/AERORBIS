@@ -55,24 +55,29 @@ function getSessionValue(fieldKey: string): number | string | undefined {
  * Inline interlink hint component - shows subtle hints below input fields
  * Supports both old API (requiredFields) and new API (fieldKey)
  * 
- * States:
- * - Missing data: Shows link to compute in source tool
- * - Data available: Shows available value with import option
- * - After import: Shows undo option
+ * States (DERIVED, not stored):
+ * - Missing data: localValue == null AND sessionValue === undefined → show redirect
+ * - Data available: localValue == null AND sessionValue !== undefined → show import
+ * - After import: localValue !== null AND previousValue !== null → show undo
  */
 export function InlineInterlinkHint({
   requiredFields,
   sourceTool,
   className,
   fieldKey,
+  currentValue,
+  onImport,
+  onUndo,
 }: {
   requiredFields?: string[];
   sourceTool?: string;
   className?: string;
   fieldKey?: string;
+  currentValue?: string | number; // Current local value from parent calculator
+  onImport?: (value: number | string) => void; // Callback to update parent state on import
+  onUndo?: (previousValue: number | string | null) => void; // Callback to update parent state on undo
 }) {
   const navigate = useNavigate();
-  const [importedValue, setImportedValue] = useState<number | string | null>(null);
   const [previousValue, setPreviousValue] = useState<number | string | null>(null);
   const [sessionValue, setSessionValue] = useState<number | string | undefined>(undefined);
   
@@ -84,6 +89,19 @@ export function InlineInterlinkHint({
     ? INTERLINK_PUBLISHERS.find(p => p.toolId === sourceTool)
     : targetFieldKey ? findPublisher(targetFieldKey) : null;
   
+  // Helper to find the input field associated with this hint
+  const findAssociatedInput = (): HTMLInputElement | HTMLTextAreaElement | null => {
+    try {
+      let input = document.querySelector(`input[name="${targetFieldKey}"], textarea[name="${targetFieldKey}"]`) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (input) return input;
+      input = document.querySelector(`input#${targetFieldKey}, textarea#${targetFieldKey}`) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (input) return input;
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+  
   // Re-evaluate available data on mount and designSession changes
   useEffect(() => {
     const updateValue = () => {
@@ -94,26 +112,36 @@ export function InlineInterlinkHint({
     
     updateValue();
     
-    // Listen for designSession updates
+    // Listen for designSession updates (re-evaluate on any change)
     const handleUpdate = () => {
       updateValue();
-      // Reset imported state if session value changes externally
-      if (importedValue !== null) {
-        const current = getSessionValue(targetFieldKey);
-        if (current !== importedValue) {
-          setImportedValue(null);
-          setPreviousValue(null);
-        }
-      }
     };
     
     window.addEventListener('designSessionUpdated', handleUpdate);
     return () => window.removeEventListener('designSessionUpdated', handleUpdate);
-  }, [targetFieldKey, importedValue]);
+  }, [targetFieldKey]); // Removed importedValue dependency - state is derived
   
   if (!targetFieldKey || !publisher) return null;
   
   const hasData = sessionValue !== undefined && sessionValue !== null;
+  
+  // DERIVE local value state (null/empty means missing)
+  // Use currentValue prop if provided, otherwise fallback to reading from input
+  const getLocalValue = (): string | number | null => {
+    if (currentValue !== undefined) {
+      return currentValue === '' ? null : currentValue;
+    }
+    // Fallback: try to read from input field (backward compatibility)
+    const input = findAssociatedInput();
+    if (input) {
+      const val = input.value;
+      return val === '' ? null : val;
+    }
+    return null;
+  };
+  
+  const localValue = getLocalValue();
+  const isLocalValueEmpty = localValue === null || localValue === '';
   
   // Use TOOL_ROUTES for correct route
   const toolId = 'toolId' in publisher ? publisher.toolId : sourceTool;
@@ -122,48 +150,23 @@ export function InlineInterlinkHint({
     : ('path' in publisher ? publisher.path : `/tools/launch?tool=${sourceTool}`);
   const toolLabel = 'label' in publisher ? publisher.label : sourceTool;
   
-  // Helper to find the input field associated with this hint
-  // Note: This works best if inputs have name attributes matching fieldKey
-  // If not found, designSession is still updated which is the main requirement
-  const findAssociatedInput = (): HTMLInputElement | HTMLTextAreaElement | null => {
-    try {
-      // Try by name attribute first (most reliable)
-      let input = document.querySelector(`input[name="${targetFieldKey}"], textarea[name="${targetFieldKey}"]`) as HTMLInputElement | HTMLTextAreaElement | null;
-      if (input) return input;
-      
-      // Try by id matching fieldKey
-      input = document.querySelector(`input#${targetFieldKey}, textarea#${targetFieldKey}`) as HTMLInputElement | HTMLTextAreaElement | null;
-      if (input) return input;
-      
-      return null;
-    } catch (e) {
-      return null;
-    }
-  };
-  
   const handleImport = () => {
     if (!hasData || sessionValue === undefined) return;
     
     // Store previous value for undo - preserve type consistency
-    // Use null only when no input field is found, use empty string for empty fields
     let currentFieldValue: number | string | null = null;
     const input = findAssociatedInput();
     if (input) {
       const inputValue = input.value;
-      // If input field exists but is empty, use empty string (not null)
-      // This distinguishes "no field found" (null) from "empty field" ('')
       if (inputValue === '') {
         currentFieldValue = ''; // Empty string, not null
       } else if (typeof sessionValue === 'number') {
-        // Try to parse as number to preserve type consistency
         const parsed = parseFloat(inputValue);
         currentFieldValue = isNaN(parsed) ? inputValue : parsed;
       } else {
-        // sessionValue is a string, keep input.value as string
         currentFieldValue = inputValue;
       }
     }
-    // If input is null, currentFieldValue remains null (no field found)
     setPreviousValue(currentFieldValue);
     
     // Import data to session (this updates designSession)
@@ -171,47 +174,40 @@ export function InlineInterlinkHint({
     data[targetFieldKey] = sessionValue;
     importDataToSession(data);
     
-    // Also update input field value directly so user sees it immediately
+    // Notify parent component to update its state (if callback provided)
+    if (onImport) {
+      onImport(sessionValue);
+    }
+    
+    // Update input field value directly as fallback (for backward compatibility)
     if (input) {
       input.value = String(sessionValue);
-      // Trigger change event so React state updates
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
     }
-    
-    // Track imported value
-    setImportedValue(sessionValue);
   };
   
   const handleUndo = () => {
-    // If previousValue is null, it means no input field was found during import
-    // We still need to clean up the imported data from designSession
+    // PURE LOCAL REWIND: Only restore local value, do NOT modify designSession
     if (previousValue === null) {
-      // Remove the imported data from designSession
-      const ds = getDesignSession();
-      delete (ds as Record<string, unknown>)[targetFieldKey];
-      saveDesignSession(ds);
-      window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
-      
-      // Reset state
-      setImportedValue(null);
+      // No field found or no previous value - just clear state
       setPreviousValue(null);
+      if (onUndo) {
+        onUndo(null);
+      }
       return;
     }
     
     const input = findAssociatedInput();
     
-    // Restore previous value to designSession
-    const data: Record<string, number | string> = {};
-    // Handle empty string case (empty field) separately from null (no field found)
+    // Notify parent component to update its state (if callback provided)
+    if (onUndo) {
+      onUndo(previousValue);
+    }
+    
+    // Restore previous local value only (as fallback for backward compatibility)
     if (previousValue === '') {
-      // Previous was empty, remove from session
-      const ds = getDesignSession();
-      delete (ds as Record<string, unknown>)[targetFieldKey];
-      saveDesignSession(ds);
-      window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
-      
-      // Also restore input field value to empty
+      // Previous was empty - restore to empty
       if (input) {
         input.value = '';
         input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -219,10 +215,6 @@ export function InlineInterlinkHint({
       }
     } else if (typeof previousValue === 'number' || typeof previousValue === 'string') {
       // Restore non-empty value
-      data[targetFieldKey] = previousValue;
-      importDataToSession(data);
-      
-      // Also restore input field value
       if (input) {
         input.value = String(previousValue);
         input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -230,15 +222,28 @@ export function InlineInterlinkHint({
       }
     }
     
-    setImportedValue(null);
+    // Clear undo state - import will be available again if session data exists
     setPreviousValue(null);
   };
   
-  // After import: show undo option
-  if (importedValue !== null) {
+  // STATE MACHINE: Derive state from localValue and sessionValue
+  
+  // Helper to compare values (handles string/number conversion)
+  const valuesMatch = (local: string | number | null, session: number | string | undefined): boolean => {
+    if (local === null || session === undefined) return false;
+    if (typeof local === 'number' && typeof session === 'number') {
+      return Math.abs(local - session) < 1e-10; // Floating point comparison
+    }
+    // Convert both to strings for comparison
+    return String(local) === String(session);
+  };
+  
+  // State 1: After import (show undo) - localValue has value AND we have previousValue AND values match
+  const isImported = !isLocalValueEmpty && previousValue !== null && valuesMatch(localValue, sessionValue);
+  if (isImported) {
     return (
       <div className={cn("text-[11px] text-cyan-400/80 mt-1 flex items-center gap-2", className)}>
-        <span>Imported: {typeof importedValue === 'number' ? importedValue.toPrecision(4) : importedValue}</span>
+        <span>Imported: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
         <button
           onClick={handleUndo}
           className="text-cyan-300 hover:text-cyan-200 underline"
@@ -249,8 +254,8 @@ export function InlineInterlinkHint({
     );
   }
   
-  // Data available: show import option
-  if (hasData) {
+  // State 2: Data available (show import) - localValue empty AND sessionValue exists
+  if (isLocalValueEmpty && hasData) {
     return (
       <div className={cn("text-[11px] text-cyan-400/60 mt-1 flex items-center gap-2", className)}>
         <span>Available from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
@@ -264,19 +269,24 @@ export function InlineInterlinkHint({
     );
   }
   
-  // Missing data: show link to compute
-  return (
-    <button
-      onClick={() => navigate(toolPath)}
-      className={cn(
-        "text-[11px] text-slate-400 hover:text-cyan-400 mt-1 flex items-center gap-1",
-        className
-      )}
-    >
-      Don't know? Compute in {toolLabel}
-      <ArrowRight className="w-3 h-3" />
-    </button>
-  );
+  // State 3: Missing data (show redirect) - localValue empty AND sessionValue undefined
+  if (isLocalValueEmpty && !hasData) {
+    return (
+      <button
+        onClick={() => navigate(toolPath)}
+        className={cn(
+          "text-[11px] text-slate-400 hover:text-cyan-400 mt-1 flex items-center gap-1",
+          className
+        )}
+      >
+        Don't know? Compute in {toolLabel}
+        <ArrowRight className="w-3 h-3" />
+      </button>
+    );
+  }
+  
+  // State 4: Field has manual value - don't show hint
+  return null;
 }
 
 export default function InterlinkCTA(props: Props) {
