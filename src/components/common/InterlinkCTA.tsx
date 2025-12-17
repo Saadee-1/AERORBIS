@@ -80,6 +80,7 @@ export function InlineInterlinkHint({
   const navigate = useNavigate();
   const [previousValue, setPreviousValue] = useState<number | string | null>(null);
   const [sessionValue, setSessionValue] = useState<number | string | undefined>(undefined);
+  const [importedSessionValue, setImportedSessionValue] = useState<number | string | undefined>(undefined);
   
   // Support both old and new API
   const targetFieldKey = fieldKey || (requiredFields?.[0]);
@@ -169,6 +170,9 @@ export function InlineInterlinkHint({
     }
     setPreviousValue(currentFieldValue);
     
+    // Track the session value that was imported
+    setImportedSessionValue(sessionValue);
+    
     // Import data to session (this updates designSession)
     const data: Record<string, number | string> = {};
     data[targetFieldKey] = sessionValue;
@@ -205,6 +209,7 @@ export function InlineInterlinkHint({
         }
       }
       setPreviousValue(null);
+      setImportedSessionValue(undefined); // Clear imported session value tracking
       if (onUndo) {
         onUndo(null);
       }
@@ -251,6 +256,7 @@ export function InlineInterlinkHint({
     
     // Clear undo state - import will be available again if session data exists
     setPreviousValue(null);
+    setImportedSessionValue(undefined); // Clear imported session value tracking
   };
   
   // STATE MACHINE: Derive state from localValue and sessionValue
@@ -298,7 +304,9 @@ export function InlineInterlinkHint({
   
   // State 2b: New data available after previous import - previousValue exists AND sessionValue changed
   // This handles the case where user imported a value, then another tool updated the sessionValue
-  if (previousValue !== null && hasData && !valuesMatch(localValue, sessionValue)) {
+  // Only show if sessionValue has actually changed from what we imported (not just user editing)
+  if (previousValue !== null && hasData && !valuesMatch(localValue, sessionValue) && 
+      importedSessionValue !== undefined && !valuesMatch(importedSessionValue, sessionValue)) {
     return (
       <div className={cn("text-[11px] text-cyan-400/60 mt-1 flex items-center gap-2", className)}>
         <span>Updated from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
