@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNavigateToTool } from '@/hooks/useNavigateToTool';
 import { cn } from '@/lib/utils';
+import { getDesignSession, saveDesignSession } from '@/contexts/designSession';
 
 type InlineData = Partial<Record<string, number | string>>;
 
@@ -50,15 +51,6 @@ function getSessionValue(fieldKey: string): number | string | undefined {
   return available[fieldKey as FieldKey];
 }
 
-/**
- * Inline interlink hint component - shows subtle hints below input fields
- * Supports both old API (requiredFields) and new API (fieldKey)
- * 
- * States:
- * - Missing data: Shows link to compute in source tool
- * - Data available: Shows available value with import option
- * - After import: Shows undo option
- */
 /**
  * Inline interlink hint component - shows subtle hints below input fields
  * Supports both old API (requiredFields) and new API (fieldKey)
@@ -156,7 +148,7 @@ export function InlineInterlinkHint({
     let currentFieldValue: string | null = null;
     const input = findAssociatedInput();
     if (input) {
-      currentFieldValue = input.value || null;
+      currentFieldValue = input.value; // Preserve empty strings instead of converting to null
     }
     setPreviousValue(currentFieldValue);
     
@@ -178,22 +170,42 @@ export function InlineInterlinkHint({
   };
   
   const handleUndo = () => {
-    if (previousValue === null) return;
+    // If previousValue is null, it means no input field was found during import
+    // We still need to clean up the imported data from designSession
+    if (previousValue === null) {
+      // Remove the imported data from designSession
+      const ds = getDesignSession();
+      delete (ds as Record<string, unknown>)[targetFieldKey];
+      saveDesignSession(ds);
+      window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
+      
+      // Reset state
+      setImportedValue(null);
+      setPreviousValue(null);
+      return;
+    }
     
     const input = findAssociatedInput();
     
     // Restore previous value to designSession
     const data: Record<string, number | string> = {};
-    if (previousValue !== '') {
+    // Explicit type guard: ensure previousValue is number | string before assigning
+    if (previousValue !== '' && (typeof previousValue === 'number' || typeof previousValue === 'string')) {
       data[targetFieldKey] = previousValue;
+      importDataToSession(data);
+      
+      // Also restore input field value
+      if (input) {
+        input.value = String(previousValue);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
     } else {
       // If previous was empty, remove from session
       const ds = getDesignSession();
       delete (ds as Record<string, unknown>)[targetFieldKey];
       saveDesignSession(ds);
       window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
-      setImportedValue(null);
-      setPreviousValue(null);
       
       // Also restore input field value
       if (input) {
@@ -201,16 +213,6 @@ export function InlineInterlinkHint({
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
       }
-      return;
-    }
-    
-    importDataToSession(data);
-    
-    // Also restore input field value
-    if (input) {
-      input.value = String(previousValue);
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
     }
     
     setImportedValue(null);
