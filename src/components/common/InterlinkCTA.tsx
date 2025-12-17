@@ -177,13 +177,14 @@ export function InlineInterlinkHint({
     // Notify parent component to update its state (if callback provided)
     if (onImport) {
       onImport(sessionValue);
-    }
-    
-    // Update input field value directly as fallback (for backward compatibility)
-    if (input) {
-      input.value = String(sessionValue);
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      // Update input field value directly as fallback (for backward compatibility)
+      // Only do DOM manipulation when callback is NOT provided
+      if (input) {
+        input.value = String(sessionValue);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
     }
   };
   
@@ -203,22 +204,23 @@ export function InlineInterlinkHint({
     // Notify parent component to update its state (if callback provided)
     if (onUndo) {
       onUndo(previousValue);
-    }
-    
-    // Restore previous local value only (as fallback for backward compatibility)
-    if (previousValue === '') {
-      // Previous was empty - restore to empty
-      if (input) {
-        input.value = '';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    } else if (typeof previousValue === 'number' || typeof previousValue === 'string') {
-      // Restore non-empty value
-      if (input) {
-        input.value = String(previousValue);
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      // Restore previous local value only (as fallback for backward compatibility)
+      // Only do DOM manipulation when callback is NOT provided
+      if (previousValue === '') {
+        // Previous was empty - restore to empty
+        if (input) {
+          input.value = '';
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      } else if (typeof previousValue === 'number' || typeof previousValue === 'string') {
+        // Restore non-empty value
+        if (input) {
+          input.value = String(previousValue);
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
       }
     }
     
@@ -254,11 +256,27 @@ export function InlineInterlinkHint({
     );
   }
   
-  // State 2: Data available (show import) - localValue empty AND sessionValue exists
+  // State 2a: Data available (show import) - localValue empty AND sessionValue exists
   if (isLocalValueEmpty && hasData) {
     return (
       <div className={cn("text-[11px] text-cyan-400/60 mt-1 flex items-center gap-2", className)}>
         <span>Available from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
+        <button
+          onClick={handleImport}
+          className="text-cyan-300 hover:text-cyan-200 underline"
+        >
+          Import
+        </button>
+      </div>
+    );
+  }
+  
+  // State 2b: New data available after previous import - previousValue exists AND sessionValue changed
+  // This handles the case where user imported a value, then another tool updated the sessionValue
+  if (previousValue !== null && hasData && !valuesMatch(localValue, sessionValue)) {
+    return (
+      <div className={cn("text-[11px] text-cyan-400/60 mt-1 flex items-center gap-2", className)}>
+        <span>Updated from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
         <button
           onClick={handleImport}
           className="text-cyan-300 hover:text-cyan-200 underline"
