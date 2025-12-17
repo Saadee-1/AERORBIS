@@ -764,11 +764,13 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
       // Calculate cd0 and k from the drag polar
       const cd0 = activeAirfoil.CD_0 || 0;
       const k = k_factor;
+      const ldClimbValue = L_D_ratio; // Use calculated L/D ratio
       if (Number.isFinite(cd0) && Number.isFinite(k)) {
         updateDesignSession({
           cd0: cd0,
           k: k,
           clMax: activeAirfoil.CL_max || undefined,
+          ldClimb: Number.isFinite(ldClimbValue) && ldClimbValue > 0 ? ldClimbValue : undefined,
         });
       }
       

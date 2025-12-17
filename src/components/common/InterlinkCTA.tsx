@@ -144,11 +144,23 @@ export function InlineInterlinkHint({
   const handleImport = () => {
     if (!hasData || sessionValue === undefined) return;
     
-    // Store previous value for undo - try to get from input field or use empty
-    let currentFieldValue: string | null = null;
+    // Store previous value for undo - preserve type consistency
+    let currentFieldValue: number | string | null = null;
     const input = findAssociatedInput();
     if (input) {
-      currentFieldValue = input.value; // Preserve empty strings instead of converting to null
+      const inputValue = input.value;
+      // If sessionValue is a number, try to parse input.value as number to preserve type
+      // Otherwise, keep as string
+      if (inputValue === '') {
+        currentFieldValue = null;
+      } else if (typeof sessionValue === 'number') {
+        // Try to parse as number to preserve type consistency
+        const parsed = parseFloat(inputValue);
+        currentFieldValue = isNaN(parsed) ? inputValue : parsed;
+      } else {
+        // sessionValue is a string, keep input.value as string
+        currentFieldValue = inputValue;
+      }
     }
     setPreviousValue(currentFieldValue);
     

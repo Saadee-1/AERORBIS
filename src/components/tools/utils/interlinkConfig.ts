@@ -9,6 +9,7 @@ export type FieldKey =
   | 'cd0'
   | 'k'
   | 'clMax'
+  | 'ldClimb'
   | 'stallSpeedMs'
   | 'densityKgM3'
   | 'vClimbVyMs'
@@ -41,7 +42,7 @@ export const INTERLINK_PUBLISHERS: ToolPublish[] = [
   { toolId: 'wingloading', publishes: ['massKg','weightN','wingAreaM2','wingLoadingKgm2','clMax','stallSpeedMs'], label: 'Wing Loading' },
   { toolId: 'thrust', publishes: ['totalThrustN','perEngineThrustN','numEngines'], label: 'Thrust Calculator' },
   { toolId: 'thrustloading', publishes: ['totalThrustN','perEngineThrustN','numEngines','wingLoadingKgm2'], label: 'Thrust Loading' },
-  { toolId: 'ld', publishes: ['cd0','k','clMax'], label: 'L/D Analyzer' },
+  { toolId: 'ld', publishes: ['cd0','k','clMax','ldClimb'], label: 'L/D Analyzer' },
   { toolId: 'climb', publishes: ['vClimbVyMs','vClimbVxMs','rocVyMs','gammaVy'], label: 'Climb Performance' },
   { toolId: 'atmosphere', publishes: ['densityKgM3'], label: 'Atmosphere / ISA' },
   { toolId: 'materials', publishes: ['other'], label: 'Materials DB' }

@@ -1100,25 +1100,27 @@ const ThrustLoadingCalculator = () => {
                 <AeroFormField label={`Aircraft Mass (${inputUnits.mass})`} helperText={`Enter mass in ${inputUnits.mass}`}>
                   <Input
                     type="number"
+                    name="massKg"
                     step="0.01"
                     value={massKg}
                     onChange={(e) => setMassKg(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '10000' : '22046'}`}
                   />
-                  <InlineInterlinkHint requiredFields={['massKg']} sourceTool="wingloading" className="mt-1" />
+                  <InlineInterlinkHint fieldKey="massKg" className="mt-1" />
               </AeroFormField>
               ) : (
                 <AeroFormField label={`Aircraft Weight (${inputUnits.weight})`} helperText={`Enter weight in ${inputUnits.weight}`}>
                   <Input
                     type="number"
+                    name="weightN"
                     step="0.01"
                     value={weightN}
                     onChange={(e) => setWeightN(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
                   />
-                  <InlineInterlinkHint requiredFields={['weightN']} sourceTool="wingloading" className="mt-1" />
+                  <InlineInterlinkHint fieldKey="weightN" className="mt-1" />
               </AeroFormField>
               )}
             </AeroCard>
@@ -1299,12 +1301,14 @@ const ThrustLoadingCalculator = () => {
                 <AeroFormField label="Lift-to-Drag Ratio (L/D_climb)" helperText="L/D during climb phase">
                   <Input
                     type="number"
+                    name="ldClimb"
                     step="0.1"
                     value={ldClimb}
                     onChange={(e) => setLdClimb(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder="e.g., 12.0"
                   />
+                  <InlineInterlinkHint fieldKey="ldClimb" className="mt-1" />
                 </AeroFormField>
                 
                 <AeroFormField 

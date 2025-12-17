@@ -346,61 +346,70 @@ export default function ClimbPerformanceCalculator() {
               <AeroFormField label="Mass (kg)" helperText="Aircraft total mass">
                 <Input
                   type="number"
+                  name="massKg"
                   value={massKg}
                   onChange={(e) => setMassKg(e.target.value)}
                   placeholder="250"
                 />
+                <InlineInterlinkHint fieldKey="massKg" className="mt-1" />
               </AeroFormField>
             ) : (
               <AeroFormField label="Weight (N)" helperText="Aircraft total weight">
                 <Input
                   type="number"
+                  name="weightN"
                   value={weightN}
                   onChange={(e) => setWeightN(e.target.value)}
                   placeholder="2452.5"
                 />
+                <InlineInterlinkHint fieldKey="weightN" className="mt-1" />
               </AeroFormField>
             )}
 
             <AeroFormField label="Wing Area (m²)" helperText="Total wing area">
               <Input
                 type="number"
+                name="wingAreaM2"
                 value={wingAreaM2}
                 onChange={(e) => setWingAreaM2(e.target.value)}
                 placeholder="8.0"
               />
+              <InlineInterlinkHint fieldKey="wingAreaM2" className="mt-1" />
             </AeroFormField>
 
             <AeroFormField label="Total Thrust (N)" helperText="Total installed thrust">
               <Input
                 type="number"
+                name="totalThrustN"
                 value={totalThrustN}
                 onChange={(e) => setTotalThrustN(e.target.value)}
                 placeholder="3000"
               />
-              <InlineInterlinkHint requiredFields={['totalThrustN']} sourceTool="thrust" className="mt-1" />
+              <InlineInterlinkHint fieldKey="totalThrustN" className="mt-1" />
             </AeroFormField>
 
             <AeroFormField label="CD0" helperText="Zero-lift drag coefficient">
               <Input
                 type="number"
+                name="cd0"
                 value={cd0}
                 onChange={(e) => setCd0(e.target.value)}
                 placeholder="0.025"
                 step="0.001"
               />
-              <InlineInterlinkHint requiredFields={['cd0']} sourceTool="ld" className="mt-1" />
+              <InlineInterlinkHint fieldKey="cd0" className="mt-1" />
             </AeroFormField>
 
             <AeroFormField label="k" helperText="Induced drag factor">
               <Input
                 type="number"
+                name="k"
                 value={k}
                 onChange={(e) => setK(e.target.value)}
                 placeholder="0.045"
                 step="0.001"
               />
-              <InlineInterlinkHint requiredFields={['k']} sourceTool="ld" className="mt-1" />
+              <InlineInterlinkHint fieldKey="k" className="mt-1" />
             </AeroFormField>
 
             <AeroFormField label="CL_max (optional)" helperText="Maximum lift coefficient">
@@ -485,11 +494,13 @@ export default function ClimbPerformanceCalculator() {
               <AeroFormField label="Air Density (kg/m³)">
                 <Input
                   type="number"
+                  name="densityKgM3"
                   value={customDensity}
                   onChange={(e) => setCustomDensity(e.target.value)}
                   placeholder="1.225"
                   step="0.001"
                 />
+                <InlineInterlinkHint fieldKey="densityKgM3" className="mt-1" />
               </AeroFormField>
             )}
 
