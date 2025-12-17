@@ -257,10 +257,15 @@ export function InlineInterlinkHint({
       }
     } else if (typeof previousValue === 'number' || typeof previousValue === 'string') {
       // Previous had a value - restore it to session
-      const data: Record<string, number | string> = {};
-      data[targetFieldKey] = previousValue;
-      importDataToSession(data);
-      // Note: importDataToSession already dispatches the designSessionUpdated event
+      const ds = getDesignSession();
+      (ds as Record<string, string | number>)[targetFieldKey] = previousValue;
+      saveDesignSession(ds);
+      // Dispatch event to notify other components with correct source
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
+        }, 0);
+      }
     }
     
     // Clear undo state - import will be available again if session data exists
