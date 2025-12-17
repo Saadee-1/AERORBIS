@@ -145,14 +145,15 @@ export function InlineInterlinkHint({
     if (!hasData || sessionValue === undefined) return;
     
     // Store previous value for undo - preserve type consistency
+    // Use null only when no input field is found, use empty string for empty fields
     let currentFieldValue: number | string | null = null;
     const input = findAssociatedInput();
     if (input) {
       const inputValue = input.value;
-      // If sessionValue is a number, try to parse input.value as number to preserve type
-      // Otherwise, keep as string
+      // If input field exists but is empty, use empty string (not null)
+      // This distinguishes "no field found" (null) from "empty field" ('')
       if (inputValue === '') {
-        currentFieldValue = null;
+        currentFieldValue = ''; // Empty string, not null
       } else if (typeof sessionValue === 'number') {
         // Try to parse as number to preserve type consistency
         const parsed = parseFloat(inputValue);
@@ -162,6 +163,7 @@ export function InlineInterlinkHint({
         currentFieldValue = inputValue;
       }
     }
+    // If input is null, currentFieldValue remains null (no field found)
     setPreviousValue(currentFieldValue);
     
     // Import data to session (this updates designSession)
@@ -201,27 +203,28 @@ export function InlineInterlinkHint({
     
     // Restore previous value to designSession
     const data: Record<string, number | string> = {};
-    // Explicit type guard: ensure previousValue is number | string before assigning
-    if (previousValue !== '' && (typeof previousValue === 'number' || typeof previousValue === 'string')) {
+    // Handle empty string case (empty field) separately from null (no field found)
+    if (previousValue === '') {
+      // Previous was empty, remove from session
+      const ds = getDesignSession();
+      delete (ds as Record<string, unknown>)[targetFieldKey];
+      saveDesignSession(ds);
+      window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
+      
+      // Also restore input field value to empty
+      if (input) {
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    } else if (typeof previousValue === 'number' || typeof previousValue === 'string') {
+      // Restore non-empty value
       data[targetFieldKey] = previousValue;
       importDataToSession(data);
       
       // Also restore input field value
       if (input) {
         input.value = String(previousValue);
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    } else {
-      // If previous was empty, remove from session
-      const ds = getDesignSession();
-      delete (ds as Record<string, unknown>)[targetFieldKey];
-      saveDesignSession(ds);
-      window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
-      
-      // Also restore input field value
-      if (input) {
-        input.value = '';
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
       }
