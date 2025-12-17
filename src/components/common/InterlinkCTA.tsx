@@ -260,12 +260,7 @@ export function InlineInterlinkHint({
       const data: Record<string, number | string> = {};
       data[targetFieldKey] = previousValue;
       importDataToSession(data);
-      // Note: importDataToSession already dispatches the event, but we wrap it in setTimeout for consistency
-      if (typeof window !== 'undefined') {
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
-        }, 0);
-      }
+      // Note: importDataToSession already dispatches the designSessionUpdated event
     }
     
     // Clear undo state - import will be available again if session data exists
