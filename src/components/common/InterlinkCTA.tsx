@@ -81,6 +81,7 @@ export function InlineInterlinkHint({
   const [previousValue, setPreviousValue] = useState<number | string | null>(null);
   const [sessionValue, setSessionValue] = useState<number | string | undefined>(undefined);
   const [importedSessionValue, setImportedSessionValue] = useState<number | string | undefined>(undefined);
+  const [preImportSessionValue, setPreImportSessionValue] = useState<number | string | undefined>(undefined);
   
   // Support both old and new API
   const targetFieldKey = fieldKey || (requiredFields?.[0]);
@@ -173,6 +174,10 @@ export function InlineInterlinkHint({
     // Track the session value that was imported
     setImportedSessionValue(sessionValue);
     
+    // Track what was in session BEFORE we import (to restore on undo)
+    const dsBeforeImport = getDesignSession();
+    setPreImportSessionValue(dsBeforeImport[targetFieldKey as FieldKey]);
+    
     // Import data to session (this updates designSession)
     const data: Record<string, number | string> = {};
     data[targetFieldKey] = sessionValue;
@@ -195,11 +200,23 @@ export function InlineInterlinkHint({
   const handleUndo = () => {
     // Restore local value AND restore designSession to pre-import state
     if (previousValue === null) {
-      // No field found or no previous value - just clear state
-      // Still remove from designSession if it was imported
+      // No field found or no previous value - restore session to pre-import state
       const ds = getDesignSession();
-      if (ds[targetFieldKey as FieldKey] !== undefined) {
-        delete (ds as Record<string, unknown>)[targetFieldKey];
+      if (preImportSessionValue === undefined) {
+        // Session was empty before import - remove it
+        if (ds[targetFieldKey as FieldKey] !== undefined) {
+          delete (ds as Record<string, unknown>)[targetFieldKey];
+          saveDesignSession(ds);
+          // Dispatch event to notify other components
+          if (typeof window !== 'undefined') {
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
+            }, 0);
+          }
+        }
+      } else {
+        // Session had a value before import - restore it
+        (ds as Record<string, string | number>)[targetFieldKey] = preImportSessionValue;
         saveDesignSession(ds);
         // Dispatch event to notify other components
         if (typeof window !== 'undefined') {
@@ -210,6 +227,7 @@ export function InlineInterlinkHint({
       }
       setPreviousValue(null);
       setImportedSessionValue(undefined); // Clear imported session value tracking
+      setPreImportSessionValue(undefined); // Clear pre-import session value tracking
       if (onUndo) {
         onUndo(null);
       }
@@ -241,10 +259,10 @@ export function InlineInterlinkHint({
       }
     }
     
-    // Restore designSession to pre-import state
-    if (previousValue === '') {
-      // Previous was empty - remove from session
-      const ds = getDesignSession();
+    // Restore designSession to pre-import state (what was in session BEFORE we imported)
+    const ds = getDesignSession();
+    if (preImportSessionValue === undefined) {
+      // Session was empty before import - remove it
       if (ds[targetFieldKey as FieldKey] !== undefined) {
         delete (ds as Record<string, unknown>)[targetFieldKey];
         saveDesignSession(ds);
@@ -255,10 +273,9 @@ export function InlineInterlinkHint({
           }, 0);
         }
       }
-    } else if (typeof previousValue === 'number' || typeof previousValue === 'string') {
-      // Previous had a value - restore it to session
-      const ds = getDesignSession();
-      (ds as Record<string, string | number>)[targetFieldKey] = previousValue;
+    } else {
+      // Session had a value before import - restore it (so import option appears again)
+      (ds as Record<string, string | number>)[targetFieldKey] = preImportSessionValue;
       saveDesignSession(ds);
       // Dispatch event to notify other components with correct source
       if (typeof window !== 'undefined') {
@@ -271,6 +288,7 @@ export function InlineInterlinkHint({
     // Clear undo state - import will be available again if session data exists
     setPreviousValue(null);
     setImportedSessionValue(undefined); // Clear imported session value tracking
+    setPreImportSessionValue(undefined); // Clear pre-import session value tracking
   };
   
   // STATE MACHINE: Derive state from localValue and sessionValue
@@ -285,12 +303,13 @@ export function InlineInterlinkHint({
     return String(local) === String(session);
   };
   
-  // State 1: After import (show undo) - localValue has value AND we have previousValue AND values match
-  const isImported = !isLocalValueEmpty && previousValue !== null && valuesMatch(localValue, sessionValue);
+  // State 1: After import (show undo) - localValue has value AND we have previousValue AND values match imported value
+  // Compare against importedSessionValue, not sessionValue, so undo remains available even if session changes
+  const isImported = !isLocalValueEmpty && previousValue !== null && importedSessionValue !== undefined && valuesMatch(localValue, importedSessionValue);
   if (isImported) {
     return (
       <div className={cn("text-[11px] text-cyan-400/80 mt-1 flex items-center gap-2", className)}>
-        <span>Imported: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
+        <span>Imported: {typeof importedSessionValue === 'number' ? importedSessionValue.toPrecision(4) : importedSessionValue}</span>
         <button
           onClick={handleUndo}
           className="text-cyan-300 hover:text-cyan-200 underline"
