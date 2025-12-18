@@ -1541,7 +1541,7 @@ const WingLoadingCalculator = () => {
                               {convertWingLoadingKgm2FromSI(result.landingWingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              Landing weight = {(parseFloat(landingWeightFraction) * 100).toFixed(0)}% of MTOW. Critical for: landing distance, approach speed, field length requirements.
+                              Landing weight = {((parseFloat(landingWeightFraction) || 0.7) * 100).toFixed(0)}% of MTOW. Critical for: landing distance, approach speed, field length requirements.
                             </p>
                           </>
                         )}
