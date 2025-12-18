@@ -768,8 +768,8 @@ const ThrustLoadingCalculator = () => {
             toast({ title: "Invalid Input", description: "Climb velocity is unrealistically large (typical: 20-100 m/s)", variant: "destructive" });
             return;
           }
-          if (ldClimbInput <= 0 || ldClimbInput > 100) {
-            toast({ title: "Invalid Input", description: "L/D ratio must be positive and realistic (typical: 8-20)", variant: "destructive" });
+          if (ldClimbInput > 100) {
+            toast({ title: "Invalid Input", description: "L/D ratio is unrealistically large (typical: 8-20)", variant: "destructive" });
             return;
           }
           climbGradient = calculateClimbGradient(tw, ldClimbInput);
