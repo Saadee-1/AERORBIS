@@ -250,8 +250,8 @@ export default function StandardAtmosphereCalculator() {
         if (atmosphereResult.densityRatio < 0 || atmosphereResult.densityRatio > 1) {
           throw new Error("Invalid density ratio calculated");
         }
-        if (atmosphereResult.temperatureRatio < 0 || atmosphereResult.temperatureRatio > 2) {
-          // Temperature ratio can exceed 1 at high altitudes (mesosphere)
+        if (atmosphereResult.temperatureRatio < 0 || atmosphereResult.temperatureRatio > 1) {
+          // Temperature ratio T/T₀ should never exceed 1.0 in ISA 1976 (max T = 270.65 K at stratopause < T₀ = 288.15 K)
           throw new Error("Invalid temperature ratio calculated");
         }
       }
