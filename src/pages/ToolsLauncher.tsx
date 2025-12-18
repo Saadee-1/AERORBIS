@@ -73,6 +73,9 @@ const ToolsLauncher = () => {
 
   // Update active tab when URL changes
   useEffect(() => {
+    // Close modal when URL changes (browser navigation, back button, external links)
+    setShowToolsModal(false);
+    
     if (toolParam && TOOL_NAME_TO_TAB[toolParam]) {
       const tabId = TOOL_NAME_TO_TAB[toolParam];
       setActiveTab(tabId);
