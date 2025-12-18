@@ -84,6 +84,9 @@ const ToolsLauncher = () => {
       // Direct tab ID in URL
       setActiveTab(toolParam);
       setHideTabs(true);
+    } else {
+      // No tool parameter - show all tabs
+      setHideTabs(false);
     }
   }, [toolParam]);
 
