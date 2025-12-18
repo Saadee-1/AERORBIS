@@ -324,7 +324,7 @@ export default function ClimbPerformanceCalculator() {
         <AeroCard title="Inputs" icon={Calculator}>
           <div className="grid md:grid-cols-2 gap-6">
             {/* Weight/Mass */}
-            <AeroFormField label="Weight Input Mode">
+            <AeroFormField label="Weight Input Mode" helperText="Select whether to input mass or weight for the climb condition">
               <div className="flex items-center gap-4">
                 <Label className="flex items-center gap-2 cursor-pointer">
                   <Switch
@@ -344,13 +344,17 @@ export default function ClimbPerformanceCalculator() {
             </AeroFormField>
 
             {weightMode === 'mass' ? (
-              <AeroFormField label="Mass (kg)" helperText="Aircraft total mass">
+              <AeroFormField 
+                label="Aircraft Mass (kg)" 
+                helperText={`Aircraft total mass for the climb condition (typically MTOW or operating weight). Mass is converted to weight using g = ${GRAVITY} m/s². Used in climb performance calculations.`}
+              >
                 <Input
                   type="number"
                   name="massKg"
                   value={massKg}
                   onChange={(e) => setMassKg(e.target.value)}
                   placeholder="250"
+                  min="0"
                 />
                 <InlineInterlinkHint 
                   fieldKey={FIELD_KEYS.massKg} 
@@ -361,13 +365,17 @@ export default function ClimbPerformanceCalculator() {
                 />
               </AeroFormField>
             ) : (
-              <AeroFormField label="Weight (N)" helperText="Aircraft total weight">
+              <AeroFormField 
+                label="Aircraft Weight (N)" 
+                helperText={`Aircraft total weight for the climb condition (typically MTOW or operating weight). Weight = mass × g, where g = ${GRAVITY} m/s² (standard gravity). Used directly in climb performance calculations.`}
+              >
                 <Input
                   type="number"
                   name="weightN"
                   value={weightN}
                   onChange={(e) => setWeightN(e.target.value)}
                   placeholder="2452.5"
+                  min="0"
                 />
                 <InlineInterlinkHint 
                   fieldKey={FIELD_KEYS.weightN} 
@@ -379,13 +387,18 @@ export default function ClimbPerformanceCalculator() {
               </AeroFormField>
             )}
 
-            <AeroFormField label="Wing Area (m²)" helperText="Total wing area">
+            <AeroFormField 
+              label="Gross Wing Area (m²)" 
+              helperText="Total wing reference area (planform area). Used to compute wing loading (W/S) and lift coefficient. Typically includes the full wing planform area."
+            >
               <Input
                 type="number"
                 name="wingAreaM2"
                 value={wingAreaM2}
                 onChange={(e) => setWingAreaM2(e.target.value)}
                 placeholder="8.0"
+                min="0"
+                step="0.1"
               />
               <InlineInterlinkHint 
                 fieldKey={FIELD_KEYS.wingAreaM2} 
@@ -396,13 +409,17 @@ export default function ClimbPerformanceCalculator() {
               />
             </AeroFormField>
 
-            <AeroFormField label="Total Thrust (N)" helperText="Total installed thrust">
+            <AeroFormField 
+              label="Total Installed Thrust (N)" 
+              helperText="Total installed thrust available for climb at the specified condition. For jets/turbofans, this is typically sea-level static (SLS) thrust. For propellers, this represents available shaft power converted to thrust. Required for climb performance calculations."
+            >
               <Input
                 type="number"
                 name="totalThrustN"
                 value={totalThrustN}
                 onChange={(e) => setTotalThrustN(e.target.value)}
                 placeholder="3000"
+                min="0"
               />
               <InlineInterlinkHint 
                 fieldKey={FIELD_KEYS.totalThrustN} 
@@ -413,7 +430,10 @@ export default function ClimbPerformanceCalculator() {
               />
             </AeroFormField>
 
-            <AeroFormField label="CD0" helperText="Zero-lift drag coefficient">
+            <AeroFormField 
+              label="Zero-lift Drag Coefficient (C_D0)" 
+              helperText="Parasite drag coefficient at zero lift. Represents form drag, skin friction, and interference drag. Typical range: 0.015-0.040 for clean aircraft. Used in the drag polar: C_D = C_D0 + k·C_L²."
+            >
               <Input
                 type="number"
                 name="cd0"
@@ -421,6 +441,7 @@ export default function ClimbPerformanceCalculator() {
                 onChange={(e) => setCd0(e.target.value)}
                 placeholder="0.025"
                 step="0.001"
+                min="0"
               />
               <InlineInterlinkHint 
                 fieldKey={FIELD_KEYS.cd0} 
@@ -431,7 +452,10 @@ export default function ClimbPerformanceCalculator() {
               />
             </AeroFormField>
 
-            <AeroFormField label="k" helperText="Induced drag factor">
+            <AeroFormField 
+              label="Induced Drag Factor (k)" 
+              helperText="Induced drag factor in the drag polar: C_D = C_D0 + k·C_L². Related to Oswald efficiency factor e: k = 1/(π·AR·e), where AR is aspect ratio. Typical range: 0.02-0.10. Higher values indicate less efficient lift generation."
+            >
               <Input
                 type="number"
                 name="k"
@@ -439,6 +463,7 @@ export default function ClimbPerformanceCalculator() {
                 onChange={(e) => setK(e.target.value)}
                 placeholder="0.045"
                 step="0.001"
+                min="0"
               />
               <InlineInterlinkHint 
                 fieldKey={FIELD_KEYS.k} 
@@ -449,17 +474,25 @@ export default function ClimbPerformanceCalculator() {
               />
             </AeroFormField>
 
-            <AeroFormField label="CL_max (optional)" helperText="Maximum lift coefficient">
+            <AeroFormField 
+              label="Maximum Lift Coefficient (C_L,max) [Optional]" 
+              helperText="Maximum lift coefficient at the climb condition. Used to determine stall-limited climb speeds. If not specified, calculations proceed without stall constraints. Typical range: 1.2-2.5 depending on configuration."
+            >
               <Input
                 type="number"
+                name="clMax"
                 value={clMax}
                 onChange={(e) => setClMax(e.target.value)}
                 placeholder="1.8"
                 step="0.1"
+                min="0"
               />
             </AeroFormField>
 
-            <AeroFormField label="Engine Type">
+            <AeroFormField 
+              label="Engine Type" 
+              helperText="Select the propulsion system type. Jet/Turbofan: thrust is directly specified. Propeller: requires propulsive efficiency to convert shaft power to thrust."
+            >
               <Select value={engineType} onValueChange={(v) => setEngineType(v as EngineType)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -473,9 +506,13 @@ export default function ClimbPerformanceCalculator() {
             </AeroFormField>
 
             {engineType === 'prop' && (
-              <AeroFormField label="Propulsive Efficiency η_p" helperText="Default: 0.85">
+              <AeroFormField 
+                label="Propulsive Efficiency (η_p)" 
+                helperText="Propeller efficiency: ratio of propulsive power to shaft power. Typical range: 0.75-0.90. Used to convert available shaft power to thrust: T = (η_p · P_shaft) / V. Default: 0.85."
+              >
                 <Input
                   type="number"
+                  name="propEfficiency"
                   value={propEfficiency}
                   onChange={(e) => setPropEfficiency(e.target.value)}
                   placeholder="0.85"
@@ -486,7 +523,10 @@ export default function ClimbPerformanceCalculator() {
               </AeroFormField>
             )}
 
-            <AeroFormField label="Air Density Mode">
+            <AeroFormField 
+              label="Air Density Mode" 
+              helperText="Select how air density is determined. ISA Preset: use standard atmosphere density at common altitudes. Altitude (ISA): compute ISA density from geopotential altitude. Custom: specify density directly (e.g., from Standard Atmosphere calculator)."
+            >
               <Select value={densityMode} onValueChange={(v) => setDensityMode(v as AirDensityMode)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -500,7 +540,10 @@ export default function ClimbPerformanceCalculator() {
             </AeroFormField>
 
             {densityMode === 'preset' && (
-              <AeroFormField label="Density Preset">
+              <AeroFormField 
+                label="Density Preset" 
+                helperText="Select a standard ISA density preset at common altitudes. Density values are computed using the International Standard Atmosphere (ISA) model."
+              >
                 <Select value={densityPreset} onValueChange={(v) => setDensityPreset(v as AirDensityPreset)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -517,18 +560,41 @@ export default function ClimbPerformanceCalculator() {
             )}
 
             {densityMode === 'altitude' && (
-              <AeroFormField label="Altitude (m)" helperText="ISA density will be computed">
+              <AeroFormField 
+                label="Geopotential Altitude (m)" 
+                helperText="Geopotential altitude above sea level. Air density will be computed using the International Standard Atmosphere (ISA) model. Typical range: 0-15,000 m for ISA validity."
+              >
                 <Input
                   type="number"
+                  name="altitudeM"
                   value={altitudeM}
                   onChange={(e) => setAltitudeM(e.target.value)}
                   placeholder="0"
+                  min="0"
+                  max="15000"
                 />
+                {altitudeM && (() => {
+                  const alt = parseFloat(altitudeM);
+                  if (isNaN(alt) || alt < 0) {
+                    return <p className="text-xs text-yellow-400 mt-1">Warning: Altitude must be non-negative.</p>;
+                  }
+                  if (alt > 15000) {
+                    return <p className="text-xs text-yellow-400 mt-1">Warning: Altitude exceeds 15,000 m. ISA model validity may be limited.</p>;
+                  }
+                  const density = calculateISADensity(alt);
+                  if (!Number.isFinite(density) || density <= 0) {
+                    return <p className="text-xs text-yellow-400 mt-1">Warning: Computed density is invalid. Check altitude input.</p>;
+                  }
+                  return null;
+                })()}
               </AeroFormField>
             )}
 
             {densityMode === 'custom' && (
-              <AeroFormField label="Air Density (kg/m³)">
+              <AeroFormField 
+                label="Air Density (kg/m³)" 
+                helperText="Air density at the climb condition. Can be imported from the Standard Atmosphere calculator or entered manually. ISA sea-level density: 1.225 kg/m³. Density decreases with altitude and temperature."
+              >
                 <Input
                   type="number"
                   name="densityKgM3"
@@ -536,7 +602,18 @@ export default function ClimbPerformanceCalculator() {
                   onChange={(e) => setCustomDensity(e.target.value)}
                   placeholder="1.225"
                   step="0.001"
+                  min="0"
                 />
+                {customDensity && (() => {
+                  const density = parseFloat(customDensity);
+                  if (isNaN(density) || density <= 0) {
+                    return <p className="text-xs text-yellow-400 mt-1">Warning: Air density must be a positive number.</p>;
+                  }
+                  if (density > 2) {
+                    return <p className="text-xs text-yellow-400 mt-1">Warning: Density exceeds 2 kg/m³. Please verify input (ISA sea-level: 1.225 kg/m³).</p>;
+                  }
+                  return null;
+                })()}
                 <InlineInterlinkHint 
                   fieldKey={FIELD_KEYS.densityKgM3} 
                   className="mt-1" 
@@ -547,9 +624,13 @@ export default function ClimbPerformanceCalculator() {
               </AeroFormField>
             )}
 
-            <AeroFormField label="Grid Resolution" helperText="Number of speed points (default: 200)">
+            <AeroFormField 
+              label="Grid Resolution" 
+              helperText="Number of speed points used to compute the climb performance curve. Higher values provide smoother curves but increase computation time. Recommended range: 50-1000 points. Default: 200."
+            >
               <Input
                 type="number"
+                name="nPoints"
                 value={nPoints}
                 onChange={(e) => setNPoints(e.target.value)}
                 placeholder="200"
@@ -591,50 +672,81 @@ export default function ClimbPerformanceCalculator() {
       {result && (
         <>
           <ToolSection>
-            <AeroCard title="Results" icon={CheckCircle}>
+            <AeroCard title="Climb Performance Results" icon={CheckCircle}>
+              <div className="mb-4 text-sm text-gray-400">
+                <p>Results computed for steady climb at specified air density. Assumes small-angle approximation (sin γ ≈ γ) for climb angle.</p>
+              </div>
               <div className="grid md:grid-cols-2 gap-6">
                 {result.vY !== undefined && (
                   <>
-                    <div>
-                      <h4 className="text-sm font-semibold text-cyan-400 mb-2">V_y (Best Rate of Climb)</h4>
-                      <p className="text-2xl font-bold text-white">{result.vY.toFixed(2)} m/s</p>
-                      <p className="text-sm text-gray-400">{msToKts(result.vY).toFixed(2)} kts</p>
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="text-sm font-semibold text-cyan-400 mb-1">V_y — Best Rate of Climb Speed</h4>
+                        <p className="text-xs text-gray-500 mb-2">True airspeed that maximizes vertical velocity (rate of climb). Used for time-to-climb optimization.</p>
+                        <p className="text-2xl font-bold text-white">{result.vY.toFixed(2)} m/s</p>
+                        <p className="text-sm text-gray-400">{msToKts(result.vY).toFixed(2)} kts (TAS)</p>
+                      </div>
                       {result.rocVy !== undefined && (
-                        <>
-                          <p className="text-lg text-white mt-2">ROC: {result.rocVy.toFixed(2)} m/s</p>
-                          <p className="text-sm text-gray-400">{msToFpm(result.rocVy).toFixed(0)} ft/min</p>
-                        </>
+                        <div className="mt-4 pt-3 border-t border-gray-700">
+                          <h5 className="text-xs font-semibold text-gray-300 mb-1">Rate of Climb (ROC) at V_y</h5>
+                          <p className="text-xs text-gray-500 mb-1">Vertical velocity component: rate of altitude gain per unit time.</p>
+                          {Number.isFinite(result.rocVy) && result.rocVy >= 0 && result.rocVy <= 1000 ? (
+                            <>
+                              <p className="text-lg text-white">{result.rocVy.toFixed(2)} m/s</p>
+                              <p className="text-sm text-gray-400">{msToFpm(result.rocVy).toFixed(0)} ft/min</p>
+                            </>
+                          ) : (
+                            <p className="text-sm text-yellow-400">Invalid or unrealistic ROC value</p>
+                          )}
+                        </div>
                       )}
                       {result.gammaVy !== undefined && (
-                        <p className="text-sm text-gray-400">Gradient: {(result.gammaVy * 100).toFixed(2)}%</p>
+                        <div className="mt-2">
+                          <h5 className="text-xs font-semibold text-gray-300 mb-1">Climb Gradient at V_y</h5>
+                          <p className="text-xs text-gray-500 mb-1">Climb angle (γ): ratio of vertical to horizontal velocity. Used for obstacle clearance analysis.</p>
+                          {Number.isFinite(result.gammaVy) && result.gammaVy >= 0 && result.gammaVy <= 1 ? (
+                            <p className="text-sm text-gray-400">{(result.gammaVy * 100).toFixed(2)}% (γ = {Math.asin(result.gammaVy) * 180 / Math.PI}°)</p>
+                          ) : (
+                            <p className="text-sm text-yellow-400">Invalid or unrealistic gradient value</p>
+                          )}
+                        </div>
                       )}
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-cyan-400 mb-2">V_x (Best Angle of Climb)</h4>
-                      {result.vX !== undefined ? (
-                        <>
-                          <p className="text-2xl font-bold text-white">{result.vX.toFixed(2)} m/s</p>
-                          <p className="text-sm text-gray-400">{msToKts(result.vX).toFixed(2)} kts</p>
-                          {result.rocVx !== undefined && (
-                            <>
-                              <p className="text-lg text-white mt-2">ROC: {result.rocVx.toFixed(2)} m/s</p>
-                              <p className="text-sm text-gray-400">{msToFpm(result.rocVx).toFixed(0)} ft/min</p>
-                            </>
-                          )}
-                          {result.gammaVx !== undefined && (
-                            <p className="text-sm text-gray-400">Gradient: {(result.gammaVx * 100).toFixed(2)}%</p>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-gray-400">Not computed</p>
-                      )}
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="text-sm font-semibold text-cyan-400 mb-1">V_x — Best Angle of Climb Speed</h4>
+                        <p className="text-xs text-gray-500 mb-2">True airspeed that maximizes climb angle (steepest climb). Used for obstacle clearance and short-field takeoff performance.</p>
+                        {result.vX !== undefined ? (
+                          <>
+                            <p className="text-2xl font-bold text-white">{result.vX.toFixed(2)} m/s</p>
+                            <p className="text-sm text-gray-400">{msToKts(result.vX).toFixed(2)} kts (TAS)</p>
+                            {result.rocVx !== undefined && (
+                              <div className="mt-4 pt-3 border-t border-gray-700">
+                                <h5 className="text-xs font-semibold text-gray-300 mb-1">Rate of Climb (ROC) at V_x</h5>
+                                <p className="text-xs text-gray-500 mb-1">Vertical velocity component at best angle speed. Typically lower than ROC at V_y.</p>
+                                <p className="text-lg text-white">{result.rocVx.toFixed(2)} m/s</p>
+                                <p className="text-sm text-gray-400">{msToFpm(result.rocVx).toFixed(0)} ft/min</p>
+                              </div>
+                            )}
+                            {result.gammaVx !== undefined && (
+                              <div className="mt-2">
+                                <h5 className="text-xs font-semibold text-gray-300 mb-1">Climb Gradient at V_x</h5>
+                                <p className="text-xs text-gray-500 mb-1">Maximum climb angle (γ_max): steepest climb gradient achievable. Maximum obstacle clearance capability.</p>
+                                <p className="text-sm text-gray-400">{(result.gammaVx * 100).toFixed(2)}% (γ = {Math.asin(result.gammaVx) * 180 / Math.PI}°)</p>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-gray-400 text-sm">Not computed (insufficient excess thrust or constraint violation)</p>
+                        )}
+                      </div>
                     </div>
                   </>
                 )}
               </div>
 
               {result.vY !== undefined && (
-                <div className="mt-6">
+                <div className="mt-6 pt-4 border-t border-gray-700">
                   <Button
                     variant="outline"
                     onClick={handleExportVy}
