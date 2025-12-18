@@ -105,6 +105,13 @@ const ToolsLauncher = () => {
     navigate(`/tools/launch?tool=${tabId}`);
   };
 
+  const showAllTabs = () => {
+    setShowToolsModal(false);
+    setIsHoveringTools(false);
+    setHideTabs(false);
+    navigate("/tools/launch");
+  };
+
   // Define all tools with their icons and labels
   const allTools = [
     { id: "thrust", icon: Rocket, label: "Thrust Calculator" },
@@ -190,6 +197,19 @@ const ToolsLauncher = () => {
                       }}
                     >
                       <div className="p-2 space-y-1">
+                        {/* Show All Tabs button */}
+                        <button
+                          onClick={showAllTabs}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all duration-200 bg-cyan-400/20 text-cyan-400 border border-cyan-400/40 hover:bg-cyan-400/30 mb-1"
+                        >
+                          <Grid3x3 className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm font-medium">Show All Tabs</span>
+                        </button>
+                        
+                        {/* Divider */}
+                        <div className="h-px bg-slate-700/50 my-1" />
+                        
+                        {/* Tools list */}
                         {allTools.map((tool, index) => {
                           const Icon = tool.icon;
                           return (
