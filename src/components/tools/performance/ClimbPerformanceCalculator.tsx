@@ -724,8 +724,14 @@ export default function ClimbPerformanceCalculator() {
                               <div className="mt-4 pt-3 border-t border-gray-700">
                                 <h5 className="text-xs font-semibold text-gray-300 mb-1">Rate of Climb (ROC) at V_x</h5>
                                 <p className="text-xs text-gray-500 mb-1">Vertical velocity component at best angle speed. Typically lower than ROC at V_y.</p>
-                                <p className="text-lg text-white">{result.rocVx.toFixed(2)} m/s</p>
-                                <p className="text-sm text-gray-400">{msToFpm(result.rocVx).toFixed(0)} ft/min</p>
+                                {Number.isFinite(result.rocVx) && result.rocVx >= 0 && result.rocVx <= 1000 ? (
+                                  <>
+                                    <p className="text-lg text-white">{result.rocVx.toFixed(2)} m/s</p>
+                                    <p className="text-sm text-gray-400">{msToFpm(result.rocVx).toFixed(0)} ft/min</p>
+                                  </>
+                                ) : (
+                                  <p className="text-sm text-yellow-400">Invalid or unrealistic ROC value</p>
+                                )}
                               </div>
                             )}
                             {result.gammaVx !== undefined && (
