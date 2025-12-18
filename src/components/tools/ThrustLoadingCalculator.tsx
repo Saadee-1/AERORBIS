@@ -1272,44 +1272,6 @@ const ThrustLoadingCalculator = () => {
                   />
                 </AeroFormField>
                 
-                {/* Helper for L/D from Lift/Drag Analyzer */}
-                {(() => {
-                  const hasClimbLdFromSession =
-                    calculatorMode === 'Expert' &&
-                    !!designSession &&
-                    typeof designSession.ldClimb === 'number' &&
-                    designSession.ldClimb > 0;
-                  
-                  return hasClimbLdFromSession ? (
-                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-cyan-400/30 bg-slate-900/60 px-3 py-2">
-                      <div className="text-xs text-slate-200">
-                        From Lift/Drag Analyzer:&nbsp;
-                        <span className="font-mono text-cyan-300">
-                          (L/D)_climb ≈ {designSession.ldClimb?.toFixed(1)}
-                        </span>
-                        {designSession.clClimb !== undefined &&
-                          designSession.alphaClimbDeg !== undefined && (
-                            <span className="ml-1 text-[0.7rem] text-slate-400">
-                              at CL ≈ {designSession.clClimb.toFixed(2)},
-                              α ≈ {designSession.alphaClimbDeg.toFixed(1)}°
-                            </span>
-                          )}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          if (!designSession.ldClimb) return;
-                          setLdClimb(designSession.ldClimb.toString());
-                        }}
-                        className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
-                      >
-                        Use this L/D
-                      </Button>
-                    </div>
-                  ) : null;
-                })()}
-                
                 <AeroFormField label="Lift-to-Drag Ratio (L/D_climb)" helperText="L/D during climb phase">
                   <Input
                     type="number"
