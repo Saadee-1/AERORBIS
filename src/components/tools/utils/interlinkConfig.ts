@@ -1,25 +1,37 @@
-export type FieldKey =
-  | 'massKg'
-  | 'weightN'
-  | 'wingAreaM2'
-  | 'wingLoadingKgm2'
-  | 'totalThrustN'
-  | 'perEngineThrustN'
-  | 'numEngines'
-  | 'cd0'
-  | 'k'
-  | 'clMax'
-  | 'ldClimb'
-  | 'stallSpeedMs'
-  | 'densityKgM3'
-  | 'vClimbVyMs'
-  | 'vClimbVxMs'
-  | 'rocVyMs'
-  | 'gammaVy'
-  | 'takeoffRunwayM'
-  | 'clTo'
-  | 'muRoll'
-  | 'other';
+/**
+ * SINGLE SOURCE OF TRUTH: Interlink field key constants
+ * All interlink keys MUST be defined here as constants.
+ * The FieldKey type is derived from these constants to ensure type safety.
+ */
+export const FIELD_KEYS = {
+  massKg: 'massKg',
+  weightN: 'weightN',
+  wingAreaM2: 'wingAreaM2',
+  wingLoadingKgm2: 'wingLoadingKgm2',
+  totalThrustN: 'totalThrustN',
+  perEngineThrustN: 'perEngineThrustN',
+  numEngines: 'numEngines',
+  cd0: 'cd0',
+  k: 'k',
+  clMax: 'clMax',
+  ldClimb: 'ldClimb',
+  stallSpeedMs: 'stallSpeedMs',
+  densityKgM3: 'densityKgM3',
+  vClimbVyMs: 'vClimbVyMs',
+  vClimbVxMs: 'vClimbVxMs',
+  rocVyMs: 'rocVyMs',
+  gammaVy: 'gammaVy',
+  takeoffRunwayM: 'takeoffRunwayM',
+  clTo: 'clTo',
+  muRoll: 'muRoll',
+  other: 'other',
+} as const;
+
+/**
+ * FieldKey type derived from FIELD_KEYS constants
+ * This ensures compile-time type safety and prevents key mismatches
+ */
+export type FieldKey = typeof FIELD_KEYS[keyof typeof FIELD_KEYS];
 
 export type ToolId =
   | 'wingloading'
@@ -39,13 +51,13 @@ export type ToolPublish = {
 };
 
 export const INTERLINK_PUBLISHERS: ToolPublish[] = [
-  { toolId: 'wingloading', publishes: ['massKg','weightN','wingAreaM2','wingLoadingKgm2','clMax','stallSpeedMs'], label: 'Wing Loading' },
-  { toolId: 'thrust', publishes: ['totalThrustN','perEngineThrustN','numEngines'], label: 'Thrust Calculator' },
-  { toolId: 'thrustloading', publishes: ['totalThrustN','perEngineThrustN','numEngines','wingLoadingKgm2'], label: 'Thrust Loading' },
-  { toolId: 'ld', publishes: ['cd0','k','clMax','ldClimb'], label: 'L/D Analyzer' },
-  { toolId: 'climb', publishes: ['vClimbVyMs','vClimbVxMs','rocVyMs','gammaVy'], label: 'Climb Performance' },
-  { toolId: 'atmosphere', publishes: ['densityKgM3'], label: 'Atmosphere / ISA' },
-  { toolId: 'materials', publishes: ['other'], label: 'Materials DB' }
+  { toolId: 'wingloading', publishes: [FIELD_KEYS.massKg, FIELD_KEYS.weightN, FIELD_KEYS.wingAreaM2, FIELD_KEYS.wingLoadingKgm2, FIELD_KEYS.clMax, FIELD_KEYS.stallSpeedMs], label: 'Wing Loading' },
+  { toolId: 'thrust', publishes: [FIELD_KEYS.totalThrustN, FIELD_KEYS.perEngineThrustN, FIELD_KEYS.numEngines], label: 'Thrust Calculator' },
+  { toolId: 'thrustloading', publishes: [FIELD_KEYS.totalThrustN, FIELD_KEYS.perEngineThrustN, FIELD_KEYS.numEngines, FIELD_KEYS.wingLoadingKgm2], label: 'Thrust Loading' },
+  { toolId: 'ld', publishes: [FIELD_KEYS.cd0, FIELD_KEYS.k, FIELD_KEYS.clMax, FIELD_KEYS.ldClimb], label: 'L/D Analyzer' },
+  { toolId: 'climb', publishes: [FIELD_KEYS.vClimbVyMs, FIELD_KEYS.vClimbVxMs, FIELD_KEYS.rocVyMs, FIELD_KEYS.gammaVy], label: 'Climb Performance' },
+  { toolId: 'atmosphere', publishes: [FIELD_KEYS.densityKgM3], label: 'Atmosphere / ISA' },
+  { toolId: 'materials', publishes: [FIELD_KEYS.other], label: 'Materials DB' }
 ];
 
 /**

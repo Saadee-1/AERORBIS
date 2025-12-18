@@ -69,6 +69,7 @@ import { ThrustLoadingGraphs } from "./ThrustLoadingGraphs";
 import { ThrustWingSizingDiagram } from "./ThrustWingSizingDiagram";
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
+import { FIELD_KEYS } from "./utils/interlinkConfig";
 import { 
   getReusableDataForCalculator, 
   hasReusableData,
@@ -476,7 +477,7 @@ const ThrustLoadingCalculator = () => {
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   
   // Required fields for this calculator
-  const requiredFields = ['massKg', 'weightN', 'wingLoadingKgm2', 'wingAreaM2', 'missionType', 'ldClimb', 'densityKgM3'];
+  const requiredFields = [FIELD_KEYS.massKg, FIELD_KEYS.weightN, FIELD_KEYS.wingLoadingKgm2, FIELD_KEYS.wingAreaM2, 'missionType', FIELD_KEYS.ldClimb, FIELD_KEYS.densityKgM3];
   
   // Get reusable data with source tracking
   const { data: reusableData, sources: fieldSources } = getReusableDataWithSources(designSession, requiredFields);
@@ -1108,7 +1109,7 @@ const ThrustLoadingCalculator = () => {
                     placeholder={`e.g., ${unitSystem === 'SI' ? '10000' : '22046'}`}
                   />
                   <InlineInterlinkHint 
-                    fieldKey="massKg" 
+                    fieldKey={FIELD_KEYS.massKg} 
                     className="mt-1" 
                     currentValue={massKg}
                     onImport={(value) => setMassKg(String(value))}
@@ -1127,7 +1128,7 @@ const ThrustLoadingCalculator = () => {
                     placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
                   />
                   <InlineInterlinkHint 
-                    fieldKey="weightN" 
+                    fieldKey={FIELD_KEYS.weightN} 
                     className="mt-1" 
                     currentValue={weightN}
                     onImport={(value) => setWeightN(String(value))}
@@ -1283,7 +1284,7 @@ const ThrustLoadingCalculator = () => {
                     placeholder="e.g., 12.0"
                   />
                   <InlineInterlinkHint 
-                    fieldKey="ldClimb" 
+                    fieldKey={FIELD_KEYS.ldClimb} 
                     className="mt-1" 
                     currentValue={ldClimb}
                     onImport={(value) => setLdClimb(String(value))}
@@ -1632,7 +1633,7 @@ const ThrustLoadingCalculator = () => {
       {!designSession?.wingAreaM2 && (
         <ToolSection>
           <div className="px-4 py-2">
-            <InlineInterlinkHint requiredFields={['wingAreaM2']} sourceTool="wingloading" />
+            <InlineInterlinkHint requiredFields={[FIELD_KEYS.wingAreaM2]} sourceTool="wingloading" />
           </div>
         </ToolSection>
       )}

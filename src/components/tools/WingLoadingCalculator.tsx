@@ -78,6 +78,7 @@ import {
 } from "./utils/unitConversions";
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
+import { FIELD_KEYS } from "./utils/interlinkConfig";
 import { 
   getReusableDataForCalculator, 
   hasReusableData,
@@ -529,7 +530,7 @@ const WingLoadingCalculator = () => {
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   
   // Required fields for this calculator
-  const requiredFields = ['massKg', 'weightN', 'missionType'];
+  const requiredFields = [FIELD_KEYS.massKg, FIELD_KEYS.weightN, 'missionType'];
   
   // State
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('SI');
@@ -1242,7 +1243,7 @@ const WingLoadingCalculator = () => {
                     placeholder="e.g., 1.225"
                   />
                   <InlineInterlinkHint 
-                    requiredFields={['densityKgM3']} 
+                    requiredFields={[FIELD_KEYS.densityKgM3]} 
                     sourceTool="atmosphere" 
                     className="mt-1" 
                     currentValue={airDensityCustom}

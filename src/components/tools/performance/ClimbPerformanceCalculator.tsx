@@ -43,6 +43,7 @@ import {
 } from "../utils/interlink";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
+import { FIELD_KEYS } from "../utils/interlinkConfig";
 import { computeClimbPerformance, msToKts, msToFpm, ClimbResult } from "./utils/climb";
 import { ClimbPlots } from "./ClimbPlots";
 import { isaAtAltitudeMeters, calculateISADensity } from "../utils/isaAtmosphere";
@@ -98,7 +99,7 @@ export default function ClimbPerformanceCalculator() {
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
 
   // Get reusable data
-  const requiredFields = ['massKg', 'weightN', 'wingAreaM2', 'cd0', 'k', 'totalThrustN', 'densityKgM3'];
+  const requiredFields = [FIELD_KEYS.massKg, FIELD_KEYS.weightN, FIELD_KEYS.wingAreaM2, FIELD_KEYS.cd0, FIELD_KEYS.k, FIELD_KEYS.totalThrustN, FIELD_KEYS.densityKgM3];
 
   // Compute current density
   const currentDensity = useMemo(() => {
@@ -352,7 +353,7 @@ export default function ClimbPerformanceCalculator() {
                   placeholder="250"
                 />
                 <InlineInterlinkHint 
-                  fieldKey="massKg" 
+                  fieldKey={FIELD_KEYS.massKg} 
                   className="mt-1" 
                   currentValue={massKg}
                   onImport={(value) => setMassKg(String(value))}
@@ -369,7 +370,7 @@ export default function ClimbPerformanceCalculator() {
                   placeholder="2452.5"
                 />
                 <InlineInterlinkHint 
-                  fieldKey="weightN" 
+                  fieldKey={FIELD_KEYS.weightN} 
                   className="mt-1" 
                   currentValue={weightN}
                   onImport={(value) => setWeightN(String(value))}
@@ -387,7 +388,7 @@ export default function ClimbPerformanceCalculator() {
                 placeholder="8.0"
               />
               <InlineInterlinkHint 
-                fieldKey="wingAreaM2" 
+                fieldKey={FIELD_KEYS.wingAreaM2} 
                 className="mt-1" 
                 currentValue={wingAreaM2}
                 onImport={(value) => setWingAreaM2(String(value))}
@@ -404,7 +405,7 @@ export default function ClimbPerformanceCalculator() {
                 placeholder="3000"
               />
               <InlineInterlinkHint 
-                fieldKey="totalThrustN" 
+                fieldKey={FIELD_KEYS.totalThrustN} 
                 className="mt-1" 
                 currentValue={totalThrustN}
                 onImport={(value) => setTotalThrustN(String(value))}
@@ -422,7 +423,7 @@ export default function ClimbPerformanceCalculator() {
                 step="0.001"
               />
               <InlineInterlinkHint 
-                fieldKey="cd0" 
+                fieldKey={FIELD_KEYS.cd0} 
                 className="mt-1" 
                 currentValue={cd0}
                 onImport={(value) => setCd0(String(value))}
@@ -440,7 +441,7 @@ export default function ClimbPerformanceCalculator() {
                 step="0.001"
               />
               <InlineInterlinkHint 
-                fieldKey="k" 
+                fieldKey={FIELD_KEYS.k} 
                 className="mt-1" 
                 currentValue={k}
                 onImport={(value) => setK(String(value))}
@@ -537,7 +538,7 @@ export default function ClimbPerformanceCalculator() {
                   step="0.001"
                 />
                 <InlineInterlinkHint 
-                  fieldKey="densityKgM3" 
+                  fieldKey={FIELD_KEYS.densityKgM3} 
                   className="mt-1" 
                   currentValue={customDensity}
                   onImport={(value) => setCustomDensity(String(value))}

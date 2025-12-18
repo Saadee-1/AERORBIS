@@ -40,6 +40,7 @@ import { AeroCard } from "@/components/common/AeroCard";
 import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
+import { FIELD_KEYS } from "./utils/interlinkConfig";
 // useDesignSession imported above
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
@@ -1254,7 +1255,7 @@ const point: Record<string, unknown> = { alpha };
                 <AeroFormField label={`Wing Area (${getUnit("area")})`}>
                   <Input id="wingArea" name="wingAreaM2" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" />
                   <InlineInterlinkHint 
-                    requiredFields={['wingAreaM2']} 
+                    requiredFields={[FIELD_KEYS.wingAreaM2]} 
                     sourceTool="wingloading" 
                     className="mt-1" 
                     currentValue={inputs.wingArea}
