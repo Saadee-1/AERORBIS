@@ -84,14 +84,21 @@ const ToolsLauncher = () => {
     }
   }, [toolParam]);
 
+  // Reset hover state when modal closes
+  useEffect(() => {
+    if (!showToolsModal) {
+      setIsHoveringTools(false);
+    }
+  }, [showToolsModal]);
+
   const showAllTools = () => {
     setShowToolsModal(true);
   };
 
   const handleToolClick = (tabId: string) => {
     setActiveTab(tabId);
-    setHideTabs(false);
     setShowToolsModal(false);
+    setIsHoveringTools(false); // Reset hover state when modal closes
     navigate(`/tools/launch?tool=${tabId}`);
   };
 
@@ -142,7 +149,10 @@ const ToolsLauncher = () => {
                   {/* Backdrop */}
                   <div
                     className="fixed inset-0 z-40"
-                    onClick={() => setShowToolsModal(false)}
+                    onClick={() => {
+                      setShowToolsModal(false);
+                      setIsHoveringTools(false); // Reset hover state when modal closes
+                    }}
                   />
                   
                   {/* Tools Modal */}
