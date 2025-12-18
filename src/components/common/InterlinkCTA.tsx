@@ -152,6 +152,16 @@ export function InlineInterlinkHint({
     : ('path' in publisher ? publisher.path : `/tools/launch?tool=${sourceTool}`);
   const toolLabel = 'label' in publisher ? publisher.label : sourceTool;
   
+  // Helper to compare values (handles string/number conversion)
+  const valuesMatch = (local: string | number | null, session: number | string | undefined): boolean => {
+    if (local === null || session === undefined) return false;
+    if (typeof local === 'number' && typeof session === 'number') {
+      return Math.abs(local - session) < 1e-10; // Floating point comparison
+    }
+    // Convert both to strings for comparison
+    return String(local) === String(session);
+  };
+  
   const handleImport = () => {
     if (!hasData || sessionValue === undefined) return;
     
@@ -203,12 +213,15 @@ export function InlineInterlinkHint({
       // No field found or no previous value - restore session to pre-import state
       const ds = getDesignSession();
       if (preImportSessionValue === undefined) {
-        // Session was empty before import - remove it if it exists
-        if (ds[targetFieldKey as FieldKey] !== undefined) {
+        // Session was empty before import - remove it only if current value matches what we imported
+        const currentSessionValue = ds[targetFieldKey as FieldKey];
+        if (currentSessionValue !== undefined && importedSessionValue !== undefined && 
+            valuesMatch(importedSessionValue, currentSessionValue)) {
+          // Current session value matches what we imported - safe to delete
           delete (ds as Record<string, unknown>)[targetFieldKey];
           saveDesignSession(ds);
         }
-        // Always dispatch event to notify other components, even if field was already deleted
+        // Always dispatch event to notify other components, even if field was already deleted or doesn't match
         if (typeof window !== 'undefined') {
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
@@ -262,12 +275,15 @@ export function InlineInterlinkHint({
     // Restore designSession to pre-import state (what was in session BEFORE we imported)
     const ds = getDesignSession();
     if (preImportSessionValue === undefined) {
-      // Session was empty before import - remove it if it exists
-      if (ds[targetFieldKey as FieldKey] !== undefined) {
+      // Session was empty before import - remove it only if current value matches what we imported
+      const currentSessionValue = ds[targetFieldKey as FieldKey];
+      if (currentSessionValue !== undefined && importedSessionValue !== undefined && 
+          valuesMatch(importedSessionValue, currentSessionValue)) {
+        // Current session value matches what we imported - safe to delete
         delete (ds as Record<string, unknown>)[targetFieldKey];
         saveDesignSession(ds);
       }
-      // Always dispatch event to notify other components, even if field was already deleted
+      // Always dispatch event to notify other components, even if field was already deleted or doesn't match
       if (typeof window !== 'undefined') {
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
@@ -292,16 +308,6 @@ export function InlineInterlinkHint({
   };
   
   // STATE MACHINE: Derive state from localValue and sessionValue
-  
-  // Helper to compare values (handles string/number conversion)
-  const valuesMatch = (local: string | number | null, session: number | string | undefined): boolean => {
-    if (local === null || session === undefined) return false;
-    if (typeof local === 'number' && typeof session === 'number') {
-      return Math.abs(local - session) < 1e-10; // Floating point comparison
-    }
-    // Convert both to strings for comparison
-    return String(local) === String(session);
-  };
   
   // State 1: After import (show undo) - localValue has value AND we have previousValue AND values match imported value
   // Compare against importedSessionValue, not sessionValue, so undo remains available even if session changes
