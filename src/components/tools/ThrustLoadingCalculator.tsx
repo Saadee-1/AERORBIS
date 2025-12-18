@@ -1212,7 +1212,8 @@ const ThrustLoadingCalculator = () => {
                     if (val <= 0) {
                       return <p className="text-xs text-yellow-400 mt-1">Warning: Weight must be positive</p>;
                     }
-                    if (val > 1e9) {
+                    const maxWeight = unitSystem === 'SI' ? 1e9 : 2.25e8; // N vs lbf (1e9 N ≈ 2.25e8 lbf)
+                    if (val > maxWeight) {
                       return <p className="text-xs text-yellow-400 mt-1">Warning: Weight value is unrealistically large</p>;
                     }
                     return null;
