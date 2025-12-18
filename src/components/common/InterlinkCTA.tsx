@@ -203,16 +203,16 @@ export function InlineInterlinkHint({
       // No field found or no previous value - restore session to pre-import state
       const ds = getDesignSession();
       if (preImportSessionValue === undefined) {
-        // Session was empty before import - remove it
+        // Session was empty before import - remove it if it exists
         if (ds[targetFieldKey as FieldKey] !== undefined) {
           delete (ds as Record<string, unknown>)[targetFieldKey];
           saveDesignSession(ds);
-          // Dispatch event to notify other components
-          if (typeof window !== 'undefined') {
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
-            }, 0);
-          }
+        }
+        // Always dispatch event to notify other components, even if field was already deleted
+        if (typeof window !== 'undefined') {
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
+          }, 0);
         }
       } else {
         // Session had a value before import - restore it
@@ -262,16 +262,16 @@ export function InlineInterlinkHint({
     // Restore designSession to pre-import state (what was in session BEFORE we imported)
     const ds = getDesignSession();
     if (preImportSessionValue === undefined) {
-      // Session was empty before import - remove it
+      // Session was empty before import - remove it if it exists
       if (ds[targetFieldKey as FieldKey] !== undefined) {
         delete (ds as Record<string, unknown>)[targetFieldKey];
         saveDesignSession(ds);
-        // Dispatch event to notify other components
-        if (typeof window !== 'undefined') {
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
-          }, 0);
-        }
+      }
+      // Always dispatch event to notify other components, even if field was already deleted
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
+        }, 0);
       }
     } else {
       // Session had a value before import - restore it (so import option appears again)
