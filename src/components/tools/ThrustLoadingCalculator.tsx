@@ -694,10 +694,6 @@ const ThrustLoadingCalculator = () => {
             toast({ title: "Invalid Input", description: "Number of engines must be a positive integer (1-100)", variant: "destructive" });
             return;
           }
-          if (numEnginesInput === 0) {
-            toast({ title: "Invalid Input", description: "Cannot divide by zero: number of engines must be positive", variant: "destructive" });
-            return;
-          }
           perEngineThrustNSI = totalThrustNSI / numEnginesInput;
           if (!isFinite(perEngineThrustNSI) || perEngineThrustNSI <= 0) {
             toast({ title: "Invalid Input", description: "Per-engine thrust calculation resulted in invalid value", variant: "destructive" });
@@ -740,10 +736,6 @@ const ThrustLoadingCalculator = () => {
         const numEnginesInput = parseInt(numEngines) || 1;
         if (numEnginesInput <= 0 || numEnginesInput !== Math.floor(numEnginesInput) || numEnginesInput > 100) {
           toast({ title: "Invalid Input", description: "Number of engines must be a positive integer (1-100)", variant: "destructive" });
-          return;
-        }
-        if (numEnginesInput === 0) {
-          toast({ title: "Invalid Input", description: "Cannot divide by zero: number of engines must be positive", variant: "destructive" });
           return;
         }
         perEngineThrustNSI = totalThrustNSI / numEnginesInput;
