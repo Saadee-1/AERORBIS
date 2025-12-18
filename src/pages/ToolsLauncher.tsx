@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
@@ -67,6 +67,9 @@ const ToolsLauncher = () => {
   const initialTab = toolParam && TOOL_NAME_TO_TAB[toolParam] ? TOOL_NAME_TO_TAB[toolParam] : (toolParam || "thrust");
   const [activeTab, setActiveTab] = useState(initialTab);
   const [hideTabs, setHideTabs] = useState(!!toolParam);
+  const [showToolsModal, setShowToolsModal] = useState(false);
+  const [isHoveringTools, setIsHoveringTools] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Update active tab when URL changes
   useEffect(() => {
@@ -82,9 +85,34 @@ const ToolsLauncher = () => {
   }, [toolParam]);
 
   const showAllTools = () => {
-    navigate("/tools/launch");
-    setHideTabs(false);
+    setShowToolsModal(true);
   };
+
+  const handleToolClick = (tabId: string) => {
+    setActiveTab(tabId);
+    setHideTabs(false);
+    setShowToolsModal(false);
+    navigate(`/tools/launch?tool=${tabId}`);
+  };
+
+  // Define all tools with their icons and labels
+  const allTools = [
+    { id: "thrust", icon: Rocket, label: "Thrust Calculator" },
+    { id: "wing", icon: Plane, label: "Wing Loading" },
+    { id: "orbital", icon: Orbit, label: "Orbital Visualizer" },
+    { id: "liftdrag", icon: TrendingUp, label: "L/D Analyzer" },
+    { id: "reynolds", icon: Wind, label: "Reynolds Number" },
+    { id: "materials", icon: Database, label: "Materials DB" },
+    { id: "deltav", icon: Zap, label: "Δv Planner" },
+    { id: "antenna", icon: Radio, label: "Antenna" },
+    { id: "atmosphere", icon: Cloud, label: "Atmosphere" },
+    { id: "rocketengine", icon: Rocket, label: "Rocket Engine" },
+    { id: "stability", icon: Plane, label: "Stability" },
+    { id: "power", icon: Battery, label: "Power System" },
+    { id: "weight", icon: Scale, label: "Weight Estimator" },
+    { id: "trajectory", icon: Target, label: "Trajectory" },
+    { id: "climb", icon: ArrowUp, label: "Climb Performance" },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
@@ -98,7 +126,7 @@ const ToolsLauncher = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 flex justify-end"
+              className="mb-4 flex justify-end relative"
             >
               <Button
                 variant="outline"
@@ -108,6 +136,69 @@ const ToolsLauncher = () => {
                 <Grid3x3 className="w-4 h-4 mr-2" />
                 Show All Tools
               </Button>
+              
+              {showToolsModal && (
+                <>
+                  {/* Backdrop */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowToolsModal(false)}
+                  />
+                  
+                  {/* Tools Modal */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    className="absolute right-0 top-full mt-2 z-50 w-64 bg-slate-800/95 backdrop-blur-lg border border-cyan-400/30 rounded-lg shadow-xl overflow-hidden"
+                    style={{ maxHeight: '11rem' }}
+                    onMouseEnter={() => setIsHoveringTools(true)}
+                    onMouseLeave={() => setIsHoveringTools(false)}
+                  >
+                    <div
+                      ref={scrollContainerRef}
+                      className="overflow-y-auto"
+                      style={{
+                        maxHeight: '11rem',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: isHoveringTools ? 'rgba(34, 211, 238, 0.5) rgba(51, 65, 85, 0.5)' : 'transparent transparent',
+                        overflow: isHoveringTools ? 'auto' : 'hidden',
+                      }}
+                      onWheel={(e) => {
+                        if (!isHoveringTools) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return;
+                        }
+                        if (scrollContainerRef.current) {
+                          scrollContainerRef.current.scrollTop += e.deltaY;
+                          e.preventDefault();
+                        }
+                      }}
+                    >
+                      <div className="p-2 space-y-1">
+                        {allTools.map((tool, index) => {
+                          const Icon = tool.icon;
+                          return (
+                            <button
+                              key={tool.id}
+                              onClick={() => handleToolClick(tool.id)}
+                              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all duration-200 ${
+                                activeTab === tool.id
+                                  ? 'bg-cyan-400/30 text-cyan-400 border border-cyan-400/50'
+                                  : 'text-slate-300 hover:bg-slate-700/50 hover:text-cyan-400'
+                              }`}
+                            >
+                              <Icon className="w-4 h-4 flex-shrink-0" />
+                              <span className="text-sm truncate">{tool.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </motion.div>
+                </>
+              )}
             </motion.div>
           )}
           <DesignSessionProvider>
