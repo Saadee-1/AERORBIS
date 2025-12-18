@@ -7,10 +7,10 @@ export function useNavigateToTool() {
   const navigateToTool = (toolId: ToolId | 'tools', options?: { focus?: 'inputs' | 'results' | 'graphs' }) => {
     if (toolId === 'tools') {
       // Preserve focus parameter when navigating to tools page
-      const params = new URLSearchParams();
-      if (options?.focus) {
-        params.set('focus', options.focus);
-      }
+    const params = new URLSearchParams();
+    if (options?.focus) {
+      params.set('focus', options.focus);
+    }
       const finalRoute = params.toString() ? `/tools/launch?${params.toString()}` : '/tools/launch';
       navigate(finalRoute);
       return;

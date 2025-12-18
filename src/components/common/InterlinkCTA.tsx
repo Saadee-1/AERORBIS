@@ -355,18 +355,18 @@ export function InlineInterlinkHint({
   
   // State 3: Missing data (show redirect) - localValue empty AND sessionValue undefined
   if (isLocalValueEmpty && !hasData) {
-    return (
-      <button
-        onClick={() => navigate(toolPath)}
-        className={cn(
-          "text-[11px] text-slate-400 hover:text-cyan-400 mt-1 flex items-center gap-1",
-          className
-        )}
-      >
-        Don't know? Compute in {toolLabel}
-        <ArrowRight className="w-3 h-3" />
-      </button>
-    );
+  return (
+    <button
+      onClick={() => navigate(toolPath)}
+      className={cn(
+        "text-[11px] text-slate-400 hover:text-cyan-400 mt-1 flex items-center gap-1",
+        className
+      )}
+    >
+      Don't know? Compute in {toolLabel}
+      <ArrowRight className="w-3 h-3" />
+    </button>
+  );
   }
   
   // State 4: Field has manual value - don't show hint

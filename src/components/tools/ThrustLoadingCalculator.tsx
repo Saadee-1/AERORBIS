@@ -658,6 +658,20 @@ const ThrustLoadingCalculator = () => {
       const weightNSI = weightMode === 'weight' ? convertWeightToSI(weightInput!, unitSystem) : null;
       const finalWeightN = weightMode === 'mass' ? massToWeight(massKgSI!) : weightNSI!;
       
+      // Validate converted SI values
+      if (weightMode === 'mass' && (!isFinite(massKgSI!) || massKgSI! <= 0)) {
+        toast({ title: "Invalid Input", description: "Mass conversion resulted in invalid value", variant: "destructive" });
+        return;
+      }
+      if (weightMode === 'weight' && (!isFinite(weightNSI!) || weightNSI! <= 0)) {
+        toast({ title: "Invalid Input", description: "Weight conversion resulted in invalid value", variant: "destructive" });
+        return;
+      }
+      if (!isFinite(finalWeightN) || finalWeightN <= 0 || finalWeightN > 1e12) {
+        toast({ title: "Invalid Input", description: "Weight value is invalid or unrealistically large", variant: "destructive" });
+        return;
+      }
+      
       let totalThrustNSI: number;
       let perEngineThrustNSI: number;
       
@@ -670,9 +684,25 @@ const ThrustLoadingCalculator = () => {
             return;
           }
           totalThrustNSI = convertThrustToSI(thrustInput, thrustUnit);
+          if (!isFinite(totalThrustNSI) || totalThrustNSI <= 0 || totalThrustNSI > 1e12) {
+            toast({ title: "Invalid Input", description: "Thrust conversion resulted in invalid or unrealistically large value", variant: "destructive" });
+            return;
+          }
           // Calculate per-engine thrust from total (assume 1 engine if not specified)
           const numEnginesInput = parseInt(numEngines) || 1;
+          if (numEnginesInput <= 0 || numEnginesInput !== Math.floor(numEnginesInput) || numEnginesInput > 100) {
+            toast({ title: "Invalid Input", description: "Number of engines must be a positive integer (1-100)", variant: "destructive" });
+            return;
+          }
+          if (numEnginesInput === 0) {
+            toast({ title: "Invalid Input", description: "Cannot divide by zero: number of engines must be positive", variant: "destructive" });
+            return;
+          }
           perEngineThrustNSI = totalThrustNSI / numEnginesInput;
+          if (!isFinite(perEngineThrustNSI) || perEngineThrustNSI <= 0) {
+            toast({ title: "Invalid Input", description: "Per-engine thrust calculation resulted in invalid value", variant: "destructive" });
+            return;
+          }
         } else {
           const perEngineInput = parseFloat(perEngineThrust);
           const numEnginesInput = parseInt(numEngines);
@@ -680,27 +710,55 @@ const ThrustLoadingCalculator = () => {
             toast({ title: "Invalid Input", description: "Per-engine thrust must be a positive number", variant: "destructive" });
             return;
           }
-          if (isNaN(numEnginesInput) || numEnginesInput <= 0) {
-            toast({ title: "Invalid Input", description: "Number of engines must be a positive integer", variant: "destructive" });
+          if (isNaN(numEnginesInput) || numEnginesInput <= 0 || numEnginesInput !== Math.floor(numEnginesInput) || numEnginesInput > 100) {
+            toast({ title: "Invalid Input", description: "Number of engines must be a positive integer (1-100)", variant: "destructive" });
             return;
           }
           perEngineThrustNSI = convertThrustToSI(perEngineInput, thrustUnit);
+          if (!isFinite(perEngineThrustNSI) || perEngineThrustNSI <= 0 || perEngineThrustNSI > 1e12) {
+            toast({ title: "Invalid Input", description: "Per-engine thrust conversion resulted in invalid or unrealistically large value", variant: "destructive" });
+            return;
+          }
           totalThrustNSI = perEngineThrustNSI * numEnginesInput;
+          if (!isFinite(totalThrustNSI) || totalThrustNSI <= 0 || totalThrustNSI > 1e12) {
+            toast({ title: "Invalid Input", description: "Total thrust calculation resulted in invalid or unrealistically large value", variant: "destructive" });
+            return;
+          }
         }
       } else {
         // Compute required thrust from target T/W
         const targetTWInput = parseFloat(targetTW);
-        if (isNaN(targetTWInput) || targetTWInput <= 0) {
-          toast({ title: "Invalid Input", description: "Target T/W must be a positive number", variant: "destructive" });
+        if (isNaN(targetTWInput) || targetTWInput <= 0 || targetTWInput > 10) {
+          toast({ title: "Invalid Input", description: "Target T/W must be a positive number (typically 0.1-2.0)", variant: "destructive" });
           return;
         }
         totalThrustNSI = calculateRequiredThrust(targetTWInput, finalWeightN);
+        if (!isFinite(totalThrustNSI) || totalThrustNSI <= 0 || totalThrustNSI > 1e12) {
+          toast({ title: "Invalid Input", description: "Required thrust calculation resulted in invalid or unrealistically large value", variant: "destructive" });
+          return;
+        }
         const numEnginesInput = parseInt(numEngines) || 1;
+        if (numEnginesInput <= 0 || numEnginesInput !== Math.floor(numEnginesInput) || numEnginesInput > 100) {
+          toast({ title: "Invalid Input", description: "Number of engines must be a positive integer (1-100)", variant: "destructive" });
+          return;
+        }
+        if (numEnginesInput === 0) {
+          toast({ title: "Invalid Input", description: "Cannot divide by zero: number of engines must be positive", variant: "destructive" });
+          return;
+        }
         perEngineThrustNSI = totalThrustNSI / numEnginesInput;
+        if (!isFinite(perEngineThrustNSI) || perEngineThrustNSI <= 0) {
+          toast({ title: "Invalid Input", description: "Per-engine thrust calculation resulted in invalid value", variant: "destructive" });
+          return;
+        }
       }
       
       // Calculate T/W
       const tw = calculateThrustToWeight(totalThrustNSI, finalWeightN);
+      if (!isFinite(tw) || tw <= 0 || tw > 10) {
+        toast({ title: "Calculation Error", description: "T/W calculation resulted in invalid or unrealistic value", variant: "destructive" });
+        return;
+      }
       
       // Classify (returns both class and Jet low-band hint)
       const { twClass, isJetLowBand } = classifyThrustLoading(tw, missionType);
@@ -714,8 +772,24 @@ const ThrustLoadingCalculator = () => {
         const vClimbInput = parseFloat(vClimb);
         const ldClimbInput = parseFloat(ldClimb);
         if (!isNaN(vClimbInput) && vClimbInput > 0 && !isNaN(ldClimbInput) && ldClimbInput > 0) {
+          if (vClimbInput > 1000) {
+            toast({ title: "Invalid Input", description: "Climb velocity is unrealistically large (typical: 20-100 m/s)", variant: "destructive" });
+            return;
+          }
+          if (ldClimbInput <= 0 || ldClimbInput > 100) {
+            toast({ title: "Invalid Input", description: "L/D ratio must be positive and realistic (typical: 8-20)", variant: "destructive" });
+            return;
+          }
           climbGradient = calculateClimbGradient(tw, ldClimbInput);
+          if (!isFinite(climbGradient) || climbGradient < 0) {
+            toast({ title: "Calculation Error", description: "Climb gradient calculation resulted in invalid value", variant: "destructive" });
+            return;
+          }
           rateOfClimb = calculateRateOfClimb(vClimbInput, climbGradient);
+          if (!isFinite(rateOfClimb) || rateOfClimb < 0 || rateOfClimb > 1000) {
+            toast({ title: "Calculation Error", description: "Rate of climb calculation resulted in invalid or unrealistic value", variant: "destructive" });
+            return;
+          }
         }
       }
       
@@ -805,12 +879,15 @@ const ThrustLoadingCalculator = () => {
       
       setResult(calculationResult);
       
-      // Publish calculated data to designSession immediately
-      if (Number.isFinite(totalThrustNSI) && Number.isFinite(finalWeightN)) {
+      // Publish calculated data to designSession immediately - only if all values are valid and finite
+      const numEnginesFinal = parseInt(numEngines) || 1;
+      if (Number.isFinite(totalThrustNSI) && Number.isFinite(finalWeightN) && Number.isFinite(perEngineThrustNSI) && 
+          totalThrustNSI > 0 && finalWeightN > 0 && perEngineThrustNSI > 0 &&
+          numEnginesFinal > 0 && numEnginesFinal <= 100 && numEnginesFinal === Math.floor(numEnginesFinal)) {
         updateDesignSession({
           totalThrustN: totalThrustNSI,
           perEngineThrustN: perEngineThrustNSI,
-          numEngines: parseInt(numEngines) || 1,
+          numEngines: numEnginesFinal,
         });
       }
       
@@ -1083,7 +1160,7 @@ const ThrustLoadingCalculator = () => {
             {/* Weight/Mass Input */}
             <AeroCard
               title="Aircraft Weight/Mass"
-              description="Enter either mass (kg) or weight (N)"
+              description="Enter either mass (kg) or weight (N) for the flight condition of interest"
               icon={Anchor}
             >
               <div className="flex items-center gap-3 mb-4">
@@ -1098,7 +1175,10 @@ const ThrustLoadingCalculator = () => {
                 </div>
               </div>
               {weightMode === 'mass' ? (
-                <AeroFormField label={`Aircraft Mass (${inputUnits.mass})`} helperText={`Enter mass in ${inputUnits.mass}`}>
+                <AeroFormField 
+                  label={`Aircraft Mass (${inputUnits.mass})`} 
+                  helperText={`Aircraft mass for the flight condition (typically MTOW or operating weight). Mass is converted to weight using g = ${GRAVITY} m/s².`}
+                >
                   <Input
                     type="number"
                     name="massKg"
@@ -1107,6 +1187,7 @@ const ThrustLoadingCalculator = () => {
                     onChange={(e) => setMassKg(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '10000' : '22046'}`}
+                    min="0"
                   />
                   <InlineInterlinkHint 
                     fieldKey={FIELD_KEYS.massKg} 
@@ -1117,7 +1198,10 @@ const ThrustLoadingCalculator = () => {
                   />
               </AeroFormField>
               ) : (
-                <AeroFormField label={`Aircraft Weight (${inputUnits.weight})`} helperText={`Enter weight in ${inputUnits.weight}`}>
+                <AeroFormField 
+                  label={`Aircraft Weight (${inputUnits.weight})`} 
+                  helperText={`Aircraft weight for the flight condition (typically MTOW or operating weight). Weight = mass × g, where g = ${GRAVITY} m/s² (standard gravity).`}
+                >
                   <Input
                     type="number"
                     name="weightN"
@@ -1126,7 +1210,21 @@ const ThrustLoadingCalculator = () => {
                     onChange={(e) => setWeightN(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
+                    min="0"
                   />
+                  {weightN && (() => {
+                    const val = parseFloat(weightN);
+                    if (isNaN(val)) {
+                      return <p className="text-xs text-yellow-400 mt-1">Warning: Invalid number</p>;
+                    }
+                    if (val <= 0) {
+                      return <p className="text-xs text-yellow-400 mt-1">Warning: Weight must be positive</p>;
+                    }
+                    if (val > 1e9) {
+                      return <p className="text-xs text-yellow-400 mt-1">Warning: Weight value is unrealistically large</p>;
+                    }
+                    return null;
+                  })()}
                   <InlineInterlinkHint 
                     fieldKey={FIELD_KEYS.weightN} 
                     className="mt-1" 
@@ -1157,7 +1255,10 @@ const ThrustLoadingCalculator = () => {
                   </div>
                 </div>
                 {calculationMode === 'computeThrust' && (
-                  <AeroFormField label="Target T/W" helperText="Desired thrust-to-weight ratio">
+                  <AeroFormField 
+                    label="Target T/W" 
+                    helperText={`Desired thrust-to-weight ratio (T/W). Dimensionless ratio of total thrust to aircraft weight. Typical ranges: Trainer 0.15-0.35, Jet 0.25-0.80, STOL 0.20-0.45. Used to size required installed thrust.`}
+                  >
                     <Input
                       type="number"
                       step="0.001"
@@ -1165,6 +1266,7 @@ const ThrustLoadingCalculator = () => {
                       onChange={(e) => setTargetTW(e.target.value)}
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder="e.g., 0.25"
+                      min="0"
                     />
                   </AeroFormField>
                 )}
@@ -1175,7 +1277,7 @@ const ThrustLoadingCalculator = () => {
             {calculationMode === 'computeTW' && (
               <AeroCard
                 title="Thrust"
-                description="Enter total thrust or per-engine thrust × number of engines"
+                description="Enter total installed thrust or per-engine thrust × number of engines"
                 icon={Zap}
               >
                 <div className="flex items-center gap-3 mb-4">
@@ -1204,7 +1306,10 @@ const ThrustLoadingCalculator = () => {
                 </AeroFormField>
                 
                 {thrustMode === 'total' ? (
-                  <AeroFormField label={`Total Thrust (${thrustUnit})`} helperText={`Enter total installed thrust in ${thrustUnit}`}>
+                  <AeroFormField 
+                    label={`Total Installed Thrust (${thrustUnit})`} 
+                    helperText={`Total installed thrust available from all engines combined. Reference condition: ISA sea level static (SLS) unless otherwise specified. Used for T/W calculation: T/W = T_total / W.`}
+                  >
                     <Input
                       type="number"
                       step="0.01"
@@ -1212,11 +1317,29 @@ const ThrustLoadingCalculator = () => {
                       onChange={(e) => setTotalThrust(e.target.value)}
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder={`e.g., ${thrustUnit === 'N' ? '16000' : thrustUnit === 'kgf' ? '1600' : '3600'}`}
+                      min="0"
                     />
+                    {totalThrust && (() => {
+                      const val = parseFloat(totalThrust);
+                      if (isNaN(val)) {
+                        return <p className="text-xs text-yellow-400 mt-1">Warning: Invalid number</p>;
+                      }
+                      if (val <= 0) {
+                        return <p className="text-xs text-yellow-400 mt-1">Warning: Thrust must be positive</p>;
+                      }
+                      const maxThrust = thrustUnit === 'N' ? 1e9 : thrustUnit === 'kgf' ? 1e8 : 2e8;
+                      if (val > maxThrust) {
+                        return <p className="text-xs text-yellow-400 mt-1">Warning: Thrust value is unrealistically large</p>;
+                      }
+                      return null;
+                    })()}
                   </AeroFormField>
                 ) : (
                   <>
-                    <AeroFormField label={`Per-Engine Thrust (${thrustUnit})`} helperText={`Enter thrust per engine in ${thrustUnit}`}>
+                    <AeroFormField 
+                      label={`Per-Engine Thrust (${thrustUnit})`} 
+                      helperText={`Thrust produced by a single engine. Reference condition: ISA sea level static (SLS) unless otherwise specified. Total thrust = per-engine thrust × number of engines.`}
+                    >
                       <Input
                         type="number"
                         step="0.01"
@@ -1224,9 +1347,13 @@ const ThrustLoadingCalculator = () => {
                         onChange={(e) => setPerEngineThrust(e.target.value)}
                         className="bg-slate-900/50 border-cyan-400/30"
                         placeholder={`e.g., ${thrustUnit === 'N' ? '8000' : thrustUnit === 'kgf' ? '800' : '1800'}`}
+                        min="0"
                       />
                     </AeroFormField>
-                    <AeroFormField label="Number of Engines" helperText="Enter number of engines">
+                    <AeroFormField 
+                      label="Number of Engines" 
+                      helperText={`Total number of engines installed on the aircraft. Used to calculate total thrust: T_total = T_per_engine × N_engines.`}
+                    >
                       <Input
                         type="number"
                         step="1"
@@ -1249,7 +1376,10 @@ const ThrustLoadingCalculator = () => {
                 description="Engine type and climb performance parameters"
                 icon={Info}
               >
-                <AeroFormField label="Engine Type">
+                <AeroFormField 
+                  label="Engine Type" 
+                  helperText={`Propulsion system type. Used for reference in performance analysis. Prop: propeller-driven (piston/turboprop). Turbofan: high-bypass turbofan. Turbojet: low-bypass or pure jet.`}
+                >
                   <Select value={engineType} onValueChange={(v) => setEngineType(v as EngineType)}>
                     <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
                       <SelectValue />
@@ -1262,7 +1392,10 @@ const ThrustLoadingCalculator = () => {
                   </Select>
                 </AeroFormField>
                 
-                <AeroFormField label="Climb Velocity (V_climb, m/s)" helperText="Velocity during climb phase">
+                <AeroFormField 
+                  label="Climb Velocity (V_climb, m/s)" 
+                  helperText={`True airspeed (TAS) during the climb phase. Used to calculate rate of climb: ROC = V_climb × sin(γ). Typical values: 20-30 m/s for light aircraft, 50-100 m/s for jets.`}
+                >
                   <Input
                     type="number"
                     step="0.1"
@@ -1270,10 +1403,27 @@ const ThrustLoadingCalculator = () => {
                     onChange={(e) => setVClimb(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder="e.g., 25.0"
+                    min="0"
                   />
+                  {vClimb && (() => {
+                    const val = parseFloat(vClimb);
+                    if (isNaN(val)) {
+                      return <p className="text-xs text-yellow-400 mt-1">Warning: Invalid number</p>;
+                    }
+                    if (val <= 0) {
+                      return <p className="text-xs text-yellow-400 mt-1">Warning: Climb velocity must be positive</p>;
+                    }
+                    if (val > 1000) {
+                      return <p className="text-xs text-yellow-400 mt-1">Warning: Climb velocity is unrealistically large (typical: 20-100 m/s)</p>;
+                    }
+                    return null;
+                  })()}
                 </AeroFormField>
                 
-                <AeroFormField label="Lift-to-Drag Ratio (L/D_climb)" helperText="L/D during climb phase">
+                <AeroFormField 
+                  label="Lift-to-Drag Ratio (L/D_climb)" 
+                  helperText={`Aerodynamic efficiency during climb phase. Ratio of lift to drag at climb speed and configuration. Used to calculate climb gradient: γ ≈ (T/W) - (1/(L/D)). Typical values: 8-15 for light aircraft, 10-20 for jets.`}
+                >
                   <Input
                     type="number"
                     name="ldClimb"
@@ -1282,7 +1432,21 @@ const ThrustLoadingCalculator = () => {
                     onChange={(e) => setLdClimb(e.target.value)}
                     className="bg-slate-900/50 border-cyan-400/30"
                     placeholder="e.g., 12.0"
+                    min="0"
                   />
+                  {ldClimb && (() => {
+                    const val = parseFloat(ldClimb);
+                    if (isNaN(val)) {
+                      return <p className="text-xs text-yellow-400 mt-1">Warning: Invalid number</p>;
+                    }
+                    if (val <= 0) {
+                      return <p className="text-xs text-yellow-400 mt-1">Warning: L/D ratio must be positive</p>;
+                    }
+                    if (val > 100) {
+                      return <p className="text-xs text-yellow-400 mt-1">Warning: L/D ratio is unrealistically large (typical: 8-20)</p>;
+                    }
+                    return null;
+                  })()}
                   <InlineInterlinkHint 
                     fieldKey={FIELD_KEYS.ldClimb} 
                     className="mt-1" 
@@ -1294,7 +1458,7 @@ const ThrustLoadingCalculator = () => {
                 
                 <AeroFormField 
                   label="Required Climb Gradient (γ_req)" 
-                  helperText="Required climb gradient as percentage (e.g., 3% = 0.03)"
+                  helperText={`Minimum climb gradient required for certification or operational requirements, expressed as percentage. Typical: 3% (0.03) for normal category, 4% for utility, 6% for acrobatic. Used to verify T/W adequacy: γ = arcsin((T/W) - 1/(L/D)).`}
                 >
                   <div className="flex items-center gap-2">
                     <Input
@@ -1304,6 +1468,7 @@ const ThrustLoadingCalculator = () => {
                       onChange={(e) => setGammaReqPercent(e.target.value)}
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder="e.g., 3.0"
+                      min="0"
                     />
                     <span className="text-sm text-gray-400 whitespace-nowrap">%</span>
                   </div>
@@ -1324,7 +1489,10 @@ const ThrustLoadingCalculator = () => {
                 icon={Plane}
               >
                 <div className="grid gap-3 md:grid-cols-3">
-                  <AeroFormField label="Zero-lift drag (C_D0)" helperText="Parasite drag coefficient">
+                  <AeroFormField 
+                    label="Zero-lift drag coefficient (C_D0)" 
+                    helperText={`Parasite drag coefficient at zero lift. Represents form drag, skin friction, and interference drag. Typical values: 0.015-0.030 (clean), 0.025-0.040 (with landing gear/extended flaps). Used in drag polar: C_D = C_D0 + kC_L².`}
+                  >
                     <Input
                       type="number"
                       step="0.001"
@@ -1332,10 +1500,14 @@ const ThrustLoadingCalculator = () => {
                       onChange={(e) => setCd0Input(e.target.value)}
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder="e.g., 0.025"
+                      min="0"
                     />
                   </AeroFormField>
 
-                  <AeroFormField label="Induced factor (k)" helperText="Induced drag factor">
+                  <AeroFormField 
+                    label="Induced drag factor (k)" 
+                    helperText={`Induced drag factor in drag polar: C_D = C_D0 + kC_L². Related to aspect ratio: k ≈ 1/(πeAR), where e is Oswald efficiency (typically 0.7-0.9). Typical values: 0.03-0.06 for low AR, 0.02-0.04 for high AR.`}
+                  >
                     <Input
                       type="number"
                       step="0.001"
@@ -1343,10 +1515,14 @@ const ThrustLoadingCalculator = () => {
                       onChange={(e) => setKInput(e.target.value)}
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder="e.g., 0.045"
+                      min="0"
                     />
                   </AeroFormField>
 
-                  <AeroFormField label="Cruise speed (V_cruise)" helperText="Cruise speed in knots">
+                  <AeroFormField 
+                    label="Cruise speed (V_cruise, kt)" 
+                    helperText={`True airspeed (TAS) during cruise phase, in knots. Used to calculate cruise drag constraint in T/W–W/S sizing diagram. Typical values: 80-120 kt (light aircraft), 200-500 kt (jets).`}
+                  >
                     <Input
                       type="number"
                       step="1"
@@ -1354,6 +1530,7 @@ const ThrustLoadingCalculator = () => {
                       onChange={(e) => setVCruiseInput(e.target.value)}
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder="e.g., 90"
+                      min="0"
                     />
                     <p className="mt-1 text-[0.65rem] text-slate-400">
                       Interpreted as knots (kt) for sizing diagram.
@@ -1372,8 +1549,8 @@ const ThrustLoadingCalculator = () => {
               >
                 <div className="grid gap-3 md:grid-cols-3">
                   <AeroFormField
-                    label="Runway length (S_TO)"
-                    helperText="Required takeoff distance in meters"
+                    label="Runway length (S_TO, m)"
+                    helperText={`Required takeoff distance in meters. Includes ground roll and obstacle clearance distance. Typical values: 300-500 m (STOL), 800-1200 m (trainer), 2000-3000 m (jet transport). Used to calculate takeoff constraint in T/W–W/S sizing.`}
                   >
                     <Input
                       type="number"
@@ -1385,12 +1562,13 @@ const ThrustLoadingCalculator = () => {
                       }}
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder="e.g. 800"
+                      min="0"
                     />
                   </AeroFormField>
 
                   <AeroFormField
-                    label="Takeoff lift (C_L_TO)"
-                    helperText="Effective CL during takeoff/rotation"
+                    label="Takeoff lift coefficient (C_L_TO)"
+                    helperText={`Effective lift coefficient during takeoff rotation. Includes ground effect and configuration (flaps, landing gear). Typical values: 0.8-1.2 (clean), 1.4-2.0 (with flaps). Used in takeoff distance calculation.`}
                   >
                     <Input
                       type="number"
@@ -1399,12 +1577,13 @@ const ThrustLoadingCalculator = () => {
                       onChange={(e) => setClToInput(e.target.value)}
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder="e.g. 1.6"
+                      min="0"
                     />
                   </AeroFormField>
 
                   <AeroFormField
-                    label="Rolling friction (μ_r)"
-                    helperText="~0.02–0.04 (paved), higher for grass"
+                    label="Rolling friction coefficient (μ_r)"
+                    helperText={`Coefficient of rolling friction between tires and runway surface. Typical values: 0.02-0.04 (paved/concrete), 0.05-0.08 (grass), 0.10-0.15 (soft/rough). Used in takeoff ground roll calculation.`}
                   >
                     <Input
                       type="number"
@@ -1413,6 +1592,7 @@ const ThrustLoadingCalculator = () => {
                       onChange={(e) => setMuRollInput(e.target.value)}
                       className="bg-slate-900/50 border-cyan-400/30"
                       placeholder="0.03"
+                      min="0"
                     />
                   </AeroFormField>
                 </div>
@@ -1445,13 +1625,18 @@ const ThrustLoadingCalculator = () => {
                   <div className="space-y-4">
                     <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
                       <p className="text-sm text-gray-400 mb-1">Thrust-to-Weight Ratio (T/W)</p>
+                      <p className="text-xs text-gray-500 mb-1">(Dimensionless ratio: T_total / W)</p>
                       <p className="text-3xl font-bold text-cyan-400">
                         {result.thrustToWeight.toFixed(3)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ratio of total installed thrust to aircraft weight. Used for: takeoff performance, climb capability, go-around margin. Higher T/W improves acceleration and climb but increases fuel consumption.
                       </p>
                     </div>
                     
                     <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
-                      <p className="text-sm text-gray-400 mb-1">Total Thrust</p>
+                      <p className="text-sm text-gray-400 mb-1">Total Installed Thrust</p>
+                      <p className="text-xs text-gray-500 mb-1">(T_total, sum of all engines)</p>
                       <p className="text-2xl font-bold text-green-400">
                         {(() => {
                           if (!result || result.totalThrustN === undefined || isNaN(result.totalThrustN)) return '0';
@@ -1464,10 +1649,14 @@ const ThrustLoadingCalculator = () => {
                       <p className="text-sm text-gray-400 mt-1">
                         ({result?.totalThrustN?.toFixed(0) || '0'} N)
                       </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Reference condition: ISA sea level static (SLS) unless otherwise specified. Used for: T/W calculation, takeoff distance, climb performance analysis.
+                      </p>
                     </div>
                     
                     <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                       <p className="text-sm text-gray-400 mb-1">Per-Engine Thrust</p>
+                      <p className="text-xs text-gray-500 mb-1">(T_per_engine = T_total / N_engines)</p>
                       <p className="text-xl font-bold text-cyan-300">
                         {(() => {
                           if (!result || result.perEngineThrustN === undefined || isNaN(result.perEngineThrustN)) return '0';
@@ -1480,10 +1669,14 @@ const ThrustLoadingCalculator = () => {
                       <p className="text-sm text-gray-400 mt-1">
                         ({result?.perEngineThrustN?.toFixed(0) || '0'} N)
                       </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Thrust produced by a single engine. Reference condition: ISA sea level static (SLS). Used for: engine sizing, redundancy analysis, multi-engine aircraft design.
+                      </p>
                     </div>
                     
                     <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                       <p className="text-sm text-gray-400 mb-1">T/W Classification</p>
+                      <p className="text-xs text-gray-500 mb-1">(Relative to {missionType !== 'None' ? `${missionType} mission` : 'generic'} envelope)</p>
                       <p className={`text-xl font-bold ${getClassificationColor(result.twClass)}`}>
                         {result.twClass}
                       </p>
@@ -1492,6 +1685,9 @@ const ThrustLoadingCalculator = () => {
                           {result.jetLowBandLabel}
                         </p>
                       )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Classification based on comparison with typical {missionType !== 'None' ? `${missionType} mission` : 'generic aircraft'} T/W ranges. "Within" indicates typical performance, "Low"/"High" indicate deviations from typical.
+                      </p>
                     </div>
                   </div>
                 </AeroCard>
@@ -1499,14 +1695,18 @@ const ThrustLoadingCalculator = () => {
                 {/* Mission Thrust Envelope Card */}
                 <AeroCard
                   title="Mission Thrust Envelope"
+                  description={`T/W comparison against ${missionType !== 'None' ? `${missionType} mission` : 'generic'} typical ranges`}
                   icon={TrendingUp}
                 >
                   <div className="space-y-3">
                     <p className="text-sm text-gray-300">
-                      Typical <span className="text-cyan-400 font-semibold">{missionType}</span> T/W:{" "}
+                      Typical <span className="text-cyan-400 font-semibold">{missionType !== 'None' ? missionType : 'generic aircraft'}</span> T/W range:{" "}
                       <span className="text-cyan-400">
                         {missionType !== 'None' ? `${getMissionThrustData(missionType).twMin.toFixed(2)}–${getMissionThrustData(missionType).twMax.toFixed(2)}` : 'N/A (Manual mode)'}
                       </span>
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Typical T/W ranges for {missionType !== 'None' ? `${missionType} mission` : 'generic aircraft'} based on historical data and design practice. Used as reference for preliminary sizing and performance assessment.
                     </p>
                     <div className="relative h-12 bg-slate-700/50 rounded border border-cyan-400/30">
                       {/* Range indicator */}
@@ -1540,7 +1740,10 @@ const ThrustLoadingCalculator = () => {
                       </div>
                     </div>
                     <p className="text-sm text-cyan-400 text-center">
-                      Current: {result.thrustToWeight.toFixed(3)}
+                      Current T/W: {result.thrustToWeight.toFixed(3)}
+                    </p>
+                    <p className="text-xs text-gray-500 text-center">
+                      Position relative to typical {missionType !== 'None' ? `${missionType} mission` : 'generic'} envelope. Shaded region indicates typical range.
                     </p>
                   </div>
                 </AeroCard>
@@ -1549,26 +1752,35 @@ const ThrustLoadingCalculator = () => {
                 {calculatorMode === 'Expert' && result.climbGradient !== undefined && result.rateOfClimb !== undefined && (
                   <AeroCard
                     title="Climb Performance"
+                    description="Climb gradient and rate of climb at specified climb velocity"
                     icon={TrendingUp}
                   >
                     <div className="space-y-3">
                       <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                         <p className="text-sm text-gray-400 mb-1">Climb Gradient</p>
+                        <p className="text-xs text-gray-500 mb-1">(γ = arcsin((T/W) - 1/(L/D)), climb angle)</p>
                         <p className="text-xl font-bold text-cyan-300">
                           {(result.climbGradient * 180 / Math.PI).toFixed(2)}°
                         </p>
                         <p className="text-sm text-gray-400 mt-1">
                           ({result.climbGradient.toFixed(4)} rad)
                         </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Steady-state climb angle. Used for: obstacle clearance, certification requirements, operational climb performance. Typical: 3-6° for normal category, higher for utility/acrobatic.
+                        </p>
                       </div>
                       
                       <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
                         <p className="text-sm text-gray-400 mb-1">Rate of Climb (ROC)</p>
+                        <p className="text-xs text-gray-500 mb-1">(ROC = V_climb × sin(γ), vertical velocity)</p>
                         <p className="text-xl font-bold text-cyan-300">
                           {result.rateOfClimb.toFixed(2)} m/s
                         </p>
                         <p className="text-sm text-gray-400 mt-1">
                           ({((result.rateOfClimb * 60) / 0.3048).toFixed(0)} ft/min)
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Vertical component of climb velocity. Reference condition: specified climb velocity (V_climb) and climb configuration. Used for: time-to-altitude, service ceiling estimation, operational planning.
                         </p>
                       </div>
                       
