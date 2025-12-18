@@ -213,15 +213,12 @@ export function InlineInterlinkHint({
       // No field found or no previous value - restore session to pre-import state
       const ds = getDesignSession();
       if (preImportSessionValue === undefined) {
-        // Session was empty before import - remove it only if current value matches what we imported
-        const currentSessionValue = ds[targetFieldKey as FieldKey];
-        if (currentSessionValue !== undefined && importedSessionValue !== undefined && 
-            valuesMatch(importedSessionValue, currentSessionValue)) {
-          // Current session value matches what we imported - safe to delete
+        // Session was empty before import - always restore to empty state (delete field)
+        if (ds[targetFieldKey as FieldKey] !== undefined) {
           delete (ds as Record<string, unknown>)[targetFieldKey];
           saveDesignSession(ds);
         }
-        // Always dispatch event to notify other components, even if field was already deleted or doesn't match
+        // Always dispatch event to notify other components
         if (typeof window !== 'undefined') {
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
@@ -275,15 +272,12 @@ export function InlineInterlinkHint({
     // Restore designSession to pre-import state (what was in session BEFORE we imported)
     const ds = getDesignSession();
     if (preImportSessionValue === undefined) {
-      // Session was empty before import - remove it only if current value matches what we imported
-      const currentSessionValue = ds[targetFieldKey as FieldKey];
-      if (currentSessionValue !== undefined && importedSessionValue !== undefined && 
-          valuesMatch(importedSessionValue, currentSessionValue)) {
-        // Current session value matches what we imported - safe to delete
+      // Session was empty before import - always restore to empty state (delete field)
+      if (ds[targetFieldKey as FieldKey] !== undefined) {
         delete (ds as Record<string, unknown>)[targetFieldKey];
         saveDesignSession(ds);
       }
-      // Always dispatch event to notify other components, even if field was already deleted or doesn't match
+      // Always dispatch event to notify other components
       if (typeof window !== 'undefined') {
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
