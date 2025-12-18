@@ -704,8 +704,8 @@ export default function ClimbPerformanceCalculator() {
                         <div className="mt-2">
                           <h5 className="text-xs font-semibold text-gray-300 mb-1">Climb Gradient at V_y</h5>
                           <p className="text-xs text-gray-500 mb-1">Climb angle (γ): ratio of vertical to horizontal velocity. Used for obstacle clearance analysis.</p>
-                          {Number.isFinite(result.gammaVy) && result.gammaVy >= 0 && result.gammaVy <= 1 ? (
-                            <p className="text-sm text-gray-400">{(result.gammaVy * 100).toFixed(2)}% (γ = {Math.asin(result.gammaVy) * 180 / Math.PI}°)</p>
+                          {Number.isFinite(result.gammaVy) && result.gammaVy >= 0 ? (
+                            <p className="text-sm text-gray-400">{(result.gammaVy * 100).toFixed(2)}% (γ = {Math.atan(result.gammaVy) * 180 / Math.PI}°)</p>
                           ) : (
                             <p className="text-sm text-yellow-400">Invalid or unrealistic gradient value</p>
                           )}
@@ -732,7 +732,11 @@ export default function ClimbPerformanceCalculator() {
                               <div className="mt-2">
                                 <h5 className="text-xs font-semibold text-gray-300 mb-1">Climb Gradient at V_x</h5>
                                 <p className="text-xs text-gray-500 mb-1">Maximum climb angle (γ_max): steepest climb gradient achievable. Maximum obstacle clearance capability.</p>
-                                <p className="text-sm text-gray-400">{(result.gammaVx * 100).toFixed(2)}% (γ = {Math.asin(result.gammaVx) * 180 / Math.PI}°)</p>
+                                {Number.isFinite(result.gammaVx) && result.gammaVx >= 0 ? (
+                                  <p className="text-sm text-gray-400">{(result.gammaVx * 100).toFixed(2)}% (γ = {Math.atan(result.gammaVx) * 180 / Math.PI}°)</p>
+                                ) : (
+                                  <p className="text-sm text-yellow-400">Invalid or unrealistic gradient value</p>
+                                )}
                               </div>
                             )}
                           </>
