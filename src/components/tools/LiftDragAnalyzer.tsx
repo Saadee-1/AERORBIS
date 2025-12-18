@@ -1526,6 +1526,18 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xs text-gray-500 mb-2">CD = CD₀ + k × CL² (parasitic + induced)</p>
                     {(() => {
                       const activeAirfoil = getActiveAirfoil();
+                      if (!activeAirfoil) {
+                        // Fallback: if airfoil is undefined, use standard validation (CD <= 1)
+                        const isValidCD = Number.isFinite(result.CD) && result.CD > 0 && result.CD <= 1;
+                        return isValidCD ? (
+                          <>
+                            <p className="text-xl font-bold text-white">{result.CD.toFixed(4)}</p>
+                            <p className="text-xs text-gray-500 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-yellow-400">Invalid or unrealistic CD value</p>
+                        );
+                      }
                       const alpha = parseFloat(inputs.angleOfAttack);
                       const isPostStall = !isNaN(alpha) && Math.abs(alpha) > activeAirfoil.alpha_stall;
                       const isValidCD = Number.isFinite(result.CD) && result.CD > 0 && (isPostStall || result.CD <= 1);
