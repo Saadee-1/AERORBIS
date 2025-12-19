@@ -44,7 +44,7 @@ import {
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
 import { FIELD_KEYS } from "../utils/interlinkConfig";
-import { computeClimbPerformance, computeClimbPerformanceAdvanced, msToKts, msToFpm, ClimbResult, evaluateClimbValidityEnvelope, computeEnergyClimbProfile } from "./utils/climb";
+import { computeClimbPerformance, computeClimbPerformanceAdvanced, msToKts, msToFpm, ClimbResult, evaluateClimbValidityEnvelope, computeEnergyClimbProfile, resolveEffectiveThrust } from "./utils/climb";
 import { ClimbPlots } from "./ClimbPlots";
 import { isaAtAltitudeMeters, calculateISADensity } from "../utils/isaAtmosphere";
 
@@ -302,11 +302,22 @@ export default function ClimbPerformanceCalculator() {
       });
 
       // Evaluate validity envelope (non-breaking metadata addition)
+      // Compute effective thrust at V_y for accurate T/W assessment
+      const effectiveThrustForValidity = climbResult.vY !== undefined && thrust !== undefined
+        ? resolveEffectiveThrust({
+            thrustInput: thrust,
+            densityKgM3: currentDensity,
+            velocity: climbResult.vY,
+            propulsionType: engineType,
+            model: propulsionModel,
+          })
+        : thrust; // Fallback to raw thrust if V_y unavailable
+
       const validityEnvelope = evaluateClimbValidityEnvelope({
         gamma: climbResult.gammaVy,
         roc: climbResult.rocVy,
         velocity: climbResult.vY,
-        thrust: thrust,
+        thrust: effectiveThrustForValidity, // Use effective thrust instead of raw sea-level thrust
         weight: weight,
         propulsionModel,
       });
