@@ -14,6 +14,8 @@
  * - Convert m/s to kts: * 1.94384; m/s to ft/min * 196.8504
  */
 
+import { calculateISADensity } from "../utils/isaAtmosphere";
+
 export type ClimbInputs = {
   weightN: number; // N
   wingAreaM2: number;
@@ -27,6 +29,7 @@ export type ClimbInputs = {
   vMin?: number;
   vMax?: number;
   nPoints?: number;
+  propulsionModel?: PropulsionModel; // Optional propulsion model (default: "constant")
 };
 
 export type ClimbPoint = {
@@ -45,6 +48,18 @@ export type ClimbPoint = {
   valid: boolean;
 };
 
+export type ValidityLevel = "valid" | "marginal" | "invalid";
+
+export interface ValidityEnvelope {
+  overall: ValidityLevel;
+  checks: {
+    climbAngle: ValidityLevel;
+    thrustToWeight: ValidityLevel;
+    rocVsVelocity: ValidityLevel;
+  };
+  notes: string[];
+}
+
 export type ClimbResult = {
   points: ClimbPoint[];
   vY?: number; // Best rate of climb speed (m/s)
@@ -53,11 +68,115 @@ export type ClimbResult = {
   gammaVy?: number; // Climb gradient at V_y
   rocVx?: number; // Rate of climb at V_x (m/s)
   gammaVx?: number; // Climb gradient at V_x
+  validityEnvelope?: ValidityEnvelope; // Validity evaluation metadata
+  energyClimb?: {
+    serviceCeilingM: number | null;
+    profile: Array<{ altitude: number; roc: number }>;
+  };
 };
 
 const GRAVITY = 9.81; // m/s²
 const KNOTS_TO_MS = 1.94384;
 const MS_TO_FPM = 196.8504;
+
+export type PropulsionModel = "constant" | "speedDecay" | "lapsed";
+
+/**
+ * Apply jet thrust lapse with altitude (standard preliminary model).
+ * T(h) = T₀ × σ, where σ = density ratio
+ */
+function applyJetThrustLapse(thrustSL: number, sigma: number): number {
+  return thrustSL * sigma;
+}
+
+/**
+ * Apply propeller power lapse with altitude.
+ * P_avail(h) = P₀ × σ, converted to effective thrust proxy.
+ */
+function applyPropPowerLapse(thrustProxy: number, sigma: number): number {
+  return thrustProxy * sigma;
+}
+
+/**
+ * Apply speed degradation factor for jets (optional high-speed correction).
+ * T(V) = T(h) × (1 − k_v × (V / V_ref))
+ */
+function applySpeedDegradation(thrustAtAltitude: number, velocity: number): number {
+  const kV = 0.3; // Speed degradation coefficient
+  const Vref = 300; // m/s — reference speed
+  const speedFactor = Math.max(0.5, 1 - kV * (velocity / Vref));
+  return thrustAtAltitude * speedFactor;
+}
+
+/**
+ * Resolve effective thrust based on propulsion model, altitude, and speed.
+ * Pure helper function - applies altitude and speed-dependent lapse if enabled.
+ * 
+ * @param params - Thrust computation parameters
+ * @returns Effective thrust (N)
+ */
+export function resolveEffectiveThrust(params: {
+  thrustInput: number;      // N - sea-level static thrust input
+  densityKgM3: number;     // kg/m³ - current air density
+  velocity: number;         // m/s - current velocity
+  propulsionType: "jet" | "turbofan" | "prop" | "rocket"; // Engine type
+  model: PropulsionModel;  // Propulsion model selection
+}): number {
+  if (params.model === "constant") {
+    return params.thrustInput;
+  }
+
+  if (params.model === "speedDecay") {
+    // Speed-dependent decay model (first-order realism correction)
+    const Vref = 100; // m/s — reference decay speed
+    const decay = Math.max(0.3, 1 - params.velocity / Vref);
+    return params.thrustInput * decay;
+  }
+
+  // Lapsed model: altitude-aware with optional speed degradation
+  // Compute density ratio σ = ρ / ρ₀ (sea-level ISA density = 1.225 kg/m³)
+  const sigma = params.densityKgM3 / 1.225;
+  
+  let thrustAtAltitude: number;
+  
+  if (params.propulsionType === "prop") {
+    // Propeller: power lapses with altitude, convert to thrust proxy
+    thrustAtAltitude = applyPropPowerLapse(params.thrustInput, sigma);
+  } else {
+    // Jet/Turbofan: thrust lapses with altitude
+    thrustAtAltitude = applyJetThrustLapse(params.thrustInput, sigma);
+    
+    // Apply speed degradation for jets only (high-speed correction)
+    thrustAtAltitude = applySpeedDegradation(thrustAtAltitude, params.velocity);
+  }
+  
+  return thrustAtAltitude;
+}
+
+/**
+ * Compute effective thrust based on propulsion model (legacy function for backward compatibility).
+ * @deprecated Use resolveEffectiveThrust instead for altitude-aware models.
+ */
+export function computeEffectiveThrust(params: {
+  thrustSL: number;   // N - sea-level static thrust
+  velocity: number;   // m/s
+  model: PropulsionModel;
+}): number {
+  if (params.model === "constant") {
+    return params.thrustSL;
+  }
+
+  if (params.model === "speedDecay") {
+    // Speed-dependent decay model (first-order realism correction)
+    const Vref = 100; // m/s — reference decay speed
+    const decay = Math.max(0.3, 1 - params.velocity / Vref);
+    return params.thrustSL * decay;
+  }
+
+  // For "lapsed" model, this legacy function cannot compute altitude lapse
+  // without density information, so fall back to constant
+  return params.thrustSL;
+}
 
 /**
  * Preliminary (Small-Angle, Constant Thrust) climb performance model.
@@ -109,15 +228,27 @@ export function computeClimbPerformance(inputs: ClimbInputs): ClimbResult {
     // Power required
     const pReq = dragN * v;
     
+    // Compute effective thrust based on propulsion model
+    const propulsionModel = inputs.propulsionModel ?? "constant";
+    const effectiveThrust = inputs.totalThrustN !== undefined && Number.isFinite(inputs.totalThrustN) && inputs.totalThrustN > 0
+      ? resolveEffectiveThrust({
+          thrustInput: inputs.totalThrustN,
+          densityKgM3: inputs.densityKgM3,
+          velocity: v,
+          propulsionType: inputs.engineType ?? "jet",
+          model: propulsionModel,
+        })
+      : undefined;
+    
     // Power available
     let pAvail: number | undefined;
-    if (inputs.totalThrustN !== undefined && Number.isFinite(inputs.totalThrustN) && inputs.totalThrustN > 0) {
+    if (effectiveThrust !== undefined) {
       if (inputs.engineType === 'prop') {
         const eta = inputs.propEfficiency ?? 0.85;
-        pAvail = inputs.totalThrustN * v * eta;
+        pAvail = effectiveThrust * v * eta;
       } else {
         // For jets/turbofans: P_avail = T * V (simplified)
-        pAvail = inputs.totalThrustN * v;
+        pAvail = effectiveThrust * v;
       }
     }
     
@@ -128,8 +259,8 @@ export function computeClimbPerformance(inputs: ClimbInputs): ClimbResult {
     const roc = pEx !== undefined && pEx > 0 ? pEx / inputs.weightN : undefined;
     
     // Excess thrust
-    const tEx = inputs.totalThrustN !== undefined && Number.isFinite(inputs.totalThrustN) 
-      ? inputs.totalThrustN - dragN 
+    const tEx = effectiveThrust !== undefined 
+      ? effectiveThrust - dragN 
       : undefined;
     
     // Climb gradient γ = T_ex / W
@@ -232,20 +363,32 @@ export function computeClimbPerformanceAdvanced(inputs: ClimbInputs): ClimbResul
     const dragN = q * inputs.wingAreaM2 * cd;
     const pReq = dragN * v;
     
+    // Compute effective thrust based on propulsion model
+    const propulsionModel = inputs.propulsionModel ?? "constant";
+    const effectiveThrust = inputs.totalThrustN !== undefined && Number.isFinite(inputs.totalThrustN) && inputs.totalThrustN > 0
+      ? resolveEffectiveThrust({
+          thrustInput: inputs.totalThrustN,
+          densityKgM3: inputs.densityKgM3,
+          velocity: v,
+          propulsionType: inputs.engineType ?? "jet",
+          model: propulsionModel,
+        })
+      : undefined;
+    
     // Power available (same as preliminary)
     let pAvail: number | undefined;
-    if (inputs.totalThrustN !== undefined && Number.isFinite(inputs.totalThrustN) && inputs.totalThrustN > 0) {
+    if (effectiveThrust !== undefined) {
       if (inputs.engineType === 'prop') {
         const eta = inputs.propEfficiency ?? 0.85;
-        pAvail = inputs.totalThrustN * v * eta;
+        pAvail = effectiveThrust * v * eta;
       } else {
-        pAvail = inputs.totalThrustN * v;
+        pAvail = effectiveThrust * v;
       }
     }
     
     const pEx = pAvail !== undefined ? pAvail - pReq : undefined;
-    const tEx = inputs.totalThrustN !== undefined && Number.isFinite(inputs.totalThrustN) 
-      ? inputs.totalThrustN - dragN 
+    const tEx = effectiveThrust !== undefined 
+      ? effectiveThrust - dragN 
       : undefined;
     
     // Advanced: Exact climb angle from force balance
@@ -323,6 +466,164 @@ export function computeClimbPerformanceAdvanced(inputs: ClimbInputs): ClimbResul
     rocVx, 
     gammaVy, 
     gammaVx 
+  };
+}
+
+/**
+ * Evaluate validity envelope for climb performance results.
+ * Pure evaluative function - does not modify calculations or results.
+ * 
+ * @param params - Climb performance parameters
+ * @returns Validity envelope classification
+ */
+export function evaluateClimbValidityEnvelope(params: {
+  gamma?: number;      // dimensionless gradient
+  roc?: number;        // m/s
+  velocity?: number;   // m/s
+  thrust?: number;     // N
+  weight?: number;     // N
+  propulsionModel?: PropulsionModel; // Optional propulsion model
+}): ValidityEnvelope {
+  const checks: ValidityEnvelope['checks'] = {
+    climbAngle: "valid",
+    thrustToWeight: "valid",
+    rocVsVelocity: "valid",
+  };
+  const notes: string[] = [];
+
+  // Climb angle check: Compute angle from ROC and velocity (model-independent)
+  // γ_angle = asin(ROC/V) in degrees, or fallback to atan(gamma) if ROC/V unavailable
+  let gammaAngleDeg: number | undefined;
+  if (params.roc !== undefined && params.velocity !== undefined &&
+      Number.isFinite(params.roc) && Number.isFinite(params.velocity) && params.velocity > 0) {
+    // Compute angle from ROC/V (physically correct, model-independent)
+    gammaAngleDeg = Math.abs(Math.asin(Math.min(1, Math.max(-1, params.roc / params.velocity))) * 180 / Math.PI);
+  } else if (params.gamma !== undefined && Number.isFinite(params.gamma)) {
+    // Fallback: assume gamma = (T-D)/W and use atan (preliminary model interpretation)
+    gammaAngleDeg = Math.abs(Math.atan(params.gamma) * 180 / Math.PI);
+  }
+  
+  if (gammaAngleDeg !== undefined) {
+    if (gammaAngleDeg > 30) {
+      checks.climbAngle = "invalid";
+      notes.push("Climb angle exceeds 30° — small-angle assumptions invalid");
+    } else if (gammaAngleDeg > 15) {
+      checks.climbAngle = "marginal";
+      notes.push("Climb angle 15–30° — small-angle assumption likely violated");
+    } else {
+      checks.climbAngle = "valid";
+    }
+  }
+
+  // Thrust-to-weight check: T/W
+  if (params.thrust !== undefined && params.weight !== undefined && 
+      Number.isFinite(params.thrust) && Number.isFinite(params.weight) && params.weight > 0) {
+    const tOverW = params.thrust / params.weight;
+    if (tOverW > 1.3) {
+      checks.thrustToWeight = "invalid";
+      notes.push("Excess thrust beyond steady climb domain (T/W > 1.3)");
+    } else if (tOverW > 1.0) {
+      checks.thrustToWeight = "marginal";
+      notes.push("Excess thrust exceeds steady climb domain (T/W > 1.0)");
+    } else {
+      checks.thrustToWeight = "valid";
+    }
+  }
+
+  // ROC vs velocity check: ROC ≤ V
+  if (params.roc !== undefined && params.velocity !== undefined &&
+      Number.isFinite(params.roc) && Number.isFinite(params.velocity) && params.velocity > 0) {
+    if (params.roc > params.velocity) {
+      checks.rocVsVelocity = "invalid";
+      notes.push("ROC exceeds physical vertical speed limit (ROC > V)");
+    } else {
+      checks.rocVsVelocity = "valid";
+    }
+  }
+
+  // Add informational note for speed-dependent propulsion model
+  if (params.propulsionModel === "speedDecay" && params.velocity !== undefined && params.velocity > 0.8 * 100) {
+    notes.push("Thrust reduced due to speed-dependent propulsion model");
+  }
+  
+  // Add informational notes for energy climb analysis (if ROC is very low)
+  if (params.roc !== undefined && Number.isFinite(params.roc) && params.roc > 0 && params.roc <= 1.0) {
+    notes.push("ROC approaches zero — near service ceiling");
+  }
+  if (params.roc !== undefined && Number.isFinite(params.roc) && params.roc > 0 && params.roc <= 0.5) {
+    notes.push("Energy-limited climb regime");
+  }
+
+  // Compute overall validity
+  let overall: ValidityLevel = "valid";
+  if (checks.climbAngle === "invalid" || checks.thrustToWeight === "invalid" || checks.rocVsVelocity === "invalid") {
+    overall = "invalid";
+  } else if (checks.climbAngle === "marginal" || checks.thrustToWeight === "marginal" || checks.rocVsVelocity === "marginal") {
+    overall = "marginal";
+  }
+
+  return {
+    overall,
+    checks,
+    notes,
+  };
+}
+
+/**
+ * Compute energy climb profile (ROC vs altitude) and service ceiling.
+ * Pure helper function - sweeps altitude and re-uses existing climb solver.
+ * 
+ * @param params - Energy climb computation parameters
+ * @returns Energy climb profile and service ceiling
+ */
+export function computeEnergyClimbProfile(params: {
+  baseInputs: ClimbInputs;
+  climbModel: "preliminary" | "advanced";
+  propulsionModel: PropulsionModel;
+  maxAltitudeM?: number;
+  stepM?: number;
+}): {
+  profile: Array<{ altitude: number; roc: number }>;
+  serviceCeilingM: number | null;
+} {
+  const maxAltitudeM = params.maxAltitudeM ?? 20000;
+  const stepM = params.stepM ?? 500;
+  const profile: Array<{ altitude: number; roc: number }> = [];
+  let serviceCeilingM: number | null = null;
+  
+  // Sweep altitude from 0 to maxAltitudeM
+  for (let altitude = 0; altitude <= maxAltitudeM; altitude += stepM) {
+    // Compute density at this altitude using ISA
+    const density = calculateISADensity(altitude, 0);
+    
+    // Create modified inputs with altitude-specific density
+    const altitudeInputs: ClimbInputs = {
+      ...params.baseInputs,
+      densityKgM3: density,
+      propulsionModel: params.propulsionModel,
+    };
+    
+    // Re-run existing climb solver (do NOT recompute equations manually)
+    const climbResult = params.climbModel === "advanced"
+      ? computeClimbPerformanceAdvanced(altitudeInputs)
+      : computeClimbPerformance(altitudeInputs);
+    
+    // Extract ROC at V_y
+    const roc = climbResult.rocVy;
+    
+    if (roc !== undefined && Number.isFinite(roc)) {
+      profile.push({ altitude, roc });
+      
+      // Service ceiling: first altitude where ROC <= 0.5 m/s
+      if (serviceCeilingM === null && roc <= 0.5) {
+        serviceCeilingM = altitude;
+      }
+    }
+  }
+  
+  return {
+    profile,
+    serviceCeilingM,
   };
 }
 

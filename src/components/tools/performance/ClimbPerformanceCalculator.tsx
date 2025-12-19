@@ -44,7 +44,7 @@ import {
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
 import { FIELD_KEYS } from "../utils/interlinkConfig";
-import { computeClimbPerformance, computeClimbPerformanceAdvanced, msToKts, msToFpm, ClimbResult } from "./utils/climb";
+import { computeClimbPerformance, computeClimbPerformanceAdvanced, msToKts, msToFpm, ClimbResult, evaluateClimbValidityEnvelope, computeEnergyClimbProfile } from "./utils/climb";
 import { ClimbPlots } from "./ClimbPlots";
 import { isaAtAltitudeMeters, calculateISADensity } from "../utils/isaAtmosphere";
 
@@ -57,8 +57,34 @@ type EngineType = 'jet' | 'turbofan' | 'prop';
 type AirDensityMode = 'preset' | 'altitude' | 'custom';
 type AirDensityPreset = 'ISA Sea Level' | '2000 ft' | '5000 ft' | '8000 ft' | '10000 ft' | '15000 ft';
 type ClimbModel = 'preliminary' | 'advanced';
+type PropulsionModel = 'constant' | 'speedDecay' | 'lapsed';
+type ClimbAnalysisMode = 'singlePoint' | 'energy';
+type FlightConfiguration = 'clean' | 'takeoff' | 'landing';
 
 const GRAVITY = 9.81; // m/s²
+
+// CL_max configuration map (typical conservative values)
+const CLMAX_CONFIG_MAP: Record<FlightConfiguration, number> = {
+  clean: 1.5,
+  takeoff: 2.0,
+  landing: 2.5,
+};
+
+/**
+ * Resolve active CL_max based on user override, configuration, or mission default.
+ * Priority: User Override > Configuration CL_max > Mission Default
+ */
+function resolveActiveClMax(params: {
+  useOverride: boolean;
+  overrideValue?: number;
+  missionClMax: number;
+  config: FlightConfiguration;
+}): number {
+  if (params.useOverride && params.overrideValue !== undefined && Number.isFinite(params.overrideValue) && params.overrideValue > 0) {
+    return params.overrideValue;
+  }
+  return CLMAX_CONFIG_MAP[params.config] ?? params.missionClMax;
+}
 
 const DENSITY_PRESETS: Record<AirDensityPreset, number> = {
   'ISA Sea Level': 1.225,
@@ -97,6 +123,9 @@ export default function ClimbPerformanceCalculator() {
   const [customDensity, setCustomDensity] = useState<string>('1.225');
   const [nPoints, setNPoints] = useState<string>('200');
   const [climbModel, setClimbModel] = useState<ClimbModel>('preliminary');
+  const [propulsionModel, setPropulsionModel] = useState<PropulsionModel>('constant');
+  const [analysisMode, setAnalysisMode] = useState<ClimbAnalysisMode>('singlePoint');
+  const [flightConfig, setFlightConfig] = useState<FlightConfiguration>('clean');
   const [result, setResult] = useState<ClimbResult | null>(null);
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
 
@@ -190,9 +219,11 @@ export default function ClimbPerformanceCalculator() {
         return;
       }
 
-      // Get CL_max (optional)
-      const clMaxVal = clMax ? parseFloat(clMax) : undefined;
-      if (clMaxVal !== undefined && (!Number.isFinite(clMaxVal) || clMaxVal <= 0)) {
+      // Get CL_max (optional) - check if user override is active
+      const userClMaxParsed = clMax ? parseFloat(clMax) : undefined;
+      const useClMaxOverride = userClMaxParsed !== undefined && Number.isFinite(userClMaxParsed) && userClMaxParsed > 0;
+      
+      if (useClMaxOverride && userClMaxParsed !== undefined && (!Number.isFinite(userClMaxParsed) || userClMaxParsed <= 0)) {
         toast({
           title: 'Invalid input',
           description: 'CL_max must be a positive number.',
@@ -200,6 +231,15 @@ export default function ClimbPerformanceCalculator() {
         });
         return;
       }
+      
+      // Resolve active CL_max (user override > configuration > default)
+      const missionClMax = 1.8; // Default mission CL_max (fallback)
+      const clMaxVal = resolveActiveClMax({
+        useOverride: useClMaxOverride,
+        overrideValue: userClMaxParsed,
+        missionClMax,
+        config: flightConfig,
+      });
 
       // Get prop efficiency
       const eta = engineType === 'prop' ? parseFloat(propEfficiency) : undefined;
@@ -243,9 +283,49 @@ export default function ClimbPerformanceCalculator() {
         nPoints: gridPoints,
       });
 
-      setResult(climbResult);
+      // Evaluate validity envelope (non-breaking metadata addition)
+      const validityEnvelope = evaluateClimbValidityEnvelope({
+        gamma: climbResult.gammaVy,
+        roc: climbResult.rocVy,
+        velocity: climbResult.vY,
+        thrust: thrust,
+        weight: weight,
+        propulsionModel,
+      });
 
-      // Save to designSession
+      // Compute energy climb profile if energy analysis mode is enabled
+      let energyClimb: ClimbResult['energyClimb'] | undefined;
+      if (analysisMode === 'energy') {
+        const energyResult = computeEnergyClimbProfile({
+          baseInputs: {
+            weightN: weight,
+            wingAreaM2: area,
+            cd0: cd0Val,
+            k: kVal,
+            totalThrustN: thrust,
+            engineType,
+            propEfficiency: eta,
+            densityKgM3: currentDensity, // Base density (will be overridden per altitude)
+            clMax: clMaxVal,
+            nPoints: gridPoints,
+            propulsionModel,
+          },
+          climbModel,
+          propulsionModel,
+        });
+        energyClimb = energyResult;
+      }
+
+      // Attach validity envelope and energy climb to results
+      const resultWithValidity: ClimbResult = {
+        ...climbResult,
+        validityEnvelope,
+        energyClimb,
+      };
+
+      setResult(resultWithValidity);
+
+      // Save to designSession (existing keys unchanged)
       if (climbResult.vY !== undefined) {
         updateDesignSession({
           vClimbVyMs: climbResult.vY,
@@ -259,7 +339,7 @@ export default function ClimbPerformanceCalculator() {
       const requestId = `climb-${Date.now()}`;
       setLastRequestId(requestId);
 
-      // Build payload for AI
+      // Build payload for AI (existing keys unchanged)
       const payload = buildAeroversePayload({
         toolName: 'Climb Performance Calculator',
         inputs: {
@@ -347,6 +427,47 @@ export default function ClimbPerformanceCalculator() {
                 <SelectContent>
                   <SelectItem value="preliminary">Preliminary (Small-Angle, Constant Thrust)</SelectItem>
                   <SelectItem value="advanced">Advanced (Exact Trigonometric)</SelectItem>
+                </SelectContent>
+              </Select>
+            </AeroFormField>
+
+            {/* Propulsion Model Selection */}
+            <AeroFormField label="Propulsion Model" helperText="Constant: Sea-level static thrust (preliminary). Speed Decay: Thrust reduces with speed. Altitude-Aware: Thrust/power lapses with altitude (advanced).">
+              <Select value={propulsionModel} onValueChange={(v) => setPropulsionModel(v as PropulsionModel)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="constant">Constant (Preliminary)</SelectItem>
+                  <SelectItem value="speedDecay">Speed Decay (Realism)</SelectItem>
+                  <SelectItem value="lapsed">Altitude-Aware (Advanced)</SelectItem>
+                </SelectContent>
+              </Select>
+            </AeroFormField>
+
+            {/* Climb Analysis Mode Selection */}
+            <AeroFormField label="Climb Analysis Mode" helperText="Single-Point: Analyze at specified density. Energy / Ceiling: Sweep altitude to find service ceiling and ROC degradation.">
+              <Select value={analysisMode} onValueChange={(v) => setAnalysisMode(v as ClimbAnalysisMode)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="singlePoint">Single-Point (Default)</SelectItem>
+                  <SelectItem value="energy">Energy / Ceiling Analysis</SelectItem>
+                </SelectContent>
+              </Select>
+            </AeroFormField>
+
+            {/* Flight Configuration Selection */}
+            <AeroFormField label="Flight Configuration" helperText="Select aircraft configuration for CL_max selection. Clean: cruise configuration (CL_max = 1.5). Takeoff: partial high-lift devices (CL_max = 2.0). Landing: full high-lift configuration (CL_max = 2.5).">
+              <Select value={flightConfig} onValueChange={(v) => setFlightConfig(v as FlightConfiguration)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="clean">Clean</SelectItem>
+                  <SelectItem value="takeoff">Takeoff</SelectItem>
+                  <SelectItem value="landing">Landing</SelectItem>
                 </SelectContent>
               </Select>
             </AeroFormField>
@@ -503,18 +624,30 @@ export default function ClimbPerformanceCalculator() {
             </AeroFormField>
 
             <AeroFormField 
-              label="Maximum Lift Coefficient (C_L,max) [Optional]" 
-              helperText="Maximum lift coefficient at the climb condition. Used to determine stall-limited climb speeds. If not specified, calculations proceed without stall constraints. Typical range: 1.2-2.5 depending on configuration."
+              label="Maximum Lift Coefficient (C_L,max) [Optional Override]" 
+              helperText={`Maximum lift coefficient override. If not specified, uses configuration-based CL_max (${CLMAX_CONFIG_MAP[flightConfig].toFixed(1)} for ${flightConfig}). Typical range: 1.2-2.5 depending on configuration.`}
             >
               <Input
                 type="number"
                 name="clMax"
                 value={clMax}
                 onChange={(e) => setClMax(e.target.value)}
-                placeholder="1.8"
+                placeholder={`${CLMAX_CONFIG_MAP[flightConfig].toFixed(1)} (from ${flightConfig} config)`}
                 step="0.1"
                 min="0"
               />
+              {!clMax && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Using configuration CL_max: {CLMAX_CONFIG_MAP[flightConfig].toFixed(1)} ({flightConfig})
+                </p>
+              )}
+              {clMax && (() => {
+                const parsed = parseFloat(clMax);
+                if (Number.isFinite(parsed) && parsed > 0) {
+                  return <p className="text-xs text-cyan-400 mt-1">User-specified CL_max override active</p>;
+                }
+                return null;
+              })()}
             </AeroFormField>
 
             <AeroFormField 
@@ -703,11 +836,43 @@ export default function ClimbPerformanceCalculator() {
             <AeroCard title="Climb Performance Results" icon={CheckCircle}>
               <div className="mb-4 text-sm text-gray-400">
                 <p>Results computed for steady climb at specified air density. {climbModel === 'preliminary' ? 'Uses small-angle approximation (sin γ ≈ γ) for climb angle.' : 'Uses exact trigonometric formulation: sin(γ) = (T-D)/W, ROC = V × sin(γ).'}</p>
+                
+                {/* CL_max configuration info */}
+                {(() => {
+                  const userClMaxParsed = clMax ? parseFloat(clMax) : undefined;
+                  const useClMaxOverride = userClMaxParsed !== undefined && Number.isFinite(userClMaxParsed) && userClMaxParsed > 0;
+                  
+                  if (useClMaxOverride) {
+                    return <p className="text-xs text-cyan-400 mt-2">User-specified CLₘₐₓ in use: {userClMaxParsed?.toFixed(2)}</p>;
+                  } else {
+                    const configClMax = CLMAX_CONFIG_MAP[flightConfig];
+                    const configLabels: Record<FlightConfiguration, string> = {
+                      clean: "CLₘₐₓ based on clean configuration",
+                      takeoff: "CLₘₐₓ assumes partial high-lift devices",
+                      landing: "CLₘₐₓ assumes full high-lift configuration",
+                    };
+                    return <p className="text-xs text-gray-400 mt-2">{configLabels[flightConfig]} (CLₘₐₓ = {configClMax.toFixed(1)})</p>;
+                  }
+                })()}
               </div>
               
               {/* Physical validity warnings */}
               {result && (() => {
                 const warnings: string[] = [];
+                
+                // Propulsion model warnings (advanced mode only)
+                if (propulsionModel === 'lapsed') {
+                  const sigma = currentDensity / 1.225;
+                  if (sigma < 0.7) {
+                    warnings.push("Significant thrust degradation due to altitude (σ < 0.7)");
+                  }
+                  
+                  // Estimate effective thrust reduction (approximate, using current density)
+                  // Note: Actual effective thrust varies per speed point, this is an approximation
+                  if (sigma < 0.5) {
+                    warnings.push("Engine operating far from sea-level rating (effective thrust < 50% of input)");
+                  }
+                }
                 
                 // Helper to get climb angle from gamma based on model
                 const getClimbAngle = (gamma: number | undefined): number | undefined => {
@@ -882,6 +1047,52 @@ export default function ClimbPerformanceCalculator() {
               )}
             </AeroCard>
           </ToolSection>
+
+          {/* Energy Climb Analysis Results */}
+          {result && result.energyClimb && (
+            <ToolSection>
+              <AeroCard title="Energy Climb Analysis" icon={TrendingUp}>
+                <div className="space-y-6">
+                  {result.energyClimb.serviceCeilingM !== null ? (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-300 mb-2">Service Ceiling</h4>
+                      <p className="text-2xl font-bold text-white">{result.energyClimb.serviceCeilingM.toFixed(0)} m</p>
+                      <p className="text-sm text-gray-400">{(result.energyClimb.serviceCeilingM * 3.28084).toFixed(0)} ft</p>
+                      <p className="text-xs text-gray-500 mt-2">Altitude where ROC ≤ 0.5 m/s (100 ft/min)</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-300 mb-2">Service Ceiling</h4>
+                      <p className="text-sm text-yellow-400">Not reached within analysis range (0-20,000 m)</p>
+                      <p className="text-xs text-gray-500 mt-2">Aircraft maintains ROC > 0.5 m/s up to 20,000 m</p>
+                    </div>
+                  )}
+                  
+                  {result.energyClimb.profile.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-300 mb-2">ROC vs Altitude Profile</h4>
+                      <p className="text-xs text-gray-500 mb-3">
+                        {result.energyClimb.profile.length} altitude points analyzed (step: 500 m)
+                      </p>
+                      <div className="max-h-64 overflow-y-auto space-y-1">
+                        {result.energyClimb.profile.slice(0, 10).map((point, idx) => (
+                          <div key={idx} className="flex justify-between text-xs text-gray-400 py-1 border-b border-gray-800">
+                            <span>{point.altitude.toFixed(0)} m ({(point.altitude * 3.28084).toFixed(0)} ft)</span>
+                            <span>{point.roc.toFixed(2)} m/s ({msToFpm(point.roc).toFixed(0)} ft/min)</span>
+                          </div>
+                        ))}
+                        {result.energyClimb.profile.length > 10 && (
+                          <p className="text-xs text-gray-500 mt-2 italic">
+                            ... and {result.energyClimb.profile.length - 10} more points
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </AeroCard>
+            </ToolSection>
+          )}
 
           {/* Plots */}
           <ToolSection>
