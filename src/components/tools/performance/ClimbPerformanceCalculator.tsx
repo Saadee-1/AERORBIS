@@ -128,6 +128,12 @@ export default function ClimbPerformanceCalculator() {
   const [flightConfig, setFlightConfig] = useState<FlightConfiguration>('clean');
   const [result, setResult] = useState<ClimbResult | null>(null);
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  // Store the actual values used in the last calculation (for display purposes)
+  const [lastCalculationValues, setLastCalculationValues] = useState<{
+    clMaxUsed: number;
+    flightConfigUsed: FlightConfiguration;
+    useClMaxOverride: boolean;
+  } | null>(null);
 
   // Get reusable data
   const requiredFields = [FIELD_KEYS.massKg, FIELD_KEYS.weightN, FIELD_KEYS.wingAreaM2, FIELD_KEYS.cd0, FIELD_KEYS.k, FIELD_KEYS.totalThrustN, FIELD_KEYS.densityKgM3];
@@ -244,6 +250,13 @@ export default function ClimbPerformanceCalculator() {
         config: flightConfig,
       });
 
+      // Store the values used in this calculation for display purposes
+      setLastCalculationValues({
+        clMaxUsed: clMaxVal,
+        flightConfigUsed: flightConfig,
+        useClMaxOverride,
+      });
+
       // Get prop efficiency
       const eta = engineType === 'prop' ? parseFloat(propEfficiency) : undefined;
       if (eta !== undefined && (!Number.isFinite(eta) || eta <= 0 || eta > 1)) {
@@ -272,6 +285,7 @@ export default function ClimbPerformanceCalculator() {
             densityKgM3: currentDensity,
             clMax: clMaxVal,
             nPoints: gridPoints,
+            propulsionModel,
           })
         : computeClimbPerformance({
         weightN: weight,
@@ -284,6 +298,7 @@ export default function ClimbPerformanceCalculator() {
         densityKgM3: currentDensity,
         clMax: clMaxVal,
         nPoints: gridPoints,
+        propulsionModel,
       });
 
       // Evaluate validity envelope (non-breaking metadata addition)
@@ -841,20 +856,17 @@ export default function ClimbPerformanceCalculator() {
                 <p>Results computed for steady climb at specified air density. {climbModel === 'preliminary' ? 'Uses small-angle approximation (sin γ ≈ γ) for climb angle.' : 'Uses exact trigonometric formulation: sin(γ) = (T-D)/W, ROC = V × sin(γ).'}</p>
                 
                 {/* CL_max configuration info */}
-                {(() => {
-                  const userClMaxParsed = clMax ? parseFloat(clMax) : undefined;
-                  const useClMaxOverride = userClMaxParsed !== undefined && Number.isFinite(userClMaxParsed) && userClMaxParsed > 0;
-                  
-                  if (useClMaxOverride) {
-                    return <p className="text-xs text-cyan-400 mt-2">User-specified CLₘₐₓ in use: {userClMaxParsed?.toFixed(2)}</p>;
+                {lastCalculationValues && (() => {
+                  if (lastCalculationValues.useClMaxOverride) {
+                    return <p className="text-xs text-cyan-400 mt-2">User-specified CLₘₐₓ in use: {lastCalculationValues.clMaxUsed.toFixed(2)}</p>;
                   } else {
-                    const configClMax = CLMAX_CONFIG_MAP[flightConfig];
+                    const configClMax = CLMAX_CONFIG_MAP[lastCalculationValues.flightConfigUsed];
                     const configLabels: Record<FlightConfiguration, string> = {
                       clean: "CLₘₐₓ based on clean configuration",
                       takeoff: "CLₘₐₓ assumes partial high-lift devices",
                       landing: "CLₘₐₓ assumes full high-lift configuration",
                     };
-                    return <p className="text-xs text-gray-400 mt-2">{configLabels[flightConfig]} (CLₘₐₓ = {configClMax.toFixed(1)})</p>;
+                    return <p className="text-xs text-gray-400 mt-2">{configLabels[lastCalculationValues.flightConfigUsed]} (CLₘₐₓ = {configClMax.toFixed(1)})</p>;
                   }
                 })()}
               </div>
@@ -1067,7 +1079,7 @@ export default function ClimbPerformanceCalculator() {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-300 mb-2">Service Ceiling</h4>
                       <p className="text-sm text-yellow-400">Not reached within analysis range (0-20,000 m)</p>
-                      <p className="text-xs text-gray-500 mt-2">Aircraft maintains ROC > 0.5 m/s up to 20,000 m</p>
+                      <p className="text-xs text-gray-500 mt-2">Aircraft maintains ROC {'>'} 0.5 m/s up to 20,000 m</p>
                     </div>
                   )}
                   
