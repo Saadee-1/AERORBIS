@@ -1155,7 +1155,7 @@ const WingLoadingCalculator = () => {
                     }
                     return null;
                   })()}
-                </AeroFormField>
+              </AeroFormField>
               ) : (
                 <AeroFormField 
                   label={`Aircraft Weight (${inputUnits.weight})`} 
@@ -1184,7 +1184,7 @@ const WingLoadingCalculator = () => {
                     }
                     return null;
                   })()}
-                </AeroFormField>
+              </AeroFormField>
               )}
             </AeroCard>
 
@@ -1500,7 +1500,7 @@ const WingLoadingCalculator = () => {
                     </p>
                       <p className="text-xs text-gray-500 mt-1">
                         Common in preliminary design. Related to weight loading: (W/S)_kg = (W/S)_N / g
-                      </p>
+                    </p>
                   </div>
                     
                     <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">

@@ -44,7 +44,7 @@ import {
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
 import { FIELD_KEYS } from "../utils/interlinkConfig";
-import { computeClimbPerformance, msToKts, msToFpm, ClimbResult } from "./utils/climb";
+import { computeClimbPerformance, computeClimbPerformanceAdvanced, msToKts, msToFpm, ClimbResult } from "./utils/climb";
 import { ClimbPlots } from "./ClimbPlots";
 import { isaAtAltitudeMeters, calculateISADensity } from "../utils/isaAtmosphere";
 
@@ -56,6 +56,7 @@ type WeightMode = 'mass' | 'weight';
 type EngineType = 'jet' | 'turbofan' | 'prop';
 type AirDensityMode = 'preset' | 'altitude' | 'custom';
 type AirDensityPreset = 'ISA Sea Level' | '2000 ft' | '5000 ft' | '8000 ft' | '10000 ft' | '15000 ft';
+type ClimbModel = 'preliminary' | 'advanced';
 
 const GRAVITY = 9.81; // m/s²
 
@@ -95,6 +96,7 @@ export default function ClimbPerformanceCalculator() {
   const [altitudeM, setAltitudeM] = useState<string>('');
   const [customDensity, setCustomDensity] = useState<string>('1.225');
   const [nPoints, setNPoints] = useState<string>('200');
+  const [climbModel, setClimbModel] = useState<ClimbModel>('preliminary');
   const [result, setResult] = useState<ClimbResult | null>(null);
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
 
@@ -214,8 +216,21 @@ export default function ClimbPerformanceCalculator() {
       const n = parseInt(nPoints);
       const gridPoints = Number.isFinite(n) && n > 0 ? n : 200;
 
-      // Compute climb performance
-      const climbResult = computeClimbPerformance({
+      // Compute climb performance using selected model
+      const climbResult = climbModel === 'advanced' 
+        ? computeClimbPerformanceAdvanced({
+            weightN: weight,
+            wingAreaM2: area,
+            cd0: cd0Val,
+            k: kVal,
+            totalThrustN: thrust,
+            engineType,
+            propEfficiency: eta,
+            densityKgM3: currentDensity,
+            clMax: clMaxVal,
+            nPoints: gridPoints,
+          })
+        : computeClimbPerformance({
         weightN: weight,
         wingAreaM2: area,
         cd0: cd0Val,
@@ -323,6 +338,19 @@ export default function ClimbPerformanceCalculator() {
       <ToolSection>
         <AeroCard title="Inputs" icon={Calculator}>
           <div className="grid md:grid-cols-2 gap-6">
+            {/* Climb Model Selection */}
+            <AeroFormField label="Climb Model" helperText="Preliminary: Small-angle approximation (default for sizing). Advanced: Exact trigonometric formulation (valid for steep climbs).">
+              <Select value={climbModel} onValueChange={(v) => setClimbModel(v as ClimbModel)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="preliminary">Preliminary (Small-Angle, Constant Thrust)</SelectItem>
+                  <SelectItem value="advanced">Advanced (Exact Trigonometric)</SelectItem>
+                </SelectContent>
+              </Select>
+            </AeroFormField>
+
             {/* Weight/Mass */}
             <AeroFormField label="Weight Input Mode" helperText="Select whether to input mass or weight for the climb condition">
               <div className="flex items-center gap-4">
@@ -674,8 +702,62 @@ export default function ClimbPerformanceCalculator() {
           <ToolSection>
             <AeroCard title="Climb Performance Results" icon={CheckCircle}>
               <div className="mb-4 text-sm text-gray-400">
-                <p>Results computed for steady climb at specified air density. Assumes small-angle approximation (sin γ ≈ γ) for climb angle.</p>
+                <p>Results computed for steady climb at specified air density. {climbModel === 'preliminary' ? 'Uses small-angle approximation (sin γ ≈ γ) for climb angle.' : 'Uses exact trigonometric formulation: sin(γ) = (T-D)/W, ROC = V × sin(γ).'}</p>
               </div>
+              
+              {/* Physical validity warnings */}
+              {result && (() => {
+                const warnings: string[] = [];
+                
+                // Helper to get climb angle from gamma based on model
+                const getClimbAngle = (gamma: number | undefined): number | undefined => {
+                  if (gamma === undefined || !Number.isFinite(gamma)) return undefined;
+                  return climbModel === 'advanced' 
+                    ? Math.asin(gamma) * 180 / Math.PI
+                    : Math.atan(gamma) * 180 / Math.PI;
+                };
+                
+                // Check for ROC > V
+                if (result.rocVy !== undefined && result.vY !== undefined && result.rocVy > result.vY) {
+                  warnings.push(`Non-physical result: ROC (${result.rocVy.toFixed(2)} m/s) exceeds total airspeed (${result.vY.toFixed(2)} m/s) at V_y.`);
+                }
+                if (result.rocVx !== undefined && result.vX !== undefined && result.rocVx > result.vX) {
+                  warnings.push(`Non-physical result: ROC (${result.rocVx.toFixed(2)} m/s) exceeds total airspeed (${result.vX.toFixed(2)} m/s) at V_x.`);
+                }
+                
+                // Check for steep climbs
+                const angleVy = getClimbAngle(result.gammaVy);
+                const angleVx = getClimbAngle(result.gammaVx);
+                if (angleVy !== undefined && Math.abs(angleVy) > 30) {
+                  warnings.push(`Steep climb — small-angle assumptions invalid. Climb angle at V_y: ${angleVy.toFixed(1)}°.`);
+                }
+                if (angleVx !== undefined && Math.abs(angleVx) > 30) {
+                  warnings.push(`Steep climb — small-angle assumptions invalid. Climb angle at V_x: ${angleVx.toFixed(1)}°.`);
+                }
+                
+                // Check for excess thrust > weight
+                if (result.gammaVy !== undefined && result.gammaVy > 1) {
+                  warnings.push(`Excess thrust exceeds steady climb domain. (T-D)/W = ${(result.gammaVy * 100).toFixed(1)}% at V_y.`);
+                }
+                if (result.gammaVx !== undefined && result.gammaVx > 1) {
+                  warnings.push(`Excess thrust exceeds steady climb domain. (T-D)/W = ${(result.gammaVx * 100).toFixed(1)}% at V_x.`);
+                }
+                
+                if (warnings.length === 0) return null;
+                
+                return (
+                  <Alert className="mb-4 border-yellow-500/50 bg-yellow-500/10">
+                    <AlertTriangle className="h-4 w-4 text-yellow-400" />
+                    <AlertDescription className="text-yellow-300">
+                      <div className="space-y-1">
+                        {warnings.map((warning, idx) => (
+                          <p key={idx} className="text-sm">{warning}</p>
+                        ))}
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                );
+              })()}
               <div className="grid md:grid-cols-2 gap-6">
                 {result.vY !== undefined && (
                   <>
@@ -705,7 +787,11 @@ export default function ClimbPerformanceCalculator() {
                           <h5 className="text-xs font-semibold text-gray-300 mb-1">Climb Gradient at V_y</h5>
                           <p className="text-xs text-gray-500 mb-1">Climb angle (γ): ratio of vertical to horizontal velocity. Used for obstacle clearance analysis.</p>
                           {Number.isFinite(result.gammaVy) && result.gammaVy >= 0 ? (
-                            <p className="text-sm text-gray-400">{(result.gammaVy * 100).toFixed(2)}% (γ = {Math.atan(result.gammaVy) * 180 / Math.PI}°)</p>
+                            <p className="text-sm text-gray-400">
+                              {(result.gammaVy * 100).toFixed(2)}% (γ = {climbModel === 'advanced' 
+                                ? (Math.asin(result.gammaVy) * 180 / Math.PI).toFixed(1)
+                                : (Math.atan(result.gammaVy) * 180 / Math.PI).toFixed(1)}°)
+                            </p>
                           ) : (
                             <p className="text-sm text-yellow-400">Invalid or unrealistic gradient value</p>
                           )}
@@ -739,7 +825,11 @@ export default function ClimbPerformanceCalculator() {
                                 <h5 className="text-xs font-semibold text-gray-300 mb-1">Climb Gradient at V_x</h5>
                                 <p className="text-xs text-gray-500 mb-1">Maximum climb angle (γ_max): steepest climb gradient achievable. Maximum obstacle clearance capability.</p>
                                 {Number.isFinite(result.gammaVx) && result.gammaVx >= 0 ? (
-                                  <p className="text-sm text-gray-400">{(result.gammaVx * 100).toFixed(2)}% (γ = {Math.atan(result.gammaVx) * 180 / Math.PI}°)</p>
+                                  <p className="text-sm text-gray-400">
+                                    {(result.gammaVx * 100).toFixed(2)}% (γ = {climbModel === 'advanced' 
+                                      ? (Math.asin(result.gammaVx) * 180 / Math.PI).toFixed(1)
+                                      : (Math.atan(result.gammaVx) * 180 / Math.PI).toFixed(1)}°)
+                                  </p>
                                 ) : (
                                   <p className="text-sm text-yellow-400">Invalid or unrealistic gradient value</p>
                                 )}

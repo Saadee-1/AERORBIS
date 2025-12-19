@@ -1447,7 +1447,7 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xs text-gray-500 mb-2">At operating point (α = {inputs.angleOfAttack}°)</p>
                     {Number.isFinite(result.L_D_ratio) && result.L_D_ratio > 0 ? (
                       <>
-                        <p className="text-3xl font-bold text-green-400">{result.L_D_ratio.toFixed(2)}</p>
+                    <p className="text-3xl font-bold text-green-400">{result.L_D_ratio.toFixed(2)}</p>
                         <p className="text-xs text-gray-500 mt-1">Dimensionless</p>
                         <p className="text-xs text-gray-500 mt-1 italic">Note: This is L/D at the specified α, not maximum L/D</p>
                       </>
@@ -1460,7 +1460,7 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xs text-gray-500 mb-2">AR = b²/S</p>
                     {Number.isFinite(result.aspectRatio) && result.aspectRatio > 0 ? (
                       <>
-                        <p className="text-3xl font-bold text-white">{result.aspectRatio.toFixed(1)}</p>
+                    <p className="text-3xl font-bold text-white">{result.aspectRatio.toFixed(1)}</p>
                         <p className="text-xs text-gray-500 mt-1">Dimensionless</p>
                       </>
                     ) : (
@@ -1472,9 +1472,9 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xs text-gray-500 mb-2">Based on L/D at operating point</p>
                     {Number.isFinite(result.L_D_ratio) && result.L_D_ratio > 0 ? (
                       <>
-                        <p className="text-2xl font-bold text-green-400 pt-1">
-                          {result.L_D_ratio > 25 ? "Excellent" : result.L_D_ratio > 15 ? "Good" : result.L_D_ratio > 8 ? "Moderate" : "Poor"}
-                        </p>
+                    <p className="text-2xl font-bold text-green-400 pt-1">
+                      {result.L_D_ratio > 25 ? "Excellent" : result.L_D_ratio > 15 ? "Good" : result.L_D_ratio > 8 ? "Moderate" : "Poor"}
+                    </p>
                         <p className="text-xs text-gray-500 mt-1">
                           {result.L_D_ratio > 25 ? "(Glider-like)" : result.L_D_ratio > 15 ? "(Airliner)" : result.L_D_ratio > 8 ? "(Prop plane)" : "(High drag)"}
                         </p>
@@ -1491,9 +1491,9 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xs text-gray-500 mb-2">L = CL × q × S, where q = 0.5 × ρ × V²</p>
                     {Number.isFinite(result.liftForce) ? (
                       <>
-                        <p className="text-xl font-bold text-blue-400">
-                          {convertFromSI(result.liftForce, "force").toFixed(2)} {getUnit("force")}
-                        </p>
+                    <p className="text-xl font-bold text-blue-400">
+                      {convertFromSI(result.liftForce, "force").toFixed(2)} {getUnit("force")}
+                    </p>
                         <p className="text-xs text-gray-500 mt-1">Vertical component balances weight in steady flight</p>
                       </>
                     ) : (
@@ -1505,9 +1505,9 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xs text-gray-500 mb-2">D = CD × q × S, where CD = CD₀ + k × CL²</p>
                     {Number.isFinite(result.dragForce) && result.dragForce > 0 ? (
                       <>
-                        <p className="text-xl font-bold text-red-400">
-                          {convertFromSI(result.dragForce, "force").toFixed(2)} {getUnit("force")}
-                        </p>
+                    <p className="text-xl font-bold text-red-400">
+                      {convertFromSI(result.dragForce, "force").toFixed(2)} {getUnit("force")}
+                    </p>
                         <p className="text-xs text-gray-500 mt-1">Opposes motion; must be overcome by thrust</p>
                       </>
                     ) : (
@@ -1519,7 +1519,7 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xs text-gray-500 mb-2">At α = {inputs.angleOfAttack}°: CL = CL₀ + CL_α × α</p>
                     {Number.isFinite(result.CL) && Math.abs(result.CL) <= 5 ? (
                       <>
-                        <p className="text-xl font-bold text-white">{result.CL.toFixed(4)}</p>
+                    <p className="text-xl font-bold text-white">{result.CL.toFixed(4)}</p>
                         <p className="text-xs text-gray-500 mt-1">Dimensionless; normalized by dynamic pressure and wing area</p>
                       </>
                     ) : (
@@ -1536,7 +1536,7 @@ const point: Record<string, unknown> = { alpha };
                         const isValidCD = Number.isFinite(result.CD) && result.CD > 0 && result.CD <= 1;
                         return isValidCD ? (
                           <>
-                            <p className="text-xl font-bold text-white">{result.CD.toFixed(4)}</p>
+                    <p className="text-xl font-bold text-white">{result.CD.toFixed(4)}</p>
                             <p className="text-xs text-gray-500 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
                           </>
                         ) : (
