@@ -275,16 +275,16 @@ export default function ClimbPerformanceCalculator() {
       // Compute climb performance using selected model
       const climbResult = climbModel === 'advanced' 
         ? computeClimbPerformanceAdvanced({
-            weightN: weight,
-            wingAreaM2: area,
-            cd0: cd0Val,
-            k: kVal,
-            totalThrustN: thrust,
-            engineType,
-            propEfficiency: eta,
-            densityKgM3: currentDensity,
-            clMax: clMaxVal,
-            nPoints: gridPoints,
+        weightN: weight,
+        wingAreaM2: area,
+        cd0: cd0Val,
+        k: kVal,
+        totalThrustN: thrust,
+        engineType,
+        propEfficiency: eta,
+        densityKgM3: currentDensity,
+        clMax: clMaxVal,
+        nPoints: gridPoints,
             propulsionModel,
           })
         : computeClimbPerformance({
@@ -976,10 +976,10 @@ export default function ClimbPerformanceCalculator() {
                 {result.vY !== undefined && (
                   <>
                     <div className="space-y-3">
-                      <div>
+                    <div>
                         <h4 className="text-sm font-semibold text-cyan-400 mb-1">V_y — Best Rate of Climb Speed</h4>
                         <p className="text-xs text-gray-500 mb-2">True airspeed that maximizes vertical velocity (rate of climb). Used for time-to-climb optimization.</p>
-                        <p className="text-2xl font-bold text-white">{result.vY.toFixed(2)} m/s</p>
+                      <p className="text-2xl font-bold text-white">{result.vY.toFixed(2)} m/s</p>
                         <p className="text-sm text-gray-400">{msToKts(result.vY).toFixed(2)} kts (TAS)</p>
                       </div>
                       {result.rocVy !== undefined && (
@@ -987,10 +987,10 @@ export default function ClimbPerformanceCalculator() {
                           <h5 className="text-xs font-semibold text-gray-300 mb-1">Rate of Climb (ROC) at V_y</h5>
                           <p className="text-xs text-gray-500 mb-1">Vertical velocity component: rate of altitude gain per unit time.</p>
                           {Number.isFinite(result.rocVy) && result.rocVy >= 0 && result.rocVy <= 1000 ? (
-                            <>
+                        <>
                               <p className="text-lg text-white">{result.rocVy.toFixed(2)} m/s</p>
-                              <p className="text-sm text-gray-400">{msToFpm(result.rocVy).toFixed(0)} ft/min</p>
-                            </>
+                          <p className="text-sm text-gray-400">{msToFpm(result.rocVy).toFixed(0)} ft/min</p>
+                        </>
                           ) : (
                             <p className="text-sm text-yellow-400">Invalid or unrealistic ROC value</p>
                           )}
@@ -1008,33 +1008,33 @@ export default function ClimbPerformanceCalculator() {
                             </p>
                           ) : (
                             <p className="text-sm text-yellow-400">Invalid or unrealistic gradient value</p>
-                          )}
-                        </div>
+                      )}
+                    </div>
                       )}
                     </div>
                     <div className="space-y-3">
-                      <div>
+                    <div>
                         <h4 className="text-sm font-semibold text-cyan-400 mb-1">V_x — Best Angle of Climb Speed</h4>
                         <p className="text-xs text-gray-500 mb-2">True airspeed that maximizes climb angle (steepest climb). Used for obstacle clearance and short-field takeoff performance.</p>
-                        {result.vX !== undefined ? (
-                          <>
-                            <p className="text-2xl font-bold text-white">{result.vX.toFixed(2)} m/s</p>
+                      {result.vX !== undefined ? (
+                        <>
+                          <p className="text-2xl font-bold text-white">{result.vX.toFixed(2)} m/s</p>
                             <p className="text-sm text-gray-400">{msToKts(result.vX).toFixed(2)} kts (TAS)</p>
-                            {result.rocVx !== undefined && (
+                          {result.rocVx !== undefined && (
                               <div className="mt-4 pt-3 border-t border-gray-700">
                                 <h5 className="text-xs font-semibold text-gray-300 mb-1">Rate of Climb (ROC) at V_x</h5>
                                 <p className="text-xs text-gray-500 mb-1">Vertical velocity component at best angle speed. Typically lower than ROC at V_y.</p>
                                 {Number.isFinite(result.rocVx) && result.rocVx >= 0 && result.rocVx <= 1000 ? (
-                                  <>
+                            <>
                                     <p className="text-lg text-white">{result.rocVx.toFixed(2)} m/s</p>
-                                    <p className="text-sm text-gray-400">{msToFpm(result.rocVx).toFixed(0)} ft/min</p>
-                                  </>
+                              <p className="text-sm text-gray-400">{msToFpm(result.rocVx).toFixed(0)} ft/min</p>
+                            </>
                                 ) : (
                                   <p className="text-sm text-yellow-400">Invalid or unrealistic ROC value</p>
                                 )}
                               </div>
-                            )}
-                            {result.gammaVx !== undefined && (
+                          )}
+                          {result.gammaVx !== undefined && (
                               <div className="mt-2">
                                 <h5 className="text-xs font-semibold text-gray-300 mb-1">Climb Gradient at V_x</h5>
                                 <p className="text-xs text-gray-500 mb-1">Maximum climb angle (γ_max): steepest climb gradient achievable. Maximum obstacle clearance capability.</p>
@@ -1048,11 +1048,11 @@ export default function ClimbPerformanceCalculator() {
                                   <p className="text-sm text-yellow-400">Invalid or unrealistic gradient value</p>
                                 )}
                               </div>
-                            )}
-                          </>
-                        ) : (
+                          )}
+                        </>
+                      ) : (
                           <p className="text-gray-400 text-sm">Not computed (insufficient excess thrust or constraint violation)</p>
-                        )}
+                      )}
                       </div>
                     </div>
                   </>

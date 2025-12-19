@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, Info, Plane, Pencil, Settings2, Download, X, Plus, ChevronDown } from "lucide-react";
+import { TrendingUp, Info, Plane, Pencil, Settings2, Download, X, Plus, ChevronDown, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend, type LegendProps } from "recharts";
 import { globalAxisTickStyle, globalAxisCommonProps, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
@@ -53,6 +53,7 @@ import { useGraphSetups } from "@/hooks/useGraphSetups";
 import type { GraphMode } from "@/types/graphSetup";
 import { useChartExport } from "@/hooks/useChartExport";
 import { ChartExportButtons } from "@/components/charts/ChartExportButtons";
+import { isaAtAltitudeMeters } from "./utils/isaAtmosphere";
 
 interface LiftDragAnalyzerProps {
   onSelectionChange?: (baseAirfoilId: string, comparedAirfoilIds: string[]) => void;
@@ -207,6 +208,7 @@ interface Airfoil {
   CL_0: number;
   CD_0: number;
   alpha_stall: number;
+  CL_max?: number;
 }
 
 // Interface for custom airfoil inputs (all strings) - FIXED: Standardized property names
@@ -219,6 +221,8 @@ interface CustomAirfoilInputs {
   alpha_stall: string;
 }
 
+type InducedDragModel = 'legacy' | 'geometric';
+
 interface LiftDragInputs {
   airfoil: AirfoilKey;
   angleOfAttack: string;
@@ -227,6 +231,7 @@ interface LiftDragInputs {
   wingArea: string;
   wingSpan: string;
   oswaldEfficiency: string;
+  k?: string; // Optional user-defined k (for legacy mode)
 }
 
 interface LiftDragResult {
@@ -239,6 +244,87 @@ interface LiftDragResult {
   k_factor: number;
   steps: string[];
   airfoilName: string;
+  warnings?: string[]; // Validity envelope warnings
+  kModelSource?: 'user-defined' | 'geometry-derived'; // Induced drag model source
+}
+
+/**
+ * Evaluate validity envelope for L/D Analyzer results
+ * Returns array of warning strings for non-physical or unreliable conditions
+ */
+function evaluateLDValidityEnvelope(params: {
+  CL: number;
+  CD: number;
+  L_D_ratio: number;
+  q: number;
+  CL_max?: number;
+  velocity: number;
+  density: number;
+  wingArea: number;
+  wingSpan: number;
+}): string[] {
+  const warnings: string[] = [];
+  const { CL, CD, L_D_ratio, q, CL_max, velocity, density, wingArea, wingSpan } = params;
+
+  // Lift Coefficient checks
+  if (CL_max !== undefined) {
+    if (Math.abs(CL) > CL_max) {
+      warnings.push(`Lift coefficient exceeds maximum (|CL| = ${Math.abs(CL).toFixed(3)} > CL_max = ${CL_max.toFixed(3)}) — post-stall region`);
+    } else if (CL > 0.9 * CL_max) {
+      warnings.push(`Lift coefficient near stall (CL = ${CL.toFixed(3)} > 0.9 × CL_max = ${(0.9 * CL_max).toFixed(3)})`);
+    }
+  }
+  if (Math.abs(CL) > 5) {
+    warnings.push(`Non-physical lift coefficient (|CL| = ${Math.abs(CL).toFixed(3)} > 5)`);
+  }
+
+  // Drag Coefficient checks
+  if (CD <= 0) {
+    warnings.push(`Non-physical drag coefficient (CD = ${CD.toFixed(4)} ≤ 0)`);
+  }
+  if (CD > 1.0) {
+    warnings.push(`Extreme drag coefficient (CD = ${CD.toFixed(4)} > 1.0) — likely post-stall or unrealistic condition`);
+  }
+
+  // Lift-to-Drag Ratio checks
+  if (L_D_ratio <= 0) {
+    warnings.push(`Non-physical L/D ratio (L/D = ${L_D_ratio.toFixed(2)} ≤ 0)`);
+  }
+  if (L_D_ratio > 100) {
+    warnings.push(`Non-physical L/D ratio (L/D = ${L_D_ratio.toFixed(2)} > 100) — unrealistic for aircraft`);
+  }
+
+  // Dynamic Pressure checks
+  if (q <= 0) {
+    warnings.push(`Non-physical dynamic pressure (q = ${q.toFixed(2)} Pa ≤ 0)`);
+  }
+  if (q > 1e6) {
+    warnings.push(`Extreme dynamic pressure (q = ${q.toFixed(0)} Pa > 1e6 Pa) — high-speed regime, compressibility effects not modeled`);
+  }
+
+  // Mach Number awareness
+  const gamma_air = 1.4;
+  const R = 287; // J/(kg·K)
+  const T_ISA_SL = 288.15; // K (ISA sea-level temperature)
+  const a = Math.sqrt(gamma_air * R * T_ISA_SL); // Speed of sound at sea level
+  const M = velocity / a;
+  if (M > 0.6) {
+    warnings.push(`Compressibility effects significant (M = ${M.toFixed(3)} > 0.6) — drag rise not modeled; L/D unreliable`);
+  } else if (M > 0.3) {
+    warnings.push(`Compressibility effects not modeled (M = ${M.toFixed(3)} > 0.3)`);
+  }
+
+  // Reynolds Number awareness
+  const mu = 1.81e-5; // kg/(m·s) — dynamic viscosity at sea level
+  const c = wingArea / wingSpan; // Mean aerodynamic chord estimate
+  const Re = (density * velocity * c) / mu;
+  if (Re > 5e7) {
+    warnings.push(`High Reynolds number (Re = ${Re.toFixed(0)} > 5e7) — empirical drag model uncertain`);
+  } else if (Re < 2e5) {
+    warnings.push(`Low Reynolds number (Re = ${Re.toFixed(0)} < 2e5) — airfoil data unreliable`);
+  }
+
+  return warnings;
 }
 
 /**
@@ -318,6 +404,8 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
     force: "1.0",
     span: "1.0",
   });
+
+  const [inducedDragModel, setInducedDragModel] = useState<InducedDragModel>('legacy');
 
   const [inputs, setInputs] = useState<LiftDragInputs>(() => {
     const saved = localStorage.getItem("liftDragInputs");
@@ -700,9 +788,38 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
         return;
       }
 
-      // Physics: Induced drag factor k = 1/(π * AR * e)
-      // where AR = b²/S (aspect ratio), e = Oswald efficiency
-      const k_factor = 1 / (Math.PI * aspectRatio * e);
+      // Determine induced drag factor k based on selected model
+      let k_factor: number;
+      let kModelWarnings: string[] = [];
+      let kModelSource: 'user-defined' | 'geometry-derived' = 'geometry-derived';
+
+      if (inducedDragModel === 'legacy') {
+        // Legacy mode: use user-defined k if provided, otherwise compute from geometry
+        const userK = inputs.k ? parseFloat(inputs.k) : undefined;
+        if (userK !== undefined && Number.isFinite(userK) && userK > 0) {
+          k_factor = userK;
+          kModelSource = 'user-defined';
+        } else {
+          // Fallback to geometric if k not provided
+          k_factor = 1 / (Math.PI * aspectRatio * e);
+          kModelSource = 'geometry-derived';
+        }
+      } else {
+        // Geometric mode: compute k from geometry
+        k_factor = 1 / (Math.PI * aspectRatio * e);
+        kModelSource = 'geometry-derived';
+
+        // Add warnings for geometric mode
+        if (aspectRatio < 4) {
+          kModelWarnings.push("Low aspect ratio (AR < 4) — induced drag model less reliable");
+        }
+        if (aspectRatio > 50) {
+          kModelWarnings.push("Unrealistic aspect ratio (AR > 50)");
+        }
+        if (e < 0.6 || e > 0.95) {
+          kModelWarnings.push("Oswald efficiency outside typical range (0.6-0.95)");
+        }
+      }
       
       // Physics: Lift coefficient CL = CL₀ + CL_α × α
       // where CL₀ is zero-lift coefficient, CL_α is lift curve slope
@@ -738,7 +855,9 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
         `AR = b² / S = ${b.toFixed(2)}² / ${S.toFixed(2)} = ${aspectRatio.toFixed(2)}`,
         ``,
         `**Step 2:** Calculate Induced Drag Factor (k)`,
-        `k = 1 / (π × AR × e) = 1 / (π × ${aspectRatio.toFixed(2)} × ${e.toFixed(2)}) = ${k_factor.toFixed(4)}`,
+        kModelSource === 'user-defined' 
+          ? `k = ${k_factor.toFixed(4)} (user-defined)`
+          : `k = 1 / (π × AR × e) = 1 / (π × ${aspectRatio.toFixed(2)} × ${e.toFixed(2)}) = ${k_factor.toFixed(4)}`,
         ``,
         `**Step 3:** Calculate Lift Coefficient (CL)`,
         `CL = CL₀ + CL_α × α = ${activeAirfoil.CL_0.toFixed(3)} + ${activeAirfoil.CL_alpha.toFixed(4)} × ${alpha} = ${CL.toFixed(4)}`,
@@ -759,25 +878,46 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
         `**Interpretation:** ${L_D_ratio > 25 ? "Excellent glide performance (Glider-like)" : L_D_ratio > 15 ? "Good efficiency (Airliner)" : L_D_ratio > 8 ? "Moderate efficiency (Prop plane)" : "Poor efficiency (High drag/High power)"}`,
       ];
 
-      const resultData = {
+      // Evaluate validity envelope
+      const warnings = evaluateLDValidityEnvelope({
+        CL,
+        CD,
+        L_D_ratio,
+        q,
+        CL_max: activeAirfoil.CL_max,
+        velocity: V,
+        density: rho,
+        wingArea: S,
+        wingSpan: b,
+      });
+
+      // Check for post-stall condition
+      const isPostStall = activeAirfoil.CL_max !== undefined && Math.abs(CL) > activeAirfoil.CL_max;
+
+      const resultData: LiftDragResult = {
         CL, CD, L_D_ratio, liftForce, dragForce,
         aspectRatio, k_factor, steps,
-        airfoilName: activeAirfoil.name
+        airfoilName: activeAirfoil.name,
+        warnings: warnings.length > 0 ? warnings : undefined,
       };
       setResult(resultData);
       
-      // Publish calculated data to designSession immediately
-      // Calculate cd0 and k from the drag polar
-      const cd0 = activeAirfoil.CD_0 || 0;
-      const k = k_factor;
-      const ldClimbValue = L_D_ratio; // Use calculated L/D ratio
-      if (Number.isFinite(cd0) && Number.isFinite(k)) {
-        updateDesignSession({
-          cd0: cd0,
-          k: k,
-          clMax: activeAirfoil.CL_max || undefined,
-          ldClimb: Number.isFinite(ldClimbValue) && ldClimbValue > 0 ? ldClimbValue : undefined,
-        });
+      // Publish calculated data to designSession immediately (only if not post-stall)
+      if (!isPostStall) {
+        const cd0 = activeAirfoil.CD_0 || 0;
+        const k = k_factor;
+        const ldClimbValue = L_D_ratio;
+        if (Number.isFinite(cd0) && Number.isFinite(k)) {
+          updateDesignSession({
+            cd0: cd0,
+            k: k,
+            clMax: activeAirfoil.CL_max || undefined,
+            ldClimb: Number.isFinite(ldClimbValue) && ldClimbValue > 0 ? ldClimbValue : undefined,
+          });
+        }
+      } else {
+        // Post-stall: do not publish to designSession
+        // Results are displayed locally with warnings
       }
       
       // Prepare calculation steps for event (machine-friendly format)
@@ -1297,6 +1437,39 @@ const point: Record<string, unknown> = { alpha };
                 </AeroFormField>
               </div>
 
+              <AeroFormField 
+                label="Induced Drag Model"
+                helperText="Select how the induced drag factor k is determined. Legacy mode uses a user-defined k value. Geometric mode computes k from wing geometry: k = 1/(π × AR × e)."
+              >
+                <Select value={inducedDragModel} onValueChange={(v) => setInducedDragModel(v as InducedDragModel)}>
+                  <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="legacy">Legacy (User k)</SelectItem>
+                    <SelectItem value="geometric">Geometric (k = 1 / πeAR)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </AeroFormField>
+
+              {inducedDragModel === 'legacy' && (
+                <AeroFormField 
+                  label="Induced Drag Factor (k)"
+                  helperText="User-defined induced drag factor. Used in drag polar: CD = CD₀ + k × CL². If left empty, k will be computed from geometry as fallback."
+                >
+                  <Input 
+                    id="k" 
+                    type="number" 
+                    step="0.0001" 
+                    value={inputs.k || ''} 
+                    onChange={(e) => setInputs({ ...inputs, k: e.target.value })} 
+                    className="bg-slate-700/50 border-cyan-400/30 text-white" 
+                    min="0.0001" 
+                    placeholder="Auto-compute from geometry"
+                  />
+                </AeroFormField>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <AeroFormField 
                   label={`True Airspeed (${getUnit("speed")})`}
@@ -1439,7 +1612,30 @@ const point: Record<string, unknown> = { alpha };
             >
               <div className="mb-4 text-sm text-gray-400">
                 <p>Results computed for steady, level flight at the specified operating point (angle of attack, airspeed, density). Assumes incompressible flow (Mach &lt; 0.3).</p>
+                {result.kModelSource && (
+                  <p className="mt-2 text-xs text-cyan-400">
+                    Induced drag: {result.kModelSource === 'user-defined' ? 'user-defined k' : 'geometry-derived'}
+                  </p>
+                )}
               </div>
+
+              {/* Warnings Display */}
+              {result.warnings && result.warnings.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  {result.warnings.map((warning, idx) => {
+                    const isPostStallWarning = warning.includes('post-stall');
+                    return (
+                      <Alert key={idx} variant={isPostStallWarning ? 'destructive' : 'default'} className={isPostStallWarning ? "bg-red-500/10 border-red-500/30" : "bg-yellow-500/10 border-yellow-500/30"}>
+                        <AlertTriangle className={`h-4 w-4 ${isPostStallWarning ? 'text-red-400' : 'text-yellow-400'}`} />
+                        <AlertDescription className={`text-sm ${isPostStallWarning ? 'text-red-200' : 'text-yellow-200'}`}>
+                          {warning}
+                          {isPostStallWarning && " Data not published to design session."}
+                        </AlertDescription>
+                      </Alert>
+                    );
+                  })}
+                </div>
+              )}
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
