@@ -686,6 +686,11 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
       }
 
       const activeAirfoil = getActiveAirfoil();
+      if (!activeAirfoil) {
+        setError("Invalid airfoil selection. Please select a valid airfoil.");
+        setResult(null);
+        return;
+      }
 
       // FIXED: Guard against zero aspect ratio
       const aspectRatio = Math.pow(b, 2) / S;
@@ -1259,7 +1264,7 @@ const point: Record<string, unknown> = { alpha };
                   label={`Gross Wing Area (${getUnit("area")})`}
                   helperText="Total wing reference area (planform area). Used to compute lift and drag forces via L = CL × q × S and D = CD × q × S, where q is dynamic pressure. Can be imported from Wing Loading calculator."
                 >
-                  <Input id="wingArea" name="wingAreaM2" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0" step="0.1" />
+                  <Input id="wingArea" name="wingAreaM2" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" step="0.1" />
                   <InlineInterlinkHint 
                     requiredFields={[FIELD_KEYS.wingAreaM2]} 
                     sourceTool="wingloading" 
@@ -1288,7 +1293,7 @@ const point: Record<string, unknown> = { alpha };
                   label="Oswald Efficiency Factor (e)"
                   helperText="Oswald efficiency factor: accounts for non-elliptical lift distribution and planform effects. Related to induced drag factor: k = 1/(π × AR × e). Typical range: 0.70-0.90 for most aircraft. Higher values indicate more efficient lift generation (closer to elliptical distribution)."
                 >
-                  <Input id="oswaldEfficiency" type="number" step="0.01" value={inputs.oswaldEfficiency} onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0" max="1" />
+                  <Input id="oswaldEfficiency" type="number" step="0.01" value={inputs.oswaldEfficiency} onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" max="1" />
                 </AeroFormField>
               </div>
 
@@ -1297,13 +1302,13 @@ const point: Record<string, unknown> = { alpha };
                   label={`True Airspeed (${getUnit("speed")})`}
                   helperText="True airspeed (TAS): actual velocity relative to the air mass. Assumes steady flight (no acceleration). Used to compute dynamic pressure q = 0.5 × ρ × V², which determines lift and drag forces."
                 >
-                  <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0" step="0.1" />
+                  <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" step="0.1" />
                 </AeroFormField>
                 <AeroFormField 
                   label={`Air Density (${getUnit("density")})`}
                   helperText="Air density (ρ) at the flight condition. Assumes incompressible flow (valid for Mach < 0.3). Used in dynamic pressure and force calculations. Can be imported from Standard Atmosphere calculator or entered manually. ISA sea-level: 1.225 kg/m³."
                 >
-                  <Input id="airDensity" type="number" value={inputs.airDensity} onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0" step="0.001" />
+                  <Input id="airDensity" type="number" value={inputs.airDensity} onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" step="0.001" />
                   <InlineInterlinkHint 
                     fieldKey={FIELD_KEYS.densityKgM3} 
                     className="mt-1" 
