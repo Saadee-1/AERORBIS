@@ -219,11 +219,11 @@ export default function ClimbPerformanceCalculator() {
         return;
       }
 
-      // Get CL_max (optional) - check if user override is active
+      // Get CL_max (optional) - validate user input if provided
       const userClMaxParsed = clMax ? parseFloat(clMax) : undefined;
-      const useClMaxOverride = userClMaxParsed !== undefined && Number.isFinite(userClMaxParsed) && userClMaxParsed > 0;
       
-      if (useClMaxOverride && userClMaxParsed !== undefined && (!Number.isFinite(userClMaxParsed) || userClMaxParsed <= 0)) {
+      // Validate user-provided CL_max if present
+      if (userClMaxParsed !== undefined && (!Number.isFinite(userClMaxParsed) || userClMaxParsed <= 0)) {
         toast({
           title: 'Invalid input',
           description: 'CL_max must be a positive number.',
@@ -231,6 +231,9 @@ export default function ClimbPerformanceCalculator() {
         });
         return;
       }
+      
+      // Check if user override is active (valid positive value provided)
+      const useClMaxOverride = userClMaxParsed !== undefined && Number.isFinite(userClMaxParsed) && userClMaxParsed > 0;
       
       // Resolve active CL_max (user override > configuration > default)
       const missionClMax = 1.8; // Default mission CL_max (fallback)
