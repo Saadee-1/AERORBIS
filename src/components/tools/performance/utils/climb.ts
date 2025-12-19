@@ -41,6 +41,7 @@ export type ClimbPoint = {
   roc?: number;
   tEx?: number;
   gamma?: number;
+  sinGammaRaw?: number; // Raw (T-D)/W before clamping (advanced model only)
   valid: boolean;
 };
 
@@ -250,17 +251,18 @@ export function computeClimbPerformanceAdvanced(inputs: ClimbInputs): ClimbResul
     // Advanced: Exact climb angle from force balance
     let gamma: number | undefined;
     let roc: number | undefined;
+    let sinGammaRaw: number | undefined;
     
     if (tEx !== undefined && inputs.weightN > 0) {
       // Clamp (T - D) / W to [-1, 1] for asin domain
-      const sinGammaRaw = tEx / inputs.weightN;
+      sinGammaRaw = tEx / inputs.weightN;
       const sinGamma = Math.max(-1, Math.min(1, sinGammaRaw));
       
       // Store gamma as dimensionless gradient (sin(γ))
       gamma = sinGamma;
       
-      // Advanced: Exact ROC = V × sin(γ)
-      if (Number.isFinite(sinGamma) && v > 0) {
+      // Advanced: Exact ROC = V × sin(γ) (only for positive climb)
+      if (Number.isFinite(sinGamma) && v > 0 && sinGamma > 0) {
         roc = v * sinGamma;
       }
     }
@@ -277,6 +279,7 @@ export function computeClimbPerformanceAdvanced(inputs: ClimbInputs): ClimbResul
       roc, 
       tEx, 
       gamma, 
+      sinGammaRaw,
       valid 
     });
   }
@@ -295,16 +298,16 @@ export function computeClimbPerformanceAdvanced(inputs: ClimbInputs): ClimbResul
   for (const pt of points) {
     if (!pt.valid) continue;
     
-    // V_y: maximum ROC
-    if (pt.roc !== undefined && Number.isFinite(pt.roc) && pt.roc > maxRoc) {
+    // V_y: maximum ROC (only consider positive ROC for climb)
+    if (pt.roc !== undefined && Number.isFinite(pt.roc) && pt.roc > 0 && pt.roc > maxRoc) {
       maxRoc = pt.roc;
       vY = pt.v;
       rocVy = pt.roc;
       gammaVy = pt.gamma;
     }
     
-    // V_x: maximum climb gradient
-    if (pt.gamma !== undefined && Number.isFinite(pt.gamma) && pt.gamma > maxGamma) {
+    // V_x: maximum climb gradient (only consider positive gradient for climb)
+    if (pt.gamma !== undefined && Number.isFinite(pt.gamma) && pt.gamma > 0 && pt.gamma > maxGamma) {
       maxGamma = pt.gamma;
       vX = pt.v;
       rocVx = pt.roc !== undefined ? pt.roc : undefined;

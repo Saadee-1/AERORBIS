@@ -717,6 +717,14 @@ export default function ClimbPerformanceCalculator() {
                     : Math.atan(gamma) * 180 / Math.PI;
                 };
                 
+                // Helper to get raw (T-D)/W for advanced model
+                const getRawTExOverW = (v: number | undefined, gamma: number | undefined): number | undefined => {
+                  if (climbModel !== 'advanced' || v === undefined || gamma === undefined) return undefined;
+                  // Find the point at this velocity to get sinGammaRaw
+                  const pt = result.points.find(p => Math.abs(p.v - v) < 0.1);
+                  return pt?.sinGammaRaw;
+                };
+                
                 // Check for ROC > V
                 if (result.rocVy !== undefined && result.vY !== undefined && result.rocVy > result.vY) {
                   warnings.push(`Non-physical result: ROC (${result.rocVy.toFixed(2)} m/s) exceeds total airspeed (${result.vY.toFixed(2)} m/s) at V_y.`);
@@ -725,22 +733,37 @@ export default function ClimbPerformanceCalculator() {
                   warnings.push(`Non-physical result: ROC (${result.rocVx.toFixed(2)} m/s) exceeds total airspeed (${result.vX.toFixed(2)} m/s) at V_x.`);
                 }
                 
-                // Check for steep climbs
-                const angleVy = getClimbAngle(result.gammaVy);
-                const angleVx = getClimbAngle(result.gammaVx);
-                if (angleVy !== undefined && Math.abs(angleVy) > 30) {
-                  warnings.push(`Steep climb — small-angle assumptions invalid. Climb angle at V_y: ${angleVy.toFixed(1)}°.`);
-                }
-                if (angleVx !== undefined && Math.abs(angleVx) > 30) {
-                  warnings.push(`Steep climb — small-angle assumptions invalid. Climb angle at V_x: ${angleVx.toFixed(1)}°.`);
+                // Check for steep climbs (only in preliminary mode)
+                if (climbModel === 'preliminary') {
+                  const angleVy = getClimbAngle(result.gammaVy);
+                  const angleVx = getClimbAngle(result.gammaVx);
+                  if (angleVy !== undefined && Math.abs(angleVy) > 30) {
+                    warnings.push(`Steep climb — small-angle assumptions invalid. Climb angle at V_y: ${angleVy.toFixed(1)}°.`);
+                  }
+                  if (angleVx !== undefined && Math.abs(angleVx) > 30) {
+                    warnings.push(`Steep climb — small-angle assumptions invalid. Climb angle at V_x: ${angleVx.toFixed(1)}°.`);
+                  }
                 }
                 
                 // Check for excess thrust > weight
-                if (result.gammaVy !== undefined && result.gammaVy > 1) {
-                  warnings.push(`Excess thrust exceeds steady climb domain. (T-D)/W = ${(result.gammaVy * 100).toFixed(1)}% at V_y.`);
-                }
-                if (result.gammaVx !== undefined && result.gammaVx > 1) {
-                  warnings.push(`Excess thrust exceeds steady climb domain. (T-D)/W = ${(result.gammaVx * 100).toFixed(1)}% at V_x.`);
+                if (climbModel === 'advanced') {
+                  // In advanced model, check raw (T-D)/W before clamping
+                  const rawTExOverW_Vy = getRawTExOverW(result.vY, result.gammaVy);
+                  const rawTExOverW_Vx = getRawTExOverW(result.vX, result.gammaVx);
+                  if (rawTExOverW_Vy !== undefined && rawTExOverW_Vy > 1) {
+                    warnings.push(`Excess thrust exceeds steady climb domain. (T-D)/W = ${(rawTExOverW_Vy * 100).toFixed(1)}% at V_y.`);
+                  }
+                  if (rawTExOverW_Vx !== undefined && rawTExOverW_Vx > 1) {
+                    warnings.push(`Excess thrust exceeds steady climb domain. (T-D)/W = ${(rawTExOverW_Vx * 100).toFixed(1)}% at V_x.`);
+                  }
+                } else {
+                  // In preliminary model, check gamma directly
+                  if (result.gammaVy !== undefined && result.gammaVy > 1) {
+                    warnings.push(`Excess thrust exceeds steady climb domain. (T-D)/W = ${(result.gammaVy * 100).toFixed(1)}% at V_y.`);
+                  }
+                  if (result.gammaVx !== undefined && result.gammaVx > 1) {
+                    warnings.push(`Excess thrust exceeds steady climb domain. (T-D)/W = ${(result.gammaVx * 100).toFixed(1)}% at V_x.`);
+                  }
                 }
                 
                 if (warnings.length === 0) return null;
