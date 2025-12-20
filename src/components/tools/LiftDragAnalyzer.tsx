@@ -45,6 +45,8 @@ import { FIELD_KEYS } from "./utils/interlinkConfig";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { spacingVertical } from "@/styles/spacing";
 import { AIRFOILS, AIRFOIL_GROUPS, AIRFOIL_DATA, type AirfoilData } from "@/data/airfoils";
+import { getAerodynamicsDisplayStatus } from "@/utils/aeroDisplayValidity"; // Display-only physics gating (UI integrity)
+import { getCLValidity, getCDValidity, getLDValidity } from "@/utils/ldValidityEnvelope"; // Display-only validity zones
 import { CalculationSteps } from "@/components/common/CalculationSteps";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
 import { loadPolarForComparison, loadEnhancedPolarForComparison, AIRFOIL_COLORS, detectStallIndex, getPolarDataQuality, getDataQualityBadge } from "@/lib/polarChartUtils";
@@ -1589,7 +1591,19 @@ const point: Record<string, unknown> = { alpha };
 
         {/* Results Panel */}
         <div>
-          {result ? (
+          {result ? (() => {
+              // === DISPLAY-LAYER PHYSICS GATING: UI-ONLY ENVELOPE ===
+              const CL_max = getActiveAirfoil()?.CL_max;
+              const displayCheck = getAerodynamicsDisplayStatus({
+                CL: result.CL,
+                CD: result.CD,
+                LD: result.L_D_ratio,
+                Lift: result.liftForce,
+                Drag: result.dragForce,
+                Density: result.density,
+                CL_max
+              });
+              return (
             <AeroCard
               title="Analysis Results"
                 headerActions={
@@ -1619,10 +1633,10 @@ const point: Record<string, unknown> = { alpha };
                 )}
               </div>
 
-              {/* Warnings Display */}
-              {result.warnings && result.warnings.length > 0 && (
+              {/* Warnings Display (UI) */}
+              {displayCheck.warnings.length > 0 && (
                 <div className="mb-4 space-y-2">
-                  {result.warnings.map((warning, idx) => {
+                  {displayCheck.warnings.map((warning, idx) => {
                     const isPostStallWarning = warning.includes('post-stall');
                     return (
                       <Alert key={idx} variant={isPostStallWarning ? 'destructive' : 'default'} className={isPostStallWarning ? "bg-red-500/10 border-red-500/30" : "bg-yellow-500/10 border-yellow-500/30"}>
@@ -1641,14 +1655,23 @@ const point: Record<string, unknown> = { alpha };
                   <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
                     <p className="text-sm text-slate-400 mb-1">Lift-to-Drag Ratio (L/D)</p>
                     <p className="text-xs text-gray-500 mb-2">At operating point (α = {inputs.angleOfAttack}°)</p>
-                    {Number.isFinite(result.L_D_ratio) && result.L_D_ratio > 0 ? (
+                    {displayCheck.display.LD !== "—" ? (
                       <>
-                    <p className="text-3xl font-bold text-green-400">{result.L_D_ratio.toFixed(2)}</p>
+                    <span className={(() => {
+  const env = getLDValidity(result.L_D_ratio);
+  return env.color === 'green' ? 'bg-green-700/20 px-2 rounded' : env.color === 'amber' ? 'bg-yellow-600/20 px-2 rounded' : 'bg-red-700/20 px-2 rounded';
+})()} title={(() => getLDValidity(result.L_D_ratio).label)()}>
+  <p className="text-3xl font-bold text-green-400 inline">{typeof displayCheck.display.LD === "number" ? displayCheck.display.LD.toFixed(2) : displayCheck.display.LD}</p>
+</span>
+<span className={`ml-2 text-xs font-semibold`}
+  style={{ color: getLDValidity(result.L_D_ratio).color === 'green' ? '#22c55e' : getLDValidity(result.L_D_ratio).color === 'amber' ? '#eab308' : '#ef4444' }}>
+  {getLDValidity(result.L_D_ratio).label}
+</span>
                         <p className="text-xs text-gray-500 mt-1">Dimensionless</p>
                         <p className="text-xs text-gray-500 mt-1 italic">Note: This is L/D at the specified α, not maximum L/D</p>
                       </>
                     ) : (
-                      <p className="text-sm text-yellow-400">Invalid or unrealistic L/D value</p>
+                      <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: L/D not displayable" : "Invalid or unrealistic L/D value"}</p>
                     )}
                   </div>
                   <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
@@ -1685,29 +1708,29 @@ const point: Record<string, unknown> = { alpha };
                   <div className="p-3 rounded bg-blue-500/10 border border-blue-400/30">
                     <p className="text-sm text-slate-400 mb-1">Lift Force (L)</p>
                     <p className="text-xs text-gray-500 mb-2">L = CL × q × S, where q = 0.5 × ρ × V²</p>
-                    {Number.isFinite(result.liftForce) ? (
+                    {displayCheck.display.Lift !== "—" ? (
                       <>
                     <p className="text-xl font-bold text-blue-400">
-                      {convertFromSI(result.liftForce, "force").toFixed(2)} {getUnit("force")}
+                      {typeof displayCheck.display.Lift === "number" ? convertFromSI(displayCheck.display.Lift, "force").toFixed(2) : displayCheck.display.Lift} {getUnit("force")}
                     </p>
                         <p className="text-xs text-gray-500 mt-1">Vertical component balances weight in steady flight</p>
                       </>
                     ) : (
-                      <p className="text-sm text-yellow-400">Invalid lift force</p>
+                      <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: Lift not displayable" : "Invalid lift force"}</p>
                     )}
                   </div>
                   <div className="p-3 rounded bg-red-500/10 border border-red-400/30">
                     <p className="text-sm text-slate-400 mb-1">Drag Force (D)</p>
                     <p className="text-xs text-gray-500 mb-2">D = CD × q × S, where CD = CD₀ + k × CL²</p>
-                    {Number.isFinite(result.dragForce) && result.dragForce > 0 ? (
+                    {displayCheck.display.Drag !== "—" ? (
                       <>
                     <p className="text-xl font-bold text-red-400">
-                      {convertFromSI(result.dragForce, "force").toFixed(2)} {getUnit("force")}
+                      {typeof displayCheck.display.Drag === "number" ? convertFromSI(displayCheck.display.Drag, "force").toFixed(2) : displayCheck.display.Drag} {getUnit("force")}
                     </p>
                         <p className="text-xs text-gray-500 mt-1">Opposes motion; must be overcome by thrust</p>
                       </>
                     ) : (
-                      <p className="text-sm text-yellow-400">Invalid drag force</p>
+                      <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: Drag not displayable" : "Invalid drag force"}</p>
                     )}
                   </div>
                   <div className="p-3 rounded bg-slate-700/50">
@@ -1715,7 +1738,16 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xs text-gray-500 mb-2">At α = {inputs.angleOfAttack}°: CL = CL₀ + CL_α × α</p>
                     {Number.isFinite(result.CL) && Math.abs(result.CL) <= 5 ? (
                       <>
-                    <p className="text-xl font-bold text-white">{result.CL.toFixed(4)}</p>
+                    <span className={(() => {
+  const env = getCLValidity(result.CL, CL_max);
+  return env.color === 'green' ? 'bg-green-700/20 px-2 rounded' : env.color === 'amber' ? 'bg-yellow-600/20 px-2 rounded' : 'bg-red-700/20 px-2 rounded';
+})()} title={(() => getCLValidity(result.CL, CL_max).label)()}>
+  <p className="text-xl font-bold text-white inline">{result.CL.toFixed(4)}</p>
+</span>
+<span className={`ml-2 text-xs font-semibold`}
+  style={{ color: getCLValidity(result.CL, CL_max).color === 'green' ? '#22c55e' : getCLValidity(result.CL, CL_max).color === 'amber' ? '#eab308' : '#ef4444' }}>
+  {getCLValidity(result.CL, CL_max).label}
+</span>
                         <p className="text-xs text-gray-500 mt-1">Dimensionless; normalized by dynamic pressure and wing area</p>
                       </>
                     ) : (
@@ -1732,7 +1764,16 @@ const point: Record<string, unknown> = { alpha };
                         const isValidCD = Number.isFinite(result.CD) && result.CD > 0 && result.CD <= 1;
                         return isValidCD ? (
                           <>
-                    <p className="text-xl font-bold text-white">{result.CD.toFixed(4)}</p>
+                    <span className={(() => {
+  const env = getCDValidity(result.CD);
+  return env.color === 'green' ? 'bg-green-700/20 px-2 rounded' : env.color === 'amber' ? 'bg-yellow-600/20 px-2 rounded' : 'bg-red-700/20 px-2 rounded';
+})()} title={(() => getCDValidity(result.CD).label)()}>
+  <p className="text-xl font-bold text-white inline">{result.CD.toFixed(4)}</p>
+</span>
+<span className={`ml-2 text-xs font-semibold`}
+  style={{ color: getCDValidity(result.CD).color === 'green' ? '#22c55e' : getCDValidity(result.CD).color === 'amber' ? '#eab308' : '#ef4444' }}>
+  {getCDValidity(result.CD).label}
+</span>
                             <p className="text-xs text-gray-500 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
                           </>
                         ) : (
@@ -1744,7 +1785,16 @@ const point: Record<string, unknown> = { alpha };
                       const isValidCD = Number.isFinite(result.CD) && result.CD > 0 && (isPostStall || result.CD <= 1);
                       return isValidCD ? (
                         <>
-                          <p className="text-xl font-bold text-white">{result.CD.toFixed(4)}</p>
+                          <span className={(() => {
+  const env = getCDValidity(result.CD);
+  return env.color === 'green' ? 'bg-green-700/20 px-2 rounded' : env.color === 'amber' ? 'bg-yellow-600/20 px-2 rounded' : 'bg-red-700/20 px-2 rounded';
+})()} title={(() => getCDValidity(result.CD).label)()}>
+  <p className="text-xl font-bold text-white inline">{result.CD.toFixed(4)}</p>
+</span>
+<span className={`ml-2 text-xs font-semibold`}
+  style={{ color: getCDValidity(result.CD).color === 'green' ? '#22c55e' : getCDValidity(result.CD).color === 'amber' ? '#eab308' : '#ef4444' }}>
+  {getCDValidity(result.CD).label}
+</span>
                           <p className="text-xs text-gray-500 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
                           {isPostStall && result.CD > 1 && (
                             <p className="text-xs text-yellow-400 mt-1">Note: CD &gt; 1 is expected in post-stall conditions</p>
@@ -1886,7 +1936,23 @@ const point: Record<string, unknown> = { alpha };
             </AeroCard>
           )}
         </div>
-      </ToolSection>
+      <div className="mt-8 flex items-start gap-4">
+  {/* Validity Envelope Legend */}
+  <div className="p-3 rounded-lg bg-slate-800 border border-cyan-700/30 text-xs max-w-xs" style={{minWidth:'220px'}}>
+    <b className="text-white">Validity Envelope</b> <span className="ml-2 align-middle">ℹ️</span>
+    <ul className="mt-2 ml-1">
+      <li><span className="inline-block w-3 h-3 rounded-full align-middle bg-green-600 mr-1" /> <span className="text-green-400">Green:</span> Physically valid (linear aerodynamics)</li>
+      <li><span className="inline-block w-3 h-3 rounded-full align-middle bg-yellow-400 mr-1" /> <span className="text-yellow-300">Amber:</span> Near limits — results sensitive</li>
+      <li><span className="inline-block w-3 h-3 rounded-full align-middle bg-red-600 mr-1" /> <span className="text-red-300">Red:</span> Outside validity — values hidden (see warnings)</li>
+    </ul>
+    <div className="mt-2 text-slate-400">
+      CL valid: |CL| ≤ 0.9×CL<sub>max</sub><br />
+      L/D valid: 1 ≤ L/D ≤ 50<br />
+      CD valid: CD &gt; 0
+    </div>
+  </div>
+</div>
+</ToolSection>
 
       {/* Comparison Chart */}
       {(comparisonData.length > 0 || comparisonPolars.length > 0) && (
