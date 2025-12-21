@@ -1600,10 +1600,10 @@ const point: Record<string, unknown> = { alpha };
                 LD: result.L_D_ratio,
                 Lift: result.liftForce,
                 Drag: result.dragForce,
-                Density: result.density,
+                Density: parseFloat(inputs.airDensity),
                 CL_max
               });
-              return (
+            return (
             <AeroCard
               title="Analysis Results"
                 headerActions={
@@ -1844,7 +1844,7 @@ const point: Record<string, unknown> = { alpha };
                   </AccordionItem>
               </Accordion>
             </AeroCard>
-          ) : (
+          ) ; })() : (
             <AeroCard title="Analysis Results">
               <div className="h-full flex flex-col items-center justify-center py-12">
                 <Plane className="w-24 h-24 text-cyan-400/10" />
