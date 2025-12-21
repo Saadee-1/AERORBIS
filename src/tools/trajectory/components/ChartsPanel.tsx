@@ -22,30 +22,6 @@ interface ChartsPanelProps {
 export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelProps) {
   const result = mode === '1D' ? result1D : mode === '2D' ? result2D : result3D;
   
-  if (!result || !result.states || result.states.length === 0) {
-    return (
-      <AeroCard title="Charts">
-        <div className="text-center p-8 text-gray-400">
-          <p>Run a simulation to see charts</p>
-        </div>
-      </AeroCard>
-    );
-  }
-
-  // Prepare chart data (downsample if too many points)
-  const maxPoints = 500;
-  const step = Math.max(1, Math.floor(result.states.length / maxPoints));
-  const chartData = result.states.filter((_, i: number) => i % step === 0).map((state: TrajectoryState) => ({
-    time: state.t,
-    altitude: state.altitude / 1000, // km
-    velocity: getScalarVelocity(state.velocity) / 1000, // km/s
-    dynamicPressure: (state.dynamicPressure || 0) / 1000, // kPa
-    acceleration: typeof state.acceleration === 'number' ? state.acceleration : 0,
-    mass: (state.mass || 0) / 1000, // t
-    thrustToWeight: state.thrustToWeight || 0,
-    downrange: mode === '2D' ? ((state.downrange || 0) / 1000) : undefined,
-  }));
-
   // Refs for each chart card
   const altitudeRef = useRef<HTMLDivElement>(null);
   const velocityRef = useRef<HTMLDivElement>(null);
@@ -59,6 +35,16 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
   const pressureExport = useChartExport(pressureRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-pressure' });
   const trajectory2dExport = useChartExport(trajectory2dRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-2d' });
   const massExport = useChartExport(massRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-mass' });
+
+  if (!result || !result.states || result.states.length === 0) {
+    return (
+      <AeroCard title="Charts">
+        <div className="text-center p-8 text-gray-400">
+          <p>Run a simulation to see charts</p>
+        </div>
+      </AeroCard>
+    );
+  }
 
   return (
     <div className="space-y-6">

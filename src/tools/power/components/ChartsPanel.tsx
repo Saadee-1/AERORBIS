@@ -26,20 +26,6 @@ interface ChartsPanelProps {
 }
 
 export function ChartsPanel({ result }: ChartsPanelProps) {
-  if (!result || result.frames.length === 0) {
-    return (
-      <AeroCard title="Charts">
-        <div className="text-center p-8 text-gray-400">
-          <p>Run a simulation to see charts</p>
-        </div>
-      </AeroCard>
-    );
-  }
-  
-  // Downsample for performance (show every Nth point)
-  const downsampleFactor = Math.max(1, Math.floor(result.frames.length / 500));
-  const chartData = result.frames.filter((_, i) => i % downsampleFactor === 0);
-  
   // Refs for each chart card
   const socCardRef = useRef<HTMLDivElement>(null);
   const powerCardRef = useRef<HTMLDivElement>(null);
@@ -69,6 +55,15 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
     getFileBaseName: () => 'aeroverse-power-sun-elevation',
   });
 
+  if (!result || result.frames.length === 0) {
+    return (
+      <AeroCard title="Charts">
+        <div className="text-center p-8 text-gray-400">
+          <p>Run a simulation to see charts</p>
+        </div>
+      </AeroCard>
+    );
+  }
 
   return (
     <div className="space-y-6">

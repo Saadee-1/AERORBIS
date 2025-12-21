@@ -283,6 +283,13 @@ export function WingLoadingGraphs({
     return null;
   }, [airDensityMode, airDensityPreset, airDensityAltitude]);
 
+  // Graph export handlers - refs for each graph
+  const graph1Ref = useRef<HTMLDivElement | null>(null);
+  const graph2Ref = useRef<HTMLDivElement | null>(null);
+  const graph3Ref = useRef<HTMLDivElement | null>(null);
+
+  const title = 'Wing Loading Graphs';
+
   if (!hasValidData) {
     return (
       <ChartCard title="Engineering Graphs" description="Enter weight and wing area to view graphs">
@@ -292,11 +299,6 @@ export function WingLoadingGraphs({
       </ChartCard>
     );
   }
-
-  // Graph export handlers - refs for each graph
-  const graph1Ref = useRef<HTMLDivElement | null>(null);
-  const graph2Ref = useRef<HTMLDivElement | null>(null);
-  const graph3Ref = useRef<HTMLDivElement | null>(null);
 
   const handleSavePng = (graphRef: React.RefObject<HTMLDivElement>, title: string) => {
     if (!graphRef.current) return;

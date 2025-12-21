@@ -33,16 +33,6 @@ export const TwoDVisualizer = memo(function TwoDVisualizer({
     });
   }, [frames.length, mode]);
 
-    if (frames.length === 0) {
-    return (
-      <AeroCard title={title}>
-          <div className="relative w-full min-h-[360px] flex items-center justify-center text-gray-400">
-          <p>No trajectory data. Run a simulation to visualize.</p>
-        </div>
-      </AeroCard>
-    );
-  }
-
   const { polylinePoints, extremes } = useMemo(() => {
       const planetRadius = metadata?.planetRadius ?? 0;
       const points = frames.map((frame) => {
@@ -84,6 +74,16 @@ export const TwoDVisualizer = memo(function TwoDVisualizer({
       },
     };
   }, [frames, metadata, mode]);
+
+  if (frames.length === 0) {
+    return (
+      <AeroCard title={title}>
+          <div className="relative w-full min-h-[360px] flex items-center justify-center text-gray-400">
+          <p>No trajectory data. Run a simulation to visualize.</p>
+        </div>
+      </AeroCard>
+    );
+  }
 
   return (
     <AeroCard title={title}>

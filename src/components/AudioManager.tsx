@@ -68,7 +68,7 @@ export default function AudioManager() {
         try {
           lastNodeRef.current?.osc?.stop();
           lastNodeRef.current?.bufferSource?.stop();
-        } catch {}
+        } catch { /* ignore */ }
         lastNodeRef.current = null;
       }, 200);
     }
@@ -103,7 +103,7 @@ export default function AudioManager() {
         try {
           lfo.stop();
           osc.stop();
-        } catch {}
+        } catch { /* ignore */ }
       }, 1000);
     } else if (cue.type === "pad") {
       // quick evolving pad: two oscillators + gentle lowpass
@@ -138,7 +138,7 @@ export default function AudioManager() {
         try {
           o1.stop();
           o2.stop();
-        } catch {}
+        } catch { /* ignore */ }
       }, 1400);
     } else if (cue.type === "whoosh") {
       // short filtered noise whoosh
@@ -170,7 +170,7 @@ export default function AudioManager() {
       setTimeout(() => {
         try {
           source.stop();
-        } catch {}
+        } catch { /* ignore */ }
       }, 900);
     }
 

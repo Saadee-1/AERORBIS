@@ -792,7 +792,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
 
       // Determine induced drag factor k based on selected model
       let k_factor: number;
-      let kModelWarnings: string[] = [];
+      const kModelWarnings: string[] = [];
       let kModelSource: 'user-defined' | 'geometry-derived' = 'geometry-derived';
 
       if (inducedDragModel === 'legacy') {

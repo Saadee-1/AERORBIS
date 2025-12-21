@@ -758,7 +758,6 @@ const ThrustLoadingCalculator = () => {
       // Climb performance (Expert mode only)
       let climbGradient: number | undefined;
       let rateOfClimb: number | undefined;
-      let climbWarning: string | undefined;
       
       if (calculatorMode === 'Expert' && vClimb && ldClimb) {
         const vClimbInput = parseFloat(vClimb);
@@ -786,7 +785,7 @@ const ThrustLoadingCalculator = () => {
       }
       
       // Generate interpretation
-      const { interpretation, climbWarning: cw, jetLowBandLabel } = generateInterpretation(
+      const { interpretation, climbWarning, jetLowBandLabel } = generateInterpretation(
         missionType,
         twClass,
         tw,
@@ -794,7 +793,6 @@ const ThrustLoadingCalculator = () => {
         rateOfClimb,
         isJetLowBand
       );
-      climbWarning = cw;
       
       // Generate step-by-step solution
       const steps: string[] = [];

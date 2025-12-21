@@ -148,11 +148,6 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
 }) => {
   const graphRef = useRef<HTMLDivElement>(null);
 
-  // Only show in Expert mode
-  if (calculatorMode !== 'Expert') {
-    return null;
-  }
-
   // Determine effective L/D for climb
   const ldClimbEffective = ldClimb && ldClimb > 0 ? ldClimb : undefined;
 
@@ -294,6 +289,11 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
     
     return data;
   }, [wsMin, wsMax, twClimbRequired, hasCruiseInputs, q, cd0, k, hasTakeoffInputs, sigma, clTo, takeoffRunwayMeters, muRoll]);
+
+  // Only show in Expert mode
+  if (calculatorMode !== 'Expert') {
+    return null;
+  }
 
   // Determine axis ranges
   const twMin = isFinite(twClimbRequired) 

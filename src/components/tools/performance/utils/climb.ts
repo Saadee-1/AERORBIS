@@ -14,7 +14,7 @@
  * - Convert m/s to kts: * 1.94384; m/s to ft/min * 196.8504
  */
 
-import { calculateISADensity } from "../utils/isaAtmosphere";
+import { calculateISADensity } from "@/components/tools/utils/isaAtmosphere";
 
 export type ClimbInputs = {
   weightN: number; // N
