@@ -672,12 +672,20 @@ async function handleBatchExport(req: Request): Promise<Response> {
   });
 }
 
-// TODO: refine type for `contexts` and `options` — changed any -> unknown automatically by chore/typed-cleanup
-function generateBatchPDFHTML(contexts: unknown[], options: unknown): string {
+interface BatchContext {
+  toolName: string;
+  requestId: string;
+  timestamp: string;
+  inputs: Record<string, unknown>;
+  results: Record<string, unknown>;
+  steps?: string[];
+}
+
+function generateBatchPDFHTML(contexts: BatchContext[], options: unknown): string {
   const opts = options as { includeAssistantExplanation?: boolean; explanationLevel?: string };
   const { includeAssistantExplanation = true, explanationLevel = 'detailed' } = opts;
   
-  const contextsHTML = contexts.map((context, idx) => `
+  const contextsHTML = contexts.map((context: BatchContext, idx: number) => `
     <div style="page-break-after: always;">
       <h2>${context.toolName} - Calculation ${idx + 1}</h2>
       <p><strong>Request ID:</strong> ${context.requestId}</p>
