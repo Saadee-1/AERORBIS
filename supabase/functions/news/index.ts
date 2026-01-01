@@ -1,9 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const FilterSchema = z.enum(['all', 'spaceflight', 'nasa', 'esa']).optional().default('all');
 
 interface NewsArticle {
   title: string;
@@ -12,6 +17,23 @@ interface NewsArticle {
   image_url?: string;
   source: string;
   published: string;
+}
+
+// Authenticate user from JWT
+async function authenticateUser(req: Request): Promise<{ user: { id: string } } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) return null;
+
+  const jwt = authHeader.replace('Bearer ', '');
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+  );
+
+  const { data: { user }, error } = await supabaseClient.auth.getUser(jwt);
+  if (error || !user) return null;
+
+  return { user: { id: user.id } };
 }
 
 async function fetchSpaceflightNews(): Promise<NewsArticle[]> {
@@ -87,9 +109,31 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const filter = url.searchParams.get('filter') || 'all';
+    // Authenticate user
+    const auth = await authenticateUser(req);
+    if (!auth) {
+      console.log('Unauthorized access attempt to news');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
+    console.log('Authenticated user:', auth.user.id);
+
+    const url = new URL(req.url);
+    const filterParam = url.searchParams.get('filter') || 'all';
+
+    // Validate filter parameter
+    const validationResult = FilterSchema.safeParse(filterParam);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid filter parameter. Must be one of: all, spaceflight, nasa, esa' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const filter = validationResult.data;
     let allNews: NewsArticle[] = [];
 
     // Fetch news based on filter

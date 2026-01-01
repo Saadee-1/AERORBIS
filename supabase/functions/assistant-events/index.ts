@@ -1,10 +1,61 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schemas
+const CalculationEventSchema = z.object({
+  eventType: z.enum(['calculation.complete', 'calculation.update']),
+  toolId: z.string().min(1).max(100),
+  toolName: z.string().min(1).max(200),
+  requestId: z.string().min(1).max(100),
+  userId: z.string().min(1).max(100),
+  timestamp: z.string(),
+  inputs: z.record(z.unknown()),
+  results: z.record(z.unknown()),
+  steps: z.array(z.string().max(5000)).max(100).optional(),
+  attachments: z.object({
+    charts: z.array(z.object({ mime: z.string(), data: z.string() })).optional(),
+    files: z.array(z.object({ name: z.string(), url: z.string() })).optional(),
+  }).optional(),
+  metadata: z.object({
+    units: z.string().optional(),
+    approxLevel: z.string().optional(),
+    confidence: z.string().optional(),
+    warnings: z.array(z.string()).optional(),
+  }).optional(),
+  sequenceId: z.number().optional(),
+  isFinal: z.boolean().optional(),
+  progress: z.number().min(0).max(100).optional(),
+  intermediateResults: z.record(z.unknown()).optional(),
+});
+
+const ExplainRequestSchema = z.object({
+  requestId: z.string().min(1).max(100),
+  explanationLevel: z.enum(['brief', 'detailed', 'expert']).optional().default('detailed'),
+});
+
+const PDFExportRequestSchema = z.object({
+  requestId: z.string().min(1).max(100),
+  options: z.object({
+    includeAssistantExplanation: z.boolean().optional(),
+    explanationLevel: z.string().optional(),
+    includeCharts: z.boolean().optional(),
+    author: z.string().max(100).optional(),
+  }).optional().default({}),
+});
+
+const BatchExportRequestSchema = z.object({
+  requestIds: z.array(z.string().max(100)).min(1).max(50),
+  options: z.object({
+    includeAssistantExplanation: z.boolean().optional(),
+    explanationLevel: z.string().optional(),
+  }).optional().default({}),
+});
 
 interface CalculationEvent {
   eventType: "calculation.complete" | "calculation.update";
@@ -13,9 +64,7 @@ interface CalculationEvent {
   requestId: string;
   userId: string;
   timestamp: string;
-  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
   inputs: Record<string, unknown>;
-  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
   results: Record<string, unknown>;
   steps?: string[];
   attachments?: {
@@ -31,8 +80,24 @@ interface CalculationEvent {
   sequenceId?: number;
   isFinal?: boolean;
   progress?: number;
-  // TODO: refine type for `intermediateResults` — changed any -> unknown automatically by chore/typed-cleanup
   intermediateResults?: Record<string, unknown>;
+}
+
+// Authenticate user from JWT
+async function authenticateUser(req: Request): Promise<{ user: { id: string } } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) return null;
+
+  const jwt = authHeader.replace('Bearer ', '');
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+  );
+
+  const { data: { user }, error } = await supabaseClient.auth.getUser(jwt);
+  if (error || !user) return null;
+
+  return { user: { id: user.id } };
 }
 
 serve(async (req) => {
@@ -41,43 +106,78 @@ serve(async (req) => {
   }
 
   try {
+    // Check request size before parsing
+    const contentLength = req.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > 5242880) { // 5MB limit
+      return new Response(
+        JSON.stringify({ error: 'Request too large' }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Authenticate user
+    const auth = await authenticateUser(req);
+    if (!auth) {
+      console.log('Unauthorized access attempt to assistant-events');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', auth.user.id);
+
     const url = new URL(req.url);
     const path = url.pathname;
 
     // Handle calculation events at root path (POST to root with eventType in body)
     if (req.method === 'POST' && (path === '/functions/v1/assistant-events' || path.endsWith('/assistant-events'))) {
+      let body: unknown;
       try {
-        const body = await req.clone().json();
-        
-        // Validate eventType is present
-        if (!body || typeof body.eventType !== 'string') {
-          return new Response(JSON.stringify({ 
-            error: 'Missing or invalid eventType field in request body' 
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        
-        // Route based on eventType
-        if (body.eventType === 'calculation.complete') {
-          return await handleCalculationEventWithBody(body);
-        } else if (body.eventType === 'calculation.update') {
-          return await handleCalculationUpdateWithBody(body);
-        } else {
-          // Unknown eventType
-          return new Response(JSON.stringify({ 
-            error: `Unknown eventType: ${body.eventType}. Expected 'calculation.complete' or 'calculation.update'` 
-          }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-      } catch (parseError) {
-        // JSON parsing failed - return 400 Bad Request
+        body = await req.clone().json();
+      } catch {
         return new Response(JSON.stringify({ 
-          error: 'Invalid JSON in request body',
-          details: parseError instanceof Error ? parseError.message : 'Unknown parsing error'
+          error: 'Invalid JSON in request body'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      // Validate eventType is present
+      const bodyObj = body as Record<string, unknown>;
+      if (!bodyObj || typeof bodyObj.eventType !== 'string') {
+        return new Response(JSON.stringify({ 
+          error: 'Missing or invalid eventType field in request body' 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      // Validate full event structure
+      const validationResult = CalculationEventSchema.safeParse(body);
+      if (!validationResult.success) {
+        console.log('Validation failed:', validationResult.error.errors);
+        return new Response(JSON.stringify({ 
+          error: 'Invalid request format',
+          details: validationResult.error.errors
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const event = validationResult.data as CalculationEvent;
+      
+      // Route based on eventType
+      if (event.eventType === 'calculation.complete') {
+        return await handleCalculationEventWithBody(event);
+      } else if (event.eventType === 'calculation.update') {
+        return await handleCalculationUpdateWithBody(event);
+      } else {
+        return new Response(JSON.stringify({ 
+          error: `Unknown eventType: ${event.eventType}. Expected 'calculation.complete' or 'calculation.update'` 
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -116,11 +216,6 @@ const calculationContexts = new Map<string, CalculationEvent & { explanation?: s
 
 // Memoization cache for explanations (key: requestId + explanationLevel)
 const explanationCache = new Map<string, string>();
-
-async function handleCalculationEvent(req: Request): Promise<Response> {
-  const event: CalculationEvent = await req.json();
-  return handleCalculationEventWithBody(event);
-}
 
 async function handleCalculationEventWithBody(event: CalculationEvent): Promise<Response> {
 
@@ -267,7 +362,28 @@ function generateRecommendations(event: CalculationEvent): string[] {
 }
 
 async function handleExplainRequest(req: Request): Promise<Response> {
-  const { requestId, explanationLevel = 'detailed' } = await req.json();
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const validationResult = ExplainRequestSchema.safeParse(body);
+  if (!validationResult.success) {
+    return new Response(JSON.stringify({ 
+      error: 'Invalid request format',
+      details: validationResult.error.errors
+    }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { requestId, explanationLevel } = validationResult.data;
   
   const context = calculationContexts.get(requestId);
   if (!context) {
@@ -362,7 +478,28 @@ Provide:
 }
 
 async function handlePDFExport(req: Request): Promise<Response> {
-  const { requestId, options = {} } = await req.json();
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const validationResult = PDFExportRequestSchema.safeParse(body);
+  if (!validationResult.success) {
+    return new Response(JSON.stringify({ 
+      error: 'Invalid request format',
+      details: validationResult.error.errors
+    }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { requestId, options } = validationResult.data;
   
   const context = calculationContexts.get(requestId);
   if (!context) {
@@ -385,10 +522,8 @@ async function handlePDFExport(req: Request): Promise<Response> {
   });
 }
 
-// TODO: refine type for `options` — changed any -> unknown automatically by chore/typed-cleanup
-function generatePDFHTML(context: CalculationEvent, options: unknown): string {
-  const opts = options as { includeAssistantExplanation?: boolean; explanationLevel?: string; includeCharts?: boolean; author?: string };
-  const { includeAssistantExplanation = true, explanationLevel = 'detailed', includeCharts = true, author = 'User' } = opts;
+function generatePDFHTML(context: CalculationEvent, options: { includeAssistantExplanation?: boolean; explanationLevel?: string; includeCharts?: boolean; author?: string }): string {
+  const { includeAssistantExplanation = true, explanationLevel = 'detailed', includeCharts = true, author = 'User' } = options;
   const stored = calculationContexts.get(context.requestId);
   const explanation = stored?.explanation || '';
   
@@ -563,8 +698,8 @@ async function handleGetContext(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const requestId = url.pathname.split('/context/')[1];
   
-  if (!requestId) {
-    return new Response(JSON.stringify({ error: 'Missing requestId' }), {
+  if (!requestId || requestId.length > 100) {
+    return new Response(JSON.stringify({ error: 'Invalid requestId' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -589,12 +724,6 @@ async function handleGetContext(req: Request): Promise<Response> {
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
-}
-
-// Handle calculation.update events (for streaming/partial updates)
-async function handleCalculationUpdate(req: Request): Promise<Response> {
-  const event: CalculationEvent = await req.json();
-  return handleCalculationUpdateWithBody(event);
 }
 
 async function handleCalculationUpdateWithBody(event: CalculationEvent): Promise<Response> {
@@ -638,14 +767,28 @@ async function handleCalculationUpdateWithBody(event: CalculationEvent): Promise
 
 // Handle batch PDF export (multiple requestIds)
 async function handleBatchExport(req: Request): Promise<Response> {
-  const { requestIds, options = {} } = await req.json();
-  
-  if (!Array.isArray(requestIds) || requestIds.length === 0) {
-    return new Response(JSON.stringify({ error: 'Invalid requestIds array' }), {
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+
+  const validationResult = BatchExportRequestSchema.safeParse(body);
+  if (!validationResult.success) {
+    return new Response(JSON.stringify({ 
+      error: 'Invalid request format',
+      details: validationResult.error.errors
+    }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { requestIds, options } = validationResult.data;
 
   // Fetch all contexts
   const contexts = requestIds
@@ -681,9 +824,8 @@ interface BatchContext {
   steps?: string[];
 }
 
-function generateBatchPDFHTML(contexts: BatchContext[], options: unknown): string {
-  const opts = options as { includeAssistantExplanation?: boolean; explanationLevel?: string };
-  const { includeAssistantExplanation = true, explanationLevel = 'detailed' } = opts;
+function generateBatchPDFHTML(contexts: BatchContext[], options: { includeAssistantExplanation?: boolean; explanationLevel?: string }): string {
+  const { includeAssistantExplanation = true, explanationLevel = 'detailed' } = options;
   
   const contextsHTML = contexts.map((context: BatchContext, idx: number) => `
     <div style="page-break-after: always;">
@@ -741,4 +883,3 @@ function generateBatchPDFHTML(contexts: BatchContext[], options: unknown): strin
 </body>
 </html>`;
 }
-
