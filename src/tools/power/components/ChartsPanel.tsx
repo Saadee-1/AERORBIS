@@ -65,6 +65,15 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
     );
   }
 
+  // Prepare chart data from frames
+  const chartData = result.frames.map((frame) => ({
+    ...frame,
+    time_min: frame.time_min,
+    load_W: frame.load_W,
+    netPower_W: frame.netPower_W,
+    energyRemaining_Wh: frame.energyRemaining_Wh,
+  }));
+
   return (
     <div className="space-y-6">
       {/* State of Charge */}
