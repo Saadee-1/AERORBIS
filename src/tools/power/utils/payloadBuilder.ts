@@ -3,7 +3,7 @@
  */
 
 import { buildAeroversePayload } from '@/ai/buildPayload';
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { BatteryPack } from './batteryModel';
 import { SolarConfig } from './solarModel';
 import { PowerLoad, MissionResult } from './missionEngine';

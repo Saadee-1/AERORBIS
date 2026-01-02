@@ -40,7 +40,7 @@ const Community = () => {
   ];
 
   const events = [
-    { title: "AeroVerse Design Challenge 2025", date: "April 15-17, 2025", type: "Competition", description: "Design an efficient VTOL aircraft" },
+    { title: "AERORBIS Design Challenge 2026", date: "April 15-17, 2026", type: "Competition", description: "Design an efficient VTOL aircraft" },
     { title: "Guest Lecture: Future of Space Exploration", date: "March 28, 2025", type: "Webinar", description: "By Dr. Sarah Johnson, NASA" },
     { title: "Aerodynamics Workshop Series", date: "Every Tuesday, 6 PM EST", type: "Workshop", description: "Hands-on CFD simulations" },
   ];
@@ -62,7 +62,7 @@ const Community = () => {
           >
             <Users className="w-16 h-16 mx-auto mb-6 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              Join the AeroVerse Community
+              Join the AERORBIS Community
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
               Collaborate. Learn. Launch your ideas together.
@@ -266,7 +266,7 @@ const Community = () => {
           >
             <Award className="w-16 h-16 mx-auto mb-6 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
-              Become Part of AeroVerse
+              Become Part of AERORBIS
             </h2>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
               Join our global community of aerospace enthusiasts, students, and professionals

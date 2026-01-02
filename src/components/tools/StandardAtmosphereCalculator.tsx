@@ -40,7 +40,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { globalAxisTickStyle, globalAxisCommonProps } from "@/lib/chartAxisTheme";
-import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AerorbisLegend";
 import {
   calculateAtmosphere,
   type AtmosphereResult,

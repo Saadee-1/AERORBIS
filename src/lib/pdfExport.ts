@@ -681,7 +681,7 @@ export function extractMetadata(polar: PolarData) {
     airfoil: polar.airfoil,
     re: polar.re,
     mach: polar.mach || 0.0,
-    source: polar.meta?.source || 'Aeroverse Blended Polar Dataset (UIUC/AirfoilTools/XFOIL/NASA)',
+    source: polar.meta?.source || 'AERORBIS Blended Polar Dataset (UIUC/AirfoilTools/XFOIL/NASA)',
     generated_at: polar.meta?.generated_at,
     filter: polar.meta?.filter,
     notes: polar.meta?.notes,
@@ -1158,7 +1158,7 @@ export async function generatePdfReport(
   <!-- Page 1: Airfoil Summary + Performance Table -->
   <div class="header">
     <h1>NASA-STYLE AERODYNAMIC REPORT</h1>
-    <div class="subtitle">Aeroverse Blended Polar Dataset Analysis</div>
+    <div class="subtitle">AERORBIS Blended Polar Dataset Analysis</div>
   </div>
 
   <h2>1. AIRFOIL SPECIFICATION</h2>
@@ -1366,7 +1366,7 @@ export async function generatePdfReport(
     </tr>
     <tr>
       <td><strong>Data Source</strong></td>
-      <td>${polar.meta?.source || 'Aeroverse Blended Polar Dataset (UIUC/AirfoilTools/XFOIL/NASA)'}</td>
+      <td>${polar.meta?.source || 'AERORBIS Blended Polar Dataset (UIUC/AirfoilTools/XFOIL/NASA)'}</td>
     </tr>
     <tr>
       <td><strong>Report Generated</strong></td>
@@ -1374,7 +1374,7 @@ export async function generatePdfReport(
     </tr>
     <tr>
       <td><strong>App Version</strong></td>
-      <td>Aeroverse Launchpad v1.0.0</td>
+      <td>AERORBIS v1.0.0</td>
     </tr>
     ${polar.meta?.generated_at ? `
     <tr>

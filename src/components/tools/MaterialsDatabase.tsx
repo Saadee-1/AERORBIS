@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Database, Search, Filter, Plus, Settings2 } from "lucide-react";
 import { useToolContext } from "@/hooks/useToolContext";
-import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
+import type { AeroverseAIPayload } from "@/ai/schema/AerorbisPayload";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
 import { buildMaterialsPayload } from "./materials/payloadBuilder";
 

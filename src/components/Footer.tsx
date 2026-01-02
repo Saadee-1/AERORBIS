@@ -1,4 +1,4 @@
-import { Rocket } from "lucide-react";
+
 
 const Footer = () => {
   const quickLinks = [
@@ -16,12 +16,16 @@ const Footer = () => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <Rocket className="w-6 h-6 text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/aerorbis-logo.jpeg" 
+              alt="AERORBIS" 
+              className="w-8 h-8 rounded-sm drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]"
+            />
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-white">AeroVerse</span>
+              <span className="text-xl font-bold text-white tracking-wide">AERORBIS</span>
               <span className="text-xs text-cyan-400">
-                Discover. Design. Defy Gravity.
+                Where Aerospace Minds Connect
               </span>
             </div>
           </div>
@@ -43,7 +47,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="text-center mt-8 pt-8 border-t border-cyan-400/20">
           <p className="text-gray-400 text-sm">
-            © 2025 AeroVerse. Designed to Inspire Future Aerospace Visionaries.
+            © 2026 AERORBIS. Where Aerospace Minds Connect.
           </p>
         </div>
       </div>

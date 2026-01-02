@@ -161,7 +161,7 @@ serve(async (req) => {
     const isCalculationMode = !!aeroversePayload && !!(aeroversePayload as Record<string, unknown>).toolName;
 
     // CONCISE PROFESSIONAL SYSTEM PROMPT FOR CALCULATIONS
-    const calculationSystemPrompt = `You are AEROVERSE AI — a concise aerospace engineering calculation interpreter.${languageInstruction}
+    const calculationSystemPrompt = `You are AERORBIS AI — a concise aerospace engineering calculation interpreter.${languageInstruction}
 
 STRICT RULES:
 1. Keep explanations SHORT, TECHNICAL, and PROFESSIONAL.
