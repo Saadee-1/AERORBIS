@@ -196,6 +196,11 @@ export function WingLoadingGraphs({
     );
   }, [weightN, wingAreaM2, airDensity, clMax]);
 
+  // Graph export handlers - refs for each graph
+  const graph1Ref = useRef<HTMLDivElement | null>(null);
+  const graph2Ref = useRef<HTMLDivElement | null>(null);
+  const graph3Ref = useRef<HTMLDivElement | null>(null);
+
   // Graph #1: Wing Loading vs Stall Speed
   // Formula: Vs = sqrt( (2 * (W/S)_N) / (rho * CL_max) )
   // where (W/S)_N = (W/S)_kg * g, and we don't need S separately
@@ -282,11 +287,6 @@ export function WingLoadingGraphs({
     }
     return null;
   }, [airDensityMode, airDensityPreset, airDensityAltitude]);
-
-  // Graph export handlers - refs for each graph
-  const graph1Ref = useRef<HTMLDivElement | null>(null);
-  const graph2Ref = useRef<HTMLDivElement | null>(null);
-  const graph3Ref = useRef<HTMLDivElement | null>(null);
 
   const title = 'Wing Loading Graphs';
 

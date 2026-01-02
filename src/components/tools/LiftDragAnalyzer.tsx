@@ -1118,7 +1118,7 @@ const point: Record<string, unknown> = { alpha };
     if (!result) return [];
     const activeAirfoil = getActiveAirfoil();
     return generateComparisonData(activeAirfoil, result.k_factor, inputs.airfoil);
-  }, [result, inputs.airfoil, customAirfoil, comparedAirfoilIds, generateComparisonData]);
+  }, [result, inputs.airfoil, customAirfoil, comparedAirfoilIds, generateComparisonData, getActiveAirfoil]);
   
   const handleCustomAirfoilChange = (field: keyof CustomAirfoilInputs, value: string) => {
     setCustomAirfoil(prev => ({ ...prev, [field]: value }));
