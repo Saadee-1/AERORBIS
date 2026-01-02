@@ -61,7 +61,7 @@ import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
 import { spacingVertical } from "@/styles/spacing";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
-import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
+import type { AeroverseAIPayload } from "@/ai/schema/AerorbisPayload";
 import { buildDeltaVPayload, DeltaVUnitSystem } from "./payloadBuilder";
 
 type UnitSystem = DeltaVUnitSystem;

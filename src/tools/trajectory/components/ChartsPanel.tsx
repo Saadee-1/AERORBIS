@@ -46,6 +46,16 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
     );
   }
 
+  // Prepare chart data from states
+  const chartData = result.states.map((state: TrajectoryState) => ({
+    time: state.t,
+    altitude: state.altitude / 1000, // Convert to km
+    velocity: getScalarVelocity(state.velocity) / 1000, // Convert to km/s
+    mass: (state.mass ?? 0) / 1000, // Convert to tonnes
+    dynamicPressure: state.dynamicPressure ? state.dynamicPressure / 1000 : 0, // Convert to kPa
+    downrange: state.downrange ? state.downrange / 1000 : 0, // Convert to km
+  }));
+
   return (
     <div className="space-y-6">
       {/* Altitude vs Time */}

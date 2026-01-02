@@ -16,7 +16,7 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
+import { AeroverseLegend, type LegendItem } from '@/components/charts/AerorbisLegend';
 import { useChartExport } from '@/hooks/useChartExport';
 import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
 import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
@@ -64,6 +64,15 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
       </AeroCard>
     );
   }
+
+  // Prepare chart data from frames
+  const chartData = result.frames.map((frame) => ({
+    ...frame,
+    time_min: frame.time_min,
+    load_W: frame.load_W,
+    netPower_W: frame.netPower_W,
+    energyRemaining_Wh: frame.energyRemaining_Wh,
+  }));
 
   return (
     <div className="space-y-6">

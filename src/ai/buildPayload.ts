@@ -1,16 +1,16 @@
 /**
- * Shared helper to build standardized AI payloads for all Aeroverse tools
+ * Shared helper to build standardized AI payloads for all AERORBIS tools
  * 
  * This function ensures all tools provide complete, structured data to the AI assistant
  * in a consistent format.
  */
 
-import { AeroverseAIPayload } from './schema/AeroversePayload';
+import { AeroverseAIPayload } from './schema/AerorbisPayload';
 
 const APP_VERSION = '1.0.0'; // Update this when app version changes
 
 /**
- * Builds a standardized Aeroverse AI payload from tool data
+ * Builds a standardized AERORBIS AI payload from tool data
  * 
  * @param params - Partial payload data from tool
  * @returns Complete AeroverseAIPayload ready for AI assistant

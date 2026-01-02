@@ -1,4 +1,4 @@
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { calculateAtmosphere } from './utils/calcAtmosphere';
 
 // TODO: refine type for `ToolContextUpdater` — changed any -> unknown automatically by chore/typed-cleanup

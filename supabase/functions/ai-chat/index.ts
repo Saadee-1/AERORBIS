@@ -1,9 +1,49 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schemas
+const ChatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'system']),
+  content: z.string().min(1).max(50000),
+});
+
+const ChatRequestSchema = z.object({
+  messages: z.array(ChatMessageSchema).min(1).max(100),
+  mode: z.enum(['chat', 'summarize']).optional().default('chat'),
+  language: z.string().max(10).optional().default('en'),
+  toolContext: z.record(z.unknown()).optional(),
+  requestId: z.string().max(100).optional(),
+  calculationContext: z.record(z.unknown()).optional(),
+  aeroversePayload: z.record(z.unknown()).optional(),
+});
+
+const ExplainRequestSchema = z.object({
+  requestId: z.string().min(1).max(100),
+  explanationLevel: z.enum(['brief', 'detailed', 'expert']).optional().default('detailed'),
+});
+
+// Authenticate user from JWT
+async function authenticateUser(req: Request): Promise<{ user: { id: string } } | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) return null;
+
+  const jwt = authHeader.replace('Bearer ', '');
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+  );
+
+  const { data: { user }, error } = await supabaseClient.auth.getUser(jwt);
+  if (error || !user) return null;
+
+  return { user: { id: user.id } };
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,13 +51,52 @@ serve(async (req) => {
   }
 
   try {
+    // Check request size before parsing
+    const contentLength = req.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > 1048576) { // 1MB limit
+      return new Response(
+        JSON.stringify({ error: 'Request too large' }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Authenticate user
+    const auth = await authenticateUser(req);
+    if (!auth) {
+      console.log('Unauthorized access attempt to ai-chat');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', auth.user.id);
+
     const url = new URL(req.url);
     const path = url.pathname;
     
-    // Handle explain endpoint (forward to assistant-events)
+    // Parse and validate JSON
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle explain endpoint
     if (path.includes('/explain') && req.method === 'POST') {
-      const { requestId, explanationLevel = 'detailed' } = await req.json();
-      // For now, return a placeholder (can forward to assistant-events)
+      const validationResult = ExplainRequestSchema.safeParse(body);
+      if (!validationResult.success) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid request format', details: validationResult.error.errors }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const { requestId, explanationLevel } = validationResult.data;
       return new Response(JSON.stringify({ 
         explanation: `Detailed explanation for calculation ${requestId} would be generated here. Use the assistant-events endpoint for full functionality.` 
       }), {
@@ -25,10 +104,21 @@ serve(async (req) => {
       });
     }
 
-    const { messages, mode = 'chat', language = 'en', toolContext, requestId, calculationContext, aeroversePayload } = await req.json();
+    // Validate chat request
+    const validationResult = ChatRequestSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.log('Validation failed:', validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request format', details: validationResult.error.errors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { messages, mode, language, toolContext, requestId, calculationContext, aeroversePayload } = validationResult.data;
     
     // Debug logging
     console.log('AI Chat Request:', {
+      userId: auth.user.id,
       hasRequestId: !!requestId,
       hasCalculationContext: !!calculationContext,
       hasAeroversePayload: !!aeroversePayload,
@@ -37,7 +127,6 @@ serve(async (req) => {
       calculationContextKeys: calculationContext ? Object.keys(calculationContext) : null,
       aeroversePayloadKeys: aeroversePayload ? Object.keys(aeroversePayload) : null,
       messageCount: messages?.length || 0,
-      lastMessageHasPayload: messages?.[messages.length - 1]?.content?.includes('```json') || false,
     });
     
     // Support both LOVABLE_API_KEY (legacy) and AEROBOT_API_KEY (new)
@@ -69,10 +158,10 @@ serve(async (req) => {
     const languageInstruction = language !== 'en' ? ` Always respond in ${languageName}.` : '';
 
     // Detect calculation mode based on payload presence
-    const isCalculationMode = !!aeroversePayload && !!aeroversePayload.toolName;
+    const isCalculationMode = !!aeroversePayload && !!(aeroversePayload as Record<string, unknown>).toolName;
 
     // CONCISE PROFESSIONAL SYSTEM PROMPT FOR CALCULATIONS
-    const calculationSystemPrompt = `You are AEROVERSE AI — a concise aerospace engineering calculation interpreter.${languageInstruction}
+    const calculationSystemPrompt = `You are AERORBIS AI — a concise aerospace engineering calculation interpreter.${languageInstruction}
 
 STRICT RULES:
 1. Keep explanations SHORT, TECHNICAL, and PROFESSIONAL.

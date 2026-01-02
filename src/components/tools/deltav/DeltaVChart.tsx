@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { globalAxisTickStyle, globalAxisCommonProps } from "@/lib/chartAxisTheme";
-import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AerorbisLegend";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 

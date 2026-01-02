@@ -43,12 +43,16 @@ const Navbar = () => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <Rocket className="w-8 h-8 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)] transition-transform group-hover:rotate-12" />
+          <Link to="/" className="flex items-center space-x-3 group">
+            <img 
+              src="/aerorbis-logo.jpeg" 
+              alt="AERORBIS" 
+              className="w-10 h-10 rounded-sm drop-shadow-[0_0_20px_rgba(34,211,238,0.8)] transition-transform group-hover:scale-105"
+            />
             <div className="flex flex-col">
-              <span className="text-2xl font-bold text-white">AeroVerse</span>
+              <span className="text-2xl font-bold text-white tracking-wide">AERORBIS</span>
               <span className="text-xs text-cyan-400 hidden sm:block">
-                Discover. Design. Defy Gravity.
+                Where Aerospace Minds Connect
               </span>
             </div>
           </Link>

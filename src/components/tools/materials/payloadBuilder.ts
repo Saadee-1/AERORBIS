@@ -1,5 +1,5 @@
 import { buildAeroversePayload } from "@/ai/buildPayload";
-import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
+import type { AeroverseAIPayload } from "@/ai/schema/AerorbisPayload";
 import type { Material, UnitSystem } from "../types";
 
 interface BuildMaterialsPayloadParams {
