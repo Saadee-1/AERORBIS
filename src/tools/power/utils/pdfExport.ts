@@ -4,7 +4,7 @@
  * Generates formatted HTML/PDF reports for power system calculations
  */
 
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { MissionResult } from './missionEngine';
 
 export interface PowerSystemPDFData {

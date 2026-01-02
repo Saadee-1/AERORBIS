@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { MessageSquare, Loader2 } from 'lucide-react';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { useToast } from '@/hooks/use-toast';
-import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { buildAeroversePayload } from '@/ai/buildPayload';
 
 interface AskAIButtonProps {

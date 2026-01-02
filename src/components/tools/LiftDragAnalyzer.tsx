@@ -31,7 +31,7 @@ import { useDesignSession } from "@/contexts/designSession";
 import { LdPdfButton } from "@/components/tools/LdPdfButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
-import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
+import type { AeroverseAIPayload } from "@/ai/schema/AerorbisPayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";

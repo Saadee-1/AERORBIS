@@ -25,7 +25,7 @@ const About = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            What is AeroVerse?
+            What is AERORBIS?
           </h2>
         </motion.div>
 
@@ -51,9 +51,9 @@ const About = () => {
             className="space-y-6"
           >
             <p className="text-lg text-gray-300 leading-relaxed">
-              AeroVerse is an open educational platform created to support aerospace students of
-              all levels — from beginners to researchers. Explore aerodynamics, propulsion,
-              orbital mechanics, materials science, and more.
+              AERORBIS is a professional aerospace engineering platform supporting engineers and researchers 
+              at all levels. Access precision tools for aerodynamics, propulsion, orbital mechanics, 
+              materials science, and more.
             </p>
             <p className="text-lg text-gray-400 leading-relaxed">
               Our mission is to democratize aerospace education, making advanced concepts

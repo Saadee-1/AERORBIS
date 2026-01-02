@@ -1,5 +1,5 @@
 /**
- * Global standard JSON schema for all Aeroverse tools AI payloads
+ * Global standard JSON schema for all AERORBIS tools AI payloads
  * 
  * This ensures consistent data structure when passing calculation results
  * to the AI assistant across all tools.

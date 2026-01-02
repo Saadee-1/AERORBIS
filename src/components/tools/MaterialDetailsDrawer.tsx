@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Database, Ruler, Info } from "lucide-react";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
-import type { AeroverseAIPayload } from "@/ai/schema/AeroversePayload";
+import type { AeroverseAIPayload } from "@/ai/schema/AerorbisPayload";
 
 interface MaterialDetailsDrawerProps {
   material: Material | null;

@@ -1,5 +1,5 @@
 /**
- * Aeroverse Legend Component
+ * AERORBIS Legend Component
  * 
  * Shared legend component for all calculator charts.
  * Provides consistent, non-overlapping legend layout across all tools.
@@ -18,7 +18,7 @@ export interface AeroverseLegendProps {
 }
 
 /**
- * Standardized legend component for all Aeroverse calculator charts.
+ * Standardized legend component for all AERORBIS calculator charts.
  * 
  * Features:
  * - Non-overlapping flexbox layout with wrapping

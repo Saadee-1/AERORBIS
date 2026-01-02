@@ -25,7 +25,7 @@ import { PowerLoad, MissionPhase, simulateMission, MissionResult } from './utils
 import { validatePowerSystemInputs } from './validation/schema';
 import { buildPowerSystemPayload } from './utils/payloadBuilder';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { getBatteryChemistry } from './data/batteryChemistries';
 import { BatteryPackForm } from './components/BatteryPackForm';
 import { SolarConfig as SolarConfigComponent } from './components/SolarConfig';

@@ -26,7 +26,7 @@ import {
 } from "@/lib/polarChartUtils";
 import type { PolarData } from "@/lib/pdfExport";
 import { AIRFOIL_DESCRIPTIONS } from "@/data/airfoilDescriptions";
-import { AeroverseLegend, type LegendItem } from "@/components/charts/AeroverseLegend";
+import { AeroverseLegend, type LegendItem } from "@/components/charts/AerorbisLegend";
 
 interface PolarChartsPanelProps {
   polars: Array<{

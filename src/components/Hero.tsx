@@ -53,7 +53,7 @@ const Hero = () => {
           duration: 0.8,
           delay: 0.2
         }} className="text-5xl md:text-7xl font-bold mb-6 text-glow">
-            Discover Design Defy Gravity
+            Where Aerospace Minds Connect
           </motion.h1>
 
           <motion.p initial={{
@@ -66,8 +66,8 @@ const Hero = () => {
           duration: 0.8,
           delay: 0.4
         }} className="text-xl md:text-2xl text-secondary mb-12 max-w-3xl mx-auto font-light">
-            Empowering the next generation of aerospace engineers with free learning tools,
-            resources, and research insights.
+            A professional platform providing precision engineering tools, research resources, 
+            and technical education for the aerospace community.
           </motion.p>
 
           <motion.div initial={{

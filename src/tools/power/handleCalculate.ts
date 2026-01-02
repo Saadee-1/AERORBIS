@@ -1,4 +1,4 @@
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { buildPowerSystemPayload } from './utils/payloadBuilder';
 import { simulateMission, MissionPhase, MissionResult, PowerLoad } from './utils/missionEngine';
 import { BatteryPack } from './utils/batteryModel';
