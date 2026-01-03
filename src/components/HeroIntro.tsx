@@ -7,7 +7,7 @@ type Props = {
   autoPlayDuration?: number; // seconds before auto-complete
 };
 
-export default function HeroIntro({ onFinish, autoPlayDuration = 6 }: Props) {
+export default function HeroIntro({ onFinish, autoPlayDuration = 4 }: Props) {
   const [visible, setVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -15,65 +15,30 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 6 }: Props) {
     if (!containerRef.current) return;
 
     const ctx = gsap.context(() => {
-      // --- Initial intro animation ---
+      // --- Initial intro animation - restrained ---
       gsap.fromTo(
         ".intro-sub",
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 1.2, ease: "power2.out", delay: 0.3 }
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out", delay: 0.2 }
       );
 
       gsap.fromTo(
         ".intro-title",
-        { opacity: 0, scale: 0.7, textShadow: "0 0 0px #00ffff" },
+        { opacity: 0, y: 15 },
         {
           opacity: 1,
-          scale: 1,
-          duration: 2,
-          ease: "power3.out",
-          delay: 0.6,
-          textShadow: "0 0 40px #00ffff, 0 0 80px #0088ff",
+          y: 0,
+          duration: 1,
+          ease: "power2.out",
+          delay: 0.4,
         }
       );
 
       gsap.fromTo(
         ".intro-tagline",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 1.5, ease: "power2.out", delay: 1.5 }
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out", delay: 0.8 }
       );
-
-      // --- Background glow pulse ---
-      gsap.to(".neon-glow", {
-        opacity: 0.7,
-        scale: 1.4,
-        duration: 3,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-
-      // --- Random moving streaks ---
-      const streaks = gsap.utils.toArray(".streak");
-      streaks.forEach((streak, i) => {
-        const move = () => {
-          gsap.fromTo(
-            streak as gsap.TweenTarget,
-            {
-              x: Math.random() * window.innerWidth - window.innerWidth / 2,
-              y: Math.random() * window.innerHeight - window.innerHeight / 2,
-              opacity: 0,
-            },
-            {
-              x: "+=" + (Math.random() * 400 - 200),
-              y: "+=" + (Math.random() * 400 - 200),
-              opacity: Math.random() * 0.6 + 0.2,
-              duration: Math.random() * 3 + 2,
-              ease: "sine.inOut",
-              onComplete: move,
-            }
-          );
-        };
-        move();
-      });
     }, containerRef);
 
     // --- Auto finish timer ---
@@ -85,7 +50,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 6 }: Props) {
 
       gsap.to(containerRef.current, {
         opacity: 0,
-        duration: 1.2,
+        duration: 0.8,
         ease: "power2.inOut",
         onComplete: () => {
           if (onFinish) onFinish();
@@ -105,85 +70,30 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 6 }: Props) {
   return (
     <div
       ref={containerRef}
+      className="fixed inset-0 z-[9999] flex items-center justify-center flex-col overflow-hidden"
       style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-        background:
-          "radial-gradient(circle at center, rgba(10,20,40,1) 0%, rgba(5,10,20,0.96) 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
-        overflow: "hidden",
-        color: "#C8F6FF",
-        fontFamily: "Orbitron, sans-serif",
+        background: "hsl(240, 100%, 6%)",
       }}
     >
-      {/* Neon background glow */}
-      <div
-        className="neon-glow"
-        style={{
-          position: "absolute",
-          width: 600,
-          height: 600,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(0,255,255,0.3) 0%, rgba(0,80,255,0.0) 70%)",
-          filter: "blur(90px)",
-          zIndex: 1,
-        }}
-      ></div>
-
-      {/* Random light streaks */}
-      {[...Array(10)].map((_, i) => (
-        <div
-          key={i}
-          className="streak"
-          style={{
-            position: "absolute",
-            width: "2px",
-            height: Math.random() * 100 + 100 + "px",
-            background:
-              "linear-gradient(to bottom, rgba(0,255,255,0.7), rgba(0,255,255,0))",
-            opacity: 0.2,
-            zIndex: 2,
-          }}
-        ></div>
-      ))}
-
       {/* Text content */}
-      <div
-        style={{
-          textAlign: "center",
-          zIndex: 10,
-        }}
-      >
-        <div className="intro-sub" style={{ fontSize: 18, letterSpacing: 3 }}>
-          WELCOME TO
+      <div className="text-center z-10">
+        <div
+          className="intro-sub text-sm tracking-[0.2em] uppercase"
+          style={{ color: "hsl(220, 15%, 60%)" }}
+        >
+          Welcome to
         </div>
         <div
-          className="intro-title"
-          style={{
-            fontSize: 72,
-            fontWeight: 900,
-            letterSpacing: 4,
-            margin: "10px 0",
-            color: "#00FFFF",
-            textShadow: "0 0 25px #00FFFF, 0 0 60px #0088FF",
-          }}
+          className="intro-title text-5xl md:text-6xl font-semibold tracking-wide my-4"
+          style={{ color: "hsl(220, 20%, 90%)" }}
         >
-          AEROVERSE
+          AERORBIS
         </div>
         <div
-          className="intro-tagline"
-          style={{
-            fontSize: 18,
-            letterSpacing: 2,
-            color: "rgba(200,250,255,0.85)",
-          }}
+          className="intro-tagline text-base tracking-wide"
+          style={{ color: "hsl(220, 15%, 55%)" }}
         >
-          Discover · Design · Defy Gravity
+          Where Aerospace Minds Connect
         </div>
       </div>
 
@@ -193,19 +103,17 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 6 }: Props) {
           setVisible(false);
           if (onFinish) onFinish();
         }}
+        className="absolute bottom-6 right-6 px-4 py-2 text-sm rounded border transition-colors z-20"
         style={{
-          position: "absolute",
-          bottom: 28,
-          right: 28,
-          background: "rgba(255,255,255,0.08)",
-          border: "1px solid rgba(200,250,255,0.2)",
-          color: "#C8F6FF",
-          padding: "10px 16px",
-          borderRadius: 10,
-          cursor: "pointer",
-          zIndex: 20,
-          backdropFilter: "blur(6px)",
-          fontSize: 14,
+          background: "hsl(240, 80%, 12%)",
+          borderColor: "hsl(220, 30%, 25%)",
+          color: "hsl(220, 20%, 75%)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "hsl(215, 40%, 50%)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = "hsl(220, 30%, 25%)";
         }}
       >
         Skip Intro
