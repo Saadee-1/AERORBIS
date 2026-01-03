@@ -3,7 +3,7 @@
  */
 
 import { buildAeroversePayload } from '@/ai/buildPayload';
-import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { WeightEstimationInputs, ComponentWeights } from './weightEngine';
 import { AircraftClassification } from './classification';
 import { IterationResult } from './iteration';

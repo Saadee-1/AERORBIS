@@ -5,7 +5,7 @@
  */
 
 import { buildAeroversePayload } from '@/ai/buildPayload';
-import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { RocketEngineInputs, RocketEngineResults } from './calcEngine';
 import { R_UNIVERSAL } from './constants';
 

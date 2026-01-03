@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
 import { ComponentWeights, WeightEstimationInputs } from '../utils/weightEngine';
 import { IterationResult, MissionProfile } from '../utils/iteration';
-import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
+import { AeroverseLegend, type LegendItem } from '@/components/charts/AerorbisLegend';
 import { useChartExport } from '@/hooks/useChartExport';
 import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
 

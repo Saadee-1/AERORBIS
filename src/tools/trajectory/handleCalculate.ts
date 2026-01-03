@@ -1,4 +1,4 @@
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { PLANETS, Planet } from './data/planets';
 import { Stage } from './utils/physics/staging';
 import { run1D } from './utils/solver/run1d';
