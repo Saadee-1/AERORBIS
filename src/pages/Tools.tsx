@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 // Helper function to get tool URL
@@ -128,26 +127,27 @@ const Tools = () => {
     },
   ];
 
+  const enabledTools = ["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator", "Climb Performance Calculator"];
+
   return (
-    <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
-      <DeepSpaceDataBackground />
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <PageBreadcrumb />
       
       {/* Hero Section */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-20 overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
             className="text-center"
           >
-            <Wrench className="w-16 h-16 mx-auto mb-6 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <Wrench className="w-12 h-12 mx-auto mb-4 text-primary" />
+            <h1 className="text-4xl md:text-5xl font-semibold mb-4 text-foreground tracking-tight">
               Engineering Tools & Simulators
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Your aerospace lab — right in your browser
             </p>
           </motion.div>
@@ -155,39 +155,41 @@ const Tools = () => {
       </section>
 
       {/* Tools Grid */}
-      <section ref={ref} className="py-20">
+      <section ref={ref} className="py-12 pb-20">
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {tools.map((tool, index) => (
               <motion.div
                 key={tool.name}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.03, y: -5 }}
+                transition={{ delay: index * 0.05 }}
               >
-                <Card className="h-full flex flex-col bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300 rounded-2xl">
-                  <CardHeader>
-                    <div className="w-16 h-16 rounded-lg bg-cyan-400/10 flex items-center justify-center mb-4">
-                      <tool.icon className="w-8 h-8 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+                <Card className="h-full flex flex-col hover:border-primary/40 transition-colors duration-200">
+                  <CardHeader className="pb-3">
+                    <div className="w-12 h-12 rounded bg-accent flex items-center justify-center mb-3">
+                      <tool.icon className="w-6 h-6 text-primary" />
                     </div>
-                    <CardTitle className="text-xl text-white">{tool.name}</CardTitle>
-                    <CardDescription className="text-gray-300">{tool.description}</CardDescription>
+                    <CardTitle className="text-lg text-foreground">{tool.name}</CardTitle>
+                    <CardDescription className="text-sm">{tool.description}</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex-grow">
-                    <span className="inline-block text-xs px-3 py-1 rounded-full bg-cyan-400/20 text-cyan-400">
+                  <CardContent className="flex-grow pt-0">
+                    <span className="inline-block text-xs px-2 py-1 rounded bg-muted text-muted-foreground">
                       {tool.category}
                     </span>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="pt-0">
                     <Button 
-                      className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300"
-                      asChild
-                      disabled={!["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator", "Climb Performance Calculator"].includes(tool.name)}
+                      className="w-full"
+                      variant={enabledTools.includes(tool.name) ? "default" : "secondary"}
+                      asChild={enabledTools.includes(tool.name)}
+                      disabled={!enabledTools.includes(tool.name)}
                     >
-                      <a href={["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator", "Climb Performance Calculator"].includes(tool.name) ? getToolUrl(tool.name) : "#"}>
-                        {["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator", "Climb Performance Calculator"].includes(tool.name) ? "Launch Tool" : "Coming Soon"}
-                      </a>
+                      {enabledTools.includes(tool.name) ? (
+                        <a href={getToolUrl(tool.name)}>Launch Tool</a>
+                      ) : (
+                        <span>Coming Soon</span>
+                      )}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -198,47 +200,44 @@ const Tools = () => {
       </section>
 
       {/* Demo Calculator Section */}
-      <section className="py-20 bg-slate-900/30 relative z-10">
+      <section className="py-16 bg-card border-y border-border">
         <div className="container mx-auto px-4 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-4xl mx-auto"
+            className="max-w-3xl mx-auto"
           >
-            <div className="text-center mb-12">
-              <Calculator className="w-16 h-16 mx-auto mb-6 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-              <h2 className="text-4xl font-bold mb-4 text-white">Quick Demo: Thrust Calculator</h2>
-              <p className="text-gray-300 text-lg">
+            <div className="text-center mb-8">
+              <Calculator className="w-10 h-10 mx-auto mb-4 text-primary" />
+              <h2 className="text-2xl font-semibold mb-2 text-foreground">Quick Demo: Thrust Calculator</h2>
+              <p className="text-muted-foreground">
                 Try our interactive thrust calculator right here
               </p>
             </div>
 
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+            <Card>
               <CardContent className="pt-6">
                 <div className="space-y-6">
-                  <div className="text-center p-8 bg-slate-900/50 rounded-lg">
-                    <Rocket className="w-24 h-24 mx-auto mb-4 text-cyan-400" />
-                    <p className="text-gray-300">
+                  <div className="text-center p-6 bg-muted rounded">
+                    <Rocket className="w-16 h-16 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-muted-foreground text-sm">
                       Interactive calculator interface will be embedded here
-                    </p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Calculate thrust based on mass flow rate and exhaust velocity
                     </p>
                   </div>
 
                   <div className="grid md:grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-2xl font-bold text-cyan-400">F = ṁ × Ve</p>
-                      <p className="text-sm text-gray-400">Thrust Equation</p>
+                    <div className="p-3 bg-muted rounded">
+                      <p className="text-lg font-mono font-medium text-foreground">F = ṁ × Ve</p>
+                      <p className="text-xs text-muted-foreground mt-1">Thrust Equation</p>
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold text-blue-400">Isp = F / (ṁ × g₀)</p>
-                      <p className="text-sm text-gray-400">Specific Impulse</p>
+                    <div className="p-3 bg-muted rounded">
+                      <p className="text-lg font-mono font-medium text-foreground">Isp = F / (ṁ × g₀)</p>
+                      <p className="text-xs text-muted-foreground mt-1">Specific Impulse</p>
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold text-cyan-400">Ve = Isp × g₀</p>
-                      <p className="text-sm text-gray-400">Exhaust Velocity</p>
+                    <div className="p-3 bg-muted rounded">
+                      <p className="text-lg font-mono font-medium text-foreground">Ve = Isp × g₀</p>
+                      <p className="text-xs text-muted-foreground mt-1">Exhaust Velocity</p>
                     </div>
                   </div>
                 </div>
@@ -249,7 +248,7 @@ const Tools = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 relative z-10">
+      <section className="py-16">
         <div className="container mx-auto px-4 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -257,17 +256,17 @@ const Tools = () => {
             viewport={{ once: true }}
             className="text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+            <h2 className="text-2xl font-semibold mb-3 text-foreground">
               Need More Advanced Tools?
             </h2>
-            <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+            <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
               Join our community to request new tools or contribute your own calculators and simulators
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300" asChild>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button asChild>
                 <a href="/community">Join Community</a>
               </Button>
-              <Button size="lg" variant="outline" className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/60" asChild>
+              <Button variant="outline" asChild>
                 <a href="/contact">Request a Tool</a>
               </Button>
             </div>
@@ -281,4 +280,3 @@ const Tools = () => {
 };
 
 export default Tools;
-

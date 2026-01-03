@@ -1,6 +1,6 @@
 import type { SavedSetup } from "@/types/graphSetup";
 
-const STORAGE_KEY = "aeroverse_graph_setups";
+const STORAGE_KEY = "aerorbis_graph_setups";
 
 export function loadAllSavedSetups(): SavedSetup[] {
   if (typeof window === "undefined") return [];
