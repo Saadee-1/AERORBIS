@@ -1,4 +1,4 @@
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { RocketEngineInputs, calculateRocketEngine } from './utils/calcEngine';
 import { validateRocketEngineInputs } from './validation/schema';
 import { buildRocketEnginePayload } from './utils/payloadBuilder';

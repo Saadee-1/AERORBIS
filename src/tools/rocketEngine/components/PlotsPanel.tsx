@@ -6,7 +6,7 @@ import { AeroCard } from '@/components/common/AeroCard';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
 import { Rocket } from 'lucide-react';
-import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
+import { AeroverseLegend, type LegendItem } from '@/components/charts/AerorbisLegend';
 
 interface PlotsPanelProps {
   altitudeSweep?: Array<{ Pa: number; T: number; Isp: number; mdot: number; Pe: number }>;

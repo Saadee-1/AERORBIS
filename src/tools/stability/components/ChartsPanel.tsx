@@ -15,7 +15,7 @@ import {
 } from 'recharts';
 import { TrendingUp, BarChart3, Wind } from 'lucide-react';
 import { StabilityResults } from '../utils/calcStability';
-import { AeroverseLegend, type LegendItem } from '@/components/charts/AeroverseLegend';
+import { AeroverseLegend, type LegendItem } from '@/components/charts/AerorbisLegend';
 import { useChartExport } from '@/hooks/useChartExport';
 import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
 import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';

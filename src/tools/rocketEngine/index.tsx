@@ -29,7 +29,7 @@ import {
 import { validateRocketEngineInputs } from './validation/schema';
 import { buildRocketEnginePayload } from './utils/payloadBuilder';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { PROPELLANT_PRESETS, ENGINE_PRESETS, PropellantPreset, EnginePreset } from './data/propellantPresets';
 import { InputPanel } from './components/InputPanel';
 import { ResultsPanel } from './components/ResultsPanel';

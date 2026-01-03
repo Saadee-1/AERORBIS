@@ -5,7 +5,7 @@
  */
 
 import { buildAeroversePayload } from '@/ai/buildPayload';
-import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { StabilityInputs, StabilityResults } from './calcStability';
 import { DynamicDerivatives } from './calcDynamicDerivatives';
 import { ControlDerivatives } from './calcControlDerivatives';

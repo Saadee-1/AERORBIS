@@ -8,7 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { globalAxisTickStyle, globalAxisCommonProps } from '@/lib/chartAxisTheme';
 import { useChartExport } from '@/hooks/useChartExport';
 import { ChartExportButtons } from '@/components/charts/ChartExportButtons';
-import { AeroverseLegend } from '@/components/charts/AeroverseLegend';
+import { AeroverseLegend } from '@/components/charts/AerorbisLegend';
 import type { TrajectoryResult, TrajectoryState } from '../types';
 import { getScalarVelocity } from '../types';
 

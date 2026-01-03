@@ -1,4 +1,4 @@
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { buildWeightEstimatorPayload } from './utils/payloadBuilder';
 import { WeightEstimationInputs, calculateComponentWeights, updateFuelSystemWeight } from './utils/weightEngine';
 import { MissionProfile, calculateMissionFuelFraction, calculateFuelWeight, iterateTakeoffWeight } from './utils/iteration';

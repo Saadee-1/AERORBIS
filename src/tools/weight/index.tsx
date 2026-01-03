@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WeightEstimationInputs, calculateComponentWeights, updateFuelSystemWeight } from './utils/weightEngine';
 import { validateWeightEstimationInputs } from './validation/schema';
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { buildWeightEstimatorPayload } from './utils/payloadBuilder';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
 import { AIRCRAFT_PRESETS, AircraftPreset } from './data/presets';
