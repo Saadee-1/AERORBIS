@@ -10,20 +10,20 @@
 
 @layer base {
   :root {
-    /* Primary Background: Deep Navy #000035 */
-    --background: 240 100% 10%;
+    /* Primary Background: Transparent */
+    --background: transparent;
     --foreground: 220 20% 88%;
 
-    /* Card/Surface: Slightly lighter navy */
-    --card: 240 80% 12%;
+    /* Card/Surface: Semi-transparent */
+    --card: 240 80% 12% / 0.6;
     --card-foreground: 220 20% 88%;
 
-    --popover: 240 80% 12%;
+    --popover: 240 80% 8% / 0.95;
     --popover-foreground: 220 20% 88%;
 
-    /* Primary: Muted Steel Blue */
-    --primary: 215 40% 50%;
-    --primary-foreground: 220 20% 95%;
+    /* Primary: Cyan accent */
+    --primary: 185 80% 50%;
+    --primary-foreground: 220 20% 10%;
 
     /* Secondary: Slate Gray */
     --secondary: 215 25% 35%;
@@ -33,42 +33,60 @@
     --muted: 220 30% 18%;
     --muted-foreground: 220 15% 65%;
 
-    /* Accent: Steel tone */
-    --accent: 215 30% 25%;
+    /* Accent: Cyan tone */
+    --accent: 185 60% 25%;
     --accent-foreground: 220 20% 90%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders: Subtle, low contrast */
-    --border: 220 30% 20%;
+    /* Borders: Subtle cyan tint */
+    --border: 200 30% 25%;
     --input: 220 30% 15%;
-    --ring: 215 40% 50%;
+    --ring: 185 80% 50%;
+
+    /* Cyan glow color */
+    --cyan-glow: 185 80% 50%;
 
     /* Minimal border radius */
     --radius: 0.25rem;
 
-    /* Sidebar: Dark institutional */
-    --sidebar-background: 240 80% 8%;
+    /* Sidebar: Semi-transparent */
+    --sidebar-background: 240 80% 8% / 0.8;
     --sidebar-foreground: 220 20% 85%;
-    --sidebar-primary: 215 40% 50%;
-    --sidebar-primary-foreground: 220 20% 95%;
-    --sidebar-accent: 220 30% 15%;
+    --sidebar-primary: 185 80% 50%;
+    --sidebar-primary-foreground: 220 20% 10%;
+    --sidebar-accent: 185 60% 20%;
     --sidebar-accent-foreground: 220 20% 85%;
-    --sidebar-border: 220 30% 18%;
-    --sidebar-ring: 215 40% 50%;
+    --sidebar-border: 200 30% 25%;
+    --sidebar-ring: 185 80% 50%;
 
-    /* Chart colors: Muted professional palette */
-    --chart-1: 215 45% 55%;
-    --chart-2: 200 35% 50%;
-    --chart-3: 180 30% 45%;
-    --chart-4: 240 25% 55%;
-    --chart-5: 260 20% 50%;
+    /* Chart colors: Cyan-accented palette */
+    --chart-1: 185 70% 55%;
+    --chart-2: 200 50% 50%;
+    --chart-3: 170 45% 45%;
+    --chart-4: 195 40% 55%;
+    --chart-5: 210 35% 50%;
   }
 
   .dark {
-    --background: 240 100% 10%;
+    --background: transparent;
     --foreground: 220 20% 88%;
+  }
+}
+
+/* Global cyan glow utilities */
+@layer utilities {
+  .glow-cyan {
+    box-shadow: 0 0 10px hsl(185 80% 50% / 0.4), 0 0 20px hsl(185 80% 50% / 0.2);
+  }
+  
+  .glow-cyan-hover:hover {
+    box-shadow: 0 0 15px hsl(185 80% 50% / 0.5), 0 0 30px hsl(185 80% 50% / 0.3);
+  }
+  
+  .glow-cyan-strong {
+    box-shadow: 0 0 15px hsl(185 80% 50% / 0.6), 0 0 30px hsl(185 80% 50% / 0.3), 0 0 45px hsl(185 80% 50% / 0.15);
   }
 }
 
@@ -115,10 +133,17 @@
     @apply border-border;
   }
 
+  html {
+    background: linear-gradient(135deg, hsl(240 100% 6%) 0%, hsl(240 80% 10%) 50%, hsl(220 60% 8%) 100%);
+    min-height: 100vh;
+  }
+
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
+    background: transparent;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-feature-settings: 'cv11', 'ss01';
+    min-height: 100vh;
   }
 
   html {
