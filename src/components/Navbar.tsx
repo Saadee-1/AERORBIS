@@ -33,14 +33,14 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-center h-14">
           {/* Brand */}
-          <Link to="/" className="text-lg font-semibold text-foreground tracking-wide">
+          <Link to="/" className="text-lg font-semibold text-foreground tracking-wide mr-8">
             AERORBIS
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-8 mr-auto">
             {menuItems.map((item) => (
               <Link
                 key={item.name}
