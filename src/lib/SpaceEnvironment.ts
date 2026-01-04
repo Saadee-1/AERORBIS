@@ -63,6 +63,7 @@ export class SpaceEnvironment {
     const geometry = new THREE.BufferGeometry();
     const vertices = [];
     const colors = [];
+    const sizes = [];
 
     for (let i = 0; i < this.config.starCount; i++) {
       const x = (Math.random() - 0.5) * 2000;
@@ -72,19 +73,58 @@ export class SpaceEnvironment {
 
       // Star colors - white to cyan
       const color = new THREE.Color();
-      color.setHSL(Math.random() * 0.1 + 0.5, 0.5, Math.random() * 0.5 + 0.5);
+      color.setHSL(Math.random() * 0.1 + 0.5, 0.6, Math.random() * 0.4 + 0.6);
       colors.push(color.r, color.g, color.b);
+      
+      // Random sizes for variety
+      sizes.push(Math.random() * 2 + 1);
     }
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
 
-    const material = new THREE.PointsMaterial({
-      size: 2,
-      vertexColors: true,
+    // Custom shader material for round stars
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        pixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
+      },
+      vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        uniform float pixelRatio;
+        
+        void main() {
+          vColor = color;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * pixelRatio * (300.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        
+        void main() {
+          // Create circular stars
+          vec2 center = gl_PointCoord - vec2(0.5);
+          float dist = length(center);
+          
+          // Soft circular falloff
+          float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
+          
+          // Add glow effect
+          float glow = exp(-dist * 4.0) * 0.5;
+          alpha += glow;
+          
+          if (alpha < 0.01) discard;
+          
+          gl_FragColor = vec4(vColor, alpha * 0.9);
+        }
+      `,
       transparent: true,
-      opacity: 0.8,
       blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
 
     return new THREE.Points(geometry, material);
