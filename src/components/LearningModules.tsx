@@ -42,8 +42,8 @@ const LearningModules = () => {
   return (
     <section 
       id="learn" 
-      className={`py-24 bg-gradient-to-b from-black via-slate-900 to-black relative overflow-hidden transition-all duration-500 ${
-        isActive ? "shadow-[inset_0_0_100px_rgba(34,211,238,0.4)] border-t-4 border-b-4 border-cyan-400/50" : ""
+      className={`py-24 bg-transparent relative overflow-hidden transition-all duration-500 ${
+        isActive ? "border-t border-b border-primary/20" : ""
       }`}
     >
       <div className="container mx-auto px-4 lg:px-8" ref={ref}>
