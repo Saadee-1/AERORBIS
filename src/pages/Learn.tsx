@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 const Learn = () => {
@@ -52,7 +51,6 @@ const Learn = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black relative">
-      <DeepSpaceDataBackground />
       <Navbar />
       <PageBreadcrumb />
       

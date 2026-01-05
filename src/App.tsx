@@ -9,7 +9,6 @@ import { useAudioSection } from "@/hooks/useAudioSection";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import AIAssistant from "@/components/AIAssistant";
 import PageTransition from "./components/PageTransition";
-import GalaxyBackground from "./components/backgrounds/GalaxyBackground";
 import Index from "./pages/Index";
 import Learn from "./pages/Learn";
 import Research from "./pages/Research";
@@ -80,7 +79,6 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <GalaxyBackground />
             <GlobalAudioProvider />
             <AudioVisualizer />
             {showIntro ? <HeroIntro /> : <AnimatedRoutes />}

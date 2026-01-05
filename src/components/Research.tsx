@@ -4,7 +4,6 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, Users, Lightbulb } from "lucide-react";
 import researchImage from "@/assets/research-lab.jpg";
-import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import { useActiveSection } from "@/hooks/useActiveSection";
 
 const Research = () => {
@@ -38,7 +37,6 @@ const Research = () => {
         isActive ? "shadow-[inset_0_0_100px_rgba(34,211,238,0.4)] border-t-4 border-b-4 border-cyan-400/50" : ""
       }`}
     >
-      <DeepSpaceDataBackground />
       <div className="container mx-auto px-4 lg:px-8 relative z-10" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 50 }}

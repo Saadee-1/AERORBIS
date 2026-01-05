@@ -8,14 +8,10 @@ import Community from "@/components/Community";
 import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
-import LaunchSequenceBackground from "@/components/backgrounds/LaunchSequenceBackground";
-import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 
 const Index = () => {
   return (
     <div className="min-h-screen relative">
-      <LaunchSequenceBackground />
-      <DeepSpaceDataBackground />
       <Navbar />
       <Hero />
       <About />
