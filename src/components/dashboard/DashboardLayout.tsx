@@ -3,7 +3,6 @@ import DashboardSidebar from "./DashboardSidebar";
 import DashboardTopbar from "./DashboardTopbar";
 import AeroBot from "./AeroBot";
 import { motion } from "framer-motion";
-import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 interface DashboardLayoutProps {
@@ -15,7 +14,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black flex relative overflow-hidden">
-      <DeepSpaceDataBackground />
       
       {/* Animated Stars Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">

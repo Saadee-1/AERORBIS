@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 const ContactPage = () => {
@@ -41,7 +40,6 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-black via-slate-900 to-black relative">
-      <DeepSpaceDataBackground />
       <Navbar />
       <PageBreadcrumb />
       
