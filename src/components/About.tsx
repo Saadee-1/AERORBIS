@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import aboutImage from "@/assets/about-satellite.jpg";
 import { useActiveSection } from "@/hooks/useActiveSection";
 
 const About = () => {
@@ -29,26 +28,13 @@ const About = () => {
           </h2>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl p-2 hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300"
-            whileHover={{ scale: 1.03, y: -5 }}
-          >
-            <img
-              src={aboutImage}
-              alt="Satellite and orbital mechanics visualization"
-              className="rounded-xl w-full"
-            />
-          </motion.div>
+        <div className="max-w-4xl mx-auto">
 
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="space-y-6"
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="space-y-6 text-center"
           >
             <p className="text-lg text-gray-300 leading-relaxed">
               AERORBIS is a professional aerospace engineering platform supporting engineers and researchers 
@@ -61,17 +47,17 @@ const About = () => {
               thousands of aspiring engineers on their journey to the stars.
             </p>
             <div className="grid grid-cols-3 gap-6 pt-6">
-              <div className="text-center bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-xl p-4 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all duration-300">
-                <div className="text-4xl font-bold text-cyan-400 mb-2 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">50+</div>
-                <div className="text-sm text-gray-400">Courses</div>
+              <div className="text-center bg-card/30 backdrop-blur-lg border border-primary/20 rounded-xl p-4 hover:border-primary/40 transition-all duration-300">
+                <div className="text-4xl font-bold text-primary mb-2">50+</div>
+                <div className="text-sm text-muted-foreground">Courses</div>
               </div>
-              <div className="text-center bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-xl p-4 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all duration-300">
-                <div className="text-4xl font-bold text-cyan-400 mb-2 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">10K+</div>
-                <div className="text-sm text-gray-400">Students</div>
+              <div className="text-center bg-card/30 backdrop-blur-lg border border-primary/20 rounded-xl p-4 hover:border-primary/40 transition-all duration-300">
+                <div className="text-4xl font-bold text-primary mb-2">10K+</div>
+                <div className="text-sm text-muted-foreground">Students</div>
               </div>
-              <div className="text-center bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-xl p-4 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all duration-300">
-                <div className="text-4xl font-bold text-cyan-400 mb-2 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">100+</div>
-                <div className="text-sm text-gray-400">Resources</div>
+              <div className="text-center bg-card/30 backdrop-blur-lg border border-primary/20 rounded-xl p-4 hover:border-primary/40 transition-all duration-300">
+                <div className="text-4xl font-bold text-primary mb-2">100+</div>
+                <div className="text-sm text-muted-foreground">Resources</div>
               </div>
             </div>
           </motion.div>
