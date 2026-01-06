@@ -64,10 +64,10 @@ const Testimonials = () => {
               whileHover={{ scale: 1.03, y: -5 }}
             >
               <Card className="h-full bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300">
-                <CardContent className="pt-6">
-                  <Quote className="w-10 h-10 text-cyan-400 mb-4 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <CardContent className="pt-6 text-center">
+                  <Quote className="w-10 h-10 text-cyan-400 mb-4 mx-auto drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
                   <p className="text-gray-300 mb-6 italic">{testimonial.quote}</p>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col items-center gap-2">
                     <img
                       src={testimonial.image}
                       alt={testimonial.name}

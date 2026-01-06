@@ -132,14 +132,14 @@ const DashboardTools = () => {
   return (
     <DashboardLayout>
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">Engineering Tools</h1>
         <p className="text-gray-400">Access interactive aerospace calculators and simulators</p>
       </div>
 
       {/* Search */}
-      <div className="mb-8">
-        <div className="relative max-w-2xl">
+      <div className="mb-8 flex justify-center">
+        <div className="relative w-full max-w-2xl">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400" />
           <Input
             type="search"
@@ -154,7 +154,7 @@ const DashboardTools = () => {
       {/* Favorite Tools Section */}
       {favoriteTools.length > 0 && !searchQuery && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-foreground mb-4 flex items-center space-x-2">
+          <h2 className="text-2xl font-semibold text-foreground mb-4 flex items-center justify-center space-x-2">
             <Star className="w-6 h-6 text-primary fill-primary" />
             <span>Favorite Tools</span>
           </h2>
@@ -205,7 +205,7 @@ const DashboardTools = () => {
 
       {/* All Tools Section */}
       <div>
-        <h2 className="text-2xl font-semibold text-foreground mb-4">
+        <h2 className="text-2xl font-semibold text-foreground mb-4 text-center">
           {searchQuery ? "Search Results" : "All Tools"}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

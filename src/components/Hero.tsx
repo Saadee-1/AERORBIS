@@ -5,10 +5,10 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="min-h-screen flex items-center bg-transparent pt-14"
+      className="min-h-screen flex items-center justify-center bg-transparent pt-14"
     >
       <div className="container mx-auto px-6 lg:px-8">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold mb-6 text-foreground tracking-tight">
             Aerospace Engineering Tools & Resources
           </h1>
@@ -19,7 +19,7 @@ const Hero = () => {
             engineers and students.
           </p>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 justify-center">
             <Button asChild size="lg" className="px-6">
               <Link to="/tools">Explore Tools</Link>
             </Button>

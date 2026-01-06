@@ -59,14 +59,14 @@ const DashboardOverview = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8 p-8 rounded-2xl bg-gradient-to-r from-card via-primary/10 to-card border border-primary/30 shadow-[0_0_30px_rgba(255,215,0,0.2)] relative overflow-hidden"
+        className="mb-8 p-8 rounded-2xl bg-gradient-to-r from-card via-primary/10 to-card border border-primary/30 shadow-[0_0_30px_rgba(255,215,0,0.2)] relative overflow-hidden text-center"
       >
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full blur-3xl" />
         
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center justify-center gap-3 mb-2">
             <Rocket className="w-8 h-8 text-primary drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]" />
             <span className="px-3 py-1 bg-primary/20 border border-primary/40 rounded-full text-xs font-bold text-primary uppercase tracking-wide">
               Aerospace Student
@@ -116,7 +116,7 @@ const DashboardOverview = () => {
         transition={{ delay: 0.2 }}
         className="mb-8"
       >
-        <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3 uppercase tracking-wide">
+        <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center justify-center gap-3 uppercase tracking-wide">
           <Target className="w-6 h-6 text-primary" />
           Quick Access
         </h2>
@@ -129,8 +129,8 @@ const DashboardOverview = () => {
               transition={{ delay: 0.1 * index }}
               whileHover={{ scale: 1.05, y: -5 }}
             >
-              <Card className={`h-full border-primary/30 bg-gradient-to-br ${card.gradient} hover:shadow-[0_0_30px_rgba(255,215,0,0.3)] transition-all duration-300 group cursor-pointer`}>
-                <CardHeader>
+              <Card className={`h-full border-primary/30 bg-gradient-to-br ${card.gradient} hover:shadow-[0_0_30px_rgba(255,215,0,0.3)] transition-all duration-300 group cursor-pointer text-center`}>
+                <CardHeader className="flex flex-col items-center">
                   <div className="w-12 h-12 bg-primary/20 border border-primary/40 rounded-lg flex items-center justify-center mb-4 group-hover:shadow-[0_0_20px_rgba(255,215,0,0.5)] transition-all">
                     <card.icon className="w-6 h-6 text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]" />
                   </div>
@@ -144,10 +144,10 @@ const DashboardOverview = () => {
                 <CardContent>
                   <Button
                     variant="ghost"
-                    className="w-full justify-between text-primary hover:bg-primary/20 hover:text-primary font-bold uppercase text-xs tracking-wider border border-primary/30 hover:border-primary/50"
+                    className="w-full justify-center text-primary hover:bg-primary/20 hover:text-primary font-bold uppercase text-xs tracking-wider border border-primary/30 hover:border-primary/50"
                   >
                     Go
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </CardContent>
               </Card>
