@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ProfileMenu from "./ProfileMenu";
+import aerorbisLogo from "@/assets/aerorbis-logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,7 +36,8 @@ const Navbar = () => {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-center h-14">
           {/* Brand */}
-          <Link to="/" className="text-lg font-semibold text-foreground tracking-wide">
+          <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-foreground tracking-wide">
+            <img src={aerorbisLogo} alt="AERORBIS" className="w-8 h-8" />
             AERORBIS
           </Link>
 
