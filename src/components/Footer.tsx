@@ -1,3 +1,5 @@
+import aerorbisLogo from "@/assets/aerorbis-logo.png";
+
 const Footer = () => {
   const quickLinks = [
     { name: "Home", href: "#home" },
@@ -13,9 +15,9 @@ const Footer = () => {
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <img
-              src="/aerorbis-logo.jpeg"
+              src={aerorbisLogo}
               alt="AERORBIS"
-              className="w-8 h-8 rounded-sm"
+              className="w-8 h-8"
             />
             <div className="flex flex-col">
               <span className="text-lg font-semibold text-foreground tracking-wide">
