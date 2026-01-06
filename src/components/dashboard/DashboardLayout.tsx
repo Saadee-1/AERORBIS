@@ -48,9 +48,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex-1 p-6 overflow-auto"
+          className="flex-1 p-6 overflow-auto flex flex-col items-center"
         >
-          {children}
+          <div className="w-full max-w-7xl">
+            {children}
+          </div>
         </motion.main>
       </div>
 
