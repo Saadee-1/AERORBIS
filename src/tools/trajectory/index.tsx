@@ -34,7 +34,7 @@ import { run3D, Trajectory3DResult } from './utils/solver/run3d';
 import { buildTrajectoryPayload } from './utils/payloadBuilder';
 import type { TrajectoryResult } from './types';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { STAGE_PRESETS, getStage } from './data/stagePresets';
 
 import { PlanetSelector } from './components/PlanetSelector';

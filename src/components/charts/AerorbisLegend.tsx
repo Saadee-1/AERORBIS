@@ -12,7 +12,7 @@ export interface LegendItem {
   color: string; // line color used in the chart
 }
 
-export interface AeroverseLegendProps {
+export interface AerorbisLegendProps {
   items: LegendItem[];
   className?: string;
 }
@@ -26,7 +26,7 @@ export interface AeroverseLegendProps {
  * - Supports up to 5+ series cleanly
  * - Compact but readable design
  */
-export function AeroverseLegend({ items, className = "" }: AeroverseLegendProps) {
+export function AerorbisLegend({ items, className = "" }: AerorbisLegendProps) {
   if (!items || items.length === 0) return null;
   
   return (
@@ -46,4 +46,8 @@ export function AeroverseLegend({ items, className = "" }: AeroverseLegendProps)
     </div>
   );
 }
+
+// Backwards compatibility alias
+export const AeroverseLegend = AerorbisLegend;
+export type AeroverseLegendProps = AerorbisLegendProps;
 

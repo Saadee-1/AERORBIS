@@ -1,109 +1,106 @@
 import { useState, useEffect } from "react";
-import { Menu, X, Rocket } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import ProfileMenu from "./ProfileMenu";
-import AudioToggle from "./AudioToggle";
+import aerorbisLogo from "@/assets/aerorbis-logo.png";
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  const menuItems = [{
-    name: "Home",
-    href: "/"
-  }, {
-    name: "Learn",
-    href: "/learn"
-  }, {
-    name: "Research",
-    href: "/research"
-  }, {
-    name: "Tools",
-    href: "/tools"
-  }, {
-    name: "Community",
-    href: "/community"
-  }, {
-    name: "Contact",
-    href: "/contact"
-  }];
-  return <motion.nav initial={{
-    y: -100
-  }} animate={{
-    y: 0
-  }} className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-slate-900/50 backdrop-blur-lg border-b border-cyan-400/20" : "bg-transparent"}`}>
-      <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <img 
-              src="/aerorbis-logo.jpeg" 
-              alt="AERORBIS" 
-              className="w-10 h-10 rounded-sm drop-shadow-[0_0_20px_rgba(34,211,238,0.8)] transition-transform group-hover:scale-105"
-            />
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-white tracking-wide">AERORBIS</span>
-              <span className="text-xs text-cyan-400 hidden sm:block">
-                Where Aerospace Minds Connect
-              </span>
-            </div>
+
+  const menuItems = [
+    { name: "Tools", href: "/tools" },
+    { name: "Learn", href: "/learn" },
+    { name: "Research", href: "/research" },
+    { name: "Community", href: "/community" },
+  ];
+
+  return (
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
+        scrolled 
+          ? "bg-background/80 backdrop-blur-sm border-b border-border/50" 
+          : "bg-transparent"
+      }`}
+    >
+      <div className="container mx-auto px-6 lg:px-8">
+        <div className="flex items-center justify-center h-14">
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-foreground tracking-wide">
+            <img src={aerorbisLogo} alt="AERORBIS" className="w-8 h-8" />
+            AERORBIS
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center space-x-8">
-            {menuItems.map(item => <Link key={item.name} to={item.href} className={`text-gray-300 hover:text-cyan-400 transition-all duration-200 font-medium ${location.pathname === item.href ? "text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,1)] drop-shadow-[0_0_40px_rgba(34,211,238,0.8)] font-bold" : ""}`}>
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden md:flex items-center justify-center flex-1 space-x-8">
+            {menuItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`text-sm transition-colors duration-150 ${
+                  location.pathname === item.href
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
                 {item.name}
-              </Link>)}
-            <AudioToggle />
-            <Link to="/dashboard">
-              <Button className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold uppercase tracking-wide shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transition-all duration-300">
-                Join Now
-              </Button>
-            </Link>
-            <div className="rounded bg-transparent">
-              <ProfileMenu />
-            </div>
+              </Link>
+            ))}
+            <ProfileMenu />
           </div>
 
           {/* Mobile Menu Button */}
-          <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden text-foreground hover:text-primary transition-colors" aria-label="Toggle menu">
-            {isOpen ? <X size={28} /> : <Menu size={28} />}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden text-muted-foreground hover:text-foreground transition-colors p-1"
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
         {/* Mobile Menu */}
         <AnimatePresence>
-          {isOpen && <motion.div initial={{
-          opacity: 0,
-          height: 0
-        }} animate={{
-          opacity: 1,
-          height: "auto"
-        }} exit={{
-          opacity: 0,
-          height: 0
-        }} className="lg:hidden pb-4">
-              <div className="flex flex-col space-y-4">
-                {menuItems.map(item => <Link key={item.name} to={item.href} onClick={() => setIsOpen(false)} className={`text-gray-300 hover:text-cyan-400 transition-all duration-200 font-medium py-2 ${location.pathname === item.href ? "text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,1)] drop-shadow-[0_0_40px_rgba(34,211,238,0.8)] font-bold" : ""}`}>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.15 }}
+              className="md:hidden border-t border-border/50"
+            >
+              <div className="flex flex-col py-4 space-y-1">
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`text-sm py-2 transition-colors duration-150 ${
+                      location.pathname === item.href
+                        ? "text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
                     {item.name}
-                  </Link>)}
-                <Link to="/dashboard" className="w-full">
-                  <Button className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black w-full font-bold uppercase tracking-wide shadow-[0_0_20px_rgba(34,211,238,0.3)]">
-                    Join Now
-                  </Button>
-                </Link>
+                  </Link>
+                ))}
               </div>
-            </motion.div>}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
-    </motion.nav>;
+    </nav>
+  );
 };
+
 export default Navbar;

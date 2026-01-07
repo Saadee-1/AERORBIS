@@ -55,8 +55,8 @@ const DashboardResearch = () => {
   return (
     <DashboardLayout>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
+      <div className="flex flex-col items-center text-center mb-8">
+        <div className="mb-4">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">My Research</h1>
           <p className="text-gray-400">Manage and submit your aerospace research</p>
         </div>

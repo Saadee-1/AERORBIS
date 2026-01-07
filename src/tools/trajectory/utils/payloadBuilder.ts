@@ -3,7 +3,7 @@
  */
 
 import { buildAeroversePayload } from '@/ai/buildPayload';
-import { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { Planet } from '../data/planets';
 import { Stage } from '../utils/physics/staging';
 import { GuidanceProfile } from '../utils/solver/run2d';

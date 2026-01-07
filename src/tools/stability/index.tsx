@@ -22,7 +22,7 @@ import { calculateStability, sweepCGPosition, StabilityInputs, StabilityResults 
 import { validateStabilityInputs } from './validation/schema';
 import { buildStabilityPayload, ExtendedStabilityResults } from './utils/payloadBuilder';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { A0_THEORETICAL, DEFAULT_AIRFOIL_LIFT_SLOPE, DEFAULT_WING_EFFICIENCY, DEFAULT_TAIL_EFFICIENCY, DEFAULT_ELEVATOR_EFFECTIVENESS } from './utils/constants';
 import { AIRCRAFT_PRESETS, AircraftPreset } from './data/presets';
 import { AeroCard } from '@/components/common/AeroCard';

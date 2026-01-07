@@ -56,7 +56,7 @@ const DashboardLearning = () => {
   return (
     <DashboardLayout>
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">Learning Progress</h1>
         <p className="text-gray-400">Track your aerospace education journey</p>
       </div>
@@ -67,15 +67,13 @@ const DashboardLearning = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/30 rounded-2xl p-6 mb-8 shadow-[0_0_30px_rgba(34,211,238,0.2)]"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black w-16 h-16 rounded-full flex items-center justify-center text-2xl">
-              <Flame className="w-8 h-8" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-white">5 Day Streak!</h3>
-              <p className="text-gray-300">You've studied 5 days in a row — keep going!</p>
-            </div>
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black w-16 h-16 rounded-full flex items-center justify-center text-2xl">
+            <Flame className="w-8 h-8" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-white">5 Day Streak!</h3>
+            <p className="text-gray-300">You've studied 5 days in a row — keep going!</p>
           </div>
           <Button className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">View Achievements</Button>
         </div>

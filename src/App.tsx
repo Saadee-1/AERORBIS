@@ -24,7 +24,7 @@ import DashboardTools from "./pages/DashboardTools";
 import DashboardProfile from "./pages/DashboardProfile";
 import AudioVisualizer from "@/components/AudioVisualizer";
 import GlobalAudioProvider from "@/components/GlobalAudioProvider";
-import HeroIntro from "@/components/HeroIntro"; // <-- Add your 3D intro component
+import HeroIntro from "@/components/HeroIntro";
 
 const queryClient = new QueryClient();
 
@@ -78,9 +78,9 @@ const App = () => {
         <AIAssistantProvider>
           <Toaster />
           <Sonner />
-            <BrowserRouter>
-              <GlobalAudioProvider />
-              <AudioVisualizer />
+          <BrowserRouter>
+            <GlobalAudioProvider />
+            <AudioVisualizer />
             {showIntro ? <HeroIntro /> : <AnimatedRoutes />}
             <AIAssistant />
           </BrowserRouter>

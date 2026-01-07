@@ -3,7 +3,6 @@ import DashboardSidebar from "./DashboardSidebar";
 import DashboardTopbar from "./DashboardTopbar";
 import AeroBot from "./AeroBot";
 import { motion } from "framer-motion";
-import DeepSpaceDataBackground from "@/components/backgrounds/DeepSpaceDataBackground";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 interface DashboardLayoutProps {
@@ -15,7 +14,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black flex relative overflow-hidden">
-      <DeepSpaceDataBackground />
       
       {/* Animated Stars Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -50,9 +48,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex-1 p-6 overflow-auto"
+          className="flex-1 p-6 overflow-auto flex flex-col items-center"
         >
-          {children}
+          <div className="w-full max-w-7xl">
+            {children}
+          </div>
         </motion.main>
       </div>
 

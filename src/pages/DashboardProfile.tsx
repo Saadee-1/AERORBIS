@@ -24,7 +24,7 @@ const DashboardProfile = () => {
   return (
     <DashboardLayout>
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">Profile & Settings</h1>
         <p className="text-gray-400">Manage your account and preferences</p>
       </div>

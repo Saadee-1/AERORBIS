@@ -1,4 +1,4 @@
-import type { AeroverseAIPayload } from '@/ai/schema/AeroversePayload';
+import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { StabilityInputs, calculateStability } from './utils/calcStability';
 import { buildStabilityPayload, ExtendedStabilityResults } from './utils/payloadBuilder';
 
