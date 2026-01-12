@@ -255,9 +255,11 @@ Respond: "I can't help with harmful applications. But I can explain the physics 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('AI chat error:', error);
+    console.error('AI chat error:', error); // Keep detailed log server-side only
+    
+    // Return safe generic error message - never expose internal details
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'An error occurred processing your request.' 
+      error: 'Request processing failed. Please try again.' 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
