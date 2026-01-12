@@ -3,12 +3,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useAudioSection } from "@/hooks/useAudioSection";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import AIAssistant from "@/components/AIAssistant";
 import PageTransition from "./components/PageTransition";
+import GalaxyBackground from "./components/GalaxyBackground";
+import GlobeLoader from "./components/GlobeLoader";
 import Index from "./pages/Index";
 import Learn from "./pages/Learn";
 import Research from "./pages/Research";
@@ -30,38 +32,52 @@ const queryClient = new QueryClient();
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [previousPath, setPreviousPath] = useState(location.pathname);
   useAudioSection();
 
+  useEffect(() => {
+    if (location.pathname !== previousPath) {
+      setIsTransitioning(true);
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+        setPreviousPath(location.pathname);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, previousPath]);
+
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
-        <Route path="/learn" element={<PageTransition><Learn /></PageTransition>} />
-        <Route path="/research" element={<PageTransition><Research /></PageTransition>} />
-        <Route path="/tools" element={<PageTransition><Tools /></PageTransition>} />
-        <Route path="/tools/launch" element={<PageTransition><ToolsLauncher /></PageTransition>} />
-        <Route path="/community" element={<PageTransition><Community /></PageTransition>} />
-        <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
-        <Route path="/dashboard" element={<PageTransition><DashboardOverview /></PageTransition>} />
-        <Route path="/dashboard/learning" element={<PageTransition><DashboardLearning /></PageTransition>} />
-        <Route path="/dashboard/research" element={<PageTransition><DashboardResearch /></PageTransition>} />
-        <Route path="/dashboard/tools" element={<PageTransition><DashboardTools /></PageTransition>} />
-        <Route path="/dashboard/profile" element={<PageTransition><DashboardProfile /></PageTransition>} />
-        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-      </Routes>
-    </AnimatePresence>
+    <>
+      <GlobeLoader isLoading={isTransitioning} />
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+          <Route path="/learn" element={<PageTransition><Learn /></PageTransition>} />
+          <Route path="/research" element={<PageTransition><Research /></PageTransition>} />
+          <Route path="/tools" element={<PageTransition><Tools /></PageTransition>} />
+          <Route path="/tools/launch" element={<PageTransition><ToolsLauncher /></PageTransition>} />
+          <Route path="/community" element={<PageTransition><Community /></PageTransition>} />
+          <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
+          <Route path="/dashboard" element={<PageTransition><DashboardOverview /></PageTransition>} />
+          <Route path="/dashboard/learning" element={<PageTransition><DashboardLearning /></PageTransition>} />
+          <Route path="/dashboard/research" element={<PageTransition><DashboardResearch /></PageTransition>} />
+          <Route path="/dashboard/tools" element={<PageTransition><DashboardTools /></PageTransition>} />
+          <Route path="/dashboard/profile" element={<PageTransition><DashboardProfile /></PageTransition>} />
+          <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+        </Routes>
+      </AnimatePresence>
+    </>
   );
 };
 
 // ---- MAIN APP ----
 const App = () => {
   const [showIntro, setShowIntro] = useState(() => {
-    // Check if intro has been shown before
     const hasSeenIntro = localStorage.getItem('hasSeenIntro');
     return !hasSeenIntro;
   });
 
-  // Automatically hide intro after 4s and mark as seen
   useEffect(() => {
     if (showIntro) {
       const timer = setTimeout(() => {
@@ -79,6 +95,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <GalaxyBackground />
             <GlobalAudioProvider />
             <AudioVisualizer />
             {showIntro ? <HeroIntro /> : <AnimatedRoutes />}
