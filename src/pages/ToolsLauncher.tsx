@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
+import GlobeLoader from "@/components/GlobeLoader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale, Target, Battery, ArrowUp } from "lucide-react";
@@ -68,7 +69,24 @@ const ToolsLauncher = () => {
   const [hideTabs, setHideTabs] = useState(!!toolParam);
   const [showToolsModal, setShowToolsModal] = useState(false);
   const [isHoveringTools, setIsHoveringTools] = useState(false);
+  const [isToolTransitioning, setIsToolTransitioning] = useState(false);
+  const [previousTool, setPreviousTool] = useState(activeTab);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Handle tool transitions with globe loader
+  const triggerToolTransition = (newTab: string) => {
+    if (newTab !== previousTool) {
+      setIsToolTransitioning(true);
+      const timer = setTimeout(() => {
+        setActiveTab(newTab);
+        setPreviousTool(newTab);
+        setIsToolTransitioning(false);
+      }, 600);
+      return () => clearTimeout(timer);
+    } else {
+      setActiveTab(newTab);
+    }
+  };
 
   // Update active tab when URL changes
   useEffect(() => {
@@ -77,11 +95,15 @@ const ToolsLauncher = () => {
     
     if (toolParam && TOOL_NAME_TO_TAB[toolParam]) {
       const tabId = TOOL_NAME_TO_TAB[toolParam];
-      setActiveTab(tabId);
+      if (tabId !== previousTool) {
+        triggerToolTransition(tabId);
+      }
       setHideTabs(true);
     } else if (toolParam) {
       // Direct tab ID in URL
-      setActiveTab(toolParam);
+      if (toolParam !== previousTool) {
+        triggerToolTransition(toolParam);
+      }
       setHideTabs(true);
     } else {
       // No tool parameter - show all tabs
@@ -101,10 +123,34 @@ const ToolsLauncher = () => {
   };
 
   const handleToolClick = (tabId: string) => {
-    setActiveTab(tabId);
-    setShowToolsModal(false);
-    setIsHoveringTools(false); // Reset hover state when modal closes
-    navigate(`/tools/launch?tool=${tabId}`);
+    if (tabId !== activeTab) {
+      setIsToolTransitioning(true);
+      setShowToolsModal(false);
+      setIsHoveringTools(false);
+      
+      setTimeout(() => {
+        setActiveTab(tabId);
+        setPreviousTool(tabId);
+        setIsToolTransitioning(false);
+        navigate(`/tools/launch?tool=${tabId}`);
+      }, 600);
+    } else {
+      setShowToolsModal(false);
+      setIsHoveringTools(false);
+    }
+  };
+
+  const handleTabChange = (newTab: string) => {
+    if (newTab !== activeTab) {
+      setIsToolTransitioning(true);
+      
+      setTimeout(() => {
+        setActiveTab(newTab);
+        setPreviousTool(newTab);
+        setHideTabs(false);
+        setIsToolTransitioning(false);
+      }, 600);
+    }
   };
 
   const showAllTabs = () => {
@@ -135,6 +181,9 @@ const ToolsLauncher = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
+      {/* Globe loader for tool transitions */}
+      <GlobeLoader isLoading={isToolTransitioning} />
+      
       <Navbar />
       <PageBreadcrumb />
       
@@ -242,7 +291,7 @@ const ToolsLauncher = () => {
               transition={{ duration: 0.6 }}
               className="mb-8"
             >
-              <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setHideTabs(false); }} className="w-full">
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               {!hideTabs && (
                 <TabsList className="flex flex-wrap w-full max-w-full mx-auto bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-3 gap-2 sm:gap-3 rounded-xl mb-8 overflow-hidden">
                 <TabsTrigger 
