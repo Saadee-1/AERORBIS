@@ -30,9 +30,9 @@ export function AeroButton({
   ...props 
 }: AeroButtonProps) {
   const variantClasses: Record<string, string> = {
-    primary: 'bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold hover:from-cyan-600 hover:to-blue-600',
-    outline: 'border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10',
-    ghost: 'text-cyan-400 hover:bg-cyan-400/10',
+    primary: 'bg-slate-900/80 border border-cyan-400/40 text-cyan-100 hover:border-cyan-400/70 hover:text-white hover:shadow-[0_0_20px_hsl(185_80%_50%/0.5),0_0_40px_hsl(185_80%_50%/0.25),inset_0_0_15px_hsl(185_80%_50%/0.1)]',
+    outline: 'border border-cyan-400/30 bg-slate-900/60 text-cyan-100 hover:border-cyan-400/70 hover:bg-slate-900/80 hover:text-white hover:shadow-[0_0_20px_hsl(185_80%_50%/0.5),0_0_40px_hsl(185_80%_50%/0.25),inset_0_0_15px_hsl(185_80%_50%/0.1)]',
+    ghost: 'text-cyan-100 hover:bg-cyan-400/10 hover:text-white hover:shadow-[0_0_15px_hsl(185_80%_50%/0.3)]',
   };
 
   // For variants like 'destructive', 'secondary', etc., pass them directly to Button
