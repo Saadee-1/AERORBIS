@@ -70,18 +70,23 @@ const ToolsLauncher = () => {
   const [showToolsModal, setShowToolsModal] = useState(false);
   const [isHoveringTools, setIsHoveringTools] = useState(false);
   const [isToolTransitioning, setIsToolTransitioning] = useState(false);
+  const [isContentVisible, setIsContentVisible] = useState(true);
   const [previousTool, setPreviousTool] = useState(activeTab);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const TRANSITION_DURATION = 400;
 
-  // Handle tool transitions with globe loader
+  // Handle tool transitions with globe loader and fade animation
   const triggerToolTransition = (newTab: string) => {
     if (newTab !== previousTool) {
+      setIsContentVisible(false);
       setIsToolTransitioning(true);
       const timer = setTimeout(() => {
         setActiveTab(newTab);
         setPreviousTool(newTab);
         setIsToolTransitioning(false);
-      }, 600);
+        setIsContentVisible(true);
+      }, TRANSITION_DURATION);
       return () => clearTimeout(timer);
     } else {
       setActiveTab(newTab);
@@ -124,6 +129,7 @@ const ToolsLauncher = () => {
 
   const handleToolClick = (tabId: string) => {
     if (tabId !== activeTab) {
+      setIsContentVisible(false);
       setIsToolTransitioning(true);
       setShowToolsModal(false);
       setIsHoveringTools(false);
@@ -132,8 +138,9 @@ const ToolsLauncher = () => {
         setActiveTab(tabId);
         setPreviousTool(tabId);
         setIsToolTransitioning(false);
+        setIsContentVisible(true);
         navigate(`/tools/launch?tool=${tabId}`);
-      }, 600);
+      }, TRANSITION_DURATION);
     } else {
       setShowToolsModal(false);
       setIsHoveringTools(false);
@@ -142,6 +149,7 @@ const ToolsLauncher = () => {
 
   const handleTabChange = (newTab: string) => {
     if (newTab !== activeTab) {
+      setIsContentVisible(false);
       setIsToolTransitioning(true);
       
       setTimeout(() => {
@@ -149,7 +157,8 @@ const ToolsLauncher = () => {
         setPreviousTool(newTab);
         setHideTabs(false);
         setIsToolTransitioning(false);
-      }, 600);
+        setIsContentVisible(true);
+      }, TRANSITION_DURATION);
     }
   };
 
@@ -402,65 +411,70 @@ const ToolsLauncher = () => {
                 </TabsList>
               )}
 
-              <TabsContent value="thrust" className="mt-0">
-                <ThrustCalculator />
-              </TabsContent>
+              <motion.div
+                animate={{ opacity: isContentVisible ? 1 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <TabsContent value="thrust" className="mt-0">
+                  <ThrustCalculator />
+                </TabsContent>
 
-              <TabsContent value="wing" className="mt-0">
-                <WingLoadingCalculator />
-              </TabsContent>
+                <TabsContent value="wing" className="mt-0">
+                  <WingLoadingCalculator />
+                </TabsContent>
 
-              <TabsContent value="orbital" className="mt-0">
-                <OrbitalVisualizer />
-              </TabsContent>
+                <TabsContent value="orbital" className="mt-0">
+                  <OrbitalVisualizer />
+                </TabsContent>
 
-              <TabsContent value="liftdrag" className="mt-0">
-                <LaunchpadWithMissionPanel />
-              </TabsContent>
+                <TabsContent value="liftdrag" className="mt-0">
+                  <LaunchpadWithMissionPanel />
+                </TabsContent>
 
-              <TabsContent value="reynolds" className="mt-0">
-                <ReynoldsNumberCalculator />
-              </TabsContent>
+                <TabsContent value="reynolds" className="mt-0">
+                  <ReynoldsNumberCalculator />
+                </TabsContent>
 
-              <TabsContent value="materials" className="mt-0">
-                <MaterialsDatabase />
-              </TabsContent>
+                <TabsContent value="materials" className="mt-0">
+                  <MaterialsDatabase />
+                </TabsContent>
 
-              <TabsContent value="deltav" className="mt-0">
-                <DeltaVPlanner />
-              </TabsContent>
+                <TabsContent value="deltav" className="mt-0">
+                  <DeltaVPlanner />
+                </TabsContent>
 
-              <TabsContent value="antenna" className="mt-0">
-                <AntennaPatternAnalyzer />
-              </TabsContent>
+                <TabsContent value="antenna" className="mt-0">
+                  <AntennaPatternAnalyzer />
+                </TabsContent>
 
-              <TabsContent value="atmosphere" className="mt-0">
-                <StandardAtmosphereCalculator />
-              </TabsContent>
+                <TabsContent value="atmosphere" className="mt-0">
+                  <StandardAtmosphereCalculator />
+                </TabsContent>
 
-              <TabsContent value="rocketengine" className="mt-0">
-                <RocketEngineCalculator />
-              </TabsContent>
+                <TabsContent value="rocketengine" className="mt-0">
+                  <RocketEngineCalculator />
+                </TabsContent>
 
-              <TabsContent value="stability" className="mt-0">
-                <StabilityCalculator />
-              </TabsContent>
+                <TabsContent value="stability" className="mt-0">
+                  <StabilityCalculator />
+                </TabsContent>
 
-              <TabsContent value="power" className="mt-0">
-                <PowerSystemCalculator />
-              </TabsContent>
+                <TabsContent value="power" className="mt-0">
+                  <PowerSystemCalculator />
+                </TabsContent>
 
-              <TabsContent value="weight" className="mt-0">
-                <StructuralWeightEstimator />
-              </TabsContent>
+                <TabsContent value="weight" className="mt-0">
+                  <StructuralWeightEstimator />
+                </TabsContent>
 
-              <TabsContent value="trajectory" className="mt-0">
-                <TrajectorySimulator />
-              </TabsContent>
+                <TabsContent value="trajectory" className="mt-0">
+                  <TrajectorySimulator />
+                </TabsContent>
 
-              <TabsContent value="climb" className="mt-0">
-                <ClimbPerformanceCalculator />
-              </TabsContent>
+                <TabsContent value="climb" className="mt-0">
+                  <ClimbPerformanceCalculator />
+                </TabsContent>
+              </motion.div>
             </Tabs>
           </motion.div>
           </DesignSessionProvider>
