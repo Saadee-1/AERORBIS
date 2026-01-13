@@ -23,42 +23,60 @@ interface NebulaCloud {
   pulseDelay: number;
 }
 
+interface AuroraWave {
+  id: number;
+  yPosition: number;
+  color: string;
+  height: number;
+  duration: number;
+  delay: number;
+}
+
 const GalaxyBackground = () => {
   const { mouseX, mouseY, scrollY } = useParallax();
 
-  // Color palette for stars
+  // Color palette for stars - clean, no glow colors
   const starColors = useMemo(() => [
     'rgba(255, 255, 255, 1)',
-    'rgba(200, 220, 255, 1)',
-    'rgba(255, 240, 220, 1)',
+    'rgba(220, 235, 255, 1)',
+    'rgba(255, 248, 240, 1)',
+    'rgba(200, 215, 255, 1)',
+    'rgba(255, 225, 210, 1)',
     'rgba(180, 200, 255, 1)',
-    'rgba(255, 200, 180, 1)',
   ], []);
 
-  // Generate more stars with varied properties
+  // Generate clean, round stars without halos
   const stars = useMemo<Star[]>(() => {
-    const starCount = 350;
+    const starCount = 400;
     return Array.from({ length: starCount }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 2.5 + 0.5,
-      opacity: Math.random() * 0.9 + 0.1,
-      blinkDuration: Math.random() * 4 + 1.5,
-      blinkDelay: Math.random() * 8,
-      parallaxFactor: Math.random() * 0.8 + 0.1,
+      size: Math.random() * 2 + 0.3,
+      opacity: Math.random() * 0.85 + 0.15,
+      blinkDuration: Math.random() * 5 + 2,
+      blinkDelay: Math.random() * 10,
+      parallaxFactor: Math.random() * 0.6 + 0.1,
       color: starColors[Math.floor(Math.random() * starColors.length)],
     }));
   }, [starColors]);
 
-  // Enhanced nebula clouds with more variety
+  // Aurora waves configuration
+  const auroraWaves = useMemo<AuroraWave[]>(() => [
+    { id: 0, yPosition: 15, color: 'rgba(50, 180, 120, 0.04)', height: 120, duration: 15, delay: 0 },
+    { id: 1, yPosition: 25, color: 'rgba(80, 200, 180, 0.035)', height: 100, duration: 18, delay: 3 },
+    { id: 2, yPosition: 20, color: 'rgba(100, 220, 200, 0.03)', height: 140, duration: 20, delay: 6 },
+    { id: 3, yPosition: 30, color: 'rgba(60, 150, 200, 0.04)', height: 90, duration: 16, delay: 2 },
+    { id: 4, yPosition: 10, color: 'rgba(120, 180, 220, 0.025)', height: 110, duration: 22, delay: 8 },
+  ], []);
+
+  // Subtle nebula clouds for Milky Way/Andromeda effect
   const nebulaClouds = useMemo<NebulaCloud[]>(() => [
-    { x: 15, y: 25, size: 500, color: 'rgba(100, 50, 180, 0.04)', blur: 100, pulseDelay: 0 },
-    { x: 75, y: 55, size: 600, color: 'rgba(50, 120, 200, 0.035)', blur: 120, pulseDelay: 2 },
-    { x: 45, y: 15, size: 450, color: 'rgba(180, 80, 150, 0.03)', blur: 90, pulseDelay: 4 },
-    { x: 85, y: 75, size: 400, color: 'rgba(80, 150, 220, 0.04)', blur: 100, pulseDelay: 6 },
-    { x: 30, y: 70, size: 550, color: 'rgba(120, 60, 180, 0.035)', blur: 110, pulseDelay: 3 },
-    { x: 60, y: 40, size: 380, color: 'rgba(60, 100, 180, 0.03)', blur: 85, pulseDelay: 5 },
+    { x: 15, y: 25, size: 600, color: 'rgba(100, 80, 150, 0.025)', blur: 120, pulseDelay: 0 },
+    { x: 75, y: 55, size: 700, color: 'rgba(80, 100, 160, 0.02)', blur: 140, pulseDelay: 2 },
+    { x: 45, y: 15, size: 500, color: 'rgba(140, 100, 160, 0.018)', blur: 100, pulseDelay: 4 },
+    { x: 85, y: 75, size: 450, color: 'rgba(90, 120, 180, 0.022)', blur: 110, pulseDelay: 6 },
+    { x: 30, y: 70, size: 650, color: 'rgba(110, 90, 150, 0.02)', blur: 130, pulseDelay: 3 },
   ], []);
 
   // Interactive glow that follows cursor
@@ -72,45 +90,76 @@ const GalaxyBackground = () => {
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Deep space gradient base with scroll effect */}
+      {/* Deep space gradient base - clean dark sky */}
       <div 
         className="absolute inset-0"
         style={{
           background: `
-            radial-gradient(ellipse 90% 60% at 50% 100%, rgba(25, 15, 50, 0.5) 0%, transparent 55%),
-            radial-gradient(ellipse 70% 50% at 15% 15%, rgba(40, 25, 80, 0.4) 0%, transparent 45%),
-            radial-gradient(ellipse 80% 55% at 85% 25%, rgba(25, 40, 100, 0.3) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 40% at 50% 50%, rgba(30, 20, 70, 0.2) 0%, transparent 60%),
-            linear-gradient(180deg, hsl(240, 100%, 5%) 0%, hsl(250, 100%, 3%) 50%, hsl(240, 100%, 2%) 100%)
+            radial-gradient(ellipse 100% 80% at 50% 100%, rgba(15, 10, 35, 0.6) 0%, transparent 60%),
+            radial-gradient(ellipse 80% 60% at 20% 10%, rgba(25, 20, 60, 0.4) 0%, transparent 50%),
+            radial-gradient(ellipse 90% 70% at 80% 20%, rgba(20, 30, 70, 0.35) 0%, transparent 55%),
+            linear-gradient(180deg, hsl(240, 100%, 4%) 0%, hsl(250, 100%, 2%) 50%, hsl(240, 100%, 1%) 100%)
           `,
-          transform: `translateY(${scrollOffset * 0.2}px)`,
+          transform: `translateY(${scrollOffset * 0.15}px)`,
         }}
       />
 
-      {/* Interactive cursor glow */}
+      {/* Aurora wave animations */}
+      {auroraWaves.map((wave) => (
+        <motion.div
+          key={`aurora-${wave.id}`}
+          className="absolute w-full pointer-events-none"
+          style={{
+            top: `${wave.yPosition}%`,
+            height: wave.height,
+            background: `linear-gradient(90deg, 
+              transparent 0%, 
+              ${wave.color} 20%, 
+              ${wave.color.replace('0.0', '0.0')} 40%, 
+              ${wave.color} 60%, 
+              transparent 100%
+            )`,
+            filter: 'blur(60px)',
+            transform: `translateX(${mouseX * 20}px) translateY(${scrollOffset * 0.2}px)`,
+          }}
+          animate={{
+            opacity: [0.3, 0.7, 0.5, 0.8, 0.3],
+            scaleX: [1, 1.1, 0.95, 1.05, 1],
+            x: ['-5%', '5%', '-3%', '4%', '-5%'],
+          }}
+          transition={{
+            duration: wave.duration,
+            delay: wave.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
+      {/* Interactive cursor glow - subtle */}
       <motion.div
         className="absolute rounded-full pointer-events-none"
         style={{
           left: `${cursorGlow.x}%`,
           top: `${cursorGlow.y}%`,
-          width: 600,
-          height: 600,
-          background: 'radial-gradient(circle, rgba(34, 211, 238, 0.03) 0%, rgba(34, 211, 238, 0.01) 40%, transparent 70%)',
+          width: 500,
+          height: 500,
+          background: 'radial-gradient(circle, rgba(34, 211, 238, 0.02) 0%, rgba(34, 211, 238, 0.008) 40%, transparent 70%)',
           transform: 'translate(-50%, -50%)',
-          filter: 'blur(40px)',
+          filter: 'blur(50px)',
         }}
         animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.6, 0.8, 0.6],
+          scale: [1, 1.08, 1],
+          opacity: [0.5, 0.7, 0.5],
         }}
         transition={{
-          duration: 3,
+          duration: 4,
           repeat: Infinity,
           ease: 'easeInOut',
         }}
       />
 
-      {/* Nebula clouds with enhanced parallax and pulse */}
+      {/* Subtle nebula clouds for galaxy depth */}
       {nebulaClouds.map((cloud, index) => (
         <motion.div
           key={index}
@@ -120,16 +169,16 @@ const GalaxyBackground = () => {
             top: `${cloud.y}%`,
             width: cloud.size,
             height: cloud.size,
-            background: `radial-gradient(circle, ${cloud.color} 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${cloud.color} 0%, transparent 65%)`,
             filter: `blur(${cloud.blur}px)`,
-            transform: `translate(-50%, -50%) translate(${mouseX * 15 * (index % 3 + 1) * 0.3}px, ${mouseY * 15 * (index % 3 + 1) * 0.3 + scrollOffset * 0.3}px)`,
+            transform: `translate(-50%, -50%) translate(${mouseX * 12 * (index % 3 + 1) * 0.25}px, ${mouseY * 12 * (index % 3 + 1) * 0.25 + scrollOffset * 0.25}px)`,
           }}
           animate={{
-            scale: [1, 1.15, 1.05, 1.2, 1],
-            opacity: [0.5, 0.9, 0.7, 0.85, 0.5],
+            scale: [1, 1.1, 1.02, 1.08, 1],
+            opacity: [0.4, 0.7, 0.55, 0.65, 0.4],
           }}
           transition={{
-            duration: 10 + index * 2,
+            duration: 12 + index * 2,
             delay: cloud.pulseDelay,
             repeat: Infinity,
             ease: 'easeInOut',
@@ -137,46 +186,52 @@ const GalaxyBackground = () => {
         />
       ))}
 
-      {/* Enhanced Milky Way band with more depth */}
+      {/* Milky Way band - visible diagonal sweep */}
       <div 
         className="absolute inset-0"
         style={{
           background: `
             linear-gradient(
-              140deg,
+              135deg,
               transparent 0%,
-              rgba(120, 90, 160, 0.015) 15%,
-              rgba(160, 130, 200, 0.035) 30%,
-              rgba(200, 170, 230, 0.05) 45%,
-              rgba(180, 150, 210, 0.045) 55%,
-              rgba(140, 110, 180, 0.03) 70%,
-              rgba(100, 80, 150, 0.015) 85%,
+              rgba(180, 160, 200, 0.012) 10%,
+              rgba(200, 180, 220, 0.025) 25%,
+              rgba(220, 200, 240, 0.04) 40%,
+              rgba(240, 220, 255, 0.05) 50%,
+              rgba(220, 200, 240, 0.04) 60%,
+              rgba(200, 180, 220, 0.025) 75%,
+              rgba(180, 160, 200, 0.012) 90%,
               transparent 100%
             )
           `,
-          transform: `translate(${mouseX * 8}px, ${mouseY * 8 + scrollOffset * 0.1}px)`,
+          transform: `translate(${mouseX * 6}px, ${mouseY * 6 + scrollOffset * 0.08}px)`,
         }}
       />
 
-      {/* Secondary Milky Way layer for depth */}
-      <div 
-        className="absolute inset-0"
+      {/* Andromeda galaxy - subtle elliptical glow */}
+      <motion.div
+        className="absolute"
         style={{
-          background: `
-            linear-gradient(
-              125deg,
-              transparent 0%,
-              rgba(80, 100, 180, 0.02) 25%,
-              rgba(100, 130, 200, 0.03) 50%,
-              rgba(80, 100, 180, 0.02) 75%,
-              transparent 100%
-            )
-          `,
-          transform: `translate(${mouseX * 12}px, ${mouseY * 12}px)`,
+          left: '70%',
+          top: '25%',
+          width: 200,
+          height: 80,
+          background: 'radial-gradient(ellipse, rgba(200, 190, 220, 0.06) 0%, rgba(180, 170, 200, 0.03) 40%, transparent 70%)',
+          filter: 'blur(15px)',
+          borderRadius: '50%',
+          transform: `translate(-50%, -50%) rotate(-25deg) translate(${mouseX * 8}px, ${mouseY * 8}px)`,
+        }}
+        animate={{
+          opacity: [0.6, 0.8, 0.65, 0.75, 0.6],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: 'easeInOut',
         }}
       />
 
-      {/* Stars layer with enhanced variety */}
+      {/* Clean stars layer - NO halos, just round dots */}
       <div className="absolute inset-0">
         {stars.map((star) => (
           <motion.div
@@ -188,14 +243,11 @@ const GalaxyBackground = () => {
               width: star.size,
               height: star.size,
               backgroundColor: star.color,
-              transform: `translate(${mouseX * 25 * star.parallaxFactor}px, ${mouseY * 25 * star.parallaxFactor + scrollOffset * star.parallaxFactor * 0.5}px)`,
-              boxShadow: star.size > 1.5 
-                ? `0 0 ${star.size * 3}px ${star.size}px rgba(255, 255, 255, 0.4), 0 0 ${star.size * 6}px rgba(200, 220, 255, 0.2)` 
-                : `0 0 ${star.size * 2}px rgba(255, 255, 255, 0.3)`,
+              transform: `translate(${mouseX * 20 * star.parallaxFactor}px, ${mouseY * 20 * star.parallaxFactor + scrollOffset * star.parallaxFactor * 0.4}px)`,
             }}
             animate={{
-              opacity: [star.opacity, star.opacity * 0.2, star.opacity * 0.8, star.opacity * 0.3, star.opacity],
-              scale: [1, 0.7, 1.1, 0.8, 1],
+              opacity: [star.opacity, star.opacity * 0.3, star.opacity * 0.7, star.opacity * 0.4, star.opacity],
+              scale: [1, 0.8, 1.05, 0.85, 1],
             }}
             transition={{
               duration: star.blinkDuration,
@@ -207,72 +259,74 @@ const GalaxyBackground = () => {
         ))}
       </div>
 
-      {/* Additional bright accent stars */}
-      {Array.from({ length: 15 }).map((_, i) => (
+      {/* Brighter fixed stars - clean, no glow */}
+      {Array.from({ length: 25 }).map((_, i) => (
         <motion.div
-          key={`accent-${i}`}
+          key={`bright-${i}`}
           className="absolute rounded-full"
           style={{
-            left: `${10 + (i * 6) % 80}%`,
-            top: `${15 + (i * 7) % 70}%`,
-            width: 3,
-            height: 3,
-            backgroundColor: i % 3 === 0 ? 'rgba(34, 211, 238, 0.9)' : 'rgba(255, 255, 255, 0.95)',
-            boxShadow: i % 3 === 0 
-              ? '0 0 8px 3px rgba(34, 211, 238, 0.5), 0 0 15px 5px rgba(34, 211, 238, 0.2)'
-              : '0 0 6px 2px rgba(255, 255, 255, 0.6), 0 0 12px 4px rgba(200, 220, 255, 0.3)',
-            transform: `translate(${mouseX * 30 * ((i % 5) * 0.1 + 0.2)}px, ${mouseY * 30 * ((i % 5) * 0.1 + 0.2)}px)`,
+            left: `${8 + (i * 4) % 85}%`,
+            top: `${12 + (i * 5) % 75}%`,
+            width: i % 4 === 0 ? 2.5 : 2,
+            height: i % 4 === 0 ? 2.5 : 2,
+            backgroundColor: i % 5 === 0 
+              ? 'rgba(255, 200, 180, 0.95)' 
+              : i % 3 === 0 
+                ? 'rgba(180, 200, 255, 0.95)' 
+                : 'rgba(255, 255, 255, 0.95)',
+            transform: `translate(${mouseX * 25 * ((i % 4) * 0.1 + 0.15)}px, ${mouseY * 25 * ((i % 4) * 0.1 + 0.15)}px)`,
           }}
           animate={{
-            opacity: [0.9, 0.3, 0.9],
-            scale: [1, 1.3, 1],
+            opacity: [0.9, 0.4, 0.85, 0.5, 0.9],
+            scale: [1, 0.9, 1.1, 0.95, 1],
           }}
           transition={{
-            duration: 2 + i * 0.3,
-            delay: i * 0.5,
+            duration: 3 + i * 0.2,
+            delay: i * 0.4,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
         />
       ))}
 
-      {/* Multiple shooting stars with varied timing */}
+      {/* Shooting stars */}
       {[0, 1, 2].map((index) => (
         <motion.div
           key={`shooting-${index}`}
-          className="absolute w-1 h-1 bg-white rounded-full"
+          className="absolute w-1 h-0.5 bg-white rounded-full"
           style={{
-            boxShadow: '0 0 4px 2px rgba(255, 255, 255, 0.9), -30px 0 25px 3px rgba(255, 255, 255, 0.5), -60px 0 40px 2px rgba(200, 220, 255, 0.3)',
+            boxShadow: '-20px 0 15px 1px rgba(255, 255, 255, 0.4), -40px 0 25px 1px rgba(255, 255, 255, 0.2)',
           }}
           initial={{ left: '110%', top: `${10 + index * 25}%`, opacity: 0 }}
           animate={{
             left: ['-15%'],
-            top: [`${55 + index * 15}%`],
+            top: [`${50 + index * 12}%`],
             opacity: [0, 1, 1, 0],
           }}
           transition={{
-            duration: 1.5 + index * 0.3,
+            duration: 1.2 + index * 0.2,
             repeat: Infinity,
-            repeatDelay: 12 + index * 8,
-            delay: index * 5,
+            repeatDelay: 15 + index * 10,
+            delay: index * 6,
             ease: 'easeOut',
           }}
         />
       ))}
 
-      {/* Cosmic dust particles */}
+      {/* Subtle cosmic dust - very fine particles */}
       <div 
         className="absolute inset-0"
         style={{
           backgroundImage: `
-            radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 100%),
-            radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 100%),
-            radial-gradient(1px 1px at 60% 20%, rgba(255, 255, 255, 0.12) 0%, transparent 100%),
-            radial-gradient(1px 1px at 80% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 100%)
+            radial-gradient(0.5px 0.5px at 15% 25%, rgba(255, 255, 255, 0.08) 0%, transparent 100%),
+            radial-gradient(0.5px 0.5px at 35% 65%, rgba(255, 255, 255, 0.06) 0%, transparent 100%),
+            radial-gradient(0.5px 0.5px at 55% 15%, rgba(255, 255, 255, 0.07) 0%, transparent 100%),
+            radial-gradient(0.5px 0.5px at 75% 45%, rgba(255, 255, 255, 0.05) 0%, transparent 100%),
+            radial-gradient(0.5px 0.5px at 85% 85%, rgba(255, 255, 255, 0.06) 0%, transparent 100%)
           `,
           backgroundSize: '100% 100%',
-          transform: `translate(${mouseX * 5}px, ${mouseY * 5}px)`,
-          opacity: 0.8,
+          transform: `translate(${mouseX * 4}px, ${mouseY * 4}px)`,
+          opacity: 0.6,
         }}
       />
     </div>
