@@ -1,7 +1,9 @@
 /**
  * Aerobot API Integration
- * Configure your API key in environment variables: VITE_AEROBOT_API_KEY
+ * All API calls are routed through the secure backend edge function
  */
+
+import { supabase } from "@/integrations/supabase/client";
 
 export interface AerobotMessage {
   role: 'user' | 'assistant' | 'system';
@@ -21,8 +23,8 @@ export interface AerobotResponse {
 }
 
 /**
- * Call Aerobot API
- * You can configure the API endpoint and key via environment variables
+ * Call Aerobot API through secure backend edge function
+ * API keys are stored server-side for security
  */
 export async function callAerobotAPI(
   messages: AerobotMessage[],
@@ -32,45 +34,37 @@ export async function callAerobotAPI(
     max_tokens?: number;
   } = {}
 ): Promise<AerobotResponse> {
-  const apiKey = import.meta.env.VITE_AEROBOT_API_KEY;
-  const apiUrl = import.meta.env.VITE_AEROBOT_API_URL || 'https://api.openai.com/v1/chat/completions';
-  const model = import.meta.env.VITE_AEROBOT_MODEL || 'gpt-4o-mini';
-
-  if (!apiKey) {
-    throw new Error('AEROBOT_API_KEY is not configured. Please set VITE_AEROBOT_API_KEY in your environment variables.');
-  }
-
   try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
+    const { data, error } = await supabase.functions.invoke('ai-gateway', {
+      body: {
         messages,
-        temperature: options.temperature ?? (options.mode === 'summarize' ? 0.3 : 0.7),
-        max_tokens: options.max_tokens ?? (options.mode === 'summarize' ? 500 : 1000),
-        stream: false,
-      }),
+        mode: options.mode,
+        temperature: options.temperature,
+        max_tokens: options.max_tokens,
+      },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error?.message || `API error: ${response.status}`);
+    if (error) {
+      console.error('Aerobot API error:', error);
+      return {
+        content: '',
+        error: error.message || 'Failed to connect to AI service',
+      };
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || 'No response generated.';
+    if (data?.error) {
+      return {
+        content: '',
+        error: data.error,
+      };
+    }
 
-    return { content };
+    return { content: data?.content || '' };
   } catch (error) {
     console.error('Aerobot API error:', error);
     return {
       content: '',
-      error: error instanceof Error ? error.message : 'Failed to connect to Aerobot API',
+      error: error instanceof Error ? error.message : 'Failed to connect to AI service',
     };
   }
 }
-
