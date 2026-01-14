@@ -3,7 +3,16 @@
  * All API calls are routed through the secure backend edge function
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+async function getSupabaseClient(): Promise<SupabaseClient | null> {
+  try {
+    const mod = await import("@/integrations/supabase/client");
+    return mod.supabase as SupabaseClient;
+  } catch {
+    return null;
+  }
+}
 
 export interface AerobotMessage {
   role: 'user' | 'assistant' | 'system';
@@ -34,6 +43,14 @@ export async function callAerobotAPI(
     max_tokens?: number;
   } = {}
 ): Promise<AerobotResponse> {
+  const supabase = await getSupabaseClient();
+  if (!supabase) {
+    return {
+      content: '',
+      error: 'Backend client is not configured in this build (missing backend URL).',
+    };
+  }
+
   try {
     const { data, error } = await supabase.functions.invoke('ai-gateway', {
       body: {
