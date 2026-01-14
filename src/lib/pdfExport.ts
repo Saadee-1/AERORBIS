@@ -190,9 +190,9 @@ export async function exportToPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    // Use hardcoded Supabase endpoint with authentication
-    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
-    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
+    // Use environment variables for Supabase endpoint
+    const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
     try {
       const response = await fetch(`${assistantEventsUrl}/export/pdf`, {
@@ -273,9 +273,9 @@ export async function exportBatchPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    // Use hardcoded Supabase endpoint with authentication
-    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
-    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
+    // Use environment variables for Supabase endpoint
+    const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
     const response = await fetch(`${assistantEventsUrl}/export/batch`, {
       method: 'POST',
@@ -384,9 +384,9 @@ export async function downloadHTMLAsPDF(
  */
 export async function getCalculationContext(requestId: string) {
   try {
-    // Use hardcoded Supabase endpoint with authentication
-    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
-    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
+    // Use environment variables for Supabase endpoint
+    const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
     const response = await fetch(`${assistantEventsUrl}/context/${requestId}`, {
       method: 'GET',
@@ -434,9 +434,9 @@ export async function getExplanation(
   explanationLevel: 'brief' | 'detailed' | 'teaching' = 'detailed'
 ): Promise<string> {
   try {
-    // Use hardcoded Supabase endpoint with authentication
-    const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
-    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
+    // Use environment variables for Supabase endpoint
+    const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
     const response = await fetch(`${assistantEventsUrl}/explain`, {
       method: 'POST',

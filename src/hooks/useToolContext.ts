@@ -94,9 +94,9 @@ export const useToolContext = () => {
       // Always store locally first (even before trying to send to server)
       const fallbackResponse = createFallbackResponse();
 
-      // Use hardcoded Supabase endpoint with authentication
-      const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
-      const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
+      // Use environment variables for Supabase endpoint
+      const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       // Try to send to server, but don't fail if it doesn't work
       try {
@@ -207,9 +207,9 @@ export const useToolContext = () => {
           ...payload,
         };
 
-        // Use hardcoded Supabase endpoint with authentication
-        const assistantEventsUrl = "https://khzdqcixiqlomounagej.supabase.co/functions/v1/assistant-events";
-        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoemRxY2l4aXFsb21vdW5hZ2VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MDU4MjUsImV4cCI6MjA3ODk4MTgyNX0.E946JYReOMeS9f1qBFV-8sOI9NIUDAGt6nI-zSzyzbI";
+        // Use environment variables for Supabase endpoint
+        const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
         const response = await fetch(
           assistantEventsUrl,
