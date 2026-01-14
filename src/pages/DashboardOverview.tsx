@@ -1,12 +1,22 @@
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import { BookOpen, FlaskConical, Wrench, Users, ArrowRight, Rocket, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRef } from "react";
 
 const DashboardOverview = () => {
-  // Future Integration: Connect to Database
+  const welcomeRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const quickAccessRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+
+  const welcomeInView = useInView(welcomeRef, { once: true, margin: "-50px" as `${number}px` });
+  const statsInView = useInView(statsRef, { once: true, margin: "-50px" as `${number}px` });
+  const quickAccessInView = useInView(quickAccessRef, { once: true, margin: "-50px" as `${number}px` });
+  const progressInView = useInView(progressRef, { once: true, margin: "-50px" as `${number}px` });
+
   const stats = {
     coursesInProgress: 3,
     researchSubmissions: 2,
@@ -53,87 +63,153 @@ const DashboardOverview = () => {
     },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" as const },
+    },
+  };
+
   return (
     <DashboardLayout>
       {/* Welcome Panel */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        ref={welcomeRef}
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+        animate={welcomeInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 40, scale: 0.95 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="mb-8 p-8 rounded-2xl bg-gradient-to-r from-card via-primary/10 to-card border border-primary/30 shadow-[0_0_30px_rgba(255,215,0,0.2)] relative overflow-hidden text-center"
       >
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full blur-3xl" />
+        <motion.div 
+          className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.15, 0.1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
         
         <div className="relative z-10">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <Rocket className="w-8 h-8 text-primary drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]" />
+          <motion.div 
+            className="flex items-center justify-center gap-3 mb-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={welcomeInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Rocket className="w-8 h-8 text-primary drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]" />
+            </motion.div>
             <span className="px-3 py-1 bg-primary/20 border border-primary/40 rounded-full text-xs font-bold text-primary uppercase tracking-wide">
               Aerospace Student
             </span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+          </motion.div>
+          <motion.h1 
+            className="text-4xl md:text-5xl font-bold text-foreground mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={welcomeInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
             Welcome back, Saad! 👋
-          </h1>
-          <p className="text-secondary text-lg font-medium">
+          </motion.h1>
+          <motion.p 
+            className="text-secondary text-lg font-medium"
+            initial={{ opacity: 0, y: 20 }}
+            animate={welcomeInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
             Keep exploring. Keep designing. Keep defying gravity.
-          </p>
+          </motion.p>
         </div>
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <DashboardCard
-          title="Courses in Progress"
-          value={stats.coursesInProgress}
-          icon={BookOpen}
-          trend="+1 this week"
-        />
-        <DashboardCard
-          title="Research Submissions"
-          value={stats.researchSubmissions}
-          icon={FlaskConical}
-          description="Featured articles"
-        />
-        <DashboardCard
-          title="Tools Used"
-          value={stats.toolsUsed}
-          icon={Wrench}
-          trend="12 times this month"
-        />
-        <DashboardCard
-          title="Community Rank"
-          value={stats.communityRank}
-          icon={Users}
-          trend="↑ 23 spots"
-        />
-      </div>
+      <motion.div 
+        ref={statsRef}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate={statsInView ? "visible" : "hidden"}
+      >
+        {[
+          { title: "Courses in Progress", value: stats.coursesInProgress, icon: BookOpen, trend: "+1 this week" },
+          { title: "Research Submissions", value: stats.researchSubmissions, icon: FlaskConical, description: "Featured articles" },
+          { title: "Tools Used", value: stats.toolsUsed, icon: Wrench, trend: "12 times this month" },
+          { title: "Community Rank", value: stats.communityRank, icon: Users, trend: "↑ 23 spots" },
+        ].map((stat, index) => (
+          <motion.div key={stat.title} variants={itemVariants}>
+            <DashboardCard
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              trend={stat.trend}
+              description={stat.description}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Quick Access Cards */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        ref={quickAccessRef}
+        initial={{ opacity: 0, y: 30 }}
+        animate={quickAccessInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="mb-8"
       >
-        <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center justify-center gap-3 uppercase tracking-wide">
+        <motion.h2 
+          className="text-2xl font-bold text-foreground mb-6 flex items-center justify-center gap-3 uppercase tracking-wide"
+          initial={{ opacity: 0, x: -20 }}
+          animate={quickAccessInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+          transition={{ delay: 0.1, duration: 0.6 }}
+        >
           <Target className="w-6 h-6 text-primary" />
           Quick Access
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        </motion.h2>
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate={quickAccessInView ? "visible" : "hidden"}
+        >
           {quickAccessCards.map((card, index) => (
             <motion.div
               key={card.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-              whileHover={{ scale: 1.05, y: -5 }}
+              variants={itemVariants}
+              whileHover={{ 
+                scale: 1.05, 
+                y: -8,
+                transition: { duration: 0.3 }
+              }}
+              whileTap={{ scale: 0.98 }}
             >
               <Card className={`h-full border-primary/30 bg-gradient-to-br ${card.gradient} hover:shadow-[0_0_30px_rgba(255,215,0,0.3)] transition-all duration-300 group cursor-pointer text-center`}>
                 <CardHeader className="flex flex-col items-center">
-                  <div className="w-12 h-12 bg-primary/20 border border-primary/40 rounded-lg flex items-center justify-center mb-4 group-hover:shadow-[0_0_20px_rgba(255,215,0,0.5)] transition-all">
+                  <motion.div 
+                    className="w-12 h-12 bg-primary/20 border border-primary/40 rounded-lg flex items-center justify-center mb-4 group-hover:shadow-[0_0_20px_rgba(255,215,0,0.5)] transition-all"
+                    whileHover={{ rotate: [0, -10, 10, 0] }}
+                    transition={{ duration: 0.5 }}
+                  >
                     <card.icon className="w-6 h-6 text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]" />
-                  </div>
+                  </motion.div>
                   <CardTitle className="text-foreground font-bold uppercase text-sm tracking-wide">
                     {card.title}
                   </CardTitle>
@@ -147,23 +223,31 @@ const DashboardOverview = () => {
                     className="w-full justify-center text-primary hover:bg-primary/20 hover:text-primary font-bold uppercase text-xs tracking-wider border border-primary/30 hover:border-primary/50"
                   >
                     Go
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    <motion.span
+                      className="ml-2"
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </motion.span>
                   </Button>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       </motion.div>
 
       {/* Progress & Updates */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div 
+        ref={progressRef}
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate={progressInView ? "visible" : "hidden"}
+      >
         {/* Learning Progress */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <motion.div variants={itemVariants}>
           <Card className="border-primary/30 bg-gradient-to-br from-card to-primary/5 shadow-[0_0_20px_rgba(255,215,0,0.15)]">
             <CardHeader>
               <CardTitle className="text-foreground font-bold uppercase text-lg tracking-wide flex items-center gap-2">
@@ -187,24 +271,32 @@ const DashboardOverview = () => {
                       fill="transparent"
                       className="text-muted"
                     />
-                    <circle
+                    <motion.circle
                       cx="80"
                       cy="80"
                       r="70"
                       stroke="currentColor"
                       strokeWidth="12"
                       fill="transparent"
-                      strokeDasharray={`${2 * Math.PI * 70}`}
-                      strokeDashoffset={`${2 * Math.PI * 70 * (1 - learningProgress / 100)}`}
-                      className="text-primary drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]"
                       strokeLinecap="round"
+                      className="text-primary drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]"
+                      initial={{ strokeDasharray: `${2 * Math.PI * 70}`, strokeDashoffset: `${2 * Math.PI * 70}` }}
+                      animate={progressInView ? { 
+                        strokeDashoffset: `${2 * Math.PI * 70 * (1 - learningProgress / 100)}` 
+                      } : {}}
+                      transition={{ duration: 1.5, delay: 0.5, ease: "easeOut" }}
                     />
                   </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  <motion.div 
+                    className="absolute inset-0 flex items-center justify-center"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={progressInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.6, delay: 1 }}
+                  >
                     <span className="text-4xl font-bold text-primary drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]">
                       {learningProgress}%
                     </span>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
               <p className="text-center text-secondary font-medium">
@@ -215,11 +307,7 @@ const DashboardOverview = () => {
         </motion.div>
 
         {/* Latest Updates */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <motion.div variants={itemVariants}>
           <Card className="border-primary/30 bg-gradient-to-br from-card to-secondary/5 shadow-[0_0_20px_rgba(135,206,235,0.15)]">
             <CardHeader>
               <CardTitle className="text-foreground font-bold uppercase text-lg tracking-wide flex items-center gap-2">
@@ -232,10 +320,13 @@ const DashboardOverview = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentUpdates.map((update) => (
+                {recentUpdates.map((update, index) => (
                   <motion.div
                     key={update.id}
-                    whileHover={{ x: 5 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={progressInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                    transition={{ delay: 0.3 + index * 0.15, duration: 0.5 }}
+                    whileHover={{ x: 5, backgroundColor: "rgba(34, 211, 238, 0.05)" }}
                     className="p-4 rounded-lg bg-muted/30 border border-primary/20 hover:border-primary/40 transition-all cursor-pointer hover:shadow-[0_0_15px_rgba(255,215,0,0.2)]"
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -251,7 +342,7 @@ const DashboardOverview = () => {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 };

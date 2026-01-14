@@ -8,10 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, FileText, Calendar, Eye, Edit } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
 
 const DashboardResearch = () => {
-  // Mock data - Future Integration: Connect to Database
+  const headerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+
+  const headerInView = useInView(headerRef, { once: true, margin: "-50px" as `${number}px` });
+  const listInView = useInView(listRef, { once: true, margin: "-50px" as `${number}px` });
+  const statsInView = useInView(statsRef, { once: true, margin: "-50px" as `${number}px` });
+
   const research = [
     {
       id: 1,
@@ -52,10 +60,34 @@ const DashboardResearch = () => {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15, delayChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -30 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+  };
+
+  const statVariants = {
+    hidden: { opacity: 0, y: 30, scale: 0.9 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: "easeOut" as const } },
+  };
+
   return (
     <DashboardLayout>
       {/* Header */}
-      <div className="flex flex-col items-center text-center mb-8">
+      <motion.div 
+        ref={headerRef}
+        className="flex flex-col items-center text-center mb-8"
+        initial={{ opacity: 0, y: 30 }}
+        animate={headerInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div className="mb-4">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">My Research</h1>
           <p className="text-gray-400">Manage and submit your aerospace research</p>
@@ -64,16 +96,17 @@ const DashboardResearch = () => {
         {/* Upload Research Dialog */}
         <Dialog>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">
-              <Plus className="w-4 h-4 mr-2" />
-              Upload New Research
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+              <Button className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">
+                <Plus className="w-4 h-4 mr-2" />
+                Upload New Research
+              </Button>
+            </motion.div>
           </DialogTrigger>
           <DialogContent className="bg-slate-900/95 backdrop-blur-lg border-cyan-400/30 max-w-2xl">
             <DialogHeader>
               <DialogTitle className="text-white">Submit New Research</DialogTitle>
             </DialogHeader>
-            {/* Future Integration: Connect to Database */}
             <div className="space-y-4">
               <div>
                 <Label htmlFor="title" className="text-gray-300">Research Title</Label>
@@ -112,16 +145,21 @@ const DashboardResearch = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
 
       {/* Research List */}
-      <div className="space-y-6">
-        {research.map((item, index) => (
+      <motion.div 
+        ref={listRef}
+        className="space-y-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate={listInView ? "visible" : "hidden"}
+      >
+        {research.map((item) => (
           <motion.div
             key={item.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
+            variants={itemVariants}
+            whileHover={{ scale: 1.01, x: 10 }}
           >
             <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] hover:border-cyan-400/60 transition-all duration-300">
               <CardHeader>
@@ -147,48 +185,57 @@ const DashboardResearch = () => {
               <CardContent>
                 <p className="text-gray-300 mb-4">{item.abstract}</p>
                 <div className="flex space-x-3">
-                  <Button variant="outline" size="sm" className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10">
-                    <Eye className="w-4 h-4 mr-2" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+                    <Button variant="outline" size="sm" className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10">
+                      <Eye className="w-4 h-4 mr-2" />
+                      View
+                    </Button>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+                    <Button variant="outline" size="sm" className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                  </motion.div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-4xl font-bold text-cyan-400 mb-2 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">5</p>
-              <p className="text-gray-400">Total Submissions</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-4xl font-bold text-blue-400 mb-2 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">1</p>
-              <p className="text-gray-400">Featured Research</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-4xl font-bold text-white mb-2">234</p>
-              <p className="text-gray-400">Total Views</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <motion.div 
+        ref={statsRef}
+        className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate={statsInView ? "visible" : "hidden"}
+      >
+        {[
+          { value: "5", label: "Total Submissions", color: "text-cyan-400", shadow: "drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" },
+          { value: "1", label: "Featured Research", color: "text-blue-400", shadow: "drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" },
+          { value: "234", label: "Total Views", color: "text-white", shadow: "" },
+        ].map((stat) => (
+          <motion.div key={stat.label} variants={statVariants} whileHover={{ scale: 1.05, y: -5 }}>
+            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <motion.p 
+                    className={`text-4xl font-bold mb-2 ${stat.color} ${stat.shadow}`}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={statsInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
+                    transition={{ delay: 0.3, duration: 0.5, type: "spring", stiffness: 200 }}
+                  >
+                    {stat.value}
+                  </motion.p>
+                  <p className="text-gray-400">{stat.label}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
     </DashboardLayout>
   );
 };

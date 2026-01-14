@@ -5,10 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, BookOpen, Clock, Flame } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
 
 const DashboardLearning = () => {
-  // Mock data - Future Integration: Connect to Database
+  const headerRef = useRef<HTMLDivElement>(null);
+  const streakRef = useRef<HTMLDivElement>(null);
+  const modulesRef = useRef<HTMLDivElement>(null);
+  const badgesRef = useRef<HTMLDivElement>(null);
+
+  const headerInView = useInView(headerRef, { once: true, margin: "-50px" as `${number}px` });
+  const streakInView = useInView(streakRef, { once: true, margin: "-50px" as `${number}px` });
+  const modulesInView = useInView(modulesRef, { once: true, margin: "-50px" as `${number}px` });
+  const badgesInView = useInView(badgesRef, { once: true, margin: "-50px" as `${number}px` });
+
   const modules = [
     {
       id: 1,
@@ -53,29 +63,75 @@ const DashboardLearning = () => {
     { name: "Orbital Master", icon: "🌌", earned: false },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+  };
+
   return (
     <DashboardLayout>
       {/* Header */}
-      <div className="mb-8 text-center">
+      <motion.div 
+        ref={headerRef}
+        className="mb-8 text-center"
+        initial={{ opacity: 0, y: 30 }}
+        animate={headerInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">Learning Progress</h1>
         <p className="text-gray-400">Track your aerospace education journey</p>
-      </div>
+      </motion.div>
 
       {/* Streak Counter */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+        ref={streakRef}
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+        animate={streakInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.9, y: 30 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/30 rounded-2xl p-6 mb-8 shadow-[0_0_30px_rgba(34,211,238,0.2)]"
       >
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black w-16 h-16 rounded-full flex items-center justify-center text-2xl">
+          <motion.div 
+            className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black w-16 h-16 rounded-full flex items-center justify-center text-2xl"
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
             <Flame className="w-8 h-8" />
-          </div>
+          </motion.div>
           <div>
-            <h3 className="text-2xl font-bold text-white">5 Day Streak!</h3>
-            <p className="text-gray-300">You've studied 5 days in a row — keep going!</p>
+            <motion.h3 
+              className="text-2xl font-bold text-white"
+              initial={{ opacity: 0 }}
+              animate={streakInView ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              5 Day Streak!
+            </motion.h3>
+            <motion.p 
+              className="text-gray-300"
+              initial={{ opacity: 0 }}
+              animate={streakInView ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              You've studied 5 days in a row — keep going!
+            </motion.p>
           </div>
-          <Button className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">View Achievements</Button>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">
+              View Achievements
+            </Button>
+          </motion.div>
         </div>
       </motion.div>
 
@@ -89,13 +145,19 @@ const DashboardLearning = () => {
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {modules.map((module, index) => (
+          <motion.div 
+            ref={modulesRef}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate={modulesInView ? "visible" : "hidden"}
+          >
+            {modules.map((module) => (
               <motion.div
                 key={module.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                variants={itemVariants}
+                whileHover={{ scale: 1.02, y: -5 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl overflow-hidden hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] hover:border-cyan-400/60 transition-all duration-300">
                   <div
@@ -131,47 +193,66 @@ const DashboardLearning = () => {
                           </span>
                         </div>
                       </div>
-                      <Button className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">
-                        Continue Learning →
-                      </Button>
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Button className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">
+                          Continue Learning →
+                        </Button>
+                      </motion.div>
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </TabsContent>
       </Tabs>
 
       {/* Badges Section */}
-      <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-white">
-            <Award className="w-5 h-5 text-cyan-400" />
-            <span>Your Achievements</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {badges.map((badge, index) => (
-              <motion.div
-                key={badge.name}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className={`p-4 rounded-lg text-center transition-all duration-300 ${
-                  badge.earned
-                    ? "bg-cyan-400/10 border border-cyan-400/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
-                    : "bg-slate-900/50 border border-slate-700/30 opacity-50"
-                }`}
-              >
-                <div className="text-4xl mb-2">{badge.icon}</div>
-                <p className="text-xs font-medium text-gray-300">{badge.name}</p>
-              </motion.div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <motion.div
+        ref={badgesRef}
+        initial={{ opacity: 0, y: 40 }}
+        animate={badgesInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-white">
+              <Award className="w-5 h-5 text-cyan-400" />
+              <span>Your Achievements</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <motion.div 
+              className="grid grid-cols-2 md:grid-cols-5 gap-4"
+              variants={containerVariants}
+              initial="hidden"
+              animate={badgesInView ? "visible" : "hidden"}
+            >
+              {badges.map((badge) => (
+                <motion.div
+                  key={badge.name}
+                  variants={itemVariants}
+                  whileHover={{ scale: badge.earned ? 1.1 : 1, y: badge.earned ? -5 : 0 }}
+                  className={`p-4 rounded-lg text-center transition-all duration-300 ${
+                    badge.earned
+                      ? "bg-cyan-400/10 border border-cyan-400/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
+                      : "bg-slate-900/50 border border-slate-700/30 opacity-50"
+                  }`}
+                >
+                  <motion.div 
+                    className="text-4xl mb-2"
+                    animate={badge.earned ? { scale: [1, 1.2, 1] } : {}}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    {badge.icon}
+                  </motion.div>
+                  <p className="text-xs font-medium text-gray-300">{badge.name}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </DashboardLayout>
   );
 };
