@@ -3,7 +3,17 @@
  * All API calls are routed through the secure backend edge function
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+async function getSupabaseClient(): Promise<SupabaseClient | null> {
+  try {
+    const mod = await import("@/integrations/supabase/client");
+    return mod.supabase as SupabaseClient;
+  } catch {
+    // If env vars are missing, the generated client throws at import time.
+    return null;
+  }
+}
 
 export type GeminiResult =
   | { ok: true; content: string }
@@ -25,6 +35,15 @@ export function isSmartAiEnabled(): boolean {
  * @returns Structured result with success/error information
  */
 export async function callGeminiJSON(prompt: string): Promise<GeminiResult> {
+  const supabase = await getSupabaseClient();
+  if (!supabase) {
+    return {
+      ok: false,
+      reason: "AI_DISABLED",
+      detail: "Backend client is not configured in this build (missing backend URL).",
+    };
+  }
+
   try {
     const { data, error } = await supabase.functions.invoke('ai-gateway', {
       body: {
