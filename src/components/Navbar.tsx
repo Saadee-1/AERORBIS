@@ -33,7 +33,7 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-center h-14">
+        <div className="flex items-center justify-between h-14">
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-foreground tracking-wide">
             <img src={aerorbisLogo} alt="AERORBIS" className="w-8 h-8" />
@@ -55,6 +55,10 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
+          </div>
+
+          {/* Profile Menu - Right Side */}
+          <div className="hidden md:flex items-center">
             <ProfileMenu />
           </div>
 
