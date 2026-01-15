@@ -1,10 +1,8 @@
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
 import { useRef } from "react";
+import { useInView } from "framer-motion";
 import { Wind, Rocket, Plane, Satellite } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useActiveSection } from "@/hooks/useActiveSection";
 
 const modules = [
   {
@@ -35,61 +33,53 @@ const modules = [
 
 const LearningModules = () => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const activeSection = useActiveSection(["home", "about", "learn", "research", "tools", "community", "testimonials", "contact"]);
-  const isActive = activeSection === "learn";
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
-    <section 
-      id="learn" 
-      className={`py-24 bg-transparent relative overflow-hidden transition-all duration-500 ${
-        isActive ? "border-t border-b border-primary/20" : ""
-      }`}
-    >
-      <div className="container mx-auto px-4 lg:px-8" ref={ref}>
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+    <section id="learn" className="py-24 bg-transparent">
+      <div 
+        ref={ref}
+        className="container mx-auto px-4 lg:px-8"
+        style={{
+          opacity: isInView ? 1 : 0.95,
+          transform: isInView ? "translateY(0)" : "translateY(5px)",
+          transition: "opacity 220ms ease-out, transform 220ms ease-out",
+        }}
+      >
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-foreground">
             Featured Learning Modules
           </h2>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
             Comprehensive courses designed to take you from fundamentals to advanced concepts
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          {modules.map((module, index) => (
-            <motion.div
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {modules.map((module) => (
+            <Card 
               key={module.title}
-              initial={{ opacity: 0, y: 50 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              whileHover={{ scale: 1.03, y: -5 }}
+              className="h-full bg-card/50 border border-border/50 rounded-lg transition-colors duration-150 hover:border-border group"
             >
-              <Card className="h-full bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300 group cursor-pointer">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 rounded-lg bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center mb-4 mx-auto group-hover:shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-all">
-                    <module.icon className="w-8 h-8 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                  </div>
-                  <CardTitle className="text-xl text-white">{module.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <CardDescription className="text-base text-gray-300 mb-4">
-                    {module.description}
-                  </CardDescription>
-                  <Button
-                    variant="ghost"
-                    className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10 p-0 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]"
-                  >
-                    Learn More →
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
+              <CardHeader className="text-center">
+                <div className="w-14 h-14 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 mx-auto transition-colors duration-150 group-hover:border-primary/40">
+                  <module.icon className="w-7 h-7 text-primary" />
+                </div>
+                <CardTitle className="text-lg text-foreground">{module.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <CardDescription className="text-sm text-muted-foreground mb-4">
+                  {module.description}
+                </CardDescription>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary hover:text-primary/80 hover:bg-primary/5 transition-colors duration-150"
+                >
+                  Learn More →
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
