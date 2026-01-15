@@ -1,15 +1,11 @@
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
 import { useRef } from "react";
+import { useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FileText, Users, Lightbulb } from "lucide-react";
-import { useActiveSection } from "@/hooks/useActiveSection";
 
 const Research = () => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const activeSection = useActiveSection(["home", "about", "learn", "research", "tools", "community", "testimonials", "contact"]);
-  const isActive = activeSection === "research";
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   const features = [
     {
@@ -30,58 +26,48 @@ const Research = () => {
   ];
 
   return (
-    <section 
-      id="research" 
-      className={`py-24 bg-transparent relative overflow-hidden transition-all duration-500 ${
-        isActive ? "border-t border-b border-primary/20" : ""
-      }`}
-    >
-      <div className="container mx-auto px-4 lg:px-8 relative z-10" ref={ref}>
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-glow">
+    <section id="research" className="py-24 bg-transparent">
+      <div 
+        ref={ref}
+        className="container mx-auto px-4 lg:px-8"
+        style={{
+          opacity: isInView ? 1 : 0.95,
+          transform: isInView ? "translateY(0)" : "translateY(5px)",
+          transition: "opacity 220ms ease-out, transform 220ms ease-out",
+        }}
+      >
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-foreground">
             Research & Innovation
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
             Pushing the boundaries of aerospace engineering through collaborative research
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {features.map((feature, index) => (
-            <motion.div
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {features.map((feature) => (
+            <div
               key={feature.title}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
-              className="bg-card/30 backdrop-blur-lg border border-primary/20 rounded-xl p-6 hover:border-primary/40 transition-all duration-300 text-center"
+              className="bg-card/30 border border-border/50 rounded-lg p-6 text-center transition-colors duration-150 hover:border-border"
             >
-              <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <feature.icon className="w-7 h-7 text-primary" />
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <feature.icon className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
-            </motion.div>
+              <h3 className="text-lg font-medium mb-2 text-foreground">{feature.title}</h3>
+              <p className="text-sm text-muted-foreground">{feature.description}</p>
+            </div>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="text-center mt-12"
-        >
+        <div className="text-center mt-12">
           <Button
             size="lg"
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            className="transition-colors duration-150"
           >
             Contribute Research
           </Button>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
