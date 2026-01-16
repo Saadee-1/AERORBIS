@@ -35,38 +35,41 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Brand */}
-          <Link to="/" className="flex items-center gap-2 text-base sm:text-lg font-semibold text-foreground tracking-wide shrink-0">
-            <img src={aerorbisLogo} alt="AERORBIS" className="w-7 h-7 sm:w-8 sm:h-8" />
-            <span className="hidden xs:inline">AERORBIS</span>
-          </Link>
-
-          {/* Desktop Navigation - Centered */}
-          <div className="hidden lg:flex items-center justify-center flex-1 space-x-6 xl:space-x-8">
-            {menuItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`text-sm transition-colors duration-150 ${
-                  location.pathname === item.href
-                    ? "text-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+        <div className="flex items-center justify-center h-14 sm:h-16">
+          {/* Desktop Navigation - Centered with Brand */}
+          <div className="hidden lg:flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2 text-base font-semibold text-foreground tracking-wide">
+              <img src={aerorbisLogo} alt="AERORBIS" className="w-7 h-7" />
+              <span>AERORBIS</span>
+            </Link>
+            
+            <div className="flex items-center gap-6">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`text-sm transition-colors duration-150 ${
+                    location.pathname === item.href
+                      ? "text-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <AudioToggle />
+              <ProfileMenu />
+            </div>
           </div>
 
-          {/* Audio & Profile - Right Side (Desktop) */}
-          <div className="hidden lg:flex items-center gap-2">
-            <AudioToggle />
-            <ProfileMenu />
-          </div>
-
-          {/* Tablet Navigation - Compact */}
+          {/* Tablet Navigation - Centered */}
           <div className="hidden md:flex lg:hidden items-center gap-4">
+            <Link to="/" className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <img src={aerorbisLogo} alt="AERORBIS" className="w-6 h-6" />
+            </Link>
             {menuItems.slice(0, 4).map((item) => (
               <Link
                 key={item.name}
@@ -84,14 +87,20 @@ const Navbar = () => {
             <ProfileMenu />
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-muted-foreground hover:text-foreground transition-colors duration-150 p-2 -mr-2"
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          {/* Mobile - Brand + Menu Button */}
+          <div className="md:hidden flex items-center justify-between w-full">
+            <Link to="/" className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <img src={aerorbisLogo} alt="AERORBIS" className="w-7 h-7" />
+              <span>AERORBIS</span>
+            </Link>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-muted-foreground hover:text-foreground transition-colors duration-150 p-2 -mr-2"
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu - Full Width Overlay */}
