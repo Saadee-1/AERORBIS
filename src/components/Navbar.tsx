@@ -18,6 +18,7 @@ const Navbar = () => {
   }, []);
 
   const menuItems = [
+    { name: "Home", href: "/" },
     { name: "Tools", href: "/tools" },
     { name: "Learn", href: "/learn" },
     { name: "Research", href: "/research" },
@@ -26,22 +27,22 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-150 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ease-out ${
         scrolled 
-          ? "bg-background/80 backdrop-blur-sm border-b border-border/50" 
+          ? "bg-popover backdrop-blur-md border-b border-border/50" 
           : "bg-transparent"
       }`}
     >
-      <div className="container mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Brand */}
-          <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-foreground tracking-wide">
-            <img src={aerorbisLogo} alt="AERORBIS" className="w-8 h-8" />
-            AERORBIS
+          <Link to="/" className="flex items-center gap-2 text-base sm:text-lg font-semibold text-foreground tracking-wide shrink-0">
+            <img src={aerorbisLogo} alt="AERORBIS" className="w-7 h-7 sm:w-8 sm:h-8" />
+            <span className="hidden xs:inline">AERORBIS</span>
           </Link>
 
           {/* Desktop Navigation - Centered */}
-          <div className="hidden md:flex items-center justify-center flex-1 space-x-8">
+          <div className="hidden lg:flex items-center justify-center flex-1 space-x-6 xl:space-x-8">
             {menuItems.map((item) => (
               <Link
                 key={item.name}
@@ -57,42 +58,65 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Profile Menu - Right Side */}
-          <div className="hidden md:flex items-center">
+          {/* Profile Menu - Right Side (Desktop) */}
+          <div className="hidden lg:flex items-center">
+            <ProfileMenu />
+          </div>
+
+          {/* Tablet Navigation - Compact */}
+          <div className="hidden md:flex lg:hidden items-center gap-4">
+            {menuItems.slice(0, 4).map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`text-xs transition-colors duration-150 ${
+                  location.pathname === item.href
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
             <ProfileMenu />
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-muted-foreground hover:text-foreground transition-colors duration-150 p-1"
+            className="md:hidden text-muted-foreground hover:text-foreground transition-colors duration-150 p-2 -mr-2"
             aria-label="Toggle menu"
           >
-            {isOpen ? <X size={20} /> : <Menu size={20} />}
+            {isOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden border-t border-border/50">
-            <div className="flex flex-col py-4 space-y-1">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`text-sm py-2 transition-colors duration-150 ${
-                    location.pathname === item.href
-                      ? "text-foreground font-medium"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              ))}
+        {/* Mobile Menu - Full Width Overlay */}
+        <div 
+          className={`md:hidden overflow-hidden transition-all duration-200 ease-out ${
+            isOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="py-3 space-y-1 border-t border-border/30">
+            {menuItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={() => setIsOpen(false)}
+                className={`block text-sm py-2.5 px-1 transition-colors duration-150 ${
+                  location.pathname === item.href
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+            <div className="pt-3 border-t border-border/30">
+              <ProfileMenu />
             </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );
