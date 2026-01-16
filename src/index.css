@@ -144,10 +144,23 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     min-height: 100vh;
+    /* Smooth scrolling with better performance */
+    -webkit-overflow-scrolling: touch;
   }
 
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Smooth scroll momentum on all platforms */
+  * {
+    scroll-behavior: smooth;
+  }
+
+  /* Optimize rendering for smoother animations */
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
   }
 
   /* Typography defaults */
