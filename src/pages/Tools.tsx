@@ -1,7 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Wrench, Rocket, Wind, Globe, Box, Gauge, Calculator, Satellite, Database, Zap, Radio, Cloud, Plane, Scale, Target, Battery, ArrowUp } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -131,7 +130,6 @@ const Tools = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
       <PageBreadcrumb />
       
       {/* Hero Section */}

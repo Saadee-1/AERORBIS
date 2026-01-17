@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import GlobeLoader from "@/components/GlobeLoader";
@@ -193,7 +192,6 @@ const ToolsLauncher = () => {
       {/* Globe loader for tool transitions */}
       <GlobeLoader isLoading={isToolTransitioning} />
       
-      <Navbar />
       <PageBreadcrumb />
       
       <section className="relative py-12 flex-grow">

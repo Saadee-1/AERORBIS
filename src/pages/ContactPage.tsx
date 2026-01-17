@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Mail, MapPin, Phone, Linkedin, Youtube, Github, Instagram } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,6 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-black via-slate-900 to-black relative">
-      <Navbar />
       <PageBreadcrumb />
       
       {/* Hero Section */}
