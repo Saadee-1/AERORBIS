@@ -28,14 +28,10 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${
-        scrolled 
-          ? "bg-background/70 backdrop-blur-xl border-b border-border/30 shadow-lg shadow-background/10" 
-          : "bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out bg-background/85 backdrop-blur-xl border-b border-border/40 shadow-lg shadow-background/20`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+        <div className="flex items-center justify-between h-16 sm:h-18">
           {/* Brand - Left */}
           <Link to="/" className="flex items-center gap-2 text-base font-semibold text-foreground tracking-wide shrink-0">
             <img src={aerorbisLogo} alt="AERORBIS" className="w-7 h-7 sm:w-8 sm:h-8" />
@@ -44,13 +40,13 @@ const Navbar = () => {
 
           {/* Desktop Navigation - Center */}
           <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-            {menuItems.map((item) => (
+          {menuItems.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-sm transition-colors duration-150 ${
+                className={`text-sm transition-all duration-200 px-3 py-1.5 rounded-md ${
                   location.pathname === item.href
-                    ? "text-foreground font-medium"
+                    ? "text-cyan-400 font-medium shadow-[0_0_12px_rgba(34,211,238,0.4)] bg-cyan-500/10"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -71,9 +67,9 @@ const Navbar = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-xs transition-colors duration-150 ${
+                className={`text-xs transition-all duration-200 px-2 py-1 rounded-md ${
                   location.pathname === item.href
-                    ? "text-foreground font-medium"
+                    ? "text-cyan-400 font-medium shadow-[0_0_10px_rgba(34,211,238,0.4)] bg-cyan-500/10"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -106,9 +102,9 @@ const Navbar = () => {
                 key={item.name}
                 to={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`block text-sm py-2.5 px-1 transition-colors duration-150 ${
+                className={`block text-sm py-2.5 px-3 rounded-md transition-all duration-200 ${
                   location.pathname === item.href
-                    ? "text-foreground font-medium"
+                    ? "text-cyan-400 font-medium shadow-[0_0_12px_rgba(34,211,238,0.4)] bg-cyan-500/10"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
