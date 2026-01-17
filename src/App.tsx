@@ -27,6 +27,7 @@ import DashboardProfile from "./pages/DashboardProfile";
 import AudioVisualizer from "@/components/AudioVisualizer";
 import GlobalAudioProvider from "@/components/GlobalAudioProvider";
 import HeroIntro from "@/components/HeroIntro";
+import Navbar from "@/components/Navbar";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +98,7 @@ const App = () => {
           <BrowserRouter>
             <GalaxyBackground />
             <GlobalAudioProvider />
+            {!showIntro && <Navbar />}
             <AudioVisualizer />
             {showIntro ? <HeroIntro /> : <AnimatedRoutes />}
             <AIAssistant />

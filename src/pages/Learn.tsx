@@ -1,7 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { BookOpen, Rocket, Plane, Satellite, Wrench, Box } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,6 @@ const Learn = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black relative">
-      <Navbar />
       <PageBreadcrumb />
       
       {/* Hero Section */}

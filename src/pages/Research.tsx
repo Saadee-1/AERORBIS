@@ -7,7 +7,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Microscope, Rocket, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 
@@ -50,7 +49,6 @@ const Research = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black relative">
-      <Navbar />
       <PageBreadcrumb />
       
       {/* Hero Section */}
