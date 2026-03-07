@@ -1,87 +1,113 @@
 import { useRef } from "react";
-import { useInView } from "framer-motion";
-import { Wind, Rocket, Plane, Satellite } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { Wind, Rocket, Plane, Satellite, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 const modules = [
   {
     icon: Wind,
     title: "Aerodynamics & Flight Mechanics",
-    description:
-      "Master the principles of lift, drag, and fluid dynamics. Understand how aircraft achieve and maintain flight.",
+    description: "Lift, drag, fluid dynamics, and the physics of controlled flight.",
+    tag: "AERO-101",
+    status: "ACTIVE",
   },
   {
     icon: Rocket,
     title: "Rocket Propulsion Systems",
-    description:
-      "Explore chemical, electric, and nuclear propulsion. Learn rocket equations and thrust dynamics.",
+    description: "Chemical, electric, and nuclear propulsion. Thrust dynamics and rocket equations.",
+    tag: "PROP-201",
+    status: "ACTIVE",
   },
   {
     icon: Plane,
     title: "Aircraft Design & Structures",
-    description:
-      "Study structural analysis, materials selection, and design optimization for modern aircraft.",
+    description: "Structural analysis, materials selection, and design optimization.",
+    tag: "STRUC-301",
+    status: "ACTIVE",
   },
   {
     icon: Satellite,
     title: "Space Systems & Orbital Dynamics",
-    description:
-      "Dive into orbital mechanics, satellite systems, and mission planning for space exploration.",
+    description: "Orbital mechanics, satellite systems, and mission planning.",
+    tag: "ORBIT-401",
+    status: "ACTIVE",
   },
 ];
 
 const LearningModules = () => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.12 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, x: -30 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } },
+  };
 
   return (
-    <section id="learn" className="py-24 bg-transparent">
-      <div 
-        ref={ref}
-        className="container mx-auto px-4 lg:px-8"
-        style={{
-          opacity: isInView ? 1 : 0.95,
-          transform: isInView ? "translateY(0)" : "translateY(5px)",
-          transition: "opacity 220ms ease-out, transform 220ms ease-out",
-        }}
-      >
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-foreground">
-            Featured Learning Modules
-          </h2>
+    <section id="learn" className="py-28 bg-transparent relative">
+      <div className="section-divider mb-28" />
+      <div ref={ref} className="container mx-auto px-4 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <span className="text-hud text-xs mb-4 block">// Training Modules</span>
+          <h2 className="heading-1 text-foreground mb-4">Learning Modules</h2>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            Comprehensive courses designed to take you from fundamentals to advanced concepts
+            Structured courses from fundamentals to advanced — designed for engineering rigor.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {modules.map((module) => (
-            <Card 
-              key={module.title}
-              className="h-full bg-card/50 border border-border/50 rounded-lg transition-colors duration-150 hover:border-border group"
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="grid md:grid-cols-2 gap-5 max-w-5xl mx-auto"
+        >
+          {modules.map((mod) => (
+            <motion.div
+              key={mod.title}
+              variants={itemVariants}
+              className="group relative"
             >
-              <CardHeader className="text-center">
-                <div className="w-14 h-14 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 mx-auto transition-colors duration-150 group-hover:border-primary/40">
-                  <module.icon className="w-7 h-7 text-primary" />
+              <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-lg p-6 h-full transition-all duration-300 hover:border-primary/40 hover:bg-card/60 flex gap-5 items-start hud-corners">
+                <div className="w-12 h-12 shrink-0 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(185_85%_50%/0.15)] transition-all duration-300">
+                  <mod.icon className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle className="text-lg text-foreground">{module.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <CardDescription className="text-sm text-muted-foreground mb-4">
-                  {module.description}
-                </CardDescription>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-primary hover:text-primary/80 hover:bg-primary/5 transition-colors duration-150"
-                >
-                  Learn More →
-                </Button>
-              </CardContent>
-            </Card>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-mono text-primary/70 bg-primary/10 px-2 py-0.5 rounded">{mod.tag}</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--success))]" />
+                    <span className="text-[10px] text-[hsl(var(--success))] uppercase tracking-wider">{mod.status}</span>
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground mb-1 font-[Rajdhani] tracking-wide">{mod.title}</h3>
+                  <p className="text-sm text-muted-foreground">{mod.description}</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-primary/30 group-hover:text-primary group-hover:translate-x-1 transition-all mt-2 shrink-0" />
+              </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.8 }}
+          className="text-center mt-10"
+        >
+          <Button asChild variant="outline" className="border-primary/30 hover:border-primary/60 hover:bg-primary/5 gap-2">
+            <Link to="/learn">
+              View All Modules <ArrowRight className="w-4 h-4" />
+            </Link>
+          </Button>
+        </motion.div>
       </div>
     </section>
   );

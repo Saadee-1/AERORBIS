@@ -1,61 +1,66 @@
 import { useRef } from "react";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
+import { Shield, Target, Atom } from "lucide-react";
 
 const About = () => {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
 
-  const stats = [
-    { value: "50+", label: "Courses" },
-    { value: "10K+", label: "Students" },
-    { value: "100+", label: "Resources" },
+  const pillars = [
+    { icon: Target, title: "Precision Tools", desc: "Engineering-grade calculators validated against industry standards" },
+    { icon: Shield, title: "Trusted Data", desc: "Peer-reviewed resources and real-world aerospace datasets" },
+    { icon: Atom, title: "Deep Learning", desc: "From fundamentals to cutting-edge research methodologies" },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } },
+  };
+
   return (
-    <section id="about" className="py-24 bg-transparent">
-      <div 
-        ref={ref}
-        className="container mx-auto px-4 lg:px-8"
-        style={{
-          opacity: isInView ? 1 : 0.95,
-          transform: isInView ? "translateY(0)" : "translateY(5px)",
-          transition: "opacity 220ms ease-out, transform 220ms ease-out",
-        }}
-      >
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-foreground">
-            What is AERORBIS?
-          </h2>
-        </div>
+    <section id="about" className="py-28 bg-transparent relative">
+      <div className="section-divider mb-28" />
+      <div ref={ref} className="container mx-auto px-4 lg:px-8">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="max-w-5xl mx-auto"
+        >
+          <motion.div variants={itemVariants} className="text-center mb-4">
+            <span className="text-hud text-xs mb-4 block">// System Overview</span>
+            <h2 className="heading-1 text-foreground mb-6">What is AERORBIS?</h2>
+          </motion.div>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="space-y-6 text-center">
-            <p className="text-base text-muted-foreground leading-relaxed">
-              AERORBIS is a professional aerospace engineering platform supporting engineers and researchers 
-              at all levels. Access precision tools for aerodynamics, propulsion, orbital mechanics, 
-              materials science, and more.
-            </p>
-            <p className="text-base text-muted-foreground/80 leading-relaxed">
-              Our mission is to democratize aerospace education, making advanced concepts
-              accessible to everyone with a passion for flight and space exploration. Join
-              thousands of aspiring engineers on their journey to the stars.
-            </p>
+          <motion.p variants={itemVariants} className="text-center text-lg text-muted-foreground max-w-3xl mx-auto mb-16 leading-relaxed">
+            A next-generation aerospace engineering platform combining precision tools,
+            interactive simulations, and deep learning resources — built for engineers
+            who refuse to compromise on accuracy.
+          </motion.p>
 
-            <div className="grid grid-cols-3 gap-6 pt-8">
-              {stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="text-center bg-card/30 border border-border/50 rounded-lg p-4 transition-colors duration-150 hover:border-border"
-                >
-                  <div className="text-3xl font-semibold text-primary mb-1">
-                    {stat.value}
+          <motion.div variants={containerVariants} className="grid md:grid-cols-3 gap-6">
+            {pillars.map((pillar) => (
+              <motion.div
+                key={pillar.title}
+                variants={itemVariants}
+                className="relative group"
+              >
+                <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-lg p-8 h-full transition-all duration-300 hover:border-primary/40 hover:bg-card/60 hud-corners">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-5 group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(185_85%_50%/0.15)] transition-all duration-300">
+                    <pillar.icon className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2 font-[Rajdhani] tracking-wide">{pillar.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{pillar.desc}</p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

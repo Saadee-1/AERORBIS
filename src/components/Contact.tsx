@@ -1,19 +1,19 @@
 import { useRef, useState } from "react";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Linkedin, Youtube, Github, Instagram } from "lucide-react";
+import { Linkedin, Youtube, Github, Instagram, Send } from "lucide-react";
 import { toast } from "sonner";
 
 const Contact = () => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Message sent! We'll get back to you soon.");
+    toast.success("Transmission sent! We'll respond shortly.");
     setFormData({ name: "", email: "", message: "" });
   };
 
@@ -25,74 +25,75 @@ const Contact = () => {
   ];
 
   return (
-    <section id="contact" className="py-24 bg-transparent">
-      <div 
-        ref={ref}
-        className="container mx-auto px-4 lg:px-8"
-        style={{
-          opacity: isInView ? 1 : 0.95,
-          transform: isInView ? "translateY(0)" : "translateY(5px)",
-          transition: "opacity 220ms ease-out, transform 220ms ease-out",
-        }}
-      >
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-foreground">
-            Get in Touch
-          </h2>
+    <section id="contact" className="py-28 bg-transparent relative">
+      <div className="section-divider mb-28" />
+      <div ref={ref} className="container mx-auto px-4 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <span className="text-hud text-xs mb-4 block">// Open Channel</span>
+          <h2 className="heading-1 text-foreground mb-4">Get in Touch</h2>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            Have questions? We'd love to hear from you.
+            Have questions? Send a transmission — we'd love to hear from you.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="max-w-2xl mx-auto">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Input
-                placeholder="Your Name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="max-w-2xl mx-auto"
+        >
+          <div className="bg-card/30 backdrop-blur-xl border border-border/40 rounded-lg p-8 hud-corners">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid md:grid-cols-2 gap-5">
+                <Input
+                  placeholder="Callsign (Name)"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                />
+                <Input
+                  type="email"
+                  placeholder="Frequency (Email)"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                />
+              </div>
+              <Textarea
+                placeholder="Your Transmission..."
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 required
-                className="bg-card/50 border-border/50 text-foreground placeholder:text-muted-foreground transition-colors duration-150 focus:border-border"
+                rows={6}
+                className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 resize-none focus:border-primary/50 focus:ring-primary/20 transition-all"
               />
-              <Input
-                type="email"
-                placeholder="Your Email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-                className="bg-card/50 border-border/50 text-foreground placeholder:text-muted-foreground transition-colors duration-150 focus:border-border"
-              />
-            </div>
-            <Textarea
-              placeholder="Your Message"
-              value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              required
-              rows={6}
-              className="bg-card/50 border-border/50 text-foreground placeholder:text-muted-foreground resize-none transition-colors duration-150 focus:border-border"
-            />
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full transition-colors duration-150"
-            >
-              Send Message
-            </Button>
-          </form>
+              <Button type="submit" size="lg" className="w-full gap-2 glow-cyan font-semibold tracking-wide">
+                <Send className="w-4 h-4" />
+                Send Transmission
+              </Button>
+            </form>
+          </div>
 
-          <div className="flex justify-center gap-4 mt-12">
+          <div className="flex justify-center gap-4 mt-10">
             {socials.map((social) => (
               <a
                 key={social.label}
                 href={social.href}
                 aria-label={social.label}
-                className="w-10 h-10 rounded-full bg-card/50 border border-border/50 flex items-center justify-center transition-colors duration-150 hover:border-border hover:bg-card"
+                className="w-11 h-11 rounded-lg bg-card/40 border border-border/40 flex items-center justify-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/10 hover:shadow-[0_0_15px_hsl(185_85%_50%/0.15)] group"
               >
-                <social.icon className="w-4 h-4 text-muted-foreground" />
+                <social.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </a>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
