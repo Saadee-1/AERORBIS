@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import ProfileMenu from "./ProfileMenu";
@@ -7,7 +7,14 @@ import aerorbisLogo from "@/assets/aerorbis-logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const menuItems = [
     { name: "Home", href: "/" },
@@ -19,7 +26,11 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out bg-background/85 backdrop-blur-xl border-b border-border/40 shadow-lg shadow-background/20`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${
+        scrolled
+          ? "bg-background/90 backdrop-blur-2xl border-b border-primary/30 shadow-[0_2px_20px_hsl(var(--primary)/0.15)]"
+          : "bg-background/60 backdrop-blur-md border-b border-border/20"
+      }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-18">
