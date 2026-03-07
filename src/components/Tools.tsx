@@ -76,8 +76,8 @@ const Tools = () => {
               <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-lg p-6 h-full transition-all duration-300 hover:border-primary/50 hover:bg-card/60 text-center relative overflow-hidden hud-corners">
                 {/* Status indicator */}
                 <div className="flex items-center justify-center gap-1.5 mb-4">
-                  <Activity className="w-3 h-3 text-green-400" />
-                  <span className="text-[10px] text-green-400 uppercase tracking-widest font-mono">{tool.status}</span>
+                  <Activity className="w-3 h-3 text-[hsl(var(--success))]" />
+                  <span className="text-[10px] text-[hsl(var(--success))] uppercase tracking-widest font-mono">{tool.status}</span>
                 </div>
                 <div className="w-16 h-16 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5 group-hover:border-primary/50 group-hover:shadow-[0_0_25px_hsl(185_85%_50%/0.2)] transition-all duration-300 group-hover:scale-110">
                   <tool.icon className="w-8 h-8 text-primary" />

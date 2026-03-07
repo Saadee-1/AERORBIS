@@ -62,7 +62,7 @@ const Hero = () => {
             transition={{ delay: 0.2 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 border border-primary/30 rounded-full bg-primary/5 backdrop-blur-sm"
           >
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[hsl(var(--success))] animate-pulse" />
             <span className="text-hud text-xs">Systems Online — All Modules Operational</span>
           </motion.div>
 

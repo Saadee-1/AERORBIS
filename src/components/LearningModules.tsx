@@ -84,8 +84,8 @@ const LearningModules = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] font-mono text-primary/70 bg-primary/10 px-2 py-0.5 rounded">{mod.tag}</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                    <span className="text-[10px] text-green-400 uppercase tracking-wider">{mod.status}</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--success))]" />
+                    <span className="text-[10px] text-[hsl(var(--success))] uppercase tracking-wider">{mod.status}</span>
                   </div>
                   <h3 className="text-base font-semibold text-foreground mb-1 font-[Rajdhani] tracking-wide">{mod.title}</h3>
                   <p className="text-sm text-muted-foreground">{mod.description}</p>
