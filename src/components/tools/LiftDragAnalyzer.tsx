@@ -1543,7 +1543,7 @@ const point: Record<string, unknown> = { alpha };
                         label="Stall Angle of Attack (°)"
                         helperText="Angle of attack at which the airfoil stalls (maximum lift coefficient). Beyond this angle, the linear lift model is invalid. Typical range: 10-20° for most airfoils. Used to limit calculations to the pre-stall region."
                       >
-                        <Input id="alphaStall" type="number" value={customAirfoil.alpha_stall} onChange={(e) => handleCustomAirfoilChange("alpha_stall", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.1" min="0" />
+                        <Input id="alphaStall" type="number" value={customAirfoil.alpha_stall} onChange={(e) => handleCustomAirfoilChange("alpha_stall", e.target.value)} step="0.1" min="0" />
                       </AeroFormField>
                     </div>
                   </AeroCard>
