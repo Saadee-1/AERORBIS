@@ -1054,6 +1054,8 @@ const OrbitalVisualizer = () => {
           semiMajorAxis,
           eccentricity,
           inclination: inclinationRad,
+          raan: raanRad,
+          argOfPeriapsis: argPeriRad,
           GM,
           periapsisRadius,
           meanAnomaly0: 0
