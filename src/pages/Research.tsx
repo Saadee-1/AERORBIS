@@ -161,8 +161,8 @@ const Research = () => {
                       
                       <div className="p-6 space-y-3">
                         <div className="flex items-center gap-2">
-                          <Rocket className="w-4 h-4 text-cyan-400" />
-                          <span className="text-xs text-cyan-400 font-semibold uppercase tracking-wider">
+                          <Rocket className="w-4 h-4 text-primary" />
+                          <span className="text-xs text-primary font-semibold uppercase tracking-wider">
                             {article.source}
                           </span>
                         </div>
