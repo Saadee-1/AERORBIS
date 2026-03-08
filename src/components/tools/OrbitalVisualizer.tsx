@@ -672,7 +672,7 @@ const OrbitalVisualizer = () => {
         powerPreference: 'high-performance',
       });
       renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(1); // Fixed pixel ratio for performance
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.2;
 
