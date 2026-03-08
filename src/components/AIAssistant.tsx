@@ -372,7 +372,7 @@ const AIAssistant: React.FC = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsOpen(false)}
-                  className="h-7 w-7 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  className="h-7 w-7 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
                   title="Close"
                 >
                   <X className="w-4 h-4" />
