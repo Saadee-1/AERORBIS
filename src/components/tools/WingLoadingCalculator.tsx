@@ -918,7 +918,7 @@ const WingLoadingCalculator = () => {
   // Get classification color
   const getClassificationColor = (wsClass: WingLoadingClass): string => {
     switch (wsClass) {
-      case 'Very Low': return 'text-blue-400';
+      case 'Very Low': return 'text-primary';
       case 'Low': return 'text-emerald-400';
       case 'Within': return 'text-green-400';
       case 'High': return 'text-yellow-400';
