@@ -30,9 +30,9 @@ export function AeroButton({
   ...props 
 }: AeroButtonProps) {
   const variantClasses: Record<string, string> = {
-    primary: 'bg-card border border-primary/40 text-foreground hover:border-primary/70 hover:text-foreground dark:hover:shadow-[0_0_20px_hsl(185_80%_50%/0.5),0_0_40px_hsl(185_80%_50%/0.25),inset_0_0_15px_hsl(185_80%_50%/0.1)]',
-    outline: 'border border-primary/30 bg-card text-foreground hover:border-primary/70 hover:bg-accent dark:hover:shadow-[0_0_20px_hsl(185_80%_50%/0.5),0_0_40px_hsl(185_80%_50%/0.25),inset_0_0_15px_hsl(185_80%_50%/0.1)]',
-    ghost: 'text-foreground hover:bg-primary/10 hover:text-foreground dark:hover:shadow-[0_0_15px_hsl(185_80%_50%/0.3)]',
+    primary: 'bg-card border border-primary/40 text-foreground hover:border-primary/70 hover:text-foreground dark:hover:shadow-[0_0_20px_hsl(160_84%_39%/0.5),0_0_40px_hsl(160_84%_39%/0.25),inset_0_0_15px_hsl(160_84%_39%/0.1)]',
+    outline: 'border border-primary/30 bg-card text-foreground hover:border-primary/70 hover:bg-accent dark:hover:shadow-[0_0_20px_hsl(160_84%_39%/0.5),0_0_40px_hsl(160_84%_39%/0.25),inset_0_0_15px_hsl(160_84%_39%/0.1)]',
+    ghost: 'text-foreground hover:bg-primary/10 hover:text-foreground dark:hover:shadow-[0_0_15px_hsl(160_84%_39%/0.3)]',
   };
 
   // For variants like 'destructive', 'secondary', etc., pass them directly to Button
