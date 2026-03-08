@@ -499,26 +499,53 @@ export default function TrajectorySimulator() {
           <ToolSection>
             <StageEditor stages={stages} onStagesChange={setStages} />
             
-            <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
-              <h3 className="text-lg font-semibold text-primary mb-4">Quick Presets</h3>
-              <div className="flex flex-wrap gap-2">
-                {Object.values(STAGE_PRESETS).map(preset => (
-                  <AeroButton
-                    key={preset.id}
-                    onClick={() => loadPreset(preset.id)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {preset.name}
-                  </AeroButton>
-                ))}
+            <div className="mt-6 space-y-4">
+              {/* Rocket Presets */}
+              <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                <h3 className="text-lg font-semibold text-primary mb-2">🚀 Rocket Presets</h3>
+                <p className="text-xs text-muted-foreground mb-4">Load a complete multi-stage rocket with optimized guidance settings</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {ROCKET_PRESETS.map(preset => (
+                    <button
+                      key={preset.id}
+                      onClick={() => loadRocketPreset(preset)}
+                      className="group relative flex flex-col items-start gap-1 p-3 rounded-lg border border-border bg-card hover:border-primary/60 hover:bg-primary/5 transition-all text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{preset.icon}</span>
+                        <span className="font-medium text-sm text-foreground">{preset.name}</span>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground leading-tight">{preset.description}</span>
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                          {preset.stages.length} stage{preset.stages.length > 1 ? 's' : ''}
+                        </span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground capitalize">
+                          {preset.category}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Legacy single-stage presets */}
+              <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Individual Stage Presets</h3>
+                <div className="flex flex-wrap gap-2">
+                  {Object.values(STAGE_PRESETS).map(preset => (
+                    <AeroButton
+                      key={preset.id}
+                      onClick={() => loadPreset(preset.id)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {preset.name}
+                    </AeroButton>
+                  ))}
+                </div>
               </div>
             </div>
-          </ToolSection>
-        </TabsContent>
-
-        <TabsContent value="guidance">
-          <ToolSection>
             <GuidanceConfig
               mode={mode}
               guidance2D={guidance2D}
