@@ -12,7 +12,6 @@ import { WeightEstimationInputs } from '../utils/weightEngine';
 
 interface FlightConditionsPanelProps {
   inputs: WeightEstimationInputs;
-  // TODO: refine type for `onInputChange` — changed any -> unknown automatically by chore/typed-cleanup
   onInputChange: (path: string[], value: unknown) => void;
 }
 
@@ -26,31 +25,13 @@ export function FlightConditionsPanel({ inputs, onInputChange }: FlightCondition
     <AeroCard title="Flight Conditions" icon={Gauge}>
       <div className="space-y-4">
         <AeroFormField label="Dynamic Pressure (q)" helperText="Pa" htmlFor="q">
-          <Input
-            id="q"
-            type="number"
-            value={inputs.flight.q || ''}
-            onChange={(e) => handleNumberChange(['flight', 'q'], e.target.value)}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
-            min="0"
-            step="100"
-          />
+          <Input id="q" type="number" value={inputs.flight.q || ''} onChange={(e) => handleNumberChange(['flight', 'q'], e.target.value)} min="0" step="100" />
         </AeroFormField>
-
         <AeroFormField label="Ultimate Load Factor (N_ult)" helperText="" htmlFor="N_ult">
-          <Input
-            id="N_ult"
-            type="number"
-            value={inputs.flight.N_ult || ''}
-            onChange={(e) => handleNumberChange(['flight', 'N_ult'], e.target.value)}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
-            min="1"
-            step="0.1"
-          />
+          <Input id="N_ult" type="number" value={inputs.flight.N_ult || ''} onChange={(e) => handleNumberChange(['flight', 'N_ult'], e.target.value)} min="1" step="0.1" />
         </AeroFormField>
-
         <div className="flex items-center justify-between pt-2">
-          <Label htmlFor="hasThrustRelief" className="text-gray-300">
+          <Label htmlFor="hasThrustRelief" className="text-muted-foreground">
             Thrust Relief (reduces wing bending)
           </Label>
           <Switch
