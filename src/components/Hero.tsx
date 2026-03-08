@@ -329,7 +329,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 2.2 }}
-            className="grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto"
+            className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 max-w-2xl mx-auto"
           >
             {[
               { value: "15+", label: "Engineering Tools" },
