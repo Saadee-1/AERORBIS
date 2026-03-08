@@ -360,7 +360,7 @@ const DeltaVPlanner = () => {
                       setMission({ ...mission, orbitType: value })
                     }
                   >
-                    <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                    <SelectTrigger className="bg-slate-900/50 border-primary/30 text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
