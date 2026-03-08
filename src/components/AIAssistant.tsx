@@ -417,7 +417,7 @@ const AIAssistant: React.FC = () => {
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs text-gray-300 truncate group-hover:text-cyan-400 transition-colors font-medium">
+                            <p className="text-xs text-gray-300 truncate group-hover:text-emerald-500 transition-colors font-medium">
                               {session.title}
                             </p>
                             <button
