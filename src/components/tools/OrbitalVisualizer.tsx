@@ -1382,6 +1382,7 @@ const OrbitalVisualizer = () => {
             argOfPeriapsis={parseFloat(inputs.argOfPeriapsis || "0") * Math.PI / 180}
             gm={parseFloat(inputs.gm)}
             numOrbits={3}
+            currentTrueAnomaly={currentTrueAnomaly}
           />
         </AeroCard>
       )}
