@@ -1733,9 +1733,9 @@ const point: Record<string, unknown> = { alpha };
                       <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: Drag not displayable" : "Invalid drag force"}</p>
                     )}
                   </div>
-                  <div className="p-3 rounded bg-slate-700/50">
-                    <p className="text-sm text-slate-400 mb-1">Lift Coefficient (CL)</p>
-                    <p className="text-xs text-gray-500 mb-2">At α = {inputs.angleOfAttack}°: CL = CL₀ + CL_α × α</p>
+                  <div className="p-3 rounded bg-muted/50">
+                    <p className="text-sm text-muted-foreground mb-1">Lift Coefficient (CL)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">At α = {inputs.angleOfAttack}°: CL = CL₀ + CL_α × α</p>
                     {Number.isFinite(result.CL) && Math.abs(result.CL) <= 5 ? (
                       <>
                     <span className={(() => {
