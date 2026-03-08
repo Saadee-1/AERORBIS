@@ -20,21 +20,21 @@
     --popover: 220 70% 6% / 0.95;
     --popover-foreground: 200 20% 92%;
 
-    /* Primary: Cyan accent */
-    --primary: 185 85% 50%;
-    --primary-foreground: 220 20% 5%;
+    /* Primary: Emerald Green accent */
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Steel blue */
-    --secondary: 210 30% 30%;
-    --secondary-foreground: 200 20% 90%;
+    /* Secondary: Deep forest */
+    --secondary: 160 25% 25%;
+    --secondary-foreground: 150 20% 90%;
 
     /* Muted: Deep space */
     --muted: 220 35% 15%;
     --muted-foreground: 210 15% 60%;
 
-    /* Accent: Teal */
-    --accent: 185 50% 22%;
-    --accent-foreground: 200 20% 90%;
+    /* Accent: Dark emerald */
+    --accent: 160 40% 20%;
+    --accent-foreground: 150 20% 90%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -44,13 +44,13 @@
     --warning: 38 92% 50%;
     --info: 200 80% 55%;
 
-    /* Borders: Holographic edge */
-    --border: 200 35% 22%;
+    /* Borders: Emerald edge */
+    --border: 160 25% 22%;
     --input: 220 35% 12%;
-    --ring: 185 85% 50%;
+    --ring: 160 84% 39%;
 
-    /* Cyan glow */
-    --cyan-glow: 185 85% 50%;
+    /* Emerald glow */
+    --emerald-glow: 160 84% 39%;
 
     /* Radius */
     --radius: 0.375rem;
