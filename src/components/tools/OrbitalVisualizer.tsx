@@ -837,7 +837,9 @@ const OrbitalVisualizer = () => {
           const meanAnomaly = (params.meanAnomaly0 + meanMotion * deltaTime) % (2 * Math.PI);
           const eccentricAnomaly = solveKeplersEquation(meanAnomaly, params.eccentricity);
           const trueAnomaly = eccentricToTrueAnomaly(eccentricAnomaly, params.eccentricity);
-          setCurrentTrueAnomaly(trueAnomaly);
+          // Throttle React state update to every 10th frame
+          frameCounter++;
+          if (frameCounter % 10 === 0) setCurrentTrueAnomaly(trueAnomaly);
           const position = getPositionFromTrueAnomaly(trueAnomaly, params);
           
           satellite.position.copy(position);
