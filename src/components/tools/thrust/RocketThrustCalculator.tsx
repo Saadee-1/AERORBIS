@@ -608,7 +608,7 @@ const AdvancedThrustCalculator = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-32 bg-muted/50 border-border text-foreground"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="SI">SI (Metric)</SelectItem>
                 <SelectItem value="Imperial">Imperial</SelectItem>
