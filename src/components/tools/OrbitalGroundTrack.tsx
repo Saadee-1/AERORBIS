@@ -5,7 +5,7 @@
  * Features: Day/night terminator, real-time satellite dot, sub-satellite point coordinates
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
@@ -150,14 +150,14 @@ function buildNightPolygon(
 
 // Launch sites with typical orbit parameters from each site
 const LAUNCH_SITES = [
-  { name: 'Cape Canaveral', lat: 28.396, lon: -80.605, orbit: { periapsisAltitude: '400', inclination: '28.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Baikonur', lat: 45.965, lon: 63.305, orbit: { periapsisAltitude: '400', inclination: '51.6', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Kourou', lat: 5.236, lon: -52.768, orbit: { periapsisAltitude: '35786', inclination: '5.2', eccentricity: '0.0', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Vandenberg', lat: 34.632, lon: -120.611, orbit: { periapsisAltitude: '800', inclination: '98.2', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Tanegashima', lat: 30.400, lon: 131.000, orbit: { periapsisAltitude: '300', inclination: '30.4', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Sriharikota', lat: 13.720, lon: 80.230, orbit: { periapsisAltitude: '600', inclination: '13.7', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Jiuquan', lat: 40.958, lon: 100.291, orbit: { periapsisAltitude: '400', inclination: '42.8', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Plesetsk', lat: 62.925, lon: 40.577, orbit: { periapsisAltitude: '800', inclination: '82.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Cape Canaveral', lat: 28.396, lon: -80.605, country: 'USA', operator: 'NASA / SpaceX / ULA', pads: 4, since: 1950, orbit: { periapsisAltitude: '400', inclination: '28.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Baikonur', lat: 45.965, lon: 63.305, country: 'Kazakhstan', operator: 'Roscosmos', pads: 6, since: 1955, orbit: { periapsisAltitude: '400', inclination: '51.6', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Kourou', lat: 5.236, lon: -52.768, country: 'French Guiana', operator: 'ESA / Arianespace', pads: 3, since: 1968, orbit: { periapsisAltitude: '35786', inclination: '5.2', eccentricity: '0.0', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Vandenberg', lat: 34.632, lon: -120.611, country: 'USA', operator: 'USSF / SpaceX', pads: 2, since: 1958, orbit: { periapsisAltitude: '800', inclination: '98.2', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Tanegashima', lat: 30.400, lon: 131.000, country: 'Japan', operator: 'JAXA', pads: 2, since: 1969, orbit: { periapsisAltitude: '300', inclination: '30.4', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Sriharikota', lat: 13.720, lon: 80.230, country: 'India', operator: 'ISRO', pads: 2, since: 1971, orbit: { periapsisAltitude: '600', inclination: '13.7', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Jiuquan', lat: 40.958, lon: 100.291, country: 'China', operator: 'CNSA / CASC', pads: 3, since: 1958, orbit: { periapsisAltitude: '400', inclination: '42.8', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Plesetsk', lat: 62.925, lon: 40.577, country: 'Russia', operator: 'Russian MoD', pads: 4, since: 1966, orbit: { periapsisAltitude: '800', inclination: '82.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
 ];
 
 export function OrbitalGroundTrack({
@@ -172,6 +172,9 @@ export function OrbitalGroundTrack({
   onLaunchSiteClick,
 }: GroundTrackProps) {
   const [showCoords, setShowCoords] = useState(true);
+  const [hoveredSite, setHoveredSite] = useState<typeof LAUNCH_SITES[number] | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement>(null);
 
   // Orbit color palette (HSL strings)
   const ORBIT_COLORS = useMemo(() => [
@@ -318,6 +321,7 @@ export function OrbitalGroundTrack({
   return (
     <div className="relative w-full">
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
         className="w-full rounded-lg border border-border"
         style={{ background: 'hsl(var(--background))' }}
@@ -366,29 +370,37 @@ export function OrbitalGroundTrack({
         {/* Equator */}
         <line x1={0} y1={H / 2} x2={W} y2={H / 2} stroke="hsl(var(--primary))" strokeWidth="0.6" opacity="0.3" strokeDasharray="4 4" />
 
-        {/* Launch site markers (clickable) */}
+        {/* Launch site markers (clickable + hoverable) */}
         {LAUNCH_SITES.map(site => {
           const [sx, sy] = toSVG(site.lat, site.lon);
           const isClickable = !!onLaunchSiteClick;
+          const isHovered = hoveredSite?.name === site.name;
           return (
             <g
               key={site.name}
-              opacity="0.75"
+              opacity={isHovered ? 1 : 0.75}
               className={isClickable ? 'cursor-pointer' : ''}
               onClick={isClickable ? () => onLaunchSiteClick(site.orbit, site.name) : undefined}
+              onMouseEnter={(e) => {
+                setHoveredSite(site);
+                if (svgRef.current) {
+                  const rect = svgRef.current.getBoundingClientRect();
+                  const scaleX = rect.width / W;
+                  const scaleY = rect.height / H;
+                  setTooltipPos({ x: sx * scaleX, y: sy * scaleY });
+                }
+              }}
+              onMouseLeave={() => setHoveredSite(null)}
             >
-              {/* Hit area (invisible, larger) */}
-              {isClickable && (
-                <circle cx={sx} cy={sy} r="12" fill="transparent" />
-              )}
+              <circle cx={sx} cy={sy} r="14" fill="transparent" />
               {/* Diamond marker */}
               <polygon
-                points={`${sx},${sy - 4} ${sx + 3},${sy} ${sx},${sy + 4} ${sx - 3},${sy}`}
-                fill="hsl(45 90% 55%)"
+                points={`${sx},${sy - (isHovered ? 5 : 4)} ${sx + (isHovered ? 4 : 3)},${sy} ${sx},${sy + (isHovered ? 5 : 4)} ${sx - (isHovered ? 4 : 3)},${sy}`}
+                fill={isHovered ? 'hsl(45 95% 65%)' : 'hsl(45 90% 55%)'}
                 stroke="hsl(220 60% 8%)"
                 strokeWidth="0.6"
               />
-              <text x={sx + 5} y={sy + 3} fill="hsl(45 80% 65%)" fontSize="6.5" fontWeight="500">
+              <text x={sx + 5} y={sy + 3} fill={isHovered ? 'hsl(45 95% 75%)' : 'hsl(45 80% 65%)'} fontSize="6.5" fontWeight={isHovered ? '700' : '500'}>
                 {site.name}
               </text>
               {isClickable && (
@@ -481,7 +493,40 @@ export function OrbitalGroundTrack({
         </text>
       </svg>
 
-      {/* Sub-satellite point info box */}
+      {/* Launch site hover tooltip */}
+      {hoveredSite && (
+        <div
+          className="absolute z-10 pointer-events-none bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2.5 shadow-xl text-xs"
+          style={{
+            left: Math.min(tooltipPos.x + 16, (svgRef.current?.getBoundingClientRect().width ?? W) - 200),
+            top: Math.max(tooltipPos.y - 80, 4),
+            minWidth: 185,
+          }}
+        >
+          <div className="font-bold text-foreground text-[11px] mb-1.5 flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full" style={{ background: 'hsl(45 90% 55%)' }} />
+            {hoveredSite.name}
+          </div>
+          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-muted-foreground font-mono">
+            <span>Country</span>
+            <span className="text-foreground">{hoveredSite.country}</span>
+            <span>Operator</span>
+            <span className="text-foreground">{hoveredSite.operator}</span>
+            <span>Pads</span>
+            <span className="text-foreground">{hoveredSite.pads}</span>
+            <span>Active</span>
+            <span className="text-foreground">Since {hoveredSite.since}</span>
+            <span>Lat/Lon</span>
+            <span className="text-foreground">{hoveredSite.lat.toFixed(1)}° / {hoveredSite.lon.toFixed(1)}°</span>
+            <span>Typical i</span>
+            <span className="text-foreground">{hoveredSite.orbit.inclination}°</span>
+          </div>
+          {onLaunchSiteClick && (
+            <div className="mt-1.5 text-[9px] text-muted-foreground/60 italic">Click to load orbit</div>
+          )}
+        </div>
+      )}
+
       {satelliteData && showCoords && (
         <div
           className="absolute bottom-2 left-2 bg-background/85 backdrop-blur-sm border border-border rounded-md px-3 py-2 text-xs font-mono shadow-lg"
