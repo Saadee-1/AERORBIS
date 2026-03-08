@@ -1774,7 +1774,7 @@ const point: Record<string, unknown> = { alpha };
   style={{ color: getCDValidity(result.CD).color === 'green' ? '#22c55e' : getCDValidity(result.CD).color === 'amber' ? '#eab308' : '#ef4444' }}>
   {getCDValidity(result.CD).label}
 </span>
-                            <p className="text-xs text-gray-500 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
+                            <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
                           </>
                         ) : (
                           <p className="text-sm text-yellow-400">Invalid or unrealistic CD value</p>
