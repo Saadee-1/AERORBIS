@@ -236,10 +236,10 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               <XAxis dataKey="phase" {...globalAxisCommonProps} tick={globalAxisTickStyle} angle={-45} textAnchor="end" height={80} />
               <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Fuel Used (%)', angle: -90, position: 'insideLeft' }} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
                 formatter={(value: number) => `${value.toFixed(2)}%`}
               />
-              <Bar dataKey="fuelUsed" fill="#06b6d4" name="Cumulative Fuel Used (%)" />
+              <Bar dataKey="fuelUsed" fill="#059669" name="Cumulative Fuel Used (%)" />
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-3 pt-3 border-t border-slate-700/50">
