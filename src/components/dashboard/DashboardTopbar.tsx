@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface DashboardTopbarProps {
   toggleSidebar: () => void;
@@ -12,6 +13,8 @@ interface DashboardTopbarProps {
 
 const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   const notifications = [
     { id: 1, text: "Your research submission was featured!", time: "2h ago", priority: "high" },
@@ -22,11 +25,19 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
   return (
     <header className="sticky top-0 z-30 relative">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/85 to-slate-950/90 backdrop-blur-xl" />
+      <div className={`absolute inset-0 backdrop-blur-xl ${
+        isLight 
+          ? 'bg-background/90 border-b border-border' 
+          : 'bg-gradient-to-r from-slate-950/90 via-slate-900/85 to-slate-950/90'
+      }`} />
       
-      {/* Bottom border glow */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-primary/5 to-transparent pointer-events-none" />
+      {/* Bottom border glow - dark only */}
+      {!isLight && (
+        <>
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-primary/5 to-transparent pointer-events-none" />
+        </>
+      )}
 
       <div className="relative flex items-center justify-between p-4">
         {/* Left side */}
@@ -45,7 +56,11 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
             <Input
               type="search"
               placeholder="Search systems..."
-              className="pl-10 bg-slate-800/30 border-primary/15 focus:border-primary/40 text-foreground placeholder:text-muted-foreground text-sm focus:shadow-[0_0_15px_hsl(185_85%_50%/0.1)]"
+              className={`pl-10 text-foreground placeholder:text-muted-foreground text-sm ${
+                isLight 
+                  ? 'bg-muted/50 border-border focus:border-primary/40' 
+                  : 'bg-slate-800/30 border-primary/15 focus:border-primary/40 focus:shadow-[0_0_15px_hsl(185_85%_50%/0.1)]'
+              }`}
               style={{ fontFamily: 'Rajdhani, sans-serif' }}
             />
           </div>
@@ -98,20 +113,28 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  className="absolute right-0 mt-2 w-80 rounded-lg overflow-hidden border border-primary/20 shadow-[0_0_30px_hsl(185_85%_50%/0.1)]"
+                  className={`absolute right-0 mt-2 w-80 rounded-lg overflow-hidden border shadow-lg ${
+                    isLight 
+                      ? 'border-border bg-card' 
+                      : 'border-primary/20 shadow-[0_0_30px_hsl(185_85%_50%/0.1)]'
+                  }`}
                 >
-                  <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" />
-                  
-                  {/* HUD corners */}
-                  <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/50" />
-                  <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-primary/50" />
-                  <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-primary/50" />
-                  <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/50" />
+                  {!isLight && <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" />}
+
+                  {/* HUD corners - dark only */}
+                  {!isLight && (
+                    <>
+                      <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/50" />
+                      <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-primary/50" />
+                      <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-primary/50" />
+                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/50" />
+                    </>
+                  )}
 
                   <div className="relative">
-                    <div className="p-3 border-b border-primary/15">
-                      <h3 className="text-[11px] text-primary tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                        // Incoming Transmissions
+                    <div className={`p-3 border-b ${isLight ? 'border-border' : 'border-primary/15'}`}>
+                      <h3 className={`text-[11px] tracking-[0.2em] uppercase font-semibold ${isLight ? 'text-foreground' : 'text-primary'}`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                        {isLight ? 'Notifications' : '// Incoming Transmissions'}
                       </h3>
                     </div>
                     <div className="max-h-64 overflow-y-auto">
@@ -121,7 +144,11 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.1 }}
-                          className="p-3 hover:bg-primary/5 transition-colors cursor-pointer border-b border-primary/5 last:border-0"
+                          className={`p-3 transition-colors cursor-pointer last:border-0 ${
+                            isLight 
+                              ? 'hover:bg-muted/50 border-b border-border/50' 
+                              : 'hover:bg-primary/5 border-b border-primary/5'
+                          }`}
                         >
                           <div className="flex items-start gap-2">
                             {notif.priority === "high" && (
@@ -133,7 +160,7 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
                             )}
                             <div>
                               <p className="text-sm text-foreground/90">{notif.text}</p>
-                              <p className="text-[10px] text-primary/60 mt-1 tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                              <p className={`text-[10px] mt-1 tracking-wider uppercase ${isLight ? 'text-muted-foreground' : 'text-primary/60'}`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
                                 {notif.time}
                               </p>
                             </div>
@@ -148,20 +175,20 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
           </div>
 
           {/* Separator */}
-          <div className="w-px h-8 bg-gradient-to-b from-transparent via-primary/20 to-transparent" />
+          <div className={`w-px h-8 ${isLight ? 'bg-border' : 'bg-gradient-to-b from-transparent via-primary/20 to-transparent'}`} />
 
           {/* User Profile */}
           <div className="flex items-center space-x-3 cursor-pointer group">
             <div className="relative">
-              <Avatar className="w-8 h-8 ring-1 ring-primary/30 group-hover:ring-primary/50 transition-all">
+              <Avatar className={`w-8 h-8 ring-1 transition-all ${isLight ? 'ring-border group-hover:ring-primary/50' : 'ring-primary/30 group-hover:ring-primary/50'}`}>
                 <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Saad" />
                 <AvatarFallback className="bg-primary/20 text-primary font-bold text-xs">SA</AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-slate-900 shadow-[0_0_4px_hsl(160_60%_45%)]" />
+              <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border ${isLight ? 'border-background' : 'border-slate-900'} shadow-[0_0_4px_hsl(160_60%_45%)]`} />
             </div>
             <div className="hidden sm:block">
               <p className="text-xs font-semibold text-foreground tracking-wide">Saad Ahmed</p>
-              <p className="text-[10px] text-primary/70 tracking-[0.15em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+              <p className={`text-[10px] tracking-[0.15em] uppercase ${isLight ? 'text-muted-foreground' : 'text-primary/70'}`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
                 Clearance: L3
               </p>
             </div>

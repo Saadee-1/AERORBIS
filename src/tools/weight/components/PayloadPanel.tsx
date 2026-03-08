@@ -10,7 +10,6 @@ import { WeightEstimationInputs } from '../utils/weightEngine';
 
 interface PayloadPanelProps {
   inputs: WeightEstimationInputs;
-  // TODO: refine type for `onInputChange` — changed any -> unknown automatically by chore/typed-cleanup
   onInputChange: (path: string[], value: unknown) => void;
 }
 
@@ -29,14 +28,13 @@ export function PayloadPanel({ inputs, onInputChange }: PayloadPanelProps) {
             type="number"
             value={inputs.W_payload || ''}
             onChange={(e) => handleNumberChange(['W_payload'], e.target.value)}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
             min="0"
             step="100"
           />
         </AeroFormField>
 
-        <div className="p-3 bg-slate-800/30 rounded border border-cyan-400/20">
-          <p className="text-xs text-gray-400">
+        <div className="p-3 bg-muted/30 rounded border border-border">
+          <p className="text-xs text-muted-foreground">
             Payload includes cargo, passengers (beyond crew), weapons, sensors, or any mission-specific equipment.
           </p>
         </div>

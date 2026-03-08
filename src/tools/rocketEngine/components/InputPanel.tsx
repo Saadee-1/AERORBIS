@@ -15,8 +15,8 @@ import { barToPa, cm2ToM2 } from '../utils/units';
 interface InputPanelProps {
   inputs: RocketEngineInputs;
   onInputChange: (field: keyof RocketEngineInputs, value: unknown) => void;
-  useBar?: boolean; // Display pressure in bar
-  useCm2?: boolean; // Display area in cm²
+  useBar?: boolean;
+  useCm2?: boolean;
 }
 
 export function InputPanel({ inputs, onInputChange, useBar = true, useCm2 = true }: InputPanelProps) {
@@ -29,7 +29,6 @@ export function InputPanel({ inputs, onInputChange, useBar = true, useCm2 = true
     return value === undefined ? '' : String(value);
   };
 
-  // Convert display values
   const Pc_display = useBar && inputs.Pc ? inputs.Pc / 1e5 : inputs.Pc;
   const Pa_display = useBar && inputs.Pa ? inputs.Pa / 1e5 : inputs.Pa;
   const At_display = useCm2 && inputs.At ? inputs.At * 1e4 : inputs.At;
@@ -58,203 +57,68 @@ export function InputPanel({ inputs, onInputChange, useBar = true, useCm2 = true
   return (
     <AeroCard title="Engine Configuration" icon={Settings2}>
       <Tabs defaultValue="chamber" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-slate-800/50">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="chamber">Chamber</TabsTrigger>
           <TabsTrigger value="nozzle">Nozzle</TabsTrigger>
           <TabsTrigger value="gas">Gas Properties</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
-        {/* Chamber Conditions Tab */}
         <TabsContent value="chamber" className="space-y-4 mt-4">
           <AeroFormField label="Chamber Pressure" helperText={useBar ? 'bar' : 'Pa'} htmlFor="Pc">
-            <Input
-              id="Pc"
-              type="number"
-              value={Pc_display || ''}
-              onChange={(e) => handlePcChange(e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              step={useBar ? "1" : "1000"}
-              placeholder={useBar ? "e.g., 100" : "e.g., 10000000"}
-            />
+            <Input id="Pc" type="number" value={Pc_display || ''} onChange={(e) => handlePcChange(e.target.value)} min="0" step={useBar ? "1" : "1000"} placeholder={useBar ? "e.g., 100" : "e.g., 10000000"} />
           </AeroFormField>
-
           <AeroFormField label="Chamber Temperature" helperText="K" htmlFor="Tc">
-            <Input
-              id="Tc"
-              type="number"
-              value={getStringValue(inputs.Tc)}
-              onChange={(e) => handleNumberChange('Tc', e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              step="10"
-              placeholder="e.g., 3500"
-            />
+            <Input id="Tc" type="number" value={getStringValue(inputs.Tc)} onChange={(e) => handleNumberChange('Tc', e.target.value)} min="0" step="10" placeholder="e.g., 3500" />
           </AeroFormField>
-
           <AeroFormField label="Ambient Pressure" helperText={useBar ? 'bar (0 for vacuum)' : 'Pa'} htmlFor="Pa">
-            <Input
-              id="Pa"
-              type="number"
-              value={Pa_display || ''}
-              onChange={(e) => handlePaChange(e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              step={useBar ? "0.01" : "100"}
-              placeholder={useBar ? "1.013" : "101325"}
-            />
+            <Input id="Pa" type="number" value={Pa_display || ''} onChange={(e) => handlePaChange(e.target.value)} min="0" step={useBar ? "0.01" : "100"} placeholder={useBar ? "1.013" : "101325"} />
           </AeroFormField>
         </TabsContent>
 
-        {/* Nozzle Geometry Tab */}
         <TabsContent value="nozzle" className="space-y-4 mt-4">
           <AeroFormField label="Throat Area" helperText={useCm2 ? 'cm²' : 'm²'} htmlFor="At">
-            <Input
-              id="At"
-              type="number"
-              value={At_display || ''}
-              onChange={(e) => handleAtChange(e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              step={useCm2 ? "0.1" : "0.0001"}
-              placeholder={useCm2 ? "e.g., 50" : "e.g., 0.005"}
-            />
+            <Input id="At" type="number" value={At_display || ''} onChange={(e) => handleAtChange(e.target.value)} min="0" step={useCm2 ? "0.1" : "0.0001"} placeholder={useCm2 ? "e.g., 50" : "e.g., 0.005"} />
           </AeroFormField>
-
           <AeroFormField label="Expansion Ratio (ε)" helperText="Ae/At (optional if Ae provided)" htmlFor="epsilon">
-            <Input
-              id="epsilon"
-              type="number"
-              value={getStringValue(inputs.epsilon)}
-              onChange={(e) => handleNumberChange('epsilon', e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="1"
-              step="0.1"
-              placeholder="e.g., 16"
-            />
+            <Input id="epsilon" type="number" value={getStringValue(inputs.epsilon)} onChange={(e) => handleNumberChange('epsilon', e.target.value)} min="1" step="0.1" placeholder="e.g., 16" />
           </AeroFormField>
-
           <AeroFormField label="Exit Area" helperText={useCm2 ? 'cm² (optional if ε provided)' : 'm²'} htmlFor="Ae">
-            <Input
-              id="Ae"
-              type="number"
-              value={Ae_display || ''}
-              onChange={(e) => handleAeChange(e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              step={useCm2 ? "0.1" : "0.0001"}
-              placeholder="Optional"
-            />
+            <Input id="Ae" type="number" value={Ae_display || ''} onChange={(e) => handleAeChange(e.target.value)} min="0" step={useCm2 ? "0.1" : "0.0001"} placeholder="Optional" />
           </AeroFormField>
         </TabsContent>
 
-        {/* Gas Properties Tab */}
         <TabsContent value="gas" className="space-y-4 mt-4">
           <AeroFormField label="Gamma (γ)" helperText="Ratio of specific heats" htmlFor="gamma">
-            <Input
-              id="gamma"
-              type="number"
-              value={getStringValue(inputs.gamma)}
-              onChange={(e) => handleNumberChange('gamma', e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="1.01"
-              max="1.5"
-              step="0.01"
-              placeholder="1.22"
-            />
+            <Input id="gamma" type="number" value={getStringValue(inputs.gamma)} onChange={(e) => handleNumberChange('gamma', e.target.value)} min="1.01" max="1.5" step="0.01" placeholder="1.22" />
           </AeroFormField>
-
           <AeroFormField label="Molar Mass" helperText="kg/kmol (optional if R provided)" htmlFor="M_molar">
-            <Input
-              id="M_molar"
-              type="number"
-              value={getStringValue(inputs.M_molar)}
-              onChange={(e) => handleNumberChange('M_molar', e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              step="0.1"
-              placeholder="e.g., 22"
-            />
+            <Input id="M_molar" type="number" value={getStringValue(inputs.M_molar)} onChange={(e) => handleNumberChange('M_molar', e.target.value)} min="0" step="0.1" placeholder="e.g., 22" />
           </AeroFormField>
-
           <AeroFormField label="Gas Constant (R)" helperText="J/(kg·K) (optional if M_molar provided)" htmlFor="R">
-            <Input
-              id="R"
-              type="number"
-              value={getStringValue(inputs.R)}
-              onChange={(e) => handleNumberChange('R', e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              step="1"
-              placeholder="e.g., 378"
-            />
+            <Input id="R" type="number" value={getStringValue(inputs.R)} onChange={(e) => handleNumberChange('R', e.target.value)} min="0" step="1" placeholder="e.g., 378" />
           </AeroFormField>
         </TabsContent>
 
-        {/* Advanced Options Tab */}
         <TabsContent value="advanced" className="space-y-4 mt-4">
           <AeroFormField label="Nozzle Efficiency" helperText="0-1 (default: 0.98)" htmlFor="nozzleEfficiency">
-            <Input
-              id="nozzleEfficiency"
-              type="number"
-              value={getStringValue(inputs.nozzleEfficiency)}
-              onChange={(e) => handleNumberChange('nozzleEfficiency', e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              max="1"
-              step="0.01"
-              placeholder="0.98"
-            />
+            <Input id="nozzleEfficiency" type="number" value={getStringValue(inputs.nozzleEfficiency)} onChange={(e) => handleNumberChange('nozzleEfficiency', e.target.value)} min="0" max="1" step="0.01" placeholder="0.98" />
           </AeroFormField>
-
           <AeroFormField label="c* Efficiency" helperText="0-1 (default: 0.95)" htmlFor="cStarEfficiency">
-            <Input
-              id="cStarEfficiency"
-              type="number"
-              value={getStringValue(inputs.cStarEfficiency)}
-              onChange={(e) => handleNumberChange('cStarEfficiency', e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              max="1"
-              step="0.01"
-              placeholder="0.95"
-            />
+            <Input id="cStarEfficiency" type="number" value={getStringValue(inputs.cStarEfficiency)} onChange={(e) => handleNumberChange('cStarEfficiency', e.target.value)} min="0" max="1" step="0.01" placeholder="0.95" />
           </AeroFormField>
-
           <AeroFormField label="Pressure Loss Fraction" helperText="0-1 (default: 0.02)" htmlFor="pressureLossFraction">
-            <Input
-              id="pressureLossFraction"
-              type="number"
-              value={getStringValue(inputs.pressureLossFraction)}
-              onChange={(e) => handleNumberChange('pressureLossFraction', e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
-              min="0"
-              max="0.1"
-              step="0.001"
-              placeholder="0.02"
-            />
+            <Input id="pressureLossFraction" type="number" value={getStringValue(inputs.pressureLossFraction)} onChange={(e) => handleNumberChange('pressureLossFraction', e.target.value)} min="0" max="0.1" step="0.001" placeholder="0.02" />
           </AeroFormField>
-
           <AeroFormField label="Advanced Options">
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <Switch
-                  checked={inputs.useCEA || false}
-                  onCheckedChange={(checked) => onInputChange('useCEA', checked)}
-                />
-                <Label className="text-sm text-gray-300">
-                  Use CEA (Chemical Equilibrium) - placeholder
-                </Label>
+                <Switch checked={inputs.useCEA || false} onCheckedChange={(checked) => onInputChange('useCEA', checked)} />
+                <Label className="text-sm text-muted-foreground">Use CEA (Chemical Equilibrium) - placeholder</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <Switch
-                  checked={inputs.useFrozen || false}
-                  onCheckedChange={(checked) => onInputChange('useFrozen', checked)}
-                />
-                <Label className="text-sm text-gray-300">
-                  Frozen flow (vs equilibrium) - placeholder
-                </Label>
+                <Switch checked={inputs.useFrozen || false} onCheckedChange={(checked) => onInputChange('useFrozen', checked)} />
+                <Label className="text-sm text-muted-foreground">Frozen flow (vs equilibrium) - placeholder</Label>
               </div>
             </div>
           </AeroFormField>
@@ -263,4 +127,3 @@ export function InputPanel({ inputs, onInputChange, useBar = true, useCm2 = true
     </AeroCard>
   );
 }
-

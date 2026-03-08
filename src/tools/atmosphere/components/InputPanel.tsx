@@ -68,7 +68,6 @@ export function InputPanel({
             value={altitude}
             onChange={(e) => onAltitudeChange(e.target.value)}
             placeholder={unitSystem === 'SI' ? "0 - 86000" : "0 - 282000"}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
           />
         </AeroFormField>
 
@@ -84,7 +83,6 @@ export function InputPanel({
             value={velocity}
             onChange={(e) => onVelocityChange(e.target.value)}
             placeholder="0"
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
             min="0"
           />
         </AeroFormField>
