@@ -141,7 +141,7 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="min-h-screen flex items-center justify-center bg-transparent pt-14 relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center bg-transparent pt-16 pb-8 relative overflow-hidden"
     >
       {/* Animated grid background */}
       <div 
