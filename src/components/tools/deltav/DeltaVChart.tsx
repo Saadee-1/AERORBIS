@@ -90,7 +90,7 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
     {
       name: "Required",
       value: formatValue(breakdown.totalRequired),
-      color: "#22d3ee",
+      color: "#10b981",
     },
     {
       name: "With Margin",
