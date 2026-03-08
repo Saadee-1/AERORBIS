@@ -126,7 +126,7 @@ export function RecommendationCard({
         {/* Right: Score + Mission Chips */}
         <div className="flex-shrink-0 flex flex-col items-end gap-2">
           {/* Score Chip */}
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-medium tabular-nums">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/20 text-primary border border-primary/30 text-xs font-medium tabular-nums">
             <span>★</span>
             <span>{score.toFixed(2)}</span>
           </span>
