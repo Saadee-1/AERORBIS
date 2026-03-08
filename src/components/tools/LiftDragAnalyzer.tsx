@@ -1483,7 +1483,7 @@ const point: Record<string, unknown> = { alpha };
                   label={`Air Density (${getUnit("density")})`}
                   helperText="Air density (ρ) at the flight condition. Assumes incompressible flow (valid for Mach < 0.3). Used in dynamic pressure and force calculations. Can be imported from Standard Atmosphere calculator or entered manually. ISA sea-level: 1.225 kg/m³."
                 >
-                  <Input id="airDensity" type="number" value={inputs.airDensity} onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" step="0.001" />
+                  <Input id="airDensity" type="number" value={inputs.airDensity} onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })} min="0.001" step="0.001" />
                   <InlineInterlinkHint 
                     fieldKey={FIELD_KEYS.densityKgM3} 
                     className="mt-1" 
