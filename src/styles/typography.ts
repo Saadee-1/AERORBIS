@@ -31,10 +31,10 @@ export const typography = {
   small: 'text-xs text-gray-400',
   
   /** Number: 16px semibold monospace - For displaying calculated values */
-  number: 'text-base font-semibold font-mono text-cyan-400',
+  number: 'text-base font-semibold font-mono text-emerald-500',
   
   /** Result value: 24px bold - Large result numbers */
-  resultValue: 'text-2xl font-bold text-cyan-400',
+  resultValue: 'text-2xl font-bold text-emerald-500',
 } as const;
 
 /**
