@@ -369,29 +369,37 @@ export function OrbitalGroundTrack({
         {/* Equator */}
         <line x1={0} y1={H / 2} x2={W} y2={H / 2} stroke="hsl(var(--primary))" strokeWidth="0.6" opacity="0.3" strokeDasharray="4 4" />
 
-        {/* Launch site markers (clickable) */}
+        {/* Launch site markers (clickable + hoverable) */}
         {LAUNCH_SITES.map(site => {
           const [sx, sy] = toSVG(site.lat, site.lon);
           const isClickable = !!onLaunchSiteClick;
+          const isHovered = hoveredSite?.name === site.name;
           return (
             <g
               key={site.name}
-              opacity="0.75"
+              opacity={isHovered ? 1 : 0.75}
               className={isClickable ? 'cursor-pointer' : ''}
               onClick={isClickable ? () => onLaunchSiteClick(site.orbit, site.name) : undefined}
+              onMouseEnter={(e) => {
+                setHoveredSite(site);
+                if (svgRef.current) {
+                  const rect = svgRef.current.getBoundingClientRect();
+                  const scaleX = rect.width / W;
+                  const scaleY = rect.height / H;
+                  setTooltipPos({ x: sx * scaleX, y: sy * scaleY });
+                }
+              }}
+              onMouseLeave={() => setHoveredSite(null)}
             >
-              {/* Hit area (invisible, larger) */}
-              {isClickable && (
-                <circle cx={sx} cy={sy} r="12" fill="transparent" />
-              )}
+              <circle cx={sx} cy={sy} r="14" fill="transparent" />
               {/* Diamond marker */}
               <polygon
-                points={`${sx},${sy - 4} ${sx + 3},${sy} ${sx},${sy + 4} ${sx - 3},${sy}`}
-                fill="hsl(45 90% 55%)"
+                points={`${sx},${sy - (isHovered ? 5 : 4)} ${sx + (isHovered ? 4 : 3)},${sy} ${sx},${sy + (isHovered ? 5 : 4)} ${sx - (isHovered ? 4 : 3)},${sy}`}
+                fill={isHovered ? 'hsl(45 95% 65%)' : 'hsl(45 90% 55%)'}
                 stroke="hsl(220 60% 8%)"
                 strokeWidth="0.6"
               />
-              <text x={sx + 5} y={sy + 3} fill="hsl(45 80% 65%)" fontSize="6.5" fontWeight="500">
+              <text x={sx + 5} y={sy + 3} fill={isHovered ? 'hsl(45 95% 75%)' : 'hsl(45 80% 65%)'} fontSize="6.5" fontWeight={isHovered ? '700' : '500'}>
                 {site.name}
               </text>
               {isClickable && (
