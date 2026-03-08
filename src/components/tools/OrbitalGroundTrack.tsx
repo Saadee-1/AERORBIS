@@ -7,6 +7,15 @@
 
 import { useMemo, useState } from 'react';
 
+interface LaunchSiteOrbit {
+  periapsisAltitude: string;
+  inclination: string;
+  eccentricity: string;
+  raan: string;
+  argOfPeriapsis: string;
+  trueAnomaly: string;
+}
+
 interface GroundTrackProps {
   semiMajorAxis: number;
   eccentricity: number;
@@ -15,8 +24,9 @@ interface GroundTrackProps {
   argOfPeriapsis: number;
   gm: number;
   numOrbits?: number;
-  /** Current true anomaly in radians - for real-time satellite dot */
   currentTrueAnomaly?: number;
+  /** Called when user clicks a launch site — provides typical orbit params */
+  onLaunchSiteClick?: (params: LaunchSiteOrbit, siteName: string) => void;
 }
 
 // Physics: Solve Kepler's equation M = E - e·sin(E)
