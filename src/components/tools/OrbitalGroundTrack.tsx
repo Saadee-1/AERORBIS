@@ -612,8 +612,45 @@ export function OrbitalGroundTrack({
 
   return (
     <div className="relative w-full">
-      {/* Export + Station toggle buttons */}
-      <div className="absolute top-2 right-2 z-10 flex gap-1.5">
+      {/* Export + Station + Constellation toggle buttons */}
+      <div className="absolute top-2 right-2 z-10 flex gap-1.5 flex-wrap justify-end">
+        {/* Constellation dropdown */}
+        <div className="relative group">
+          <button
+            className={`flex items-center gap-1 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-[10px] transition-colors shadow-sm ${
+              showConstellation
+                ? 'bg-accent/20 text-accent-foreground border-accent/30'
+                : 'bg-background/80 text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+            title="Constellation overlay"
+          >
+            <Satellite className="w-3 h-3" /> {showConstellation || 'Constellations'}
+          </button>
+          <div className="absolute right-0 top-full mt-1 hidden group-hover:block bg-background/95 backdrop-blur-sm border border-border rounded-md shadow-xl p-1 min-w-[140px]">
+            {showConstellation && (
+              <button
+                onClick={() => setShowConstellation(null)}
+                className="w-full text-left px-2 py-1 text-[10px] text-destructive hover:bg-muted/50 rounded"
+              >
+                ✕ Clear
+              </button>
+            )}
+            {CONSTELLATION_PRESETS.map(c => (
+              <button
+                key={c.name}
+                onClick={() => setShowConstellation(showConstellation === c.name ? null : c.name)}
+                className={`w-full text-left px-2 py-1 text-[10px] rounded transition-colors ${
+                  showConstellation === c.name
+                    ? 'bg-primary/20 text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <div className="font-semibold">{c.name}</div>
+                <div className="text-[8px] opacity-70">{c.description}</div>
+              </button>
+            ))}
+          </div>
+        </div>
         <button
           onClick={() => setShowStations(s => !s)}
           className={`flex items-center gap-1 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-[10px] transition-colors shadow-sm ${
