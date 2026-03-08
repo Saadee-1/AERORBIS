@@ -1074,6 +1074,43 @@ const OrbitalVisualizer = () => {
         t.orbitGlow.geometry = glowGeo;
         t.orbitGlow.material = glowMat;
 
+        // ── Animated orbit particles (direction-of-travel indicator) ──
+        if (t.orbitParticles) {
+          t.scene.remove(t.orbitParticles);
+          t.orbitParticles.geometry.dispose();
+          (t.orbitParticles.material as THREE.Material).dispose();
+        }
+        const PARTICLE_COUNT = 40;
+        const particlePositions = new Float32Array(PARTICLE_COUNT * 3);
+        const particleSizes = new Float32Array(PARTICLE_COUNT);
+        const particlePhases = new Float32Array(PARTICLE_COUNT);
+        for (let pi = 0; pi < PARTICLE_COUNT; pi++) {
+          particlePhases[pi] = (pi / PARTICLE_COUNT) * 2 * Math.PI;
+          particleSizes[pi] = tubeRadius * (1.5 + Math.random() * 2.0);
+          // Initial position along orbit
+          const idx = Math.floor((pi / PARTICLE_COUNT) * orbitPoints.length) % orbitPoints.length;
+          particlePositions[pi * 3] = orbitPoints[idx].x;
+          particlePositions[pi * 3 + 1] = orbitPoints[idx].y;
+          particlePositions[pi * 3 + 2] = orbitPoints[idx].z;
+        }
+        const particleGeo = new THREE.BufferGeometry();
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        particleGeo.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+        const particleMat = new THREE.PointsMaterial({
+          color: 0x88ffff,
+          size: tubeRadius * 3,
+          sizeAttenuation: true,
+          transparent: true,
+          opacity: 0.7,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const orbitParticles = new THREE.Points(particleGeo, particleMat);
+        orbitParticles.frustumCulled = false;
+        t.scene.add(orbitParticles);
+        t.orbitParticles = orbitParticles;
+        t.orbitParticlePhases = particlePhases;
+
         t.orbitPoints = orbitPoints;
         
         // Store orbital parameters for propagation
