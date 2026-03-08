@@ -1157,7 +1157,7 @@ const AntennaPatternAnalyzer = () => {
                       {result.eirp.eirpDbw.toFixed(2)} dBW
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                     <p className="text-xs text-gray-400 mb-1">HPBW (E-plane)</p>
                     <p className="text-green-400 font-bold text-lg">
                       {result.hpbmE ? `${result.hpbmE.toFixed(2)}°` : "N/A"}
