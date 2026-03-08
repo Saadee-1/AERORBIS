@@ -1938,7 +1938,7 @@ const point: Record<string, unknown> = { alpha };
         </div>
       <div className="mt-8 flex items-start gap-4">
   {/* Validity Envelope Legend */}
-  <div className="p-3 rounded-lg bg-slate-800 border border-cyan-700/30 text-xs max-w-xs" style={{minWidth:'220px'}}>
+  <div className="p-3 rounded-lg bg-slate-800 border border-primary/30 text-xs max-w-xs" style={{minWidth:'220px'}}>
     <b className="text-white">Validity Envelope</b> <span className="ml-2 align-middle">ℹ️</span>
     <ul className="mt-2 ml-1">
       <li><span className="inline-block w-3 h-3 rounded-full align-middle bg-green-600 mr-1" /> <span className="text-green-400">Green:</span> Physically valid (linear aerodynamics)</li>
