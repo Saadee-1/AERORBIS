@@ -683,9 +683,9 @@ const OrbitalVisualizer = () => {
 
       const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(canvas.clientWidth, canvas.clientHeight),
-        0.6,   // strength
-        0.4,   // radius
-        0.85   // threshold
+        0.25,  // strength - reduced to remove blurriness
+        0.15,  // radius - tighter for sharper look
+        0.92   // threshold - higher = less bloom on Earth surface
       );
       composer.addPass(bloomPass);
 
