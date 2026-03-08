@@ -71,6 +71,7 @@ type UnitSystem = DeltaVUnitSystem;
 const DeltaVPlanner = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { isCalculating, runCalculation } = useCalculationAnimation({ minDuration: 900 });
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
