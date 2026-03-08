@@ -67,14 +67,14 @@ const Learn = () => {
               transition={{ duration: 0.5, type: "spring" }}
               className="inline-block mb-6"
             >
-              <BookOpen className="w-20 h-20 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+              <BookOpen className="w-20 h-20 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
             </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
               Aerospace Learning Hub
             </h1>
             
-            <p className="text-xl text-gray-300 mb-8 leading-relaxed">
+            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
               Master the fundamentals and advance your skills with structured learning paths designed by industry experts
             </p>
           </motion.div>
@@ -85,12 +85,12 @@ const Learn = () => {
       <section ref={ref} className="py-16 relative">
         <div className="container mx-auto px-4">
           <Tabs defaultValue="aerodynamics" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-12 gap-2 h-auto bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-2 rounded-2xl">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-12 gap-2 h-auto bg-card/50 backdrop-blur-lg border border-primary/20 p-2 rounded-2xl">
               {categories.map((category) => (
                 <TabsTrigger
                   key={category.id}
                   value={category.id}
-                  className="flex flex-col gap-2 py-4 data-[state=active]:bg-cyan-400/20 data-[state=active]:text-cyan-400 rounded-xl transition-all duration-300"
+                  className="flex flex-col gap-2 py-4 data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-xl transition-all duration-300"
                 >
                   <category.icon className="w-5 h-5" />
                   <span className="text-xs md:text-sm">{category.label}</span>
@@ -109,31 +109,31 @@ const Learn = () => {
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       whileHover={{ scale: 1.03, y: -5 }}
                     >
-                      <Card className="h-full flex flex-col bg-slate-800/50 backdrop-blur-lg border-cyan-400/20 rounded-2xl overflow-hidden hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300">
+                      <Card className="h-full flex flex-col bg-card/50 backdrop-blur-lg border-primary/20 rounded-2xl overflow-hidden hover:border-primary/60 hover:shadow-[0_0_40px_hsl(160_84%_39%/0.3)] transition-all duration-300">
                         <CardHeader>
                           <div className="flex justify-between items-start mb-2">
-                            <CardTitle className="text-xl text-white">{module.title}</CardTitle>
+                            <CardTitle className="text-xl text-foreground">{module.title}</CardTitle>
                             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                              module.level === "Beginner" ? "bg-cyan-400/20 text-cyan-400" :
+                              module.level === "Beginner" ? "bg-emerald-500/20 text-emerald-500" :
                               module.level === "Intermediate" ? "bg-blue-400/20 text-blue-400" :
                               "bg-purple-400/20 text-purple-400"
                             }`}>
                               {module.level}
                             </span>
                           </div>
-                          <CardDescription className="text-gray-300">{module.description}</CardDescription>
+                          <CardDescription className="text-muted-foreground">{module.description}</CardDescription>
                         </CardHeader>
                         <CardContent className="flex-grow">
                           <div className="space-y-2">
-                            <div className="flex justify-between text-sm text-gray-400">
+                            <div className="flex justify-between text-sm text-muted-foreground">
                               <span>Progress</span>
-                              <span className="text-cyan-400 font-semibold">{module.progress}%</span>
+                              <span className="text-primary font-semibold">{module.progress}%</span>
                             </div>
                             <Progress value={module.progress} className="h-2" />
                           </div>
                         </CardContent>
                         <CardFooter>
-                          <Button className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+                          <Button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold shadow-[0_0_20px_hsl(160_84%_39%/0.3)]">
                             {module.progress > 0 ? "Continue Learning" : "Start Learning"}
                           </Button>
                         </CardFooter>
@@ -156,10 +156,10 @@ const Learn = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent">
               Featured Video Lectures
             </h2>
-            <p className="text-gray-300 text-lg">
+            <p className="text-muted-foreground text-lg">
               Expert tutorials and demonstrations from aerospace professionals
             </p>
           </motion.div>
@@ -177,18 +177,18 @@ const Learn = () => {
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.03, y: -5 }}
               >
-                <Card className="bg-slate-800/50 backdrop-blur-lg border-cyan-400/20 rounded-2xl overflow-hidden hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300">
+                <Card className="bg-card/50 backdrop-blur-lg border-primary/20 rounded-2xl overflow-hidden hover:border-primary/60 hover:shadow-[0_0_40px_hsl(160_84%_39%/0.3)] transition-all duration-300">
                   <CardHeader>
-                    <div className="aspect-video bg-slate-900/50 rounded-lg mb-4 flex items-center justify-center border border-cyan-400/10">
-                      <BookOpen className="w-16 h-16 text-cyan-400/60" />
+                    <div className="aspect-video bg-card/50 rounded-lg mb-4 flex items-center justify-center border border-primary/10">
+                      <BookOpen className="w-16 h-16 text-primary/60" />
                     </div>
-                    <CardTitle className="text-white">{video.title}</CardTitle>
-                    <CardDescription className="text-gray-300">
+                    <CardTitle className="text-foreground">{video.title}</CardTitle>
+                    <CardDescription className="text-muted-foreground">
                       {video.duration} • {video.instructor}
                     </CardDescription>
                   </CardHeader>
                   <CardFooter>
-                    <Button className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+                    <Button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold shadow-[0_0_20px_hsl(160_84%_39%/0.3)]">
                       Watch Now
                     </Button>
                   </CardFooter>
@@ -208,23 +208,23 @@ const Learn = () => {
             viewport={{ once: true }}
             className="text-center"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent">
               Ready to Apply Your Knowledge?
             </h2>
-            <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
               Explore cutting-edge research or test your skills with interactive tools
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transition-all duration-300"
+                className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-[0_0_30px_hsl(160_84%_39%/0.4)] hover:shadow-[0_0_50px_hsl(160_84%_39%/0.6)] transition-all duration-300"
                 asChild
               >
                 <a href="/research">Explore Research</a>
               </Button>
               <Button 
                 size="lg" 
-                className="bg-slate-800/50 backdrop-blur-lg border-cyan-400/30 hover:border-cyan-400/60 text-white font-semibold px-8 py-6 text-lg rounded-xl hover:shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-300"
+                className="bg-card/50 backdrop-blur-lg border-primary/30 hover:border-primary/60 text-foreground font-semibold px-8 py-6 text-lg rounded-xl hover:shadow-[0_0_30px_hsl(160_84%_39%/0.3)] transition-all duration-300"
                 asChild
               >
                 <a href="/tools">Try Tools</a>
