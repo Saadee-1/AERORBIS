@@ -205,7 +205,7 @@ const ToolsLauncher = () => {
               <Button
                 variant="outline"
                 onClick={showAllTools}
-                className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+                className="border-primary/40 text-primary hover:bg-primary/10"
               >
                 <Grid3x3 className="w-4 h-4 mr-2" />
                 Show All Tools
