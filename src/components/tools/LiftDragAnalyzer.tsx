@@ -1523,7 +1523,7 @@ const point: Record<string, unknown> = { alpha };
                         label="Zero-Lift Coefficient (CL₀)"
                         helperText="Lift coefficient at zero geometric angle of attack (α = 0°). Accounts for camber effects. Typical range: -0.1 to 0.3 for cambered airfoils. Used in linear lift model: CL = CL₀ + CL_α × α."
                       >
-                        <Input id="cl0" type="number" value={customAirfoil.CL_0} onChange={(e) => handleCustomAirfoilChange("CL_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.001" />
+                        <Input id="cl0" type="number" value={customAirfoil.CL_0} onChange={(e) => handleCustomAirfoilChange("CL_0", e.target.value)} step="0.001" />
                       </AeroFormField>
                       <AeroFormField 
                         label="Lift Curve Slope (CL_α)"
