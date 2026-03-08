@@ -92,7 +92,7 @@ const DashboardOverview = () => {
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Rocket className="w-7 h-7 text-primary drop-shadow-[0_0_10px_hsl(185_85%_50%/0.6)]" />
+              <Rocket className="w-7 h-7 text-primary drop-shadow-[0_0_10px_hsl(160_84%_39%/0.6)]" />
             </motion.div>
             <span className="px-3 py-1 bg-primary/10 border border-primary/30 rounded-full text-[10px] font-semibold text-primary uppercase tracking-[0.2em]" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
               Clearance Level 3
