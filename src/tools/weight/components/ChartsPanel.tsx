@@ -187,7 +187,7 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               id: 'w_to',
               name: 'Takeoff Weight',
               role: 'kg',
-              color: '#22d3ee',
+              color: '#10b981',
             }]}
           />
         </div>
