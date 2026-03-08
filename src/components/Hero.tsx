@@ -221,7 +221,7 @@ const Hero = () => {
             </motion.h1>
             {/* Underline accent */}
             <motion.div 
-              className="h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-4"
+              className="h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-3 sm:mt-4"
               initial={{ width: 0 }}
               animate={{ width: '60%' }}
               transition={{ delay: 1, duration: 0.8, ease: 'easeOut' }}
