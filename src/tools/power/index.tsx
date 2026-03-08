@@ -307,7 +307,7 @@ export default function PowerSystemCalculator() {
                     type="number"
                     value={location.longitude}
                     onChange={(e) => setLocation({ ...location, longitude: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                     min="-180"
                     max="180"
                     step="0.1"
