@@ -720,7 +720,7 @@ const ReynoldsNumberCalculator = () => {
                   step="0.001" 
                   value={inputs.length} 
                   onChange={(e) => handleInputChange("length", e.target.value)} 
-                  className="bg-slate-900/50 border-cyan-400/30 text-white" 
+                  className="bg-muted/50" 
                   placeholder="e.g., 1.0" 
                 />
               </AeroFormField>
