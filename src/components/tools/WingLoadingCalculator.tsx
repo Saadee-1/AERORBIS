@@ -1311,7 +1311,7 @@ const WingLoadingCalculator = () => {
                     step="0.001"
                     value={airDensityCustom}
                     onChange={(e) => setAirDensityCustom(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-slate-900/50 border-primary/30"
                     placeholder="e.g., 1.225"
                     min="0"
                   />
