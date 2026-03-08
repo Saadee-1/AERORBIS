@@ -546,7 +546,7 @@ const AIAssistant: React.FC = () => {
             </div>
 
             {/* Input Area - Always Visible */}
-              <div className="p-3 border-t border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky bottom-0">
+              <div className="p-3 border-t border-emerald-500/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky bottom-0">
               <div className="flex gap-2">
                 <Input
                   ref={inputRef}
@@ -555,13 +555,13 @@ const AIAssistant: React.FC = () => {
                   onKeyPress={handleKeyPress}
                   placeholder={mode === 'chat' ? 'Ask Aerobot anything...' : 'Paste text to summarize...'}
                   disabled={isLoading}
-                  className="flex-1 bg-slate-900/70 border-cyan-400/30 text-gray-200 placeholder:text-gray-500
-                           focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 rounded-xl"
+                  className="flex-1 bg-slate-900/70 border-emerald-500/30 text-gray-200 placeholder:text-gray-500
+                           focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 rounded-xl"
                 />
                 <Button
                   onClick={handleSend}
                   disabled={isLoading || !inputValue.trim()}
-                  className="bg-gradient-to-r from-cyan-400 to-blue-400 text-white hover:shadow-[0_0_30px_rgba(34,211,238,0.6)]
+                  className="bg-gradient-to-r from-emerald-500 to-emerald-400 text-white hover:shadow-[0_0_30px_hsl(160_84%_39%/0.6)]
                            disabled:opacity-50 disabled:cursor-not-allowed rounded-xl px-4"
                 >
                   <Send className="w-4 h-4" />
