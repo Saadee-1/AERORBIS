@@ -435,43 +435,43 @@ export default function TrajectorySimulator() {
           <ToolSection>
             <PlanetSelector selectedPlanet={selectedPlanet} onPlanetChange={setSelectedPlanet} />
             
-            <div className="mt-6 p-4 bg-slate-800/30 rounded-lg border border-cyan-400/20">
-              <h3 className="text-lg font-semibold text-cyan-400 mb-4">Simulation Parameters</h3>
+            <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
+              <h3 className="text-lg font-semibold text-primary mb-4">Simulation Parameters</h3>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label className="text-sm text-gray-400">Time Step (s)</Label>
-                  <input
+                  <Label className="text-sm text-muted-foreground">Time Step (s)</Label>
+                  <Input
                     type="number"
                     value={timeStep}
                     onChange={(e) => setTimeStep(parseFloat(e.target.value) || 0.1)}
-                    className="w-full mt-1 px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
                     min="0.01"
                     max="1"
                     step="0.01"
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-400">Max Time (s)</Label>
-                  <input
+                  <Label className="text-sm text-muted-foreground">Max Time (s)</Label>
+                  <Input
                     type="number"
                     value={maxTime}
                     onChange={(e) => setMaxTime(parseFloat(e.target.value) || 1000)}
-                    className="w-full mt-1 px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
                     min="10"
                     max="10000"
                     step="100"
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-400">Max Altitude (km)</Label>
-                  <input
+                  <Label className="text-sm text-muted-foreground">Max Altitude (km)</Label>
+                  <Input
                     type="number"
                     value={maxAltitude / 1000}
                     onChange={(e) => setMaxAltitude((parseFloat(e.target.value) || 1000) * 1000)}
-                    className="w-full mt-1 px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
                     min="10"
                     max="10000"
                     step="100"
+                    className="mt-1"
                   />
                 </div>
               </div>
