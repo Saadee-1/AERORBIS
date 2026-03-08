@@ -610,6 +610,8 @@ const ReynoldsNumberCalculator = () => {
 
   // --- Render ---
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Analyzing Flow Regime" />
     <ToolWrapper>
       <ToolHeader
         title="Advanced Reynolds Number Calculator"
