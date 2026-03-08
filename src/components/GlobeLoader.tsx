@@ -88,7 +88,7 @@ const GlobeLoader = ({ isLoading }: GlobeLoaderProps) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, filter: 'blur(4px)' }}
-          transition={{ duration: 0.35, ease: smoothEase }}
+          transition={{ duration: 0.35, ease: smoothEaseStr }}
         >
           <div className="absolute inset-0 overflow-hidden">
             <LoaderStars />
