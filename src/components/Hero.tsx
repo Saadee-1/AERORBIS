@@ -205,15 +205,36 @@ const Hero = () => {
             className="flex flex-wrap gap-4 justify-center mb-16"
           >
             <Button 
-              asChild 
+              ref={buttonRef}
               variant="outline"
               size="lg" 
-              className="px-10 py-6 gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-base tracking-wider uppercase font-rajdhani group transition-all duration-300 hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)]"
+              onClick={handleLaunchTools}
+              className="px-10 py-6 gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-base tracking-wider uppercase font-rajdhani group transition-all duration-300 hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] relative overflow-visible"
             >
-              <Link to="/tools">
-                <Rocket className="w-5 h-5 group-hover:text-primary group-hover:rotate-45 transition-all duration-500" />
-                Launch Tools
-              </Link>
+              <span className="relative">
+                <AnimatePresence>
+                  {!rocketLaunched && (
+                    <motion.span
+                      key="static"
+                      className="inline-block"
+                      exit={{ y: -200, x: 80, scale: 2, opacity: 0, rotate: -45 }}
+                      transition={{ duration: 0.8, ease: [0.32, 0, 0.67, 0] }}
+                    >
+                      <Rocket className="w-5 h-5 group-hover:text-primary group-hover:-rotate-45 transition-all duration-500" />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                {rocketLaunched && (
+                  <motion.span
+                    className="absolute -top-1 left-0 w-2 h-6 rounded-full"
+                    style={{ background: 'linear-gradient(to top, hsl(var(--primary) / 0.8), transparent)' }}
+                    initial={{ opacity: 1, scaleY: 1 }}
+                    animate={{ opacity: 0, scaleY: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                  />
+                )}
+              </span>
+              Launch Tools
             </Button>
             <Button 
               asChild 
