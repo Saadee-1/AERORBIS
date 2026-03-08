@@ -1144,8 +1144,8 @@ const ThrustLoadingCalculator = () => {
                 </Select>
               </AeroFormField>
               {aircraftPreset !== 'none' && (
-                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
-                  <p className="text-xs text-gray-300">
+                <div className="mt-2 p-2 bg-muted/50 rounded border border-border">
+                  <p className="text-xs text-muted-foreground">
                     {AIRCRAFT_PRESETS[aircraftPreset].description}
                   </p>
                 </div>
