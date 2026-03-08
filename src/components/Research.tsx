@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FileText, Users, Lightbulb, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Research = () => {
   const ref = useRef(null);
