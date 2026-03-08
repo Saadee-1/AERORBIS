@@ -352,7 +352,7 @@ const Hero = () => {
                 <div className="text-xl sm:text-2xl md:text-4xl font-bold text-primary font-[Orbitron] group-hover:drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all">
                   {stat.value}
                 </div>
-                <div className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mt-1 font-rajdhani">
+                <div className="text-[8px] sm:text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mt-1 font-rajdhani">
                   {stat.label}
                 </div>
               </motion.div>
