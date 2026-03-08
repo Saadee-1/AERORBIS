@@ -262,7 +262,7 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
         )}
 
         {DEBUG_VIS && (
-          <div className="absolute top-3 left-3 z-20 text-xs bg-slate-950/80 text-cyan-200 px-3 py-2 rounded shadow-lg space-y-0.5">
+          <div className="absolute top-3 left-3 z-20 text-xs bg-slate-950/80 text-primary/80 px-3 py-2 rounded shadow-lg space-y-0.5">
             <div>frames: {totalFrames}</div>
             <div>duration: {timelineDuration.toFixed(2)}s</div>
             <div>frame index: {state.currentFrameIndex}</div>

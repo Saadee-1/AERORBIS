@@ -107,7 +107,7 @@ export const TwoDVisualizer = memo(function TwoDVisualizer({
         </svg>
 
         {DEBUG_VIS && (
-          <div className="absolute top-4 left-4 text-xs bg-slate-950/70 text-cyan-200 px-3 py-2 rounded shadow">
+          <div className="absolute top-4 left-4 text-xs bg-slate-950/70 text-primary/80 px-3 py-2 rounded shadow">
             <div>frames: {frames.length}</div>
             <div>
                 x-range: {sanitize(extremes.minX).toFixed(1)} → {sanitize(extremes.maxX).toFixed(1)}

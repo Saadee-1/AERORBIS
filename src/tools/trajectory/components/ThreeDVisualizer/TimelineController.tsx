@@ -45,7 +45,7 @@ export function TimelineController({
   const speedOptions = [0.25, 0.5, 1, 2, 5];
 
   return (
-    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-900/90 backdrop-blur-lg border border-cyan-400/30 rounded-lg p-4 min-w-[600px]">
+    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-900/90 backdrop-blur-lg border border-primary/30 rounded-lg p-4 min-w-[600px]">
       <div className="flex items-center gap-4">
         {/* Playback controls */}
         <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export function TimelineController({
             variant="ghost"
             size="sm"
             onClick={onReset}
-            className="text-cyan-400 hover:text-cyan-300"
+            className="text-primary hover:text-primary/80"
           >
             <RotateCcw className="w-4 h-4" />
           </Button>
@@ -61,7 +61,7 @@ export function TimelineController({
             variant="ghost"
             size="sm"
             onClick={onStepBack}
-            className="text-cyan-400 hover:text-cyan-300"
+            className="text-primary hover:text-primary/80"
           >
             <SkipBack className="w-4 h-4" />
           </Button>
@@ -69,7 +69,7 @@ export function TimelineController({
             variant="ghost"
             size="sm"
             onClick={isPlaying ? onPause : onPlay}
-            className="text-cyan-400 hover:text-cyan-300"
+            className="text-primary hover:text-primary/80"
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </Button>
@@ -77,14 +77,14 @@ export function TimelineController({
             variant="ghost"
             size="sm"
             onClick={onStepForward}
-            className="text-cyan-400 hover:text-cyan-300"
+            className="text-primary hover:text-primary/80"
           >
             <SkipForward className="w-4 h-4" />
           </Button>
         </div>
 
         {/* Time display */}
-          <div className="text-sm text-cyan-400 font-mono min-w-[120px]">
+          <div className="text-sm text-primary font-mono min-w-[120px]">
             {formatTime(safeCurrentTime)} / {formatTime(safeDuration)}
         </div>
 
@@ -97,7 +97,7 @@ export function TimelineController({
               value={safeCurrentTime}
             step={0.1}
             onChange={(e) => onSetTime(parseFloat(e.target.value))}
-            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
           />
         </div>
 
@@ -107,7 +107,7 @@ export function TimelineController({
           <select
             value={playbackSpeed}
             onChange={(e) => onSetSpeed(parseFloat(e.target.value))}
-            className="bg-slate-700/50 border border-cyan-400/30 rounded px-2 py-1 text-sm text-cyan-400"
+            className="bg-slate-700/50 border border-primary/30 rounded px-2 py-1 text-sm text-primary"
           >
             {speedOptions.map((speed) => (
               <option key={speed} value={speed}>
