@@ -141,7 +141,7 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
               <RechartsTooltip
                 contentStyle={{
                   backgroundColor: "#1e293b",
-                  border: "1px solid #22d3ee40",
+                  border: "1px solid #10b98140",
                   borderRadius: "8px",
                 }}
                 formatter={(value: number) => [`${value.toFixed(2)} ${unit}`, "Δv"]}
