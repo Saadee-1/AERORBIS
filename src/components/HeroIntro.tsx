@@ -66,7 +66,7 @@ const IntroGlobe = () => {
       </mesh>
 
       <Sphere args={[1.2, 32, 32]}>
-        <meshBasicMaterial color="#22d3ee" transparent opacity={0.03} side={THREE.BackSide} />
+        <meshBasicMaterial color="#10b981" transparent opacity={0.03} side={THREE.BackSide} />
       </Sphere>
     </group>
   );
