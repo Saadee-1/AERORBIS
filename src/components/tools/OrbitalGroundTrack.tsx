@@ -343,6 +343,34 @@ export function OrbitalGroundTrack({
         {/* Equator */}
         <line x1={0} y1={H / 2} x2={W} y2={H / 2} stroke="hsl(var(--primary))" strokeWidth="0.6" opacity="0.3" strokeDasharray="4 4" />
 
+        {/* Launch site markers */}
+        {[
+          { name: 'Cape Canaveral', lat: 28.396, lon: -80.605 },
+          { name: 'Baikonur', lat: 45.965, lon: 63.305 },
+          { name: 'Kourou', lat: 5.236, lon: -52.768 },
+          { name: 'Vandenberg', lat: 34.632, lon: -120.611 },
+          { name: 'Tanegashima', lat: 30.400, lon: 131.000 },
+          { name: 'Sriharikota', lat: 13.720, lon: 80.230 },
+          { name: 'Jiuquan', lat: 40.958, lon: 100.291 },
+          { name: 'Plesetsk', lat: 62.925, lon: 40.577 },
+        ].map(site => {
+          const [sx, sy] = toSVG(site.lat, site.lon);
+          return (
+            <g key={site.name} opacity="0.7">
+              {/* Diamond marker */}
+              <polygon
+                points={`${sx},${sy - 4} ${sx + 3},${sy} ${sx},${sy + 4} ${sx - 3},${sy}`}
+                fill="hsl(45 90% 55%)"
+                stroke="hsl(220 60% 8%)"
+                strokeWidth="0.6"
+              />
+              <text x={sx + 5} y={sy + 3} fill="hsl(45 80% 65%)" fontSize="6.5" fontWeight="500">
+                {site.name}
+              </text>
+            </g>
+          );
+        })}
+
         {/* Inclination bands */}
         {inclination !== 0 && (
           <>
