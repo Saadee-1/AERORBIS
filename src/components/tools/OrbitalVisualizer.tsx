@@ -1216,8 +1216,8 @@ const OrbitalVisualizer = () => {
                   className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border hover:border-primary/40 transition-colors"
                 >
                   <div className="flex-1">
-                    <p className="text-white font-semibold">{orbit.name}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-foreground font-semibold">{orbit.name}</p>
+                    <p className="text-xs text-muted-foreground">
                       Periapsis: {orbit.inputs.periapsisAltitude} {getUnit("dist")} | 
                       Inc: {orbit.inputs.inclination}° | 
                       e: {orbit.inputs.eccentricity}
