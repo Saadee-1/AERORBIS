@@ -1019,7 +1019,7 @@ export default function ClimbPerformanceCalculator() {
                     </div>
                     <div className="space-y-3">
                     <div>
-                        <h4 className="text-sm font-semibold text-cyan-400 mb-1">V_x — Best Angle of Climb Speed</h4>
+                        <h4 className="text-sm font-semibold text-primary mb-1">V_x — Best Angle of Climb Speed</h4>
                         <p className="text-xs text-gray-500 mb-2">True airspeed that maximizes climb angle (steepest climb). Used for obstacle clearance and short-field takeoff performance.</p>
                       {result.vX !== undefined ? (
                         <>

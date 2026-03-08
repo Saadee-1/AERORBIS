@@ -81,7 +81,7 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
               <Line
                 type="monotone"
                 dataKey="Cm"
-                stroke="#06b6d4"
+                stroke="#10b981"
                 strokeWidth={2}
                 dot={false}
                 name="C_m"
@@ -94,7 +94,7 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
               items={[{
                 id: 'cm',
                 name: 'C_m',
-                color: '#06b6d4',
+                color: '#10b981',
               }]}
             />
           </div>

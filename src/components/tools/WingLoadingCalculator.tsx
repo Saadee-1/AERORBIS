@@ -1654,7 +1654,7 @@ const WingLoadingCalculator = () => {
                         
                         return (
                           <div
-                            className="absolute -bottom-5 text-xs text-blue-300/70"
+                            className="absolute -bottom-5 text-xs text-primary/70"
                             style={{ left: `${Math.max(5, Math.min(95, center))}%`, transform: 'translateX(-50%)' }}
                           >
                             {example.label}

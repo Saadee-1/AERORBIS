@@ -42,9 +42,9 @@ export function PlotsPanel({ altitudeSweep, expansionSweep, pressureSweep }: Plo
               <Line 
                 type="monotone" 
                 dataKey="T" 
-                stroke="#06b6d4" 
+                stroke="#10b981" 
                 strokeWidth={2}
-                dot={{ fill: '#06b6d4', r: 3 }}
+                dot={{ fill: '#10b981', r: 3 }}
                 legendType="none"
               />
             </LineChart>
@@ -54,7 +54,7 @@ export function PlotsPanel({ altitudeSweep, expansionSweep, pressureSweep }: Plo
               items={[{
                 id: 'thrust',
                 name: 'Thrust',
-                color: '#06b6d4',
+                color: '#10b981',
               }]}
             />
           </div>

@@ -196,7 +196,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
     .metric-value {
       font-size: 1.8em;
       font-weight: bold;
-      color: #06b6d4;
+      color: #059669;
     }
     .footer {
       margin-top: 40px;

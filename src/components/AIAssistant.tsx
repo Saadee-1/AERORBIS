@@ -513,9 +513,9 @@ const AIAssistant: React.FC = () => {
                       )}
                     </div>
                     {message.role === 'user' && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-500/20 
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-emerald-500/20 
                                     flex items-center justify-center flex-shrink-0 mt-1">
-                        <MessageSquare className="w-5 h-5 text-blue-400" />
+                        <MessageSquare className="w-5 h-5 text-primary" />
                       </div>
                     )}
                   </motion.div>

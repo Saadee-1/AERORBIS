@@ -55,7 +55,7 @@ export function Markers({ markers, showMarkers = true, onMarkerClick }: MarkersP
             className="cursor-pointer transition-all hover:scale-110"
             onClick={() => onMarkerClick?.(marker)}
             style={{
-              backgroundColor: MARKER_COLORS[marker.name] || '#22d3ee',
+              backgroundColor: MARKER_COLORS[marker.name] || '#10b981',
               color: 'white',
               padding: '4px 8px',
               borderRadius: '4px',

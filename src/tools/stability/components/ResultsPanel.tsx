@@ -101,7 +101,7 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
             </p>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-blue-400/10 rounded-lg border border-indigo-400/20">
+          <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-primary/10 rounded-lg border border-indigo-400/20">
             <p className="text-xs text-muted-foreground mb-1">Downwash (ε_α)</p>
             <p className="text-indigo-400 font-bold text-xl">
               {safeToFixed(results.epsilon_alpha, 4)}

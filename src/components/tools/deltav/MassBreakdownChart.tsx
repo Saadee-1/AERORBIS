@@ -25,15 +25,13 @@ const MassBreakdownChart = ({
   stageResults,
   payloadMass,
 }: MassBreakdownChartProps) => {
-  // Prepare data for stacked bar chart
   const chartData = stageResults.map((result, index) => ({
     name: result.stage.name || `Stage ${index + 1}`,
-    dryMass: result.dryMass / 1000, // Convert to tonnes
+    dryMass: result.dryMass / 1000,
     propellantMass: result.propellantMass / 1000,
     interstageMass: (result.stage.interstageMass || 0) / 1000,
   }));
 
-  // Add payload as separate entry
   const totalData = [
     ...chartData,
     {
@@ -45,26 +43,25 @@ const MassBreakdownChart = ({
     },
   ];
 
-  // Calculate total liftoff mass
   const totalLiftoffMass =
     stageResults.reduce((sum, r) => sum + r.initialMass, 0) + payloadMass;
 
   return (
-    <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+    <Card className="bg-card backdrop-blur-lg border border-primary/20 rounded-2xl">
       <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <Database className="w-5 h-5 text-cyan-400" />
+        <CardTitle className="text-foreground flex items-center gap-2">
+          <Database className="w-5 h-5 text-primary" />
           Mass Breakdown
         </CardTitle>
-        <CardDescription className="text-gray-400">
+        <CardDescription className="text-muted-foreground">
           Stage mass distribution (stacked)
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-          <p className="text-sm text-gray-400">
+        <div className="mb-4 p-3 bg-muted/50 rounded-lg border border-primary/10">
+          <p className="text-sm text-muted-foreground">
             Total Liftoff Mass:{" "}
-            <span className="text-cyan-400 font-bold text-lg">
+            <span className="text-primary font-bold text-lg">
               {(totalLiftoffMass / 1000).toFixed(1)} t
             </span>
           </p>
@@ -96,16 +93,16 @@ const MassBreakdownChart = ({
             <RechartsTooltip
               contentStyle={{
                 backgroundColor: "#1e293b",
-                border: "1px solid #22d3ee40",
+                border: "1px solid #10b98140",
                 borderRadius: "8px",
               }}
               formatter={(value: number) => [`${value.toFixed(2)} t`, ""]}
             />
-            <Bar dataKey="dryMass" stackId="a" fill="#22d3ee" name="Dry Mass" />
+            <Bar dataKey="dryMass" stackId="a" fill="#10b981" name="Dry Mass" />
             <Bar
               dataKey="propellantMass"
               stackId="a"
-              fill="#3b82f6"
+              fill="#059669"
               name="Propellant"
             />
             <Bar
@@ -114,16 +111,16 @@ const MassBreakdownChart = ({
               fill="#8b5cf6"
               name="Interstage"
             />
-            <Bar dataKey="payloadMass" stackId="a" fill="#10b981" name="Payload" />
+            <Bar dataKey="payloadMass" stackId="a" fill="#f59e0b" name="Payload" />
           </BarChart>
         </ResponsiveContainer>
         <div className="mt-3 pt-3 border-t border-slate-700/50 px-6 pb-4">
           <AeroverseLegend
             items={[
-              { id: 'dry-mass', name: 'Dry Mass', color: '#22d3ee' },
-              { id: 'propellant', name: 'Propellant', color: '#3b82f6' },
+              { id: 'dry-mass', name: 'Dry Mass', color: '#10b981' },
+              { id: 'propellant', name: 'Propellant', color: '#059669' },
               { id: 'interstage', name: 'Interstage', color: '#8b5cf6' },
-              { id: 'payload', name: 'Payload', color: '#10b981' },
+              { id: 'payload', name: 'Payload', color: '#f59e0b' },
             ]}
           />
         </div>
@@ -133,4 +130,3 @@ const MassBreakdownChart = ({
 };
 
 export default MassBreakdownChart;
-

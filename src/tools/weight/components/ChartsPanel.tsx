@@ -281,13 +281,13 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
                 id: 'wing-loading',
                 name: 'Wing Loading',
                 role: 'kg/m²',
-                color: '#22d3ee',
+                color: '#10b981',
               }]}
             />
           </div>
-          <div className="p-4 text-center border-t border-cyan-400/20">
-            <p className="text-sm text-gray-400">Current Wing Loading</p>
-            <p className="text-2xl font-bold text-cyan-400 mt-1">
+          <div className="p-4 text-center border-t border-primary/20">
+            <p className="text-sm text-muted-foreground">Current Wing Loading</p>
+            <p className="text-2xl font-bold text-primary mt-1">
               {wingLoading.toFixed(1)} kg/m²
             </p>
             <p className="text-xs text-gray-500 mt-1">

@@ -1912,7 +1912,7 @@ const point: Record<string, unknown> = { alpha };
                           className="border-b border-slate-700/50 hover:bg-slate-700/30"
                         >
                           <td className="py-2 px-3 text-white">{point.alpha.toFixed(1)}</td>
-                          <td className="py-2 px-3 text-blue-400">{point.cl.toFixed(3)}</td>
+                          <td className="py-2 px-3 text-primary">{point.cl.toFixed(3)}</td>
                           <td className="py-2 px-3 text-red-400">{point.cd.toFixed(4)}</td>
                           <td className="py-2 px-3 text-green-400 font-semibold">
                             {Number.isFinite(point.ld) ? point.ld.toFixed(2) : "N/A"}

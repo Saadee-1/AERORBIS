@@ -46,7 +46,7 @@ export function InterlinkSourcesRow({
             >
               <span
                 className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ background: source.color || "#06b6d4" }}
+                style={{ background: source.color || "#10b981" }}
               />
               <span className="text-xs text-slate-100 font-medium">{source.name}</span>
               {!compact && source.fields.length > 0 && (

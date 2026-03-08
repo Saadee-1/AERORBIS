@@ -538,15 +538,15 @@ const DeltaVPlanner = () => {
                     ) : null
                   }
                 >
-                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
-                  <p className="text-sm text-gray-400 mb-1">Total Liftoff Mass</p>
-                  <p className="text-3xl font-bold text-cyan-400">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-emerald-400/10 rounded-lg border border-primary/30 mb-4">
+                  <p className="text-sm text-muted-foreground mb-1">Total Liftoff Mass</p>
+                  <p className="text-3xl font-bold text-primary">
                     {(result.totalLiftoffMass / 1000).toFixed(1)} t
                   </p>
                 </div>
-                <div className="p-4 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-lg border border-blue-400/30 mb-4">
-                  <p className="text-sm text-gray-400 mb-1">Total Achievable Δv</p>
-                  <p className="text-3xl font-bold text-blue-400">
+                <div className="p-4 bg-gradient-to-r from-emerald-400/10 to-purple-400/10 rounded-lg border border-emerald-400/30 mb-4">
+                  <p className="text-sm text-muted-foreground mb-1">Total Achievable Δv</p>
+                  <p className="text-3xl font-bold text-emerald-400">
                     {formatDeltaV(breakdown.totalAchievable)}
                   </p>
                 </div>

@@ -72,9 +72,9 @@ export function getDataQualityBadge(quality: PolarDataQuality): {
  * Each airfoil gets a consistent color across all charts (CL, CD, CM)
  */
 export const AIRFOIL_COLORS = [
-  '#22d3ee', // Cyan
-  '#3b82f6', // Blue
-  '#10b981', // Green
+  '#10b981', // Emerald
+  '#059669', // Dark Emerald
+  '#34d399', // Light Emerald
   '#f59e0b', // Amber
   '#ef4444', // Red
 ];
