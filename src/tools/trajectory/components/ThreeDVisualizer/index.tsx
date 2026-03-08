@@ -58,7 +58,7 @@ const Placeholder = ({
     <div className="relative w-full min-h-[600px] bg-slate-900 rounded-lg border border-slate-800 flex flex-col items-center justify-center text-gray-400 p-6">
       <p>Run a simulation to see the 3D visualization.</p>
       {IS_DEV && (
-        <pre className="mt-4 max-w-full overflow-auto text-xs text-left bg-slate-950/60 text-cyan-300 p-3 rounded border border-cyan-400/20">
+        <pre className="mt-4 max-w-full overflow-auto text-xs text-left bg-slate-950/60 text-primary p-3 rounded border border-primary/20">
           {JSON.stringify({ reason, ...details }, null, 2)}
         </pre>
       )}
