@@ -78,7 +78,7 @@ const LearningModules = () => {
               className="group relative"
             >
               <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-lg p-6 h-full transition-all duration-300 hover:border-primary/40 hover:bg-card/60 flex gap-5 items-start hud-corners">
-                <div className="w-12 h-12 shrink-0 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(185_85%_50%/0.15)] transition-all duration-300">
+                <div className="w-12 h-12 shrink-0 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(160_84%_39%/0.15)] transition-all duration-300">
                   <mod.icon className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">

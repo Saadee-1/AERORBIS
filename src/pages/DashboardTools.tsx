@@ -180,7 +180,7 @@ const DashboardTools = () => {
             placeholder="Search tools by name, category, or function..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-slate-800/30 border-primary/15 text-foreground focus:border-primary/40 focus:shadow-[0_0_15px_hsl(185_85%_50%/0.1)] text-sm"
+            className="pl-10 bg-slate-800/30 border-primary/15 text-foreground focus:border-primary/40 focus:shadow-[0_0_15px_hsl(160_84%_39%/0.1)] text-sm"
             style={{ fontFamily: 'Rajdhani, sans-serif' }}
           />
         </div>

@@ -236,7 +236,7 @@ const DashboardLearning = () => {
                   whileHover={{ scale: badge.earned ? 1.08 : 1, y: badge.earned ? -3 : 0 }}
                   className={`p-4 rounded-lg text-center transition-all duration-300 border ${
                     badge.earned
-                      ? "bg-primary/5 border-primary/20 hover:shadow-[0_0_15px_hsl(185_85%_50%/0.1)]"
+                      ? "bg-primary/5 border-primary/20 hover:shadow-[0_0_15px_hsl(160_84%_39%/0.1)]"
                       : "bg-muted/5 border-muted/10 opacity-40"
                   }`}
                 >
