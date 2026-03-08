@@ -9,6 +9,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TrendingUp, Info, AlertTriangle, CheckCircle, Calculator, Link2, Plane } from "lucide-react";
