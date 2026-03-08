@@ -8,7 +8,7 @@ interface GlobeLoaderProps {
   isLoading: boolean;
 }
 
-const smoothEase = [0.16, 1, 0.3, 1];
+const smoothEaseStr = "easeOut";
 
 const AnimatedGlobe = () => {
   const meshRef = useRef<THREE.Mesh>(null);

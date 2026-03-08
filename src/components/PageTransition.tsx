@@ -18,10 +18,10 @@ const PageTransition = ({ children }: PageTransitionProps) => {
       exit={{ opacity: 0, filter: 'blur(4px)', y: -8, scale: 0.998 }}
       transition={{
         duration: 0.45,
-        ease: smoothEase,
-        opacity: { duration: 0.3, ease: smoothEase },
-        filter: { duration: 0.4, ease: smoothEase },
-        scale: { duration: 0.5, ease: smoothEase },
+        ease: "easeOut",
+        opacity: { duration: 0.3 },
+        filter: { duration: 0.4 },
+        scale: { duration: 0.5 },
       }}
       style={{ willChange: 'opacity, transform, filter' }}
     >
