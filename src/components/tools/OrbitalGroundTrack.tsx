@@ -353,13 +353,35 @@ export function OrbitalGroundTrack({
           </>
         )}
 
-        {/* Ground track paths */}
-        {pathSegments.map((d, i) => (
-          <g key={`track-${i}`}>
-            <path d={d} fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" opacity="0.15" />
-            <path d={d} fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.8" />
+        {/* Ground track paths - color-coded per orbit */}
+        {orbitSegments.map((seg, i) => {
+          const color = ORBIT_COLORS[seg.orbitIdx % ORBIT_COLORS.length];
+          return (
+            <g key={`track-${i}`}>
+              <path d={seg.d} fill="none" stroke={color} strokeWidth="2.5" opacity="0.15" />
+              <path d={seg.d} fill="none" stroke={color} strokeWidth="1.2" opacity="0.85" />
+            </g>
+          );
+        })}
+
+        {/* Orbit legend */}
+        {numOrbits > 1 && (
+          <g>
+            {Array.from({ length: numOrbits }, (_, i) => {
+              const color = ORBIT_COLORS[i % ORBIT_COLORS.length];
+              const lx = 8;
+              const ly = 26 + i * 14;
+              return (
+                <g key={`legend-${i}`}>
+                  <line x1={lx} y1={ly} x2={lx + 14} y2={ly} stroke={color} strokeWidth="2" opacity="0.9" />
+                  <text x={lx + 18} y={ly + 3} fill={color} fontSize="8" fontWeight="600" opacity="0.8">
+                    Orbit {i + 1}
+                  </text>
+                </g>
+              );
+            })}
           </g>
-        ))}
+        )}
 
         {/* Starting position marker */}
         {currentSVG && (
