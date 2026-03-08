@@ -54,6 +54,8 @@ interface OrbitalInputs {
   periapsisAltitude: string;
   inclination: string;
   eccentricity: string;
+  raan: string;           // Right Ascension of Ascending Node (Ω) in degrees
+  argOfPeriapsis: string; // Argument of Periapsis (ω) in degrees
   centralBodyRadius: string;
   gm: string;
   targetAltitude: string;
@@ -62,10 +64,35 @@ interface OrbitalInputs {
 interface OrbitalParams {
   semiMajorAxis: number;
   eccentricity: number;
-  inclination: number;
+  inclination: number;   // rad
+  raan: number;          // rad (Ω)
+  argOfPeriapsis: number; // rad (ω)
   GM: number;
   periapsisRadius: number;
   meanAnomaly0: number;
+}
+
+// Physics: Rotate from perifocal frame to ECI using Ω, i, ω
+// R = R_z(-Ω) · R_x(-i) · R_z(-ω)
+function rotateToECI(
+  x_peri: number, y_peri: number,
+  incl: number, raan: number, argPeri: number
+): [number, number, number] {
+  const cosO = Math.cos(raan);
+  const sinO = Math.sin(raan);
+  const cosI = Math.cos(incl);
+  const sinI = Math.sin(incl);
+  const cosW = Math.cos(argPeri);
+  const sinW = Math.sin(argPeri);
+
+  // Combined rotation matrix elements (perifocal → ECI)
+  const x = (cosO * cosW - sinO * sinW * cosI) * x_peri +
+            (-cosO * sinW - sinO * cosW * cosI) * y_peri;
+  const y = (sinO * cosW + cosO * sinW * cosI) * x_peri +
+            (-sinO * sinW + cosO * cosW * cosI) * y_peri;
+  const z = (sinW * sinI) * x_peri + (cosW * sinI) * y_peri;
+
+  return [x, y, z];
 }
 
 interface SavedOrbit {
@@ -368,6 +395,8 @@ const OrbitalVisualizer = () => {
       periapsisAltitude: "400",
       inclination: "51.6",
       eccentricity: "0.05",
+      raan: "0",
+      argOfPeriapsis: "0",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "800",
@@ -379,6 +408,8 @@ const OrbitalVisualizer = () => {
       periapsisAltitude: "408",
       inclination: "51.6",
       eccentricity: "0.0003",
+      raan: "75.0",
+      argOfPeriapsis: "0",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "500",
@@ -388,6 +419,8 @@ const OrbitalVisualizer = () => {
       periapsisAltitude: "35786",
       inclination: "0",
       eccentricity: "0",
+      raan: "0",
+      argOfPeriapsis: "0",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "36000",
@@ -397,6 +430,8 @@ const OrbitalVisualizer = () => {
       periapsisAltitude: "20200",
       inclination: "55",
       eccentricity: "0.01",
+      raan: "120",
+      argOfPeriapsis: "45",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "20500",
@@ -406,6 +441,8 @@ const OrbitalVisualizer = () => {
       periapsisAltitude: "500",
       inclination: "63.4",
       eccentricity: "0.737",
+      raan: "280",
+      argOfPeriapsis: "270",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "40000",
@@ -415,6 +452,8 @@ const OrbitalVisualizer = () => {
       periapsisAltitude: "600",
       inclination: "97.8",
       eccentricity: "0.001",
+      raan: "200",
+      argOfPeriapsis: "90",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "800",
@@ -572,23 +611,19 @@ const OrbitalVisualizer = () => {
     return nu;
   };
 
-  // Physics: Get position vector from true anomaly
+  // Physics: Get position vector from true anomaly using full Ω, i, ω rotation
   const getPositionFromTrueAnomaly = (nu: number, params: OrbitalParams): THREE.Vector3 => {
-    const { semiMajorAxis, eccentricity, periapsisRadius } = params;
+    const { semiMajorAxis, eccentricity } = params;
     const r = (semiMajorAxis * (1 - eccentricity * eccentricity)) / (1 + eccentricity * Math.cos(nu));
     
-    const x_orbital = r * Math.cos(nu);
-    const y_orbital = r * Math.sin(nu);
+    // Position in perifocal frame (orbit plane, periapsis along +X)
+    const x_peri = r * Math.cos(nu);
+    const y_peri = r * Math.sin(nu);
     
-    const focalDistance = semiMajorAxis * eccentricity;
-    const x_offset = x_orbital - focalDistance;
-    const y_offset = y_orbital;
+    // Rotate to ECI using Ω, i, ω
+    const [x, y, z] = rotateToECI(x_peri, y_peri, params.inclination, params.raan, params.argOfPeriapsis);
     
-    const x_final = x_offset;
-    const y_final = y_offset * Math.cos(params.inclination);
-    const z_final = y_offset * Math.sin(params.inclination);
-    
-    return new THREE.Vector3(x_final, y_final, z_final);
+    return new THREE.Vector3(x, y, z);
   };
 
   // ─── Three.js Cinematic Initialization ────────────────────────────────────
@@ -954,23 +989,25 @@ const OrbitalVisualizer = () => {
         const satScale = radius_SI * 0.012;
         t.satellite.scale.set(satScale, satScale, satScale);
         
-        // Build orbit path points (physics frozen)
+        // Build orbit path points using full Ω, i, ω rotation
+        const raanRad = (parseFloat(currentInputs.raan || "0") * Math.PI) / 180;
+        const argPeriRad = (parseFloat(currentInputs.argOfPeriapsis || "0") * Math.PI) / 180;
+        
         const orbitPoints: THREE.Vector3[] = [];
         const segments = 256;
-        const focalDistance = semiMajorAxis * eccentricity;
         
         for (let i = 0; i <= segments; i++) {
           const theta = (i / segments) * 2 * Math.PI;
           const r = (semiMajorAxis * (1 - eccentricity * eccentricity)) / (1 + eccentricity * Math.cos(theta));
           
-          const x = (r * Math.cos(theta)) - focalDistance;
-          const y = r * Math.sin(theta);
+          // Position in perifocal frame
+          const x_peri = r * Math.cos(theta);
+          const y_peri = r * Math.sin(theta);
           
-          const x_final = x;
-          const y_final = y * Math.cos(inclinationRad);
-          const z_final = y * Math.sin(inclinationRad);
+          // Rotate to ECI
+          const [x, y, z] = rotateToECI(x_peri, y_peri, inclinationRad, raanRad, argPeriRad);
           
-          orbitPoints.push(new THREE.Vector3(x_final, y_final, z_final));
+          orbitPoints.push(new THREE.Vector3(x, y, z));
         }
 
         // ── Build orbit as glowing tube ──
@@ -1017,6 +1054,8 @@ const OrbitalVisualizer = () => {
           semiMajorAxis,
           eccentricity,
           inclination: inclinationRad,
+          raan: raanRad,
+          argOfPeriapsis: argPeriRad,
           GM,
           periapsisRadius,
           meanAnomaly0: 0
@@ -1128,6 +1167,8 @@ const OrbitalVisualizer = () => {
         const e_transfer = (r2 - r1) / (r2 + r1);
         const focalDistance = a_transfer * e_transfer;
         const inclinationRad = (parseFloat(inputs.inclination) * Math.PI) / 180;
+        const raanRad = (parseFloat(inputs.raan || "0") * Math.PI) / 180;
+        const argPeriRad = (parseFloat(inputs.argOfPeriapsis || "0") * Math.PI) / 180;
         
         const transferPoints: THREE.Vector3[] = [];
         const segments = 100;
@@ -1136,14 +1177,11 @@ const OrbitalVisualizer = () => {
           const theta = (i / segments) * Math.PI;
           const r = (a_transfer * (1 - e_transfer * e_transfer)) / (1 + e_transfer * Math.cos(theta));
           
-          const x = (r * Math.cos(theta)) - focalDistance;
-          const y = r * Math.sin(theta);
+          const x_peri = r * Math.cos(theta);
+          const y_peri = r * Math.sin(theta);
           
-          transferPoints.push(new THREE.Vector3(
-            x,
-            y * Math.cos(inclinationRad),
-            y * Math.sin(inclinationRad)
-          ));
+          const [x, y, z] = rotateToECI(x_peri, y_peri, inclinationRad, raanRad, argPeriRad);
+          transferPoints.push(new THREE.Vector3(x, y, z));
         }
         
         if (t.transferOrbitLine.geometry) {
@@ -1181,10 +1219,12 @@ const OrbitalVisualizer = () => {
 
   const loadPreset = (presetName: keyof typeof presets) => {
     const preset = presets[presetName];
-    const newInputs = {
+    const newInputs: OrbitalInputs = {
       periapsisAltitude: preset.periapsisAltitude,
       inclination: preset.inclination,
       eccentricity: preset.eccentricity,
+      raan: preset.raan,
+      argOfPeriapsis: preset.argOfPeriapsis,
       centralBodyRadius: preset.centralBodyRadius,
       gm: preset.gm,
       targetAltitude: preset.targetAltitude,
@@ -1374,6 +1414,12 @@ const OrbitalVisualizer = () => {
                 </AeroFormField>
                 <AeroFormField label={`Inclination (${getUnit("incl")})`}>
                   <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50" />
+                </AeroFormField>
+                <AeroFormField label={`RAAN Ω (${getUnit("incl")})`}>
+                  <Input id="raan" type="number" step="0.1" value={inputs.raan} onChange={(e) => setInputs({ ...inputs, raan: e.target.value })} className="bg-muted/50" placeholder="0-360" />
+                </AeroFormField>
+                <AeroFormField label={`Arg. of Periapsis ω (${getUnit("incl")})`}>
+                  <Input id="argOfPeriapsis" type="number" step="0.1" value={inputs.argOfPeriapsis} onChange={(e) => setInputs({ ...inputs, argOfPeriapsis: e.target.value })} className="bg-muted/50" placeholder="0-360" />
                 </AeroFormField>
                 <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
                   <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-muted/50" />
