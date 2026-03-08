@@ -903,6 +903,8 @@ const OrbitalVisualizer = () => {
         orbitTube, orbitGlow, transferOrbitLine, 
         satellite, satelliteLight,
         trailPoints, trailPositions, trailIndex: 0,
+        orbitParticles: null,
+        orbitParticlePhases: null,
         animationId: 0, 
         lastTime: performance.now(),
         orbitalParams: null,
