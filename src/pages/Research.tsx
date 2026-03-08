@@ -215,7 +215,7 @@ const Research = () => {
             </p>
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transition-all duration-300"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-[0_0_30px_hsl(160_84%_39%/0.4)] hover:shadow-[0_0_50px_hsl(160_84%_39%/0.6)] transition-all duration-300"
             >
               Submit Research Paper
             </Button>
