@@ -145,8 +145,8 @@ const CustomTooltip = ({ active, payload, label, chartType }: CustomTooltipProps
   }
 
   return (
-    <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
-      <p className="text-cyan-400 font-semibold mb-2">α = {label}°</p>
+    <div className="bg-slate-800 border border-primary/30 rounded-lg p-3 shadow-lg">
+      <p className="text-primary font-semibold mb-2">α = {label}°</p>
       {payload.map((entry, index: number) => (
         <div key={index} className="flex items-center gap-2 text-sm">
           <div
