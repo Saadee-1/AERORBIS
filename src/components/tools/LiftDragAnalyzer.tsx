@@ -1627,7 +1627,7 @@ const point: Record<string, unknown> = { alpha };
               <div className="mb-4 text-sm text-muted-foreground">
                 <p>Results computed for steady, level flight at the specified operating point (angle of attack, airspeed, density). Assumes incompressible flow (Mach &lt; 0.3).</p>
                 {result.kModelSource && (
-                  <p className="mt-2 text-xs text-cyan-400">
+                  <p className="mt-2 text-xs text-primary">
                     Induced drag: {result.kModelSource === 'user-defined' ? 'user-defined k' : 'geometry-derived'}
                   </p>
                 )}
