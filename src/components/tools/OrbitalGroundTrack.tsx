@@ -7,20 +7,15 @@
 import { useMemo } from 'react';
 
 interface GroundTrackProps {
-  /** Semi-major axis in km */
   semiMajorAxis: number;
-  /** Eccentricity */
   eccentricity: number;
-  /** Inclination in radians */
   inclination: number;
-  /** RAAN in radians */
   raan: number;
-  /** Argument of periapsis in radians */
   argOfPeriapsis: number;
-  /** GM in km³/s² */
   gm: number;
-  /** Number of orbits to trace */
   numOrbits?: number;
+  /** Current true anomaly in radians - for real-time satellite dot */
+  currentTrueAnomaly?: number;
 }
 
 // Physics: Solve Kepler's equation M = E - e·sin(E)
