@@ -1,4 +1,4 @@
-import aerorbisLogo from "@/assets/aerorbis-logo-futuristic.png";
+import aerorbisLogo from "@/assets/aerorbis-logo.png";
 import { Link } from "react-router-dom";
 
 const Footer = () => {

@@ -4,7 +4,7 @@ import { gsap } from "gsap";
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Sphere, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
-import aerorbisLogo from '@/assets/aerorbis-logo-futuristic.png';
+import aerorbisLogo from '@/assets/aerorbis-logo.png';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Props = {
