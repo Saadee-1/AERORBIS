@@ -56,9 +56,24 @@ interface OrbitalInputs {
   eccentricity: string;
   raan: string;           // Right Ascension of Ascending Node (Ω) in degrees
   argOfPeriapsis: string; // Argument of Periapsis (ω) in degrees
+  trueAnomaly: string;    // True Anomaly (ν) in degrees - initial satellite position
   centralBodyRadius: string;
   gm: string;
   targetAltitude: string;
+}
+
+// Physics: Convert true anomaly (ν) to mean anomaly (M) via eccentric anomaly (E)
+// E = 2·atan(sqrt((1-e)/(1+e))·tan(ν/2))
+// M = E - e·sin(E)
+function trueAnomalyToMean(nu: number, e: number): number {
+  if (e < 1e-8) return nu; // Circular: M ≈ ν
+  const E = 2 * Math.atan2(
+    Math.sqrt((1 - e) / (1 + e)) * Math.sin(nu / 2),
+    Math.cos(nu / 2)
+  );
+  let M = E - e * Math.sin(E);
+  if (M < 0) M += 2 * Math.PI;
+  return M;
 }
 
 interface OrbitalParams {
@@ -397,6 +412,7 @@ const OrbitalVisualizer = () => {
       eccentricity: "0.05",
       raan: "0",
       argOfPeriapsis: "0",
+      trueAnomaly: "0",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "800",
@@ -410,6 +426,7 @@ const OrbitalVisualizer = () => {
       eccentricity: "0.0003",
       raan: "75.0",
       argOfPeriapsis: "0",
+      trueAnomaly: "45",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "500",
@@ -421,6 +438,7 @@ const OrbitalVisualizer = () => {
       eccentricity: "0",
       raan: "0",
       argOfPeriapsis: "0",
+      trueAnomaly: "0",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "36000",
@@ -432,6 +450,7 @@ const OrbitalVisualizer = () => {
       eccentricity: "0.01",
       raan: "120",
       argOfPeriapsis: "45",
+      trueAnomaly: "90",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "20500",
@@ -443,6 +462,7 @@ const OrbitalVisualizer = () => {
       eccentricity: "0.737",
       raan: "280",
       argOfPeriapsis: "270",
+      trueAnomaly: "180",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "40000",
@@ -454,6 +474,7 @@ const OrbitalVisualizer = () => {
       eccentricity: "0.001",
       raan: "200",
       argOfPeriapsis: "90",
+      trueAnomaly: "120",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "800",
@@ -1050,6 +1071,11 @@ const OrbitalVisualizer = () => {
         t.orbitPoints = orbitPoints;
         
         // Store orbital parameters for propagation
+        // Convert initial true anomaly to mean anomaly for Kepler propagation
+        const trueAnomalyDeg = parseFloat(currentInputs.trueAnomaly || "0");
+        const trueAnomalyRad = (trueAnomalyDeg * Math.PI) / 180;
+        const initialMeanAnomaly = trueAnomalyToMean(trueAnomalyRad, eccentricity);
+
         t.orbitalParams = {
           semiMajorAxis,
           eccentricity,
@@ -1058,7 +1084,7 @@ const OrbitalVisualizer = () => {
           argOfPeriapsis: argPeriRad,
           GM,
           periapsisRadius,
-          meanAnomaly0: 0
+          meanAnomaly0: initialMeanAnomaly
         };
 
         // Reset trail
@@ -1225,6 +1251,7 @@ const OrbitalVisualizer = () => {
       eccentricity: preset.eccentricity,
       raan: preset.raan,
       argOfPeriapsis: preset.argOfPeriapsis,
+      trueAnomaly: preset.trueAnomaly,
       centralBodyRadius: preset.centralBodyRadius,
       gm: preset.gm,
       targetAltitude: preset.targetAltitude,
@@ -1420,6 +1447,9 @@ const OrbitalVisualizer = () => {
                 </AeroFormField>
                 <AeroFormField label={`Arg. of Periapsis ω (${getUnit("incl")})`}>
                   <Input id="argOfPeriapsis" type="number" step="0.1" value={inputs.argOfPeriapsis} onChange={(e) => setInputs({ ...inputs, argOfPeriapsis: e.target.value })} className="bg-muted/50" placeholder="0-360" />
+                </AeroFormField>
+                <AeroFormField label={`True Anomaly ν (${getUnit("incl")})`}>
+                  <Input id="trueAnomaly" type="number" step="1" value={inputs.trueAnomaly} onChange={(e) => setInputs({ ...inputs, trueAnomaly: e.target.value })} className="bg-muted/50" placeholder="0-360" />
                 </AeroFormField>
                 <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
                   <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-muted/50" />
