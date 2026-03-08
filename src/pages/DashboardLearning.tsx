@@ -3,8 +3,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, BookOpen, Clock, Flame } from "lucide-react";
+import { Award, BookOpen, Clock, Flame, Zap } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 
@@ -20,55 +19,22 @@ const DashboardLearning = () => {
   const badgesInView = useInView(badgesRef, { once: true, margin: "-50px" as `${number}px` });
 
   const modules = [
-    {
-      id: 1,
-      title: "Aerodynamics 101",
-      category: "Aerodynamics",
-      difficulty: "Beginner",
-      progress: 75,
-      totalLessons: 12,
-      completedLessons: 9,
-      thumbnail: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400",
-      timeRemaining: "2 hours",
-    },
-    {
-      id: 2,
-      title: "Rocket Propulsion Systems",
-      category: "Propulsion",
-      difficulty: "Intermediate",
-      progress: 45,
-      totalLessons: 15,
-      completedLessons: 7,
-      thumbnail: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=400",
-      timeRemaining: "5 hours",
-    },
-    {
-      id: 3,
-      title: "Orbital Mechanics",
-      category: "Space Systems",
-      difficulty: "Advanced",
-      progress: 30,
-      totalLessons: 20,
-      completedLessons: 6,
-      thumbnail: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400",
-      timeRemaining: "12 hours",
-    },
+    { id: 1, title: "Aerodynamics 101", category: "Aerodynamics", difficulty: "Beginner", progress: 75, totalLessons: 12, completedLessons: 9, thumbnail: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400", timeRemaining: "2 hours" },
+    { id: 2, title: "Rocket Propulsion Systems", category: "Propulsion", difficulty: "Intermediate", progress: 45, totalLessons: 15, completedLessons: 7, thumbnail: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=400", timeRemaining: "5 hours" },
+    { id: 3, title: "Orbital Mechanics", category: "Space Systems", difficulty: "Advanced", progress: 30, totalLessons: 20, completedLessons: 6, thumbnail: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400", timeRemaining: "12 hours" },
   ];
 
   const badges = [
-    { name: "Aerodynamics Apprentice", icon: "🎯", earned: true },
+    { name: "Aero Apprentice", icon: "🎯", earned: true },
     { name: "Propulsion Pro", icon: "🚀", earned: true },
     { name: "5 Day Streak", icon: "🔥", earned: true },
-    { name: "Research Contributor", icon: "📝", earned: false },
+    { name: "Research Contrib", icon: "📝", earned: false },
     { name: "Orbital Master", icon: "🌌", earned: false },
   ];
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.1 },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
   };
 
   const itemVariants = {
@@ -76,78 +42,90 @@ const DashboardLearning = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
   };
 
+  const getDifficultyColor = (d: string) => {
+    if (d === "Beginner") return "bg-green-400/10 text-green-400 border-green-400/30";
+    if (d === "Intermediate") return "bg-amber-400/10 text-amber-400 border-amber-400/30";
+    return "bg-red-400/10 text-red-400 border-red-400/30";
+  };
+
   return (
     <DashboardLayout>
       {/* Header */}
-      <motion.div 
+      <motion.div
         ref={headerRef}
         className="mb-8 text-center"
         initial={{ opacity: 0, y: 30 }}
         animate={headerInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       >
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">Learning Progress</h1>
-        <p className="text-gray-400">Track your aerospace education journey</p>
+        <p className="text-[10px] text-primary/60 tracking-[0.3em] uppercase mb-2" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+          // Training Division
+        </p>
+        <h1 className="text-3xl font-bold text-foreground mb-2" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+          Learning <span className="text-primary drop-shadow-[0_0_15px_hsl(185_85%_50%/0.4)]">Progress</span>
+        </h1>
+        <p className="text-sm text-muted-foreground" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+          Track your aerospace education trajectory
+        </p>
       </motion.div>
 
       {/* Streak Counter */}
       <motion.div
         ref={streakRef}
-        initial={{ opacity: 0, scale: 0.9, y: 30 }}
-        animate={streakInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.9, y: 30 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={streakInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/30 rounded-2xl p-6 mb-8 shadow-[0_0_30px_rgba(34,211,238,0.2)]"
+        className="relative rounded-xl overflow-hidden mb-8"
       >
-        <div className="flex flex-col items-center text-center space-y-4">
-          <motion.div 
-            className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black w-16 h-16 rounded-full flex items-center justify-center text-2xl"
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-800/50 via-primary/5 to-slate-800/50 backdrop-blur-lg" />
+        <div className="absolute inset-0 rounded-xl border border-primary/20" />
+        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/40" />
+        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary/40" />
+
+        <div className="relative p-6 flex flex-col items-center text-center space-y-3">
+          <motion.div
+            className="w-14 h-14 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center"
+            animate={{ scale: [1, 1.08, 1], boxShadow: ['0 0 0px hsl(185 85% 50% / 0)', '0 0 20px hsl(185 85% 50% / 0.3)', '0 0 0px hsl(185 85% 50% / 0)'] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <Flame className="w-8 h-8" />
+            <Flame className="w-7 h-7 text-primary" />
           </motion.div>
           <div>
-            <motion.h3 
-              className="text-2xl font-bold text-white"
-              initial={{ opacity: 0 }}
-              animate={streakInView ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              5 Day Streak!
-            </motion.h3>
-            <motion.p 
-              className="text-gray-300"
-              initial={{ opacity: 0 }}
-              animate={streakInView ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              You've studied 5 days in a row — keep going!
-            </motion.p>
+            <h3 className="text-xl font-bold text-foreground" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+              5 Day Streak
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+              Consecutive days of training — keep the momentum
+            </p>
           </div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Button className="bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+            <Button className="bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 text-xs tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+              <Zap className="w-3 h-3 mr-1.5" />
               View Achievements
             </Button>
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Tabs for filtering */}
+      {/* Tabs */}
       <Tabs defaultValue="all" className="mb-8">
-        <TabsList className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20">
-          <TabsTrigger value="all" className="data-[state=active]:bg-cyan-400/20 data-[state=active]:text-cyan-400">All Courses</TabsTrigger>
-          <TabsTrigger value="beginner" className="data-[state=active]:bg-cyan-400/20 data-[state=active]:text-cyan-400">Beginner</TabsTrigger>
-          <TabsTrigger value="intermediate" className="data-[state=active]:bg-cyan-400/20 data-[state=active]:text-cyan-400">Intermediate</TabsTrigger>
-          <TabsTrigger value="advanced" className="data-[state=active]:bg-cyan-400/20 data-[state=active]:text-cyan-400">Advanced</TabsTrigger>
+        <TabsList className="bg-slate-800/30 backdrop-blur-lg border border-primary/10">
+          {["all", "beginner", "intermediate", "advanced"].map((val) => (
+            <TabsTrigger
+              key={val}
+              value={val}
+              className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border-primary/30 text-[11px] tracking-wider uppercase"
+              style={{ fontFamily: 'Rajdhani, sans-serif' }}
+            >
+              {val === "all" ? "All Modules" : val}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
-          <motion.div 
+          <motion.div
             ref={modulesRef}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-5"
             variants={containerVariants}
             initial="hidden"
             animate={modulesInView ? "visible" : "hidden"}
@@ -156,74 +134,97 @@ const DashboardLearning = () => {
               <motion.div
                 key={module.id}
                 variants={itemVariants}
-                whileHover={{ scale: 1.02, y: -5 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.02, y: -4 }}
               >
-                <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl overflow-hidden hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] hover:border-cyan-400/60 transition-all duration-300">
-                  <div
-                    className="h-40 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${module.thumbnail})` }}
-                  >
-                    <div className="h-full bg-gradient-to-t from-slate-900 to-transparent flex items-end p-4">
-                      <Badge className="bg-cyan-400/20 text-cyan-400 border border-cyan-400/30">{module.difficulty}</Badge>
+                <div className="relative rounded-xl overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-lg" />
+                  <div className="absolute inset-0 rounded-xl border border-primary/10 group-hover:border-primary/30 transition-colors" />
+                  <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/30" />
+                  <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/30" />
+
+                  {/* Thumbnail */}
+                  <div className="h-36 bg-cover bg-center relative" style={{ backgroundImage: `url(${module.thumbnail})` }}>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+                    <div className="absolute bottom-3 left-3">
+                      <Badge className={`${getDifficultyColor(module.difficulty)} text-[10px] tracking-wider uppercase border`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                        {module.difficulty}
+                      </Badge>
+                    </div>
+                    <div className="absolute top-3 right-3 text-[9px] text-primary/50 tracking-[0.2em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                      {module.category}
                     </div>
                   </div>
-                  <CardHeader>
-                    <CardTitle className="text-white">{module.title}</CardTitle>
-                    <p className="text-sm text-gray-400">{module.category}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
+
+                  <div className="relative p-5">
+                    <h3 className="text-base font-semibold text-foreground mb-3 tracking-wide" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                      {module.title}
+                    </h3>
+                    
+                    <div className="space-y-3">
                       <div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-gray-400">Progress</span>
-                          <span className="text-cyan-400 font-medium">{module.progress}%</span>
+                        <div className="flex justify-between text-[11px] mb-1.5">
+                          <span className="text-muted-foreground tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Progress</span>
+                          <span className="text-primary font-semibold" style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px' }}>{module.progress}%</span>
                         </div>
-                        <Progress value={module.progress} className="h-2" />
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-4 text-gray-400">
-                          <span className="flex items-center space-x-1">
-                            <BookOpen className="w-4 h-4" />
-                            <span>{module.completedLessons}/{module.totalLessons} lessons</span>
-                          </span>
-                          <span className="flex items-center space-x-1">
-                            <Clock className="w-4 h-4" />
-                            <span>{module.timeRemaining}</span>
-                          </span>
+                        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full rounded-full bg-gradient-to-r from-primary to-info"
+                            initial={{ width: 0 }}
+                            animate={modulesInView ? { width: `${module.progress}%` } : { width: 0 }}
+                            transition={{ duration: 1, delay: 0.3 }}
+                          />
                         </div>
                       </div>
+                      
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="w-3 h-3" />
+                          <span>{module.completedLessons}/{module.totalLessons}</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{module.timeRemaining}</span>
+                        </span>
+                      </div>
+
                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Button className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-black font-bold hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">
-                          Continue Learning →
+                        <Button className="w-full bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20 text-[11px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                          Continue Module →
                         </Button>
                       </motion.div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </motion.div>
         </TabsContent>
       </Tabs>
 
-      {/* Badges Section */}
+      {/* Badges */}
       <motion.div
         ref={badgesRef}
         initial={{ opacity: 0, y: 40 }}
         animate={badgesInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       >
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-white">
-              <Award className="w-5 h-5 text-cyan-400" />
-              <span>Your Achievements</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <motion.div 
-              className="grid grid-cols-2 md:grid-cols-5 gap-4"
+        <div className="relative rounded-xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-lg" />
+          <div className="absolute inset-0 rounded-xl border border-primary/15" />
+          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/40" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary/40" />
+
+          <div className="relative p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <Award className="w-4 h-4 text-primary" />
+              <h3 className="text-[11px] text-primary tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                // Earned Certifications
+              </h3>
+              <div className="flex-1 h-px bg-gradient-to-r from-primary/20 to-transparent" />
+            </div>
+
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-5 gap-3"
               variants={containerVariants}
               initial="hidden"
               animate={badgesInView ? "visible" : "hidden"}
@@ -232,26 +233,28 @@ const DashboardLearning = () => {
                 <motion.div
                   key={badge.name}
                   variants={itemVariants}
-                  whileHover={{ scale: badge.earned ? 1.1 : 1, y: badge.earned ? -5 : 0 }}
-                  className={`p-4 rounded-lg text-center transition-all duration-300 ${
+                  whileHover={{ scale: badge.earned ? 1.08 : 1, y: badge.earned ? -3 : 0 }}
+                  className={`p-4 rounded-lg text-center transition-all duration-300 border ${
                     badge.earned
-                      ? "bg-cyan-400/10 border border-cyan-400/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
-                      : "bg-slate-900/50 border border-slate-700/30 opacity-50"
+                      ? "bg-primary/5 border-primary/20 hover:shadow-[0_0_15px_hsl(185_85%_50%/0.1)]"
+                      : "bg-muted/5 border-muted/10 opacity-40"
                   }`}
                 >
-                  <motion.div 
-                    className="text-4xl mb-2"
-                    animate={badge.earned ? { scale: [1, 1.2, 1] } : {}}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  <motion.div
+                    className="text-3xl mb-2"
+                    animate={badge.earned ? { scale: [1, 1.15, 1] } : {}}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                   >
                     {badge.icon}
                   </motion.div>
-                  <p className="text-xs font-medium text-gray-300">{badge.name}</p>
+                  <p className="text-[10px] font-medium text-foreground/80 tracking-wide" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                    {badge.name}
+                  </p>
                 </motion.div>
               ))}
             </motion.div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
     </DashboardLayout>
   );

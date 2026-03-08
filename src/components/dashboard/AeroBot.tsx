@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Send } from "lucide-react";
+import { X, Send, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,55 +11,42 @@ const AeroBot = () => {
   ]);
   const [inputValue, setInputValue] = useState("");
 
-  // Future Integration: Real AI Chat Assistant
   const handleSend = () => {
     if (!inputValue.trim()) return;
-
     const userMessage = { id: Date.now(), text: inputValue, sender: "user" };
     setMessages([...messages, userMessage]);
-
-    // Mock bot response
     setTimeout(() => {
-      const botMessage = {
+      setMessages((prev) => [...prev, {
         id: Date.now() + 1,
         text: "I'm a placeholder assistant. In the future, I'll provide real-time aerospace learning tips and guidance!",
         sender: "bot",
-      };
-      setMessages((prev) => [...prev, botMessage]);
+      }]);
     }, 1000);
-
     setInputValue("");
   };
 
   return (
     <>
-      {/* Chat Bubble Button */}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        className="fixed bottom-6 right-6 z-50"
-      >
-        <div
+      {/* Chat Bubble */}
+      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="fixed bottom-6 right-6 z-50">
+        <motion.div
           onClick={() => setIsOpen(!isOpen)}
-          className="aerobot-icon"
+          className="w-12 h-12 rounded-lg bg-slate-900/90 border border-primary/25 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:shadow-[0_0_15px_hsl(185_85%_50%/0.2)] transition-all"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           {isOpen ? (
-            <X className="w-6 h-6 text-white" />
+            <X className="w-5 h-5 text-primary" />
           ) : (
-            <img 
-              src="/aerobot-icon.png?v=2" 
-              alt="AeroBot Assistant" 
-              className="w-full h-full object-contain"
-              style={{ position: 'relative', zIndex: 1 }}
+            <img
+              src="/aerobot-icon.png?v=2"
+              alt="AeroBot"
+              className="w-full h-full object-contain p-1"
               loading="eager"
-              onError={(e) => {
-                console.error("Failed to load aerobot-icon.png");
-                // Fallback: hide image if it fails to load
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}
-        </div>
+        </motion.div>
       </motion.div>
 
       {/* Chat Window */}
@@ -69,45 +56,61 @@ const AeroBot = () => {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 w-96 h-[500px] bg-card border border-border rounded-lg shadow-2xl z-50 flex flex-col"
+            className="fixed bottom-24 right-6 w-96 h-[500px] z-50 flex flex-col rounded-xl overflow-hidden"
           >
+            {/* Background */}
+            <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" />
+            <div className="absolute inset-0 rounded-xl border border-primary/20" />
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/50" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary/50" />
+
             {/* Header */}
-            <div className="bg-primary text-primary-foreground p-4 rounded-t-lg">
-              <h3 className="font-semibold text-lg">AeroBot Assistant</h3>
-              <p className="text-xs opacity-90">Your aerospace learning companion</p>
+            <div className="relative p-4 border-b border-primary/15">
+              <div className="flex items-center gap-2">
+                <Radio className="w-4 h-4 text-primary" />
+                <div>
+                  <h3 className="text-xs font-semibold text-foreground tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                    AeroBot Assistant
+                  </h3>
+                  <p className="text-[9px] text-primary/60 tracking-[0.2em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                    // Channel Open
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="relative flex-1 overflow-y-auto p-4 space-y-3">
               {messages.map((msg) => (
-                <div
+                <motion.div
                   key={msg.id}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  <div
-                    className={`max-w-[80%] p-3 rounded-lg ${
-                      msg.sender === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground"
-                    }`}
-                  >
-                    <p className="text-sm">{msg.text}</p>
+                  <div className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                    msg.sender === "user"
+                      ? "bg-primary/15 text-foreground border border-primary/20"
+                      : "bg-muted/10 text-foreground/90 border border-muted/15"
+                  }`}>
+                    {msg.text}
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-border">
+            <div className="relative p-4 border-t border-primary/15">
               <div className="flex space-x-2">
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSend()}
-                  placeholder="Ask me anything..."
-                  className="flex-1 bg-muted"
+                  placeholder="Transmit message..."
+                  className="flex-1 bg-slate-800/30 border-primary/15 text-foreground text-sm"
+                  style={{ fontFamily: 'Rajdhani, sans-serif' }}
                 />
-                <Button onClick={handleSend} size="icon" className="bg-primary text-primary-foreground">
+                <Button onClick={handleSend} size="icon" className="bg-primary/15 text-primary border border-primary/25 hover:bg-primary/25">
                   <Send className="w-4 h-4" />
                 </Button>
               </div>

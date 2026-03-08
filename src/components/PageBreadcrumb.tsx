@@ -12,61 +12,59 @@ import { Home, ChevronRight } from "lucide-react";
 const PageBreadcrumb = () => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter((x) => x);
+  const isDashboard = pathnames[0] === "dashboard";
 
   const getBreadcrumbName = (path: string) => {
     const names: { [key: string]: string } = {
       learn: "Learning Modules",
-      research: "Research Hub",
-      tools: "Tools & Simulators",
-      community: "Community",
-      contact: "Contact Us",
-      dashboard: "Mission Control",
-      learning: "My Courses",
-      profile: "Settings",
+      research: "Research Lab",
+      tools: "Simulation Bay",
+      community: "Comm Channel",
+      contact: "Contact",
+      dashboard: "Command Center",
+      learning: "Training Modules",
+      profile: "Pilot Profile",
     };
     return names[path] || path.charAt(0).toUpperCase() + path.slice(1);
   };
 
-  // Don't show breadcrumbs on home page
-  if (pathnames.length === 0) {
-    return null;
-  }
+  if (pathnames.length === 0) return null;
 
   return (
-    <div className="container mx-auto px-4 lg:px-8 pt-24 pb-4 relative z-20">
+    <div className={`mx-auto px-4 lg:px-8 relative z-20 ${isDashboard ? 'pt-4 pb-2' : 'pt-24 pb-4 container'}`}>
       <Breadcrumb>
-        <BreadcrumbList className="text-sm">
+        <BreadcrumbList className="text-[11px]" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link 
-                to="/" 
-                className="flex items-center gap-1 text-gray-400 hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+              <Link
+                to="/"
+                className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-all duration-200"
               >
-                <Home size={16} />
-                <span>Home</span>
+                <Home size={14} />
+                <span className="tracking-wider uppercase">Home</span>
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
-          
+
           {pathnames.map((path, index) => {
             const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;
             const isLast = index === pathnames.length - 1;
 
             return (
-              <div key={path} className="flex items-center gap-2">
+              <div key={path} className="flex items-center gap-1.5">
                 <BreadcrumbSeparator>
-                  <ChevronRight className="text-cyan-400/50" size={16} />
+                  <ChevronRight className="text-primary/30" size={14} />
                 </BreadcrumbSeparator>
                 <BreadcrumbItem>
                   {isLast ? (
-                    <BreadcrumbPage className="text-cyan-400 font-semibold drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                    <BreadcrumbPage className="text-primary font-semibold tracking-wider uppercase">
                       {getBreadcrumbName(path)}
                     </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
-                      <Link 
+                      <Link
                         to={routeTo}
-                        className="text-gray-400 hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+                        className="text-muted-foreground hover:text-primary transition-all duration-200 tracking-wider uppercase"
                       >
                         {getBreadcrumbName(path)}
                       </Link>
