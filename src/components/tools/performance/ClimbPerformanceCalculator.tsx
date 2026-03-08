@@ -103,6 +103,7 @@ const DENSITY_PRESETS: Record<AirDensityPreset, number> = {
 
 export default function ClimbPerformanceCalculator() {
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { data: designSession, updateDesignSession } = useDesignSession();
   const [searchParams, setSearchParams] = useSearchParams();
