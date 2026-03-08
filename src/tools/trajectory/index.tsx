@@ -37,6 +37,7 @@ import type { TrajectoryResult } from './types';
 import { buildCalculationEvent } from '@/lib/events/payloadBuilder';
 import type { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { STAGE_PRESETS, getStage } from './data/stagePresets';
+import { ROCKET_PRESETS, type RocketPreset } from './data/rocketPresets';
 
 import { PlanetSelector } from './components/PlanetSelector';
 import { StageEditor } from './components/StageEditor';
