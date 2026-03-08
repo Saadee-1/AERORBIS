@@ -1277,14 +1277,14 @@ const ThrustLoadingCalculator = () => {
                 icon={Zap}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <Label className="text-sm text-gray-300">Input Mode:</Label>
+                  <Label className="text-sm text-muted-foreground">Input Mode:</Label>
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm ${thrustMode === 'total' ? 'text-cyan-400' : 'text-gray-500'}`}>Total Thrust</span>
+                    <span className={`text-sm ${thrustMode === 'total' ? 'text-primary' : 'text-muted-foreground/70'}`}>Total Thrust</span>
                     <Switch
                       checked={thrustMode === 'perEngine'}
                       onCheckedChange={(checked) => setThrustMode(checked ? 'perEngine' : 'total')}
                     />
-                    <span className={`text-sm ${thrustMode === 'perEngine' ? 'text-cyan-400' : 'text-gray-500'}`}>Per-Engine</span>
+                    <span className={`text-sm ${thrustMode === 'perEngine' ? 'text-primary' : 'text-muted-foreground/70'}`}>Per-Engine</span>
                   </div>
                 </div>
                 
