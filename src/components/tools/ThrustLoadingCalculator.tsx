@@ -1341,7 +1341,7 @@ const ThrustLoadingCalculator = () => {
                         step="0.01"
                         value={perEngineThrust}
                         onChange={(e) => setPerEngineThrust(e.target.value)}
-                        className="bg-slate-900/50 border-cyan-400/30"
+                        className="bg-input border-border"
                         placeholder={`e.g., ${thrustUnit === 'N' ? '8000' : thrustUnit === 'kgf' ? '800' : '1800'}`}
                         min="0"
                       />
