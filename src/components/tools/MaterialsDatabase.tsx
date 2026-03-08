@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { motion } from "framer-motion";
 import { Material, UnitSystem } from "./types";
 import MaterialTable from "./MaterialTable";
