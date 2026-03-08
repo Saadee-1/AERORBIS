@@ -975,7 +975,7 @@ const OrbitalVisualizer = () => {
                   </AeroButton>
                 ))}
               </div>
-              <p className="text-sm text-slate-400 mt-4">
+              <p className="text-sm text-muted-foreground mt-4">
                 Click any preset to instantly load real-world satellite parameters
               </p>
             </AeroCard>
