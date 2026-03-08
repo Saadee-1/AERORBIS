@@ -109,17 +109,7 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate user
-    const auth = await authenticateUser(req);
-    if (!auth) {
-      console.log('Unauthorized access attempt to news');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Authenticated user:', auth.user.id);
+    // News is a public endpoint - no auth required
 
     const url = new URL(req.url);
     const filterParam = url.searchParams.get('filter') || 'all';

@@ -2,3 +2,6 @@ project_id = "wutjlluliyrazvdvhgak"
 
 [functions.ai-gateway]
 verify_jwt = false
+
+[functions.news]
+verify_jwt = false
