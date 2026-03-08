@@ -1710,7 +1710,7 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xs text-muted-foreground/70 mb-2">L = CL × q × S, where q = 0.5 × ρ × V²</p>
                     {displayCheck.display.Lift !== "—" ? (
                       <>
-                    <p className="text-xl font-bold text-blue-400">
+                    <p className="text-xl font-bold text-primary">
                       {typeof displayCheck.display.Lift === "number" ? convertFromSI(displayCheck.display.Lift, "force").toFixed(2) : displayCheck.display.Lift} {getUnit("force")}
                     </p>
                         <p className="text-xs text-muted-foreground/70 mt-1">Vertical component balances weight in steady flight</p>
