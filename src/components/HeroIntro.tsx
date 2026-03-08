@@ -285,17 +285,12 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
 
       {/* Logo and title with holographic flicker */}
       <div className="text-center z-10 relative">
-        {/* Logo glow */}
-        <div className="absolute -inset-8 bg-primary/5 rounded-full blur-3xl" />
-        
         <FlickerText delay={0.5}>
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-transparent border border-primary/25 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
-            <img
-              src={aerorbisLogo}
-              alt="Aerorbis Logo"
-              className="intro-logo w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
-            />
-          </div>
+          <img
+            src={aerorbisLogo}
+            alt="Aerorbis Logo"
+            className="intro-logo w-12 h-12 md:w-16 md:h-16 object-contain mx-auto mb-4"
+          />
         </FlickerText>
 
         <FlickerText delay={0.8} className="mb-3">

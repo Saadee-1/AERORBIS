@@ -19,9 +19,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-lg bg-transparent border border-primary/20 flex items-center justify-center">
-              <img src={aerorbisLogo} alt="AERORBIS" className="w-6 h-6" />
-            </div>
+            <img src={aerorbisLogo} alt="AERORBIS" className="w-8 h-8" />
             <div className="flex flex-col">
               <span className="text-lg font-bold text-foreground tracking-widest font-[Orbitron]">
                 AERORBIS

@@ -129,50 +129,12 @@ const Hero = () => {
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             className="mb-8 relative inline-flex items-center justify-center"
           >
-            {/* Outer pulsing ring */}
-            <motion.div
-              className="absolute w-40 h-40 md:w-52 md:h-52 rounded-full border border-primary/20"
-              animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            {/* Clean logo (no glow/panel) */}
+            <img 
+              src={aerorbisLogo} 
+              alt="AERORBIS" 
+              className="w-20 h-20 md:w-24 md:h-24 relative z-10"
             />
-            {/* Inner rotating ring */}
-            <motion.div
-              className="absolute w-32 h-32 md:w-44 md:h-44 rounded-full border border-dashed border-primary/15"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-            />
-            {/* Radial glow behind logo */}
-            <motion.div 
-              className="absolute rounded-full"
-              style={{
-                width: '200%',
-                height: '200%',
-                background: 'radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.05) 40%, transparent 70%)',
-                filter: 'blur(20px)',
-              }}
-              animate={{ opacity: [0.5, 0.9, 0.5], scale: [0.95, 1.05, 0.95] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            {/* Hexagonal frame accent dots */}
-            {[0, 60, 120, 180, 240, 300].map((deg) => (
-              <motion.div
-                key={deg}
-                className="absolute w-1.5 h-1.5 rounded-full bg-primary/60"
-                style={{
-                  transform: `rotate(${deg}deg) translateY(-70px)`,
-                }}
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 2, repeat: Infinity, delay: deg / 360 }}
-              />
-            ))}
-            {/* Logo with glassmorphic circular panel */}
-            <div className="relative z-10 w-32 h-32 md:w-40 md:h-40 rounded-full bg-transparent border border-primary/35 flex items-center justify-center shadow-[0_0_40px_hsl(var(--primary)/0.22)] hover:border-primary/55 hover:shadow-[0_0_55px_hsl(var(--primary)/0.32)] transition-all duration-500">
-              <img 
-                src={aerorbisLogo} 
-                alt="AERORBIS" 
-                className="w-20 h-20 md:w-26 md:h-26 drop-shadow-[0_0_25px_hsl(var(--primary)/0.5)]"
-              />
-            </div>
           </motion.div>
 
           {/* Main title with glitch effect */}
