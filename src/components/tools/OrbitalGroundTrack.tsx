@@ -57,6 +57,7 @@ export function OrbitalGroundTrack({
   argOfPeriapsis,
   gm,
   numOrbits = 3,
+  currentTrueAnomaly,
 }: GroundTrackProps) {
   const { tracks, currentPos } = useMemo(() => {
     if (!semiMajorAxis || semiMajorAxis <= 0 || !gm || gm <= 0) {
