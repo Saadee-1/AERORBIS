@@ -1754,9 +1754,9 @@ const point: Record<string, unknown> = { alpha };
                       <p className="text-sm text-yellow-400">Invalid or unrealistic CL value</p>
                     )}
                   </div>
-                  <div className="p-3 rounded bg-slate-700/50">
-                    <p className="text-sm text-slate-400 mb-1">Total Drag Coefficient (CD)</p>
-                    <p className="text-xs text-gray-500 mb-2">CD = CD₀ + k × CL² (parasitic + induced)</p>
+                  <div className="p-3 rounded bg-muted/50">
+                    <p className="text-sm text-muted-foreground mb-1">Total Drag Coefficient (CD)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">CD = CD₀ + k × CL² (parasitic + induced)</p>
                     {(() => {
                       const activeAirfoil = getActiveAirfoil();
                       if (!activeAirfoil) {
