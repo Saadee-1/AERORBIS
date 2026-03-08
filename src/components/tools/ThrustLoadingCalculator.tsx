@@ -1494,7 +1494,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.001"
                       value={cd0Input}
                       onChange={(e) => setCd0Input(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g., 0.025"
                       min="0"
                     />
