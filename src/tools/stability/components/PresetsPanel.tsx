@@ -38,7 +38,7 @@ export function PresetsPanel({
       <div className="space-y-4">
         <AeroFormField label="Select Aircraft Type">
           <Select value={selectedPresetId} onValueChange={onPresetChange}>
-            <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+            <SelectTrigger className="bg-slate-700/50 border-primary/30 text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
