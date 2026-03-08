@@ -1159,14 +1159,14 @@ const ThrustLoadingCalculator = () => {
               icon={Anchor}
             >
               <div className="flex items-center gap-3 mb-4">
-                <Label className="text-sm text-gray-300">Input Mode:</Label>
+                <Label className="text-sm text-muted-foreground">Input Mode:</Label>
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm ${weightMode === 'mass' ? 'text-cyan-400' : 'text-gray-500'}`}>Mass ({inputUnits.mass})</span>
+                  <span className={`text-sm ${weightMode === 'mass' ? 'text-primary' : 'text-muted-foreground/70'}`}>Mass ({inputUnits.mass})</span>
                   <Switch
                     checked={weightMode === 'weight'}
                     onCheckedChange={(checked) => setWeightMode(checked ? 'weight' : 'mass')}
                   />
-                  <span className={`text-sm ${weightMode === 'weight' ? 'text-cyan-400' : 'text-gray-500'}`}>Weight ({inputUnits.weight})</span>
+                  <span className={`text-sm ${weightMode === 'weight' ? 'text-primary' : 'text-muted-foreground/70'}`}>Weight ({inputUnits.weight})</span>
                 </div>
               </div>
               {weightMode === 'mass' ? (
