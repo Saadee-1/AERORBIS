@@ -1561,8 +1561,8 @@ const point: Record<string, unknown> = { alpha };
                   {id: 'force', label: 'Force (L/D)', unit: 'N'},
                   {id: 'span', label: 'Wing Span (b)', unit: 'm'},
                 ].map(field => (
-                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                    <Label className="text-white font-semibold">{field.label}</Label>
+                  <div key={field.id} className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                    <Label className="text-foreground font-semibold">{field.label}</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <Input 
                         placeholder="Unit Name" 
