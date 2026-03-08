@@ -18,6 +18,23 @@ interface LaunchSiteOrbit {
   trueAnomaly: string;
 }
 
+interface ConstellationSatellite {
+  raan: number; // rad
+  argOfPeriapsis: number; // rad
+  trueAnomaly: number; // rad - phase offset
+  label?: string;
+}
+
+interface ConstellationPreset {
+  name: string;
+  description: string;
+  semiMajorAxis: number; // km
+  eccentricity: number;
+  inclination: number; // rad
+  gm: number;
+  satellites: ConstellationSatellite[];
+}
+
 interface GroundTrackProps {
   semiMajorAxis: number;
   eccentricity: number;
