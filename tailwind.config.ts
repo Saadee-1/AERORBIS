@@ -59,25 +59,44 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0", opacity: "0" },
+          to: { height: "var(--radix-accordion-content-height)", opacity: "1" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)", opacity: "1" },
+          to: { height: "0", opacity: "0" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-out": {
+          "0%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(8px)" },
+        },
+        "scale-in": {
+          "0%": { transform: "scale(0.97)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(12px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "slide-in-right": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "accordion-down": "accordion-down 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        "accordion-up": "accordion-up 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+        "fade-in": "fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        "fade-out": "fade-out 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        "scale-in": "scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        "slide-up": "slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+        "slide-in-right": "slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        "enter": "fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1), scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        "exit": "fade-out 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },
