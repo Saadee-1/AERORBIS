@@ -28,8 +28,8 @@ export function GuidanceConfig({
   if (mode === '1D') {
     return (
       <AeroCard title="Guidance" icon={Navigation}>
-        <div className="p-3 bg-slate-800/30 rounded border border-cyan-400/20">
-          <p className="text-sm text-gray-400">
+        <div className="p-3 bg-muted/30 rounded border border-border">
+          <p className="text-sm text-muted-foreground">
             1D mode: Vertical ascent only. No guidance required.
           </p>
         </div>
@@ -46,7 +46,7 @@ export function GuidanceConfig({
               value={guidance2D.type}
               onValueChange={(value: string) => onGuidance2DChange({ ...guidance2D, type: value as 'manual' | 'gravity_turn' | 'constant_pitch_rate' | 'orbital_insertion' })}
             >
-              <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+              <SelectTrigger className="bg-input border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -68,7 +68,6 @@ export function GuidanceConfig({
                   ...guidance2D, 
                   initialPitch: parseFloat(e.target.value) || 90 
                 })}
-                className="bg-slate-700/50 border-cyan-400/30 text-white"
                 min="0"
                 max="90"
                 step="1"
@@ -87,7 +86,6 @@ export function GuidanceConfig({
                     ...guidance2D, 
                     initialPitch: parseFloat(e.target.value) || 90 
                   })}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
                   min="0"
                   max="90"
                   step="1"
@@ -102,7 +100,6 @@ export function GuidanceConfig({
                     ...guidance2D, 
                     pitchRate: parseFloat(e.target.value) || 1 
                   })}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
                   min="0"
                   max="10"
                   step="0.1"
@@ -121,15 +118,14 @@ export function GuidanceConfig({
                   ...guidance2D, 
                   targetAltitude: parseFloat(e.target.value) || 200000 
                 })}
-                className="bg-slate-700/50 border-cyan-400/30 text-white"
                 min="0"
                 step="1000"
               />
             </AeroFormField>
           )}
 
-          <div className="p-3 bg-slate-800/30 rounded border border-cyan-400/20">
-            <p className="text-xs text-gray-400">
+          <div className="p-3 bg-muted/30 rounded border border-border">
+            <p className="text-xs text-muted-foreground">
               {guidance2D.type === 'gravity_turn' && 'Pitch automatically follows flight path angle'}
               {guidance2D.type === 'constant_pitch_rate' && 'Pitch decreases at constant rate'}
               {guidance2D.type === 'orbital_insertion' && 'Pitch program optimized for orbital insertion'}
@@ -145,12 +141,12 @@ export function GuidanceConfig({
     return (
       <AeroCard title="3D Guidance Profile" icon={Navigation}>
         <div className="space-y-4">
-          <div className="p-3 bg-slate-800/30 rounded border border-cyan-400/20">
-            <p className="text-sm text-gray-400">
+          <div className="p-3 bg-muted/30 rounded border border-border">
+            <p className="text-sm text-muted-foreground">
               3D mode: Configure pitch, yaw, and roll programs. Attitude controlled via quaternion.
             </p>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground/70">
             Advanced 3D guidance configuration coming soon. Currently uses default attitude control.
           </p>
         </div>

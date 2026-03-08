@@ -48,14 +48,14 @@ const MaterialTable = ({ materials, unitSystem, customUnitName, customFactor, on
     }
   };
   return (
-    <div className="rounded-lg border border-cyan-400/20 overflow-hidden">
+    <div className="rounded-lg border border-border overflow-hidden">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-800/50 border-b border-cyan-400/20">
-              <TableHead className="text-cyan-400 font-semibold">Material Name</TableHead>
-              <TableHead className="text-cyan-400 font-semibold">Category</TableHead>
-              <TableHead className="text-cyan-400 font-semibold text-right">
+            <TableRow className="bg-muted/50 border-b border-border">
+              <TableHead className="text-primary font-semibold">Material Name</TableHead>
+              <TableHead className="text-primary font-semibold">Category</TableHead>
+              <TableHead className="text-primary font-semibold text-right">
                 Density ({getDensityUnit()})
               </TableHead>
             </TableRow>
@@ -63,7 +63,7 @@ const MaterialTable = ({ materials, unitSystem, customUnitName, customFactor, on
           <TableBody>
             {materials.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-gray-400">
+                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                   No materials found matching your search criteria
                 </TableCell>
               </TableRow>
@@ -74,16 +74,16 @@ const MaterialTable = ({ materials, unitSystem, customUnitName, customFactor, on
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.02 }}
-                  className="border-b border-cyan-400/10 hover:bg-cyan-400/5 cursor-pointer transition-colors"
+                  className="border-b border-border/50 hover:bg-primary/5 cursor-pointer transition-colors"
                   onClick={() => onMaterialClick(material)}
                 >
-                  <TableCell className="text-white font-medium">{material.name}</TableCell>
+                  <TableCell className="text-foreground font-medium">{material.name}</TableCell>
                   <TableCell>
-                    <Badge className="bg-cyan-400/20 text-cyan-400 border-cyan-400/30">
+                    <Badge className="bg-primary/20 text-primary border-border">
                       {material.category}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right text-cyan-400 font-semibold">
+                  <TableCell className="text-right text-primary font-semibold">
                     {formatDensity(material)}
                   </TableCell>
                 </motion.tr>
@@ -97,4 +97,3 @@ const MaterialTable = ({ materials, unitSystem, customUnitName, customFactor, on
 };
 
 export default MaterialTable;
-

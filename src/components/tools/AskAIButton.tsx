@@ -10,7 +10,7 @@ import { buildAeroversePayload } from '@/ai/buildPayload';
 
 interface AskAIButtonProps {
   requestId?: string | null;
-  payload?: Partial<AeroverseAIPayload> | null; // Optional pre-built payload
+  payload?: Partial<AeroverseAIPayload> | null;
   explanationLevel?: 'brief' | 'detailed' | 'teaching';
   disabled?: boolean;
   className?: string;
@@ -28,7 +28,6 @@ export function AskAIButton({
   const { toast } = useToast();
 
   const handleAskAI = async () => {
-    // Log telemetry for missing payload
     if (!requestId && !payload) {
       console.warn('FALLBACK_MISSING_RESULTS: No requestId or payload provided', {
         reason: 'NO_REQUEST_ID_OR_PAYLOAD',
@@ -49,7 +48,6 @@ export function AskAIButton({
       let finalRequestId: string;
 
       if (payload && payload.toolName) {
-        // If payload is provided with a toolName, build it using the helper
         try {
           finalPayload = buildAeroversePayload(payload as Parameters<typeof buildAeroversePayload>[0]);
           finalRequestId = finalPayload.requestId || requestId || `calc-${Date.now()}`;
@@ -68,11 +66,9 @@ export function AskAIButton({
       }
 
       if (finalPayload) {
-        // Use pre-built payload - set it in context and open assistant
         setCurrentPayload(finalPayload);
         setIsOpen(true);
         
-        // Trigger initial explanation message (will include payload JSON in message)
         await sendMessage(`Explain this ${finalPayload.toolName} calculation.`);
         
         toast({
@@ -80,7 +76,6 @@ export function AskAIButton({
           description: 'AI Assistant opened with full calculation context.',
         });
       } else if (requestId) {
-        // Fallback: Use openAssistantWithPayload which loads from localStorage
         await openAssistantWithPayload(requestId);
         
         toast({
@@ -93,7 +88,6 @@ export function AskAIButton({
     } catch (error) {
       console.error('Error opening AI assistant:', error);
       
-      // Log telemetry for errors
       console.warn('FALLBACK_MISSING_RESULTS: Error opening assistant', {
         reason: error instanceof Error ? error.message : 'UNKNOWN_ERROR',
         requestId: requestId || 'N/A',
@@ -116,7 +110,7 @@ export function AskAIButton({
       variant="outline"
       onClick={handleAskAI}
       disabled={disabled || (!requestId && !payload) || isLoading}
-      className={className || "border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"}
+      className={className || "border-primary/40 text-primary hover:bg-primary/10"}
     >
       {isLoading ? (
         <>
@@ -132,4 +126,3 @@ export function AskAIButton({
     </Button>
   );
 }
-
