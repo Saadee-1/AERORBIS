@@ -617,7 +617,7 @@ const DeltaVPlanner = () => {
                 description="Define conversion factor to SI (m/s)"
                 icon={Settings2}
               >
-                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                   <Label className="text-white font-semibold">Delta-V (Δv)</Label>
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     <Input 
