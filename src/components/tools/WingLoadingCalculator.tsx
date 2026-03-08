@@ -1624,7 +1624,7 @@ const WingLoadingCalculator = () => {
                       
                       {/* Current position marker */}
                       <div
-                        className="absolute top-0 h-full w-1 bg-cyan-400 z-10"
+                        className="absolute top-0 h-full w-1 bg-primary z-10"
                         style={{ left: `${getEnvelopePosition()}%` }}
                       />
                       
