@@ -117,7 +117,7 @@ const DashboardProfile = () => {
 
               {/* Status indicators */}
               <div className="w-full mt-4 flex items-center justify-between text-[10px] font-rajdhani tracking-wider text-muted-foreground border-t border-primary/10 pt-3">
-                <span className="flex items-center gap-1"><Wifi className="w-3 h-3 text-green-400" /> ONLINE</span>
+                <span className="flex items-center gap-1"><Wifi className="w-3 h-3 text-emerald-400" /> ONLINE</span>
                 <span className="flex items-center gap-1"><Shield className="w-3 h-3 text-primary" /> VERIFIED</span>
               </div>
 
