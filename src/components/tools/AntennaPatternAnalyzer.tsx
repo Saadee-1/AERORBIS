@@ -1482,7 +1482,7 @@ const AntennaPatternAnalyzer = () => {
                 return (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                    className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-primary/20 hover:border-primary/40 transition-colors"
                   >
                     <div className="flex-1">
                       <p className="text-white font-semibold">{preset.name}</p>
