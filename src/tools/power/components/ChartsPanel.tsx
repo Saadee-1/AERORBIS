@@ -170,7 +170,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             items={[
               { id: 'load', name: 'Load', color: '#ef4444' },
               { id: 'solar', name: 'Solar', color: '#fbbf24' },
-              { id: 'net', name: 'Net', role: 'Solar - Load', color: '#22d3ee' },
+              { id: 'net', name: 'Net', role: 'Solar - Load', color: '#10b981' },
             ]}
           />
         </div>
