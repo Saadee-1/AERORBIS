@@ -1554,7 +1554,7 @@ const WingLoadingCalculator = () => {
                 </div>
               )}
                     
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/20">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading Classification</p>
                       <p className="text-xs text-gray-500 mb-1">(Relative to {missionType !== 'None' ? `${missionType} mission` : 'generic'} envelope)</p>
                       <p className={`text-xl font-bold ${getClassificationColor(result.wsClass)}`}>
