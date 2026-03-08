@@ -608,7 +608,7 @@ const AdvancedThrustCalculator = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-32 bg-muted/50 border-border text-foreground"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="SI">SI (Metric)</SelectItem>
                 <SelectItem value="Imperial">Imperial</SelectItem>
@@ -648,10 +648,10 @@ const AdvancedThrustCalculator = () => {
               icon={Anchor}
             >
               <AeroFormField label={`Specific Impulse (I_sp) ${getUnit("isp")}`}>
-                <Input id="isp" type="number" step="0.1" value={inputs.isp} onChange={(e) => handleInputChange("isp", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 310" />
+                <Input id="isp" type="number" step="0.1" value={inputs.isp} onChange={(e) => handleInputChange("isp", e.target.value)} className="bg-muted/50" placeholder="e.g., 310" />
               </AeroFormField>
               <AeroFormField label={`Exhaust Velocity (V_e) ${getUnit("exhaustVelocity")}`}>
-                <Input id="exhaustVelocity" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 3040" />
+                <Input id="exhaustVelocity" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-muted/50" placeholder="e.g., 3040" />
               </AeroFormField>
               <AeroButton type="button" onClick={calculatePerformance} variant="primary" icon={Anchor} className="w-full">
                 Calculate Part 1
@@ -666,22 +666,22 @@ const AdvancedThrustCalculator = () => {
             >
               <div className="grid grid-cols-2 gap-4">
                 <AeroFormField label={`Thrust (F) ${getUnit("thrust")}`}>
-                  <Input id="thrust" type="number" step="0.01" value={inputs.thrust} onChange={(e) => handleInputChange("thrust", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="thrust" type="number" step="0.01" value={inputs.thrust} onChange={(e) => handleInputChange("thrust", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
                 <AeroFormField label={`Mass Flow (ṁ) ${getUnit("massFlowRate")}`}>
-                  <Input id="massFlowRate" type="number" step="0.01" value={inputs.massFlowRate} onChange={(e) => handleInputChange("massFlowRate", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="massFlowRate" type="number" step="0.01" value={inputs.massFlowRate} onChange={(e) => handleInputChange("massFlowRate", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
                 <AeroFormField label={`Exit Area (Ae) ${getUnit("exitArea")}`}>
-                  <Input id="exitArea" type="number" step="0.001" value={inputs.exitArea} onChange={(e) => handleInputChange("exitArea", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="exitArea" type="number" step="0.001" value={inputs.exitArea} onChange={(e) => handleInputChange("exitArea", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
                 <AeroFormField label={`Exhaust Velocity (V_e) ${getUnit("exhaustVelocity")}`} helperText="From Part 1">
-                  <Input id="exhaustVelocity_part2" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="From Part 1" />
+                  <Input id="exhaustVelocity_part2" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-muted/50" placeholder="From Part 1" />
                 </AeroFormField>
                 <AeroFormField label={`Exit Pressure (Pe) ${getUnit("exitPressure")}`}>
-                  <Input id="exitPressure" type="number" step="1" value={inputs.exitPressure} onChange={(e) => handleInputChange("exitPressure", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="exitPressure" type="number" step="1" value={inputs.exitPressure} onChange={(e) => handleInputChange("exitPressure", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
                 <AeroFormField label={`Ambient Pressure (Pa) ${getUnit("ambientPressure")}`}>
-                  <Input id="ambientPressure" type="number" step="1" value={inputs.ambientPressure} onChange={(e) => handleInputChange("ambientPressure", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="ambientPressure" type="number" step="1" value={inputs.ambientPressure} onChange={(e) => handleInputChange("ambientPressure", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
               </div>
               <AeroButton type="button" onClick={calculateThrust} variant="primary" icon={Calculator} className="w-full">
@@ -703,24 +703,24 @@ const AdvancedThrustCalculator = () => {
                   {id: 'exitArea', label: 'Area (Ae)', unit: 'm²'},
                   {id: 'pressure', label: 'Pressure (P)', unit: 'Pa'},
                 ].map(field => (
-                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                    <Label className="text-white font-semibold">{field.label}</Label>
+                  <div key={field.id} className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                    <Label className="text-foreground font-semibold">{field.label}</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <Input 
                         placeholder="Unit Name" 
                         value={customUnitNames[field.id as keyof typeof customUnitNames]}
                         onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-muted/50 border-border text-foreground"
                       />
                       <Input 
                         type="number"
                         placeholder="SI Factor"
                         value={customFactors[field.id as keyof typeof customFactors]}
                         onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-muted/50 border-border text-foreground"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1.5">1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1.5">1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}</p>
                   </div>
                 ))}
               </AeroCard>
@@ -753,10 +753,10 @@ const AdvancedThrustCalculator = () => {
             >
               {/* Performance Result */}
               {performanceResult && typeof performanceResult === 'object' && 'solvedFor' in performanceResult && (
-                <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30 mb-4">
-                  <p className="text-sm font-semibold text-green-400 mb-2">Part 1 Result (Performance)</p>
-                  <p className="text-gray-400 text-sm mb-1">Solved: {(performanceResult as unknown as { solvedFor?: string }).solvedFor}</p>
-                  <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
+                <div className="p-4 bg-gradient-to-r from-green-400/10 to-primary/10 rounded-lg border border-green-400/30 mb-4">
+                  <p className="text-sm font-semibold text-green-500 dark:text-green-400 mb-2">Part 1 Result (Performance)</p>
+                  <p className="text-muted-foreground text-sm mb-1">Solved: {(performanceResult as unknown as { solvedFor?: string }).solvedFor}</p>
+                  <p className="text-3xl font-bold text-green-500 dark:text-green-400">
                     {(performanceResult as unknown as { isp?: number }).isp ? `${((performanceResult as unknown as { isp: number }).isp).toFixed(1)} ${getUnit("isp")}`
                     : `${convertFromSI((performanceResult as unknown as { exhaustVelocity: number }).exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
                     }
@@ -766,10 +766,10 @@ const AdvancedThrustCalculator = () => {
               
               {/* Thrust Result */}
               {thrustResult && typeof thrustResult === 'object' && 'solvedFor' in thrustResult && (
-                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
-                  <p className="text-sm font-semibold text-cyan-400 mb-2">Part 2 Result (Thrust)</p>
-                    <p className="text-gray-400 text-sm mb-1">Solved: {(thrustResult as { solvedFor?: string }).solvedFor}</p>
-                    <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/30 mb-4">
+                  <p className="text-sm font-semibold text-primary mb-2">Part 2 Result (Thrust)</p>
+                    <p className="text-muted-foreground text-sm mb-1">Solved: {(thrustResult as { solvedFor?: string }).solvedFor}</p>
+                    <p className="text-3xl font-bold text-primary">
                       {(() => {
                         const tr = thrustResult as { thrust?: number; massFlowRate?: number; exhaustVelocity?: number; exitArea?: number; exitPressure?: number; ambientPressure?: number };
                         if (tr.thrust) return `${convertFromSI(tr.thrust, "thrust").toFixed(2)} ${getUnit("thrust")}`;
@@ -781,17 +781,17 @@ const AdvancedThrustCalculator = () => {
                       })()}
                     </p>
                     <div className="mt-4 grid grid-cols-3 gap-3">
-                      <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                        <p className="text-gray-400 text-xs mb-1">Momentum Thrust</p>
-                        <p className="text-lg font-semibold text-blue-400">{convertFromSI((thrustResult as { momentumThrust?: number }).momentumThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-muted-foreground text-xs mb-1">Momentum Thrust</p>
+                        <p className="text-lg font-semibold text-primary">{convertFromSI((thrustResult as { momentumThrust?: number }).momentumThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
                       </div>
-                      <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                        <p className="text-gray-400 text-xs mb-1">Pressure Thrust</p>
-                        <p className="text-lg font-semibold text-blue-400">{convertFromSI((thrustResult as { pressureThrust?: number }).pressureThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-muted-foreground text-xs mb-1">Pressure Thrust</p>
+                        <p className="text-lg font-semibold text-primary">{convertFromSI((thrustResult as { pressureThrust?: number }).pressureThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
                       </div>
-                      <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                        <p className="text-gray-400 text-xs mb-1">Specific Impulse</p>
-                        <p className="text-lg font-semibold text-blue-400">{(thrustResult as unknown as { isp?: number }).isp ? (thrustResult as unknown as { isp: number }).isp.toFixed(1) : "N/A"} s</p>
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-muted-foreground text-xs mb-1">Specific Impulse</p>
+                        <p className="text-lg font-semibold text-primary">{(thrustResult as unknown as { isp?: number }).isp ? (thrustResult as unknown as { isp: number }).isp.toFixed(1) : "N/A"} s</p>
                       </div>
                     </div>
                   </div>
@@ -800,8 +800,8 @@ const AdvancedThrustCalculator = () => {
                 {/* Steps (if any result exists) */}
                 {(thrustResult || performanceResult) && (
                   <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="steps" className="border-cyan-400/20">
-                      <AccordionTrigger className="text-white hover:text-cyan-400"><div className="flex items-center gap-2"><Info className="w-4 h-4 text-cyan-400" />Step-by-Step Solution</div></AccordionTrigger>
+                    <AccordionItem value="steps" className="border-border">
+                      <AccordionTrigger className="text-foreground hover:text-primary"><div className="flex items-center gap-2"><Info className="w-4 h-4 text-primary" />Step-by-Step Solution</div></AccordionTrigger>
                       <AccordionContent className="pt-2">
                         <CalculationSteps steps={((thrustResult as { steps?: string[] })?.steps || (performanceResult as { steps?: string[] })?.steps) || []} />
                       </AccordionContent>
@@ -820,21 +820,21 @@ const AdvancedThrustCalculator = () => {
               >
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis dataKey="ambientPressure" stroke="#94a3b8" tickFormatter={(val) => val.toFixed(0)}
-                      label={{ value: `Ambient Pressure (${getUnit("ambientPressure")})`, position: 'insideBottom', offset: -5, fill: '#94a3B8' }}/>
-                    <YAxis stroke="#94a3b8" tickFormatter={(val) => val.toFixed(0)}
-                      label={{ value: `Thrust (${getUnit("thrust")})`, angle: -90, position: 'insideLeft', fill: '#94a3b8' }}/>
-                    <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/>
-                    <Line type="monotone" dataKey="thrust" stroke="#22d3ee" strokeWidth={2} dot={false} name="Thrust" legendType="none" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="ambientPressure" stroke="hsl(var(--muted-foreground))" tickFormatter={(val) => val.toFixed(0)}
+                      label={{ value: `Ambient Pressure (${getUnit("ambientPressure")})`, position: 'insideBottom', offset: -5, fill: 'hsl(var(--muted-foreground))' }}/>
+                    <YAxis stroke="hsl(var(--muted-foreground))" tickFormatter={(val) => val.toFixed(0)}
+                      label={{ value: `Thrust (${getUnit("thrust")})`, angle: -90, position: 'insideLeft', fill: 'hsl(var(--muted-foreground))' }}/>
+                    <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))' }} formatter={(value: number) => value.toFixed(2)}/>
+                    <Line type="monotone" dataKey="thrust" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="Thrust" legendType="none" />
                   </LineChart>
                 </ResponsiveContainer>
-                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                <div className="mt-3 pt-3 border-t border-border">
                   <AeroverseLegend
                     items={[{
                       id: 'thrust',
                       name: 'Thrust',
-                      color: '#22d3ee',
+                      color: 'hsl(var(--primary))',
                     }]}
                   />
                 </div>
@@ -845,29 +845,29 @@ const AdvancedThrustCalculator = () => {
             {!thrustResult && !performanceResult && (
               <AeroCard title="Results">
                 <div className="text-center py-12">
-                  <Calculator className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-                  <p className="text-gray-400">Results will appear here</p>
+                  <Calculator className="w-16 h-16 mx-auto mb-4 text-primary/30" />
+                  <p className="text-muted-foreground">Results will appear here</p>
                 </div>
               </AeroCard>
             )}
 
             {/* --- Theory Card --- */}
             <AeroCard title="Theory & Formulas" icon={Info}>
-              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30 mb-4">
-                <p className="text-center text-lg font-mono text-cyan-400 mb-2">V_e = I_sp · g_0</p>
-                <div className="text-gray-400 text-sm space-y-1">
-                  <p><span className="text-cyan-400">V_e</span> = Exhaust Velocity</p>
-                  <p><span className="text-cyan-400">I_sp</span> = Specific Impulse</p>
-                  <p><span className="text-cyan-400">g_0</span> = Std. Gravity (≈ 9.81 m/s²)</p>
+              <div className="p-4 bg-muted/50 rounded-lg border border-border mb-4">
+                <p className="text-center text-lg font-mono text-primary mb-2">V_e = I_sp · g_0</p>
+                <div className="text-muted-foreground text-sm space-y-1">
+                  <p><span className="text-primary">V_e</span> = Exhaust Velocity</p>
+                  <p><span className="text-primary">I_sp</span> = Specific Impulse</p>
+                  <p><span className="text-primary">g_0</span> = Std. Gravity (≈ 9.81 m/s²)</p>
                 </div>
               </div>
-              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                <p className="text-center text-lg font-mono text-cyan-400 mb-2">F = ṁV_e + (P_e - P_a)A_e</p>
-                <div className="text-gray-400 text-sm space-y-1">
-                  <p><span className="text-cyan-400">F</span> = Total Thrust (N)</p>
-                  <p><span className="text-cyan-400">ṁ</span> = Mass Flow Rate (kg/s)</p>
-                  <p><span className="text-cyan-400">P_e, P_a</span> = Exit, Ambient Pressure (Pa)</p>
-                  <p><span className="text-cyan-400">A_e</span> = Nozzle Exit Area (m²)</p>
+              <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                <p className="text-center text-lg font-mono text-primary mb-2">F = ṁV_e + (P_e - P_a)A_e</p>
+                <div className="text-muted-foreground text-sm space-y-1">
+                  <p><span className="text-primary">F</span> = Total Thrust (N)</p>
+                  <p><span className="text-primary">ṁ</span> = Mass Flow Rate (kg/s)</p>
+                  <p><span className="text-primary">P_e, P_a</span> = Exit, Ambient Pressure (Pa)</p>
+                  <p><span className="text-primary">A_e</span> = Nozzle Exit Area (m²)</p>
                 </div>
               </div>
             </AeroCard>
@@ -877,22 +877,22 @@ const AdvancedThrustCalculator = () => {
 
       {/* Save Custom Preset Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Custom Preset</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Save the current input values as a custom preset
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="presetName" className="text-cyan-300">Preset Name</Label>
+              <Label htmlFor="presetName" className="text-primary">Preset Name</Label>
               <Input
                 id="presetName"
                 value={savePresetName}
                 onChange={(e) => setSavePresetName(e.target.value)}
                 placeholder="e.g., My Rocket Engine"
-                className="bg-slate-700/50 text-white"
+                className="bg-muted/50 text-foreground"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleSaveCustomPreset();
@@ -900,7 +900,7 @@ const AdvancedThrustCalculator = () => {
                 }}
               />
             </div>
-            <div className="text-sm text-gray-400 space-y-1">
+            <div className="text-sm text-muted-foreground space-y-1">
               <p>Unit System: {unitSystem}</p>
               <p>Mass Flow: {inputs.massFlowRate || "N/A"} | Exhaust Vel: {inputs.exhaustVelocity || "N/A"}</p>
               <p>Exit Area: {inputs.exitArea || "N/A"} | Thrust: {inputs.thrust || "N/A"}</p>
@@ -910,13 +910,13 @@ const AdvancedThrustCalculator = () => {
             <Button
               variant="outline"
               onClick={() => setIsSaveDialogOpen(false)}
-              className="border-gray-600 text-gray-300"
+              className="border-border text-muted-foreground"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSaveCustomPreset}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+              className="bg-primary text-primary-foreground font-semibold"
             >
               <Save className="w-4 h-4 mr-2" />
               Save
@@ -927,28 +927,28 @@ const AdvancedThrustCalculator = () => {
 
       {/* Load Custom Preset Dialog */}
       <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Load Custom Preset</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Select a saved custom preset to load
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
             {customPresets.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No custom presets saved yet</p>
+              <p className="text-muted-foreground text-center py-8">No custom presets saved yet</p>
             ) : (
               customPresets.map((preset, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border hover:border-primary/40 transition-colors"
                 >
                   <div className="flex-1">
-                    <p className="text-white font-semibold">{preset.name}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-foreground font-semibold">{preset.name}</p>
+                    <p className="text-xs text-muted-foreground">
                       Unit System: {preset.unitSystem} | Thrust: {preset.inputs.thrust || "N/A"} | Isp: {preset.inputs.isp || "N/A"}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground/70">
                       Saved: {new Date(preset.timestamp).toLocaleDateString()}
                     </p>
                   </div>
@@ -956,7 +956,7 @@ const AdvancedThrustCalculator = () => {
                     <Button
                       size="sm"
                       onClick={() => handleLoadCustomPreset(preset)}
-                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
+                      className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30"
                     >
                       <FolderOpen className="w-4 h-4" />
                     </Button>
@@ -976,7 +976,7 @@ const AdvancedThrustCalculator = () => {
             <Button
               variant="outline"
               onClick={() => setIsLoadDialogOpen(false)}
-              className="border-gray-600 text-gray-300"
+              className="border-border text-muted-foreground"
             >
               Close
             </Button>

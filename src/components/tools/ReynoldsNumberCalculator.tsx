@@ -620,7 +620,7 @@ const ReynoldsNumberCalculator = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+              <SelectTrigger className="w-32 bg-muted/50 border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -646,7 +646,7 @@ const ReynoldsNumberCalculator = () => {
             >
               <AeroFormField label="Select a preset scenario">
                 <Select value={selectedPreset} onValueChange={handlePresetChange}>
-                  <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-muted/50 border-border text-foreground">
                     <SelectValue placeholder="Select a preset scenario..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -659,7 +659,7 @@ const ReynoldsNumberCalculator = () => {
                   </SelectContent>
                 </Select>
                 {selectedPreset && PRESETS[selectedPreset] && (
-                  <p className="text-sm text-gray-400 mt-2">
+                  <p className="text-sm text-muted-foreground mt-2">
                     {PRESETS[selectedPreset].description}
                   </p>
                 )}
@@ -698,7 +698,7 @@ const ReynoldsNumberCalculator = () => {
                   step="0.000001" 
                   value={inputs.density} 
                   onChange={(e) => handleInputChange("density", e.target.value)} 
-                  className="bg-slate-900/50 border-cyan-400/30 text-white" 
+                  className="bg-muted/50" 
                   placeholder="e.g., 1.225" 
                 />
               </AeroFormField>
@@ -709,7 +709,7 @@ const ReynoldsNumberCalculator = () => {
                   step="0.01" 
                   value={inputs.velocity} 
                   onChange={(e) => handleInputChange("velocity", e.target.value)} 
-                  className="bg-slate-900/50 border-cyan-400/30 text-white" 
+                  className="bg-muted/50" 
                   placeholder="e.g., 50" 
                 />
               </AeroFormField>
@@ -720,7 +720,7 @@ const ReynoldsNumberCalculator = () => {
                   step="0.001" 
                   value={inputs.length} 
                   onChange={(e) => handleInputChange("length", e.target.value)} 
-                  className="bg-slate-900/50 border-cyan-400/30 text-white" 
+                  className="bg-muted/50" 
                   placeholder="e.g., 1.0" 
                 />
               </AeroFormField>
@@ -731,7 +731,7 @@ const ReynoldsNumberCalculator = () => {
                   step="0.00000001" 
                   value={inputs.viscosity} 
                   onChange={(e) => handleInputChange("viscosity", e.target.value)} 
-                  className="bg-slate-900/50 border-cyan-400/30 text-white" 
+                  className="bg-muted/50" 
                   placeholder="e.g., 1.81e-5" 
                 />
               </AeroFormField>
@@ -759,14 +759,14 @@ const ReynoldsNumberCalculator = () => {
                   {id: 'length', label: 'Length (L)', unit: 'm'},
                   {id: 'viscosity', label: 'Viscosity (μ)', unit: 'Pa·s'},
                 ].map(field => (
-                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                    <Label className="text-white font-semibold">{field.label}</Label>
+                  <div key={field.id} className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                    <Label className="text-foreground font-semibold">{field.label}</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <Input 
                         placeholder="Unit Name" 
                         value={customUnitNames[field.id as keyof typeof customUnitNames]}
                         onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-muted/50 border-border text-foreground"
                       />
                       <Input 
                         type="number"
@@ -774,10 +774,10 @@ const ReynoldsNumberCalculator = () => {
                         placeholder="SI Factor"
                         value={customFactors[field.id as keyof typeof customFactors]}
                         onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-muted/50 border-border text-foreground"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1.5">
+                    <p className="text-xs text-muted-foreground/70 mt-1.5">
                       1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
                     </p>
                   </div>
@@ -817,12 +817,12 @@ const ReynoldsNumberCalculator = () => {
                 }
               >
                 {/* Reynolds Number Result */}
-                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
-                  <p className="text-sm font-semibold text-cyan-400 mb-2">Reynolds Number</p>
-                      <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/30 mb-4">
+                  <p className="text-sm font-semibold text-primary mb-2">Reynolds Number</p>
+                      <p className="text-3xl font-bold text-primary">
                         Re = {result.reynoldsNumber.toExponential(3)}
                       </p>
-                      <p className="text-gray-400 text-sm mt-2">
+                      <p className="text-muted-foreground text-sm mt-2">
                         Re ≈ {result.reynoldsNumber.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                       </p>
                     </div>
@@ -830,7 +830,7 @@ const ReynoldsNumberCalculator = () => {
                     {/* Flow Regime */}
                     <div className={`p-4 bg-gradient-to-r ${getRegimeColor(result.flowRegime)} rounded-lg border`}>
                       <p className="text-sm font-semibold mb-2">Flow Regime</p>
-                      <p className="text-2xl font-bold drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                      <p className="text-2xl font-bold">
                         {result.flowRegime}
                       </p>
                       <p className="text-sm mt-2 opacity-90">
@@ -847,7 +847,7 @@ const ReynoldsNumberCalculator = () => {
                           <Alert key={idx} variant="default" className="bg-yellow-400/10 border-yellow-400/30">
                             <AlertTriangle className="h-4 w-4 text-yellow-400" />
                             <AlertTitle className="text-yellow-400">Warning</AlertTitle>
-                            <AlertDescription className="text-gray-300">{warning}</AlertDescription>
+                            <AlertDescription className="text-foreground/80">{warning}</AlertDescription>
                           </Alert>
                         ))}
                       </div>
@@ -855,10 +855,10 @@ const ReynoldsNumberCalculator = () => {
 
                     {/* Step-by-Step Calculation */}
                     <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="steps" className="border-cyan-400/20">
-                        <AccordionTrigger className="text-white hover:text-cyan-400">
+                      <AccordionItem value="steps" className="border-border">
+                        <AccordionTrigger className="text-foreground hover:text-primary">
                           <div className="flex items-center gap-2">
-                            <Info className="w-4 h-4 text-cyan-400" />
+                            <Info className="w-4 h-4 text-primary" />
                             Step-by-Step Calculation
                           </div>
                         </AccordionTrigger>
@@ -871,50 +871,50 @@ const ReynoldsNumberCalculator = () => {
             ) : (
               <AeroCard title="Results">
                 <div className="text-center py-12">
-                  <Calculator className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-                  <p className="text-gray-400">Results will appear here</p>
+                  <Calculator className="w-16 h-16 mx-auto mb-4 text-primary/30" />
+                  <p className="text-muted-foreground">Results will appear here</p>
                 </div>
               </AeroCard>
             )}
 
             {/* --- Physics Insights --- */}
             <AeroCard title="Physics Insights" icon={Info}>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                <p className="text-cyan-400 font-semibold text-sm mb-1">Increasing Velocity</p>
-                <p className="text-gray-300 text-xs">Higher flow speed increases Re, promoting turbulent flow</p>
+              <div className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                <p className="text-primary font-semibold text-sm mb-1">Increasing Velocity</p>
+                <p className="text-muted-foreground text-xs">Higher flow speed increases Re, promoting turbulent flow</p>
               </div>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                <p className="text-cyan-400 font-semibold text-sm mb-1">Increasing Viscosity</p>
-                <p className="text-gray-300 text-xs">Higher viscosity decreases Re, stabilizing laminar flow</p>
+              <div className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                <p className="text-primary font-semibold text-sm mb-1">Increasing Viscosity</p>
+                <p className="text-muted-foreground text-xs">Higher viscosity decreases Re, stabilizing laminar flow</p>
               </div>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                <p className="text-cyan-400 font-semibold text-sm mb-1">Longer Characteristic Length</p>
-                <p className="text-gray-300 text-xs">Larger dimensions increase Re, making flow more turbulent</p>
+              <div className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                <p className="text-primary font-semibold text-sm mb-1">Longer Characteristic Length</p>
+                <p className="text-muted-foreground text-xs">Larger dimensions increase Re, making flow more turbulent</p>
               </div>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                <p className="text-cyan-400 font-semibold text-sm mb-1">Higher Altitude</p>
-                <p className="text-gray-300 text-xs">Lower air density at altitude reduces Re for the same velocity</p>
+              <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                <p className="text-primary font-semibold text-sm mb-1">Higher Altitude</p>
+                <p className="text-muted-foreground text-xs">Lower air density at altitude reduces Re for the same velocity</p>
               </div>
             </AeroCard>
 
             {/* --- Formula Card --- */}
             <AeroCard title="Formula" icon={Info}>
-              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                <p className="text-center text-lg font-mono text-cyan-400 mb-2">Re = (ρ × V × L) / μ</p>
-                <div className="text-gray-400 text-sm space-y-1">
-                  <p><span className="text-cyan-400">Re</span> = Reynolds Number (dimensionless)</p>
-                  <p><span className="text-cyan-400">ρ</span> = Fluid Density (kg/m³)</p>
-                  <p><span className="text-cyan-400">V</span> = Flow Velocity (m/s)</p>
-                  <p><span className="text-cyan-400">L</span> = Characteristic Length (m)</p>
-                  <p><span className="text-cyan-400">μ</span> = Dynamic Viscosity (Pa·s)</p>
+              <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                <p className="text-center text-lg font-mono text-primary mb-2">Re = (ρ × V × L) / μ</p>
+                <div className="text-muted-foreground text-sm space-y-1">
+                  <p><span className="text-primary">Re</span> = Reynolds Number (dimensionless)</p>
+                  <p><span className="text-primary">ρ</span> = Fluid Density (kg/m³)</p>
+                  <p><span className="text-primary">V</span> = Flow Velocity (m/s)</p>
+                  <p><span className="text-primary">L</span> = Characteristic Length (m)</p>
+                  <p><span className="text-primary">μ</span> = Dynamic Viscosity (Pa·s)</p>
                 </div>
               </div>
-                <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-cyan-400 font-semibold text-sm mb-2">Flow Regime Thresholds</p>
-                  <div className="text-gray-400 text-sm space-y-1">
-                    <p>• <span className="text-green-400">Laminar:</span> Re &lt; 2,300</p>
-                    <p>• <span className="text-yellow-400">Transitional:</span> 2,300 ≤ Re &lt; 40,000</p>
-                    <p>• <span className="text-red-400">Turbulent:</span> Re ≥ 40,000</p>
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-primary font-semibold text-sm mb-2">Flow Regime Thresholds</p>
+                  <div className="text-muted-foreground text-sm space-y-1">
+                    <p>• <span className="text-green-500 dark:text-green-400">Laminar:</span> Re &lt; 2,300</p>
+                    <p>• <span className="text-yellow-500 dark:text-yellow-400">Transitional:</span> 2,300 ≤ Re &lt; 40,000</p>
+                    <p>• <span className="text-red-500 dark:text-red-400">Turbulent:</span> Re ≥ 40,000</p>
                   </div>
                 </div>
               </AeroCard>
@@ -924,22 +924,22 @@ const ReynoldsNumberCalculator = () => {
 
       {/* Save Custom Preset Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Custom Preset</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Save the current input values as a custom preset
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="presetName" className="text-cyan-300">Preset Name</Label>
+              <Label htmlFor="presetName" className="text-primary">Preset Name</Label>
               <Input
                 id="presetName"
                 value={savePresetName}
                 onChange={(e) => setSavePresetName(e.target.value)}
                 placeholder="e.g., My Custom Flow"
-                className="bg-slate-700/50 text-white"
+                className="bg-muted/50 text-foreground"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleSaveCustomPreset();
@@ -947,7 +947,7 @@ const ReynoldsNumberCalculator = () => {
                 }}
               />
             </div>
-            <div className="text-sm text-gray-400 space-y-1">
+            <div className="text-sm text-muted-foreground space-y-1">
               <p>Density: {inputs.density || "N/A"} {getUnit("density")}</p>
               <p>Velocity: {inputs.velocity || "N/A"} {getUnit("velocity")}</p>
               <p>Length: {inputs.length || "N/A"} {getUnit("length")}</p>
@@ -958,13 +958,13 @@ const ReynoldsNumberCalculator = () => {
             <Button
               variant="outline"
               onClick={() => setIsSaveDialogOpen(false)}
-              className="border-gray-600 text-gray-300"
+              className="border-border text-muted-foreground"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSaveCustomPreset}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+              className="bg-primary text-primary-foreground font-semibold"
             >
               <Save className="w-4 h-4 mr-2" />
               Save
@@ -975,28 +975,28 @@ const ReynoldsNumberCalculator = () => {
 
       {/* Load Custom Preset Dialog */}
       <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Load Custom Preset</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Select a saved custom preset to load
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
             {customPresets.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No custom presets saved yet</p>
+              <p className="text-muted-foreground text-center py-8">No custom presets saved yet</p>
             ) : (
               customPresets.map((preset, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border hover:border-primary/40 transition-colors"
                 >
                   <div className="flex-1">
-                    <p className="text-white font-semibold">{preset.name}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-foreground font-semibold">{preset.name}</p>
+                    <p className="text-xs text-muted-foreground">
                       ρ: {preset.inputs.density} | V: {preset.inputs.velocity} | L: {preset.inputs.length} | μ: {preset.inputs.viscosity}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground/70">
                       Unit System: {preset.unitSystem} | Saved: {new Date(preset.timestamp).toLocaleDateString()}
                     </p>
                   </div>
@@ -1004,7 +1004,7 @@ const ReynoldsNumberCalculator = () => {
                     <Button
                       size="sm"
                       onClick={() => handleLoadCustomPreset(preset)}
-                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
+                      className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30"
                     >
                       <FolderOpen className="w-4 h-4" />
                     </Button>
@@ -1024,7 +1024,7 @@ const ReynoldsNumberCalculator = () => {
             <Button
               variant="outline"
               onClick={() => setIsLoadDialogOpen(false)}
-              className="border-gray-600 text-gray-300"
+              className="border-border text-muted-foreground"
             >
               Close
             </Button>
