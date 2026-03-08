@@ -1308,7 +1308,7 @@ const AntennaPatternAnalyzer = () => {
                   <Line
                     type="monotone"
                     dataKey="gain"
-                    stroke="#22d3ee"
+                    stroke="#10b981"
                     strokeWidth={2}
                     name="E-plane"
                     dot={false}
