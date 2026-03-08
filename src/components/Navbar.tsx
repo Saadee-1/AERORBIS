@@ -130,7 +130,7 @@ const Navbar = () => {
 
           {/* ── Desktop Dock ── */}
           <div
-            className="hidden lg:flex items-end gap-0 px-2 py-1 rounded-xl bg-card/30 backdrop-blur-xl border border-border/15 shadow-[0_1px_12px_hsl(0_0%_0%/0.12)]"
+            className="hidden lg:flex items-end gap-3 px-4 py-1.5 rounded-xl bg-card/30 backdrop-blur-xl border border-border/15 shadow-[0_1px_12px_hsl(0_0%_0%/0.12)]"
             onMouseMove={(e) => mouseX.set(e.clientX)}
             onMouseLeave={() => mouseX.set(-200)}
           >
