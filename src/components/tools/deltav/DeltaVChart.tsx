@@ -49,7 +49,7 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
     {
       name: "Orbital",
       value: formatValue(breakdown.orbitalDeltaV),
-      color: "#22d3ee",
+      color: "#10b981",
     },
     ...(breakdown.hohmannDeltaV > 0
       ? [
