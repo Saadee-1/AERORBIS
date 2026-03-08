@@ -6,7 +6,9 @@ interface PageTransitionProps {
 }
 
 // Ultra-smooth cubic-bezier: Apple-style deceleration
-const smoothEase = [0.16, 1, 0.3, 1];
+const smoothEase = [0.16, 1, 0.3, 1] as const satisfies readonly [number, number, number, number];
+type SmoothEase = [number, number, number, number];
+const ease = smoothEase as unknown as SmoothEase;
 
 const PageTransition = ({ children }: PageTransitionProps) => {
   return (
