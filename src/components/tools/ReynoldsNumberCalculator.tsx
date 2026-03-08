@@ -879,21 +879,21 @@ const ReynoldsNumberCalculator = () => {
 
             {/* --- Physics Insights --- */}
             <AeroCard title="Physics Insights" icon={Info}>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                <p className="text-cyan-400 font-semibold text-sm mb-1">Increasing Velocity</p>
-                <p className="text-gray-300 text-xs">Higher flow speed increases Re, promoting turbulent flow</p>
+              <div className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                <p className="text-primary font-semibold text-sm mb-1">Increasing Velocity</p>
+                <p className="text-muted-foreground text-xs">Higher flow speed increases Re, promoting turbulent flow</p>
               </div>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                <p className="text-cyan-400 font-semibold text-sm mb-1">Increasing Viscosity</p>
-                <p className="text-gray-300 text-xs">Higher viscosity decreases Re, stabilizing laminar flow</p>
+              <div className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                <p className="text-primary font-semibold text-sm mb-1">Increasing Viscosity</p>
+                <p className="text-muted-foreground text-xs">Higher viscosity decreases Re, stabilizing laminar flow</p>
               </div>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                <p className="text-cyan-400 font-semibold text-sm mb-1">Longer Characteristic Length</p>
-                <p className="text-gray-300 text-xs">Larger dimensions increase Re, making flow more turbulent</p>
+              <div className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                <p className="text-primary font-semibold text-sm mb-1">Longer Characteristic Length</p>
+                <p className="text-muted-foreground text-xs">Larger dimensions increase Re, making flow more turbulent</p>
               </div>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                <p className="text-cyan-400 font-semibold text-sm mb-1">Higher Altitude</p>
-                <p className="text-gray-300 text-xs">Lower air density at altitude reduces Re for the same velocity</p>
+              <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                <p className="text-primary font-semibold text-sm mb-1">Higher Altitude</p>
+                <p className="text-muted-foreground text-xs">Lower air density at altitude reduces Re for the same velocity</p>
               </div>
             </AeroCard>
 
