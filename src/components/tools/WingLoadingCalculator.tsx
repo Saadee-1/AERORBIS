@@ -1694,7 +1694,7 @@ const WingLoadingCalculator = () => {
                   title="Best Use Case / Mission Fit"
                   icon={TrendingUp}
                 >
-                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/20">
                     <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">
                       {generateBestUseCase(
                         missionType,
