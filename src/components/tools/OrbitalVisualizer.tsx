@@ -1159,7 +1159,7 @@ const OrbitalVisualizer = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="orbitName" className="text-cyan-300">Orbit Name</Label>
+              <Label htmlFor="orbitName" className="text-primary">Orbit Name</Label>
               <Input
                 id="orbitName"
                 value={saveOrbitName}
