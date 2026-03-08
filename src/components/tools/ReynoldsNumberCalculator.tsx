@@ -947,7 +947,7 @@ const ReynoldsNumberCalculator = () => {
                 }}
               />
             </div>
-            <div className="text-sm text-gray-400 space-y-1">
+            <div className="text-sm text-muted-foreground space-y-1">
               <p>Density: {inputs.density || "N/A"} {getUnit("density")}</p>
               <p>Velocity: {inputs.velocity || "N/A"} {getUnit("velocity")}</p>
               <p>Length: {inputs.length || "N/A"} {getUnit("length")}</p>
