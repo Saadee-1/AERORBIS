@@ -244,7 +244,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               label={{ value: 'Energy (Wh)', angle: -90, position: 'insideLeft' }}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981' }}
               formatter={(value: number) => [`${value.toFixed(2)} Wh`, 'Energy']}
             />
             <Area
