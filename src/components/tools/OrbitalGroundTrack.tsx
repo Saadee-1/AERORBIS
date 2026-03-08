@@ -150,14 +150,14 @@ function buildNightPolygon(
 
 // Launch sites with typical orbit parameters from each site
 const LAUNCH_SITES = [
-  { name: 'Cape Canaveral', lat: 28.396, lon: -80.605, orbit: { periapsisAltitude: '400', inclination: '28.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Baikonur', lat: 45.965, lon: 63.305, orbit: { periapsisAltitude: '400', inclination: '51.6', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Kourou', lat: 5.236, lon: -52.768, orbit: { periapsisAltitude: '35786', inclination: '5.2', eccentricity: '0.0', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Vandenberg', lat: 34.632, lon: -120.611, orbit: { periapsisAltitude: '800', inclination: '98.2', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Tanegashima', lat: 30.400, lon: 131.000, orbit: { periapsisAltitude: '300', inclination: '30.4', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Sriharikota', lat: 13.720, lon: 80.230, orbit: { periapsisAltitude: '600', inclination: '13.7', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Jiuquan', lat: 40.958, lon: 100.291, orbit: { periapsisAltitude: '400', inclination: '42.8', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
-  { name: 'Plesetsk', lat: 62.925, lon: 40.577, orbit: { periapsisAltitude: '800', inclination: '82.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Cape Canaveral', lat: 28.396, lon: -80.605, country: 'USA', operator: 'NASA / SpaceX / ULA', pads: 4, since: 1950, orbit: { periapsisAltitude: '400', inclination: '28.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Baikonur', lat: 45.965, lon: 63.305, country: 'Kazakhstan', operator: 'Roscosmos', pads: 6, since: 1955, orbit: { periapsisAltitude: '400', inclination: '51.6', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Kourou', lat: 5.236, lon: -52.768, country: 'French Guiana', operator: 'ESA / Arianespace', pads: 3, since: 1968, orbit: { periapsisAltitude: '35786', inclination: '5.2', eccentricity: '0.0', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Vandenberg', lat: 34.632, lon: -120.611, country: 'USA', operator: 'USSF / SpaceX', pads: 2, since: 1958, orbit: { periapsisAltitude: '800', inclination: '98.2', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Tanegashima', lat: 30.400, lon: 131.000, country: 'Japan', operator: 'JAXA', pads: 2, since: 1969, orbit: { periapsisAltitude: '300', inclination: '30.4', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Sriharikota', lat: 13.720, lon: 80.230, country: 'India', operator: 'ISRO', pads: 2, since: 1971, orbit: { periapsisAltitude: '600', inclination: '13.7', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Jiuquan', lat: 40.958, lon: 100.291, country: 'China', operator: 'CNSA / CASC', pads: 3, since: 1958, orbit: { periapsisAltitude: '400', inclination: '42.8', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Plesetsk', lat: 62.925, lon: 40.577, country: 'Russia', operator: 'Russian MoD', pads: 4, since: 1966, orbit: { periapsisAltitude: '800', inclination: '82.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
 ];
 
 export function OrbitalGroundTrack({
