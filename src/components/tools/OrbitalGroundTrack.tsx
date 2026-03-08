@@ -509,6 +509,35 @@ export function OrbitalGroundTrack({
           </>
         )}
 
+        {/* Ascending/Descending node markers */}
+        {nodes.map((node, i) => {
+          const [nx, ny] = toSVG(node.lat, node.lon);
+          const isAsc = node.type === 'ascending';
+          const color = ORBIT_COLORS[node.orbitIdx % ORBIT_COLORS.length];
+          return (
+            <g key={`node-${i}`} opacity="0.75">
+              {/* Triangle: up for ascending, down for descending */}
+              {isAsc ? (
+                <polygon
+                  points={`${nx},${ny - 5} ${nx + 4},${ny + 3} ${nx - 4},${ny + 3}`}
+                  fill={color}
+                  stroke="hsl(220 60% 8%)"
+                  strokeWidth="0.5"
+                />
+              ) : (
+                <polygon
+                  points={`${nx},${ny + 5} ${nx + 4},${ny - 3} ${nx - 4},${ny - 3}`}
+                  fill={color}
+                  stroke="hsl(220 60% 8%)"
+                  strokeWidth="0.5"
+                />
+              )}
+              <text x={nx + 6} y={ny + 3} fill={color} fontSize="5.5" fontWeight="600" opacity="0.7">
+                {isAsc ? 'AN' : 'DN'}
+              </text>
+            </g>
+          );
+        })}
         {/* Ground track paths - color-coded per orbit */}
         {orbitSegments.map((seg, i) => {
           const color = ORBIT_COLORS[seg.orbitIdx % ORBIT_COLORS.length];
