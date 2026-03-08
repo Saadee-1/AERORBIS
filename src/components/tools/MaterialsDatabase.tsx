@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { motion } from "framer-motion";
 import { Material, UnitSystem } from "./types";
 import MaterialTable from "./MaterialTable";
@@ -80,6 +82,7 @@ const CATEGORIES = [
 
 const MaterialsDatabase = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { isCalculating, runCalculation } = useCalculationAnimation({ minDuration: 800 });
   const [materials, setMaterials] = useState<Material[]>(MATERIALS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -242,23 +245,21 @@ const MaterialsDatabase = () => {
   };
 
   const handleAddMaterial = (material: Material) => {
-    // Check for duplicates and append "(Custom)" if needed
-    let materialName = material.name;
-    let counter = 1;
-    while (materials.some((m) => m.name === materialName)) {
-      materialName = `${material.name} (Custom ${counter})`;
-      counter++;
-    }
-
-    const newMaterial: Material = {
-      ...material,
-      name: materialName,
-    };
-
-    setMaterials([...materials, newMaterial]);
+    runCalculation(() => {
+      let materialName = material.name;
+      let counter = 1;
+      while (materials.some((m) => m.name === materialName)) {
+        materialName = `${material.name} (Custom ${counter})`;
+        counter++;
+      }
+      const newMaterial: Material = { ...material, name: materialName };
+      setMaterials([...materials, newMaterial]);
+    });
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Scanning Materials Database" />
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
@@ -470,6 +471,7 @@ const MaterialsDatabase = () => {
         existingMaterials={materials}
       />
     </div>
+    </>
   );
 };
 

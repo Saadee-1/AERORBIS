@@ -7,6 +7,8 @@
 "use client";
 
 import { useState, useCallback, useMemo, memo } from 'react';
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { Plane, Calculator } from 'lucide-react';
 import { ToolWrapper } from '@/components/layout/ToolWrapper';
 import { ToolHeader } from '@/components/layout/ToolHeader';
@@ -56,6 +58,7 @@ export { handleCalculate } from './handleCalculate';
 export default function StabilityCalculator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
 
@@ -490,6 +493,7 @@ export default function StabilityCalculator() {
 
   return (
     <ErrorBoundary toolName="Stability & Control Derivatives">
+      <CalculationOverlay isActive={isCalculating} label="Analyzing Stability Derivatives" />
       <ToolWrapper>
         <ToolHeader
           title="Stability & Control Derivatives"
@@ -511,7 +515,7 @@ export default function StabilityCalculator() {
       </ToolSection>
 
       <ToolActions>
-          <AeroButton onClick={handleUserCalculate} icon={Calculator}>
+          <AeroButton onClick={() => runCalculation(handleUserCalculate)} icon={Calculator}>
           Calculate Stability
         </AeroButton>
           {results && lastPayload && (

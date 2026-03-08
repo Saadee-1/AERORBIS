@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { MissionParameters, Stage, MissionResult } from "./types";
 import {
   calculateDeltaVBreakdown,
@@ -69,6 +71,7 @@ type UnitSystem = DeltaVUnitSystem;
 const DeltaVPlanner = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { isCalculating, runCalculation } = useCalculationAnimation({ minDuration: 900 });
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
@@ -274,18 +277,20 @@ const DeltaVPlanner = () => {
   ]);
 
   const loadPreset = useCallback((preset: typeof MISSION_PRESETS[0]) => {
-    setMission(preset.mission);
-    setStages(
-      preset.stages.map((s, i) => ({
-        ...s,
-        id: `stage-${Date.now()}-${i}`,
-      }))
-    );
-    toast({
-      title: "Preset Loaded",
-      description: `${preset.name} configuration loaded`,
+    runCalculation(() => {
+      setMission(preset.mission);
+      setStages(
+        preset.stages.map((s, i) => ({
+          ...s,
+          id: `stage-${Date.now()}-${i}`,
+        }))
+      );
+      toast({
+        title: "Preset Loaded",
+        description: `${preset.name} configuration loaded`,
+      });
     });
-  }, [toast]);
+  }, [toast, runCalculation]);
 
 
   const handleSavePreset = () => {
@@ -307,6 +312,8 @@ const DeltaVPlanner = () => {
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Delta-V Budget" />
     <ToolWrapper>
       <ToolHeader
         title="Delta-V Budget Planner"
@@ -691,6 +698,7 @@ const DeltaVPlanner = () => {
         </DialogContent>
       </Dialog>
     </ToolWrapper>
+    </>
   );
 };
 

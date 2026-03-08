@@ -25,6 +25,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import {
   Card,
   CardContent,
@@ -145,6 +147,7 @@ const STORAGE_KEY_CUSTOM_PRESETS = "antennaPatternAnalyzer_customPresets";
 const AntennaPatternAnalyzer = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { isCalculating, runCalculation } = useCalculationAnimation({ minDuration: 900 });
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
 
@@ -850,21 +853,20 @@ const AntennaPatternAnalyzer = () => {
 
   // Handle antenna selection with registry support
   const handleAntennaChange = (id: string) => {
-    setSelectedAntennaId(id);
-    
-    // Try registry first, then fallback to old system
-    const registryEntry = getAntennaRegistryEntry(id);
-    if (registryEntry) {
-      setAntennaParams({ ...registryEntry.defaultParams });
-    } else {
-      const antenna = getAntennaById(id);
-      if (antenna) {
-        setAntennaParams({ ...antenna.defaultParams });
+    runCalculation(() => {
+      setSelectedAntennaId(id);
+      const registryEntry = getAntennaRegistryEntry(id);
+      if (registryEntry) {
+        setAntennaParams({ ...registryEntry.defaultParams });
       } else {
-        // Fallback to empty params
-        setAntennaParams({});
+        const antenna = getAntennaById(id);
+        if (antenna) {
+          setAntennaParams({ ...antenna.defaultParams });
+        } else {
+          setAntennaParams({});
+        }
       }
-    }
+    });
   };
 
   const handleSaveCustomPreset = () => {
@@ -915,6 +917,8 @@ const AntennaPatternAnalyzer = () => {
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Analyzing Radiation Pattern" />
     <ToolWrapper>
       <ToolHeader
         title="Antenna Pattern Analyzer"
@@ -1522,6 +1526,7 @@ const AntennaPatternAnalyzer = () => {
         </DialogContent>
       </Dialog>
     </ToolWrapper>
+    </>
   );
 };
 

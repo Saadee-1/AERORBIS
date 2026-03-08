@@ -12,6 +12,8 @@
  */
 
 import { useState, useEffect, useRef } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -85,6 +87,7 @@ type ToolPayload = {
 const OrbitalVisualizer = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<ToolPayload | null>(null);
   const [customUnitNames, setCustomUnitNames] = useState({
@@ -890,6 +893,8 @@ const OrbitalVisualizer = () => {
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Orbital Parameters" />
     <ToolWrapper>
       <ToolHeader
         title="Advanced Orbital Visualizer"
@@ -1032,7 +1037,7 @@ const OrbitalVisualizer = () => {
               <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
                 <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-slate-700/50" />
               </AeroFormField>
-              <AeroButton type="button" onClick={() => calculateOrbit(inputs)} variant="primary" icon={Orbit} className="w-full">
+              <AeroButton type="button" onClick={() => runCalculation(() => calculateOrbit(inputs))} variant="primary" icon={Orbit} className="w-full">
                 Calculate Orbit
               </AeroButton>
             </AeroCard>
@@ -1042,7 +1047,7 @@ const OrbitalVisualizer = () => {
               <AeroFormField label={`Target Circular Altitude (${getUnit("dist")})`}>
                 <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-slate-700/50" placeholder="e.g., 800" />
               </AeroFormField>
-              <AeroButton type="button" onClick={calculateManeuver} variant="primary" icon={Move} className="w-full" disabled={!orbitResult}>
+              <AeroButton type="button" onClick={() => runCalculation(calculateManeuver)} variant="primary" icon={Move} className="w-full" disabled={!orbitResult}>
                 Calculate Maneuver
               </AeroButton>
               {maneuverResult && (
@@ -1254,6 +1259,7 @@ const OrbitalVisualizer = () => {
         </DialogContent>
       </Dialog>
     </ToolWrapper>
+    </>
   );
 };
 
