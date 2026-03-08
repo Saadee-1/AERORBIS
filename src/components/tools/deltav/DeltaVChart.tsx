@@ -112,7 +112,7 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
             <TrendingUp className="w-5 h-5 text-primary" />
             Δv Component Breakdown
           </CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardDescription className="text-muted-foreground">
             Breakdown of required Δv by component
           </CardDescription>
         </CardHeader>
