@@ -1097,8 +1097,8 @@ const point: Record<string, unknown> = { alpha };
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-slate-300">{entry.name}:</span>
-                <span className="text-white font-semibold">
+                <span className="text-muted-foreground">{entry.name}:</span>
+                <span className="text-foreground font-semibold">
                   {formattedValue}
                 </span>
               </div>
