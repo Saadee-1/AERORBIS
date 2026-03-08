@@ -28,6 +28,8 @@ import {
   type DerivationStep,
 } from '@/lib/advancedOrbitalMechanics';
 import { Rocket, Globe, Zap, Navigation, Atom, Orbit } from 'lucide-react';
+import { PorkChopPlot, type PorkChopData } from './PorkChopPlot';
+import { AdvancedPDFExportButton } from './OrbitalAdvancedPDFExport';
 
 interface OrbitalAdvancedPanelProps {
   semiMajorAxis?: number;
