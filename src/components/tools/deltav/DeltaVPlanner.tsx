@@ -481,7 +481,7 @@ const DeltaVPlanner = () => {
                       reserveMargin: parseFloat(e.target.value) || 0,
                     })
                   }
-                  className="bg-slate-900/50 border-cyan-400/30 text-white"
+                  className="bg-slate-900/50 border-primary/30 text-foreground"
                 />
               </AeroFormField>
             </AeroCard>
