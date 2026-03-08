@@ -927,16 +927,16 @@ const AdvancedThrustCalculator = () => {
 
       {/* Load Custom Preset Dialog */}
       <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Load Custom Preset</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Select a saved custom preset to load
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
             {customPresets.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No custom presets saved yet</p>
+              <p className="text-muted-foreground text-center py-8">No custom presets saved yet</p>
             ) : (
               customPresets.map((preset, index) => (
                 <div
