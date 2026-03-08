@@ -18,6 +18,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Cloud, Calculator } from "lucide-react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { useDesignSession } from "@/contexts/designSession";

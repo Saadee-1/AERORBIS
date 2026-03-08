@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { 
   Card, 
   CardContent, 

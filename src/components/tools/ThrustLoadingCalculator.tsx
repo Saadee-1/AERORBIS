@@ -21,6 +21,8 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Anchor, Settings2, Zap, Link2 } from "lucide-react";
