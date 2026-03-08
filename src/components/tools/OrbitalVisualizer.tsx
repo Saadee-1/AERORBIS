@@ -611,23 +611,19 @@ const OrbitalVisualizer = () => {
     return nu;
   };
 
-  // Physics: Get position vector from true anomaly
+  // Physics: Get position vector from true anomaly using full Ω, i, ω rotation
   const getPositionFromTrueAnomaly = (nu: number, params: OrbitalParams): THREE.Vector3 => {
-    const { semiMajorAxis, eccentricity, periapsisRadius } = params;
+    const { semiMajorAxis, eccentricity } = params;
     const r = (semiMajorAxis * (1 - eccentricity * eccentricity)) / (1 + eccentricity * Math.cos(nu));
     
-    const x_orbital = r * Math.cos(nu);
-    const y_orbital = r * Math.sin(nu);
+    // Position in perifocal frame (orbit plane, periapsis along +X)
+    const x_peri = r * Math.cos(nu);
+    const y_peri = r * Math.sin(nu);
     
-    const focalDistance = semiMajorAxis * eccentricity;
-    const x_offset = x_orbital - focalDistance;
-    const y_offset = y_orbital;
+    // Rotate to ECI using Ω, i, ω
+    const [x, y, z] = rotateToECI(x_peri, y_peri, params.inclination, params.raan, params.argOfPeriapsis);
     
-    const x_final = x_offset;
-    const y_final = y_offset * Math.cos(params.inclination);
-    const z_final = y_offset * Math.sin(params.inclination);
-    
-    return new THREE.Vector3(x_final, y_final, z_final);
+    return new THREE.Vector3(x, y, z);
   };
 
   // ─── Three.js Cinematic Initialization ────────────────────────────────────
