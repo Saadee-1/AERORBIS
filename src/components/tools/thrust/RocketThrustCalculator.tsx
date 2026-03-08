@@ -845,8 +845,8 @@ const AdvancedThrustCalculator = () => {
             {!thrustResult && !performanceResult && (
               <AeroCard title="Results">
                 <div className="text-center py-12">
-                  <Calculator className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-                  <p className="text-gray-400">Results will appear here</p>
+                  <Calculator className="w-16 h-16 mx-auto mb-4 text-primary/30" />
+                  <p className="text-muted-foreground">Results will appear here</p>
                 </div>
               </AeroCard>
             )}
