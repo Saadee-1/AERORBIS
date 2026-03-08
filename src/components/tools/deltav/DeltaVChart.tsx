@@ -56,7 +56,7 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
           {
             name: "Hohmann",
             value: formatValue(breakdown.hohmannDeltaV),
-            color: "#3b82f6",
+            color: "#059669",
           },
         ]
       : []),
