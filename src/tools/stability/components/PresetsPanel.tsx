@@ -52,7 +52,7 @@ export function PresetsPanel({
         </AeroFormField>
 
         {selectedPreset && (
-          <div className="p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
+          <div className="p-4 bg-slate-700/30 rounded-lg border border-primary/20">
             <p className="text-sm text-gray-300 mb-2">{selectedPreset.description}</p>
             <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 mb-3">
               <div>S_w: {selectedPreset.S_w.toFixed(1)} m²</div>
