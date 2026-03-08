@@ -33,6 +33,7 @@ import { AdvancedPDFExportButton } from './OrbitalAdvancedPDFExport';
 import { GravityAssistCalculator } from './GravityAssistCalculator';
 import { LaunchVehicleC3Overlay } from './LaunchVehicleC3Overlay';
 import { LowThrustOptimizer } from './LowThrustOptimizer';
+import { GaussOrbitDetermination } from './GaussOrbitDetermination';
 
 interface OrbitalAdvancedPanelProps {
   semiMajorAxis?: number;
