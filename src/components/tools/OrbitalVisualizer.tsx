@@ -1035,7 +1035,7 @@ const OrbitalVisualizer = () => {
                 </AeroFormField>
               </div>
               <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
-                <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-slate-700/50" />
+                <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-muted/50" />
               </AeroFormField>
               <AeroButton type="button" onClick={() => runCalculation(() => calculateOrbit(inputs))} variant="primary" icon={Orbit} className="w-full">
                 Calculate Orbit
