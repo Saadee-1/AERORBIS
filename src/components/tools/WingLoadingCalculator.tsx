@@ -1433,7 +1433,7 @@ const WingLoadingCalculator = () => {
                             max="1"
                             value={landingWeightFraction}
                             onChange={(e) => setLandingWeightFraction(e.target.value)}
-                            className="bg-slate-900/50 border-cyan-400/30"
+                            className="bg-slate-900/50 border-primary/30"
                             placeholder="0.7"
                           />
                           {landingWeightFraction.trim() && (() => {
