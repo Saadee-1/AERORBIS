@@ -91,6 +91,7 @@ const App = () => {
   }, [showIntro]);
 
   return (
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AIAssistantProvider>
