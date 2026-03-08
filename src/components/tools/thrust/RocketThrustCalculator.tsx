@@ -853,21 +853,21 @@ const AdvancedThrustCalculator = () => {
 
             {/* --- Theory Card --- */}
             <AeroCard title="Theory & Formulas" icon={Info}>
-              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30 mb-4">
-                <p className="text-center text-lg font-mono text-cyan-400 mb-2">V_e = I_sp · g_0</p>
-                <div className="text-gray-400 text-sm space-y-1">
-                  <p><span className="text-cyan-400">V_e</span> = Exhaust Velocity</p>
-                  <p><span className="text-cyan-400">I_sp</span> = Specific Impulse</p>
-                  <p><span className="text-cyan-400">g_0</span> = Std. Gravity (≈ 9.81 m/s²)</p>
+              <div className="p-4 bg-muted/50 rounded-lg border border-border mb-4">
+                <p className="text-center text-lg font-mono text-primary mb-2">V_e = I_sp · g_0</p>
+                <div className="text-muted-foreground text-sm space-y-1">
+                  <p><span className="text-primary">V_e</span> = Exhaust Velocity</p>
+                  <p><span className="text-primary">I_sp</span> = Specific Impulse</p>
+                  <p><span className="text-primary">g_0</span> = Std. Gravity (≈ 9.81 m/s²)</p>
                 </div>
               </div>
-              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                <p className="text-center text-lg font-mono text-cyan-400 mb-2">F = ṁV_e + (P_e - P_a)A_e</p>
-                <div className="text-gray-400 text-sm space-y-1">
-                  <p><span className="text-cyan-400">F</span> = Total Thrust (N)</p>
-                  <p><span className="text-cyan-400">ṁ</span> = Mass Flow Rate (kg/s)</p>
-                  <p><span className="text-cyan-400">P_e, P_a</span> = Exit, Ambient Pressure (Pa)</p>
-                  <p><span className="text-cyan-400">A_e</span> = Nozzle Exit Area (m²)</p>
+              <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                <p className="text-center text-lg font-mono text-primary mb-2">F = ṁV_e + (P_e - P_a)A_e</p>
+                <div className="text-muted-foreground text-sm space-y-1">
+                  <p><span className="text-primary">F</span> = Total Thrust (N)</p>
+                  <p><span className="text-primary">ṁ</span> = Mass Flow Rate (kg/s)</p>
+                  <p><span className="text-primary">P_e, P_a</span> = Exit, Ambient Pressure (Pa)</p>
+                  <p><span className="text-primary">A_e</span> = Nozzle Exit Area (m²)</p>
                 </div>
               </div>
             </AeroCard>
