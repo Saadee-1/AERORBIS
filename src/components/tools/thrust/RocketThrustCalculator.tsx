@@ -900,7 +900,7 @@ const AdvancedThrustCalculator = () => {
                 }}
               />
             </div>
-            <div className="text-sm text-gray-400 space-y-1">
+            <div className="text-sm text-muted-foreground space-y-1">
               <p>Unit System: {unitSystem}</p>
               <p>Mass Flow: {inputs.massFlowRate || "N/A"} | Exhaust Vel: {inputs.exhaustVelocity || "N/A"}</p>
               <p>Exit Area: {inputs.exitArea || "N/A"} | Thrust: {inputs.thrust || "N/A"}</p>
