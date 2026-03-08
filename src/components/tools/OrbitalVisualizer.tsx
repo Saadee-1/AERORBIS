@@ -1020,14 +1020,10 @@ const OrbitalVisualizer = () => {
         
         // Main orbit tube - brighter and thicker
         const tubeGeo = new THREE.TubeGeometry(curve, segments, tubeRadius, 12, true);
-        const tubeMat = new THREE.MeshStandardMaterial({
+        const tubeMat = new THREE.MeshBasicMaterial({
           color: 0x44eeff,
-          emissive: 0x22ccdd,
-          emissiveIntensity: 1.5,
-          metalness: 0.2,
-          roughness: 0.3,
           transparent: true,
-          opacity: 1.0,
+          opacity: 0.9,
         });
         t.orbitTube.geometry = tubeGeo;
         t.orbitTube.material = tubeMat;
