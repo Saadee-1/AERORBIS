@@ -861,14 +861,14 @@ function generateBatchPDFHTML(contexts: BatchContext[], options: { includeAssist
   <title>Combined Calculation Report</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-    h1 { color: #22d3ee; }
-    h2 { color: #3b82f6; margin-top: 30px; }
-    h3 { color: #60a5fa; margin-top: 20px; }
+    h1 { color: #10b981; }
+    h2 { color: #059669; margin-top: 30px; }
+    h3 { color: #047857; margin-top: 20px; }
     table { border-collapse: collapse; width: 100%; margin: 20px 0; }
     th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
     th { background-color: #1e293b; color: white; }
-    .step { margin: 15px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #22d3ee; }
-    .result { font-size: 1.2em; font-weight: bold; color: #22d3ee; }
+    .step { margin: 15px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #10b981; }
+    .result { font-size: 1.2em; font-weight: bold; color: #10b981; }
   </style>
 </head>
 <body>
