@@ -1898,11 +1898,11 @@ const point: Record<string, unknown> = { alpha };
                 <div className="border-t border-slate-700/50 max-h-[60vh] overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 bg-slate-900/95 backdrop-blur-sm">
-                      <tr className="border-b border-cyan-400/30">
-                        <th className="text-left py-2 px-3 text-cyan-300">α (°)</th>
-                        <th className="text-left py-2 px-3 text-cyan-300">Cl</th>
-                        <th className="text-left py-2 px-3 text-cyan-300">Cd</th>
-                        <th className="text-left py-2 px-3 text-cyan-300">L/D</th>
+                      <tr className="border-b border-primary/30">
+                        <th className="text-left py-2 px-3 text-primary">α (°)</th>
+                        <th className="text-left py-2 px-3 text-primary">Cl</th>
+                        <th className="text-left py-2 px-3 text-primary">Cd</th>
+                        <th className="text-left py-2 px-3 text-primary">L/D</th>
                       </tr>
                     </thead>
                     <tbody>
