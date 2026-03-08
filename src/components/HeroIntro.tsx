@@ -276,7 +276,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
         <Suspense fallback={null}>
           <Canvas camera={{ position: [0, 0, 3.8], fov: 42 }}>
             <ambientLight intensity={0.3} />
-            <pointLight position={[10, 10, 10]} intensity={1.5} color="#22d3ee" />
+            <pointLight position={[10, 10, 10]} intensity={1.5} color="#10b981" />
             <pointLight position={[-10, -10, -10]} intensity={0.4} color="#6366f1" />
             <IntroGlobe />
           </Canvas>

@@ -887,7 +887,7 @@ export async function generateChartImage(
   const yRange = yMax - yMin || 1;
 
   // Draw data points and line
-  ctx.strokeStyle = '#22d3ee';
+  ctx.strokeStyle = '#10b981';
   ctx.lineWidth = 2;
   ctx.beginPath();
 

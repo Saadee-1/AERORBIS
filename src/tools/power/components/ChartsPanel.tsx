@@ -282,7 +282,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               domain={[-10, 90]}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981' }}
               formatter={(value: number) => [`${value.toFixed(1)}°`, 'Elevation']}
             />
             <Line
