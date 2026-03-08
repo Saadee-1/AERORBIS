@@ -1537,7 +1537,7 @@ const point: Record<string, unknown> = { alpha };
                         label="Zero-Lift Drag Coefficient (CD₀)"
                         helperText="Parasitic drag coefficient at zero lift: represents form drag, skin friction, and interference drag. This is NOT the total drag coefficient. Total drag: CD = CD₀ + k × CL², where k is the induced drag factor. Typical range: 0.005-0.040 for clean airfoils."
                       >
-                        <Input id="cd0" type="number" value={customAirfoil.CD_0} onChange={(e) => handleCustomAirfoilChange("CD_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.0001" min="0" />
+                        <Input id="cd0" type="number" value={customAirfoil.CD_0} onChange={(e) => handleCustomAirfoilChange("CD_0", e.target.value)} step="0.0001" min="0" />
                       </AeroFormField>
                       <AeroFormField 
                         label="Stall Angle of Attack (°)"
