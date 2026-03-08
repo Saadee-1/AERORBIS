@@ -1720,8 +1720,8 @@ const point: Record<string, unknown> = { alpha };
                     )}
                   </div>
                   <div className="p-3 rounded bg-red-500/10 border border-red-400/30">
-                    <p className="text-sm text-slate-400 mb-1">Drag Force (D)</p>
-                    <p className="text-xs text-gray-500 mb-2">D = CD × q × S, where CD = CD₀ + k × CL²</p>
+                    <p className="text-sm text-muted-foreground mb-1">Drag Force (D)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">D = CD × q × S, where CD = CD₀ + k × CL²</p>
                     {displayCheck.display.Drag !== "—" ? (
                       <>
                     <p className="text-xl font-bold text-red-400">
