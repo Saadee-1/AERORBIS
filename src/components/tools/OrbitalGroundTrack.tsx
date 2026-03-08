@@ -189,9 +189,9 @@ export function OrbitalGroundTrack({
     'hsl(320 70% 55%)',  // Pink
   ], []);
 
-  const { tracks, currentPos } = useMemo(() => {
+  const { tracks, currentPos, nodes } = useMemo(() => {
     if (!semiMajorAxis || semiMajorAxis <= 0 || !gm || gm <= 0) {
-      return { tracks: [], currentPos: null };
+      return { tracks: [], currentPos: null, nodes: [] };
     }
 
     const n = Math.sqrt(gm / Math.pow(semiMajorAxis, 3));
@@ -202,7 +202,9 @@ export function OrbitalGroundTrack({
     const dt = totalTime / steps;
 
     const tracks: Array<{ lat: number; lon: number; orbitIdx: number }> = [];
+    const nodes: Array<{ lat: number; lon: number; type: 'ascending' | 'descending'; orbitIdx: number }> = [];
     let currentPos: { lat: number; lon: number } | null = null;
+    let prevLat = 0;
 
     for (let s = 0; s <= steps; s++) {
       const t = s * dt;
@@ -226,11 +228,27 @@ export function OrbitalGroundTrack({
       let lon = (Math.atan2(y, x) - theta_g) * (180 / Math.PI);
       lon = ((lon + 540) % 360) - 180;
 
+      // Detect equator crossings (lat sign change)
+      if (s > 0 && prevLat * lat < 0 && Math.abs(prevLat - lat) < 30) {
+        // Interpolate longitude at equator crossing
+        const frac = Math.abs(prevLat) / (Math.abs(prevLat) + Math.abs(lat));
+        const prevTrack = tracks[tracks.length - 1];
+        let interpLon = prevTrack.lon + frac * (lon - prevTrack.lon);
+        // Handle antimeridian
+        if (Math.abs(lon - prevTrack.lon) > 180) {
+          interpLon = lon; // skip interpolation at wrap
+        }
+        interpLon = ((interpLon + 540) % 360) - 180;
+        const type = lat > prevLat ? 'ascending' : 'descending';
+        nodes.push({ lat: 0, lon: interpLon, type, orbitIdx });
+      }
+      prevLat = lat;
+
       tracks.push({ lat, lon, orbitIdx });
       if (s === 0) currentPos = { lat, lon };
     }
 
-    return { tracks, currentPos };
+    return { tracks, currentPos, nodes };
   }, [semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis, gm, numOrbits]);
 
   const W = 720;
