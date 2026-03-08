@@ -79,7 +79,7 @@ const Tools = () => {
                   <Activity className="w-3 h-3 text-[hsl(var(--success))]" />
                   <span className="text-[10px] text-[hsl(var(--success))] uppercase tracking-widest font-mono">{tool.status}</span>
                 </div>
-                <div className="w-16 h-16 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5 group-hover:border-primary/50 group-hover:shadow-[0_0_25px_hsl(185_85%_50%/0.2)] transition-all duration-300 group-hover:scale-110">
+                <div className="w-16 h-16 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5 group-hover:border-primary/50 group-hover:shadow-[0_0_25px_hsl(160_84%_39%/0.2)] transition-all duration-300 group-hover:scale-110">
                   <tool.icon className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-base font-semibold text-foreground mb-2 font-[Rajdhani] tracking-wide">{tool.title}</h3>

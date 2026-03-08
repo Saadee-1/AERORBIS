@@ -186,7 +186,7 @@ const DashboardOverview = () => {
 
                   <div className="relative z-10 text-center">
                     <motion.div
-                      className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center mb-3 mx-auto group-hover:shadow-[0_0_12px_hsl(185_85%_50%/0.2)] transition-shadow"
+                      className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center mb-3 mx-auto group-hover:shadow-[0_0_12px_hsl(160_84%_39%/0.2)] transition-shadow"
                       whileHover={{ rotate: [0, -5, 5, 0] }}
                       transition={{ duration: 0.4 }}
                     >

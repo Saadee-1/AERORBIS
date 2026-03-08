@@ -144,8 +144,8 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
                 )}
                 <Icon className={`w-4 h-4 flex-shrink-0 ${
                   isActive 
-                    ? !isLight ? "drop-shadow-[0_0_8px_hsl(185_85%_50%/0.8)]" : ""
-                    : !isLight ? "group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(185_85%_50%/0.4)]" : "group-hover:text-primary"
+                    ? !isLight ? "drop-shadow-[0_0_8px_hsl(160_84%_39%/0.8)]" : ""
+                    : !isLight ? "group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(160_84%_39%/0.4)]" : "group-hover:text-primary"
                 }`} />
                 {isOpen && (
                   <motion.span

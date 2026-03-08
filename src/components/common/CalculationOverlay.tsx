@@ -79,7 +79,7 @@ export function CalculationOverlay({ isActive, label = "Computing", progress }: 
               {[0, 1, 2, 3].map((i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(185_85%_50%/0.8)]"
+                  className="absolute w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(160_84%_39%/0.8)]"
                   style={{
                     top: '50%',
                     left: '50%',

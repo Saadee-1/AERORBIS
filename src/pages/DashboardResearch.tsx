@@ -56,7 +56,7 @@ const DashboardResearch = () => {
             // Research Division
           </p>
           <h1 className="text-3xl font-bold text-foreground mb-2" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-            My <span className="text-primary drop-shadow-[0_0_15px_hsl(185_85%_50%/0.4)]">Research</span>
+            My <span className="text-primary drop-shadow-[0_0_15px_hsl(160_84%_39%/0.4)]">Research</span>
           </h1>
           <p className="text-sm text-muted-foreground" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
             Manage and submit your aerospace research
