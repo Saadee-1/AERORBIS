@@ -692,11 +692,15 @@ const OrbitalVisualizer = () => {
       // ── Controls ──
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
-      controls.dampingFactor = 0.04;
+      controls.dampingFactor = 0.08;
       controls.minDistance = 1000;
       controls.maxDistance = 80000;
-      controls.rotateSpeed = 0.5;
-      controls.zoomSpeed = 0.8;
+      controls.rotateSpeed = 0.35;
+      controls.zoomSpeed = 0.6;
+      controls.panSpeed = 0.5;
+      controls.enablePan = true;
+      controls.autoRotate = false;
+      controls.autoRotateSpeed = 0.3;
 
       // ── Sun direction ──
       const sunDirection = new THREE.Vector3(1, 0.3, 0.5).normalize();

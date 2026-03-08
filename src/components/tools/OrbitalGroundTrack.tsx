@@ -7,7 +7,7 @@
  */
 
 import { useMemo, useState, useRef, useCallback } from 'react';
-import { Download, Radio } from 'lucide-react';
+import { Download, Radio, Satellite } from 'lucide-react';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
