@@ -1007,7 +1007,7 @@ const OrbitalVisualizer = () => {
           // Rotate to ECI
           const [x, y, z] = rotateToECI(x_peri, y_peri, inclinationRad, raanRad, argPeriRad);
           
-          orbitPoints.push(new THREE.Vector3(x_final, y_final, z_final));
+          orbitPoints.push(new THREE.Vector3(x, y, z));
         }
 
         // ── Build orbit as glowing tube ──
