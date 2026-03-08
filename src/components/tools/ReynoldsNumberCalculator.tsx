@@ -984,7 +984,7 @@ const ReynoldsNumberCalculator = () => {
           </DialogHeader>
           <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
             {customPresets.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No custom presets saved yet</p>
+              <p className="text-muted-foreground text-center py-8">No custom presets saved yet</p>
             ) : (
               customPresets.map((preset, index) => (
                 <div
