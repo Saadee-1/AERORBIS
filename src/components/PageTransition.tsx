@@ -5,17 +5,22 @@ interface PageTransitionProps {
   children: ReactNode;
 }
 
+// Ultra-smooth Apple-style deceleration
+
 const PageTransition = ({ children }: PageTransitionProps) => {
   return (
     <motion.div
-      initial={{ opacity: 0, filter: 'blur(8px)', y: 10 }}
-      animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-      exit={{ opacity: 0, filter: 'blur(8px)', y: -10 }}
+      initial={{ opacity: 0, filter: 'blur(6px)', y: 12, scale: 0.995 }}
+      animate={{ opacity: 1, filter: 'blur(0px)', y: 0, scale: 1 }}
+      exit={{ opacity: 0, filter: 'blur(4px)', y: -8, scale: 0.998 }}
       transition={{
-        duration: 0.5,
-        ease: [0.22, 1, 0.36, 1],
-        opacity: { duration: 0.35 },
+        duration: 0.45,
+        ease: "easeOut",
+        opacity: { duration: 0.3 },
+        filter: { duration: 0.4 },
+        scale: { duration: 0.5 },
       }}
+      style={{ willChange: 'opacity, transform, filter' }}
     >
       {children}
     </motion.div>

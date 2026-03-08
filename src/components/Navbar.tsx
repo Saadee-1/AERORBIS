@@ -36,11 +36,12 @@ function DockItem({
   });
 
   // magnification: items within ~80px get scaled
-  const scaleRaw = useTransform(distance, [-100, 0, 100], [1, 1.45, 1]);
-  const scale = useSpring(scaleRaw, { stiffness: 300, damping: 20, mass: 0.5 });
+  // Buttery smooth spring: lower stiffness + higher damping = silky macOS feel
+  const scaleRaw = useTransform(distance, [-120, 0, 120], [1, 1.4, 1]);
+  const scale = useSpring(scaleRaw, { stiffness: 170, damping: 22, mass: 0.4 });
 
-  const yRaw = useTransform(distance, [-100, 0, 100], [0, -8, 0]);
-  const y = useSpring(yRaw, { stiffness: 300, damping: 20, mass: 0.5 });
+  const yRaw = useTransform(distance, [-120, 0, 120], [0, -10, 0]);
+  const y = useSpring(yRaw, { stiffness: 170, damping: 22, mass: 0.4 });
 
   return (
     <motion.div style={{ scale, y }} className="relative flex flex-col items-center">
@@ -58,7 +59,7 @@ function DockItem({
           <motion.span
             layoutId="dock-active"
             className="absolute inset-0 rounded-xl bg-primary/10 shadow-[0_0_20px_hsl(160_84%_39%/0.15)]"
-            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+            transition={{ type: "spring", stiffness: 200, damping: 28, mass: 0.8 }}
           />
         )}
 
@@ -78,7 +79,7 @@ function DockItem({
         <motion.span
           layoutId="dock-dot"
           className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_hsl(160_84%_39%/0.6)]"
-          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+          transition={{ type: "spring", stiffness: 200, damping: 28, mass: 0.8 }}
         />
       )}
     </motion.div>
