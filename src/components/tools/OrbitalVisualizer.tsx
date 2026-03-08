@@ -251,10 +251,10 @@ uniform vec3 sunDirection;
 void main() {
   vec3 normal = normalize(vNormal);
   vec3 viewDir = normalize(cameraPosition - vPosition);
-  float intensity = pow(0.65 - dot(normal, viewDir), 4.0);
-  float sunFacing = max(dot(normal, sunDirection) * 0.5 + 0.5, 0.15);
-  vec3 col = mix(vec3(0.1, 0.3, 0.8), vec3(0.3, 0.6, 1.0), intensity);
-  gl_FragColor = vec4(col * sunFacing, intensity * 0.7);
+  float intensity = pow(0.55 - dot(normal, viewDir), 5.0);
+  float sunFacing = max(dot(normal, sunDirection) * 0.5 + 0.5, 0.1);
+  vec3 col = mix(vec3(0.1, 0.3, 0.9), vec3(0.3, 0.6, 1.0), intensity);
+  gl_FragColor = vec4(col * sunFacing, intensity * 0.45);
 }`;
 
 // ─── Orbit Glow Shader ─────────────────────────────────────────────────────
