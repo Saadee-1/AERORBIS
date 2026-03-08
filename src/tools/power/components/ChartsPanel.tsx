@@ -158,7 +158,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             <Line
               type="monotone"
               dataKey="netPower_W"
-              stroke="#22d3ee"
+              stroke="#10b981"
               name="Net (Solar - Load)"
               dot={false}
               legendType="none"
