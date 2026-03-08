@@ -817,12 +817,12 @@ const ReynoldsNumberCalculator = () => {
                 }
               >
                 {/* Reynolds Number Result */}
-                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
-                  <p className="text-sm font-semibold text-cyan-400 mb-2">Reynolds Number</p>
-                      <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/30 mb-4">
+                  <p className="text-sm font-semibold text-primary mb-2">Reynolds Number</p>
+                      <p className="text-3xl font-bold text-primary">
                         Re = {result.reynoldsNumber.toExponential(3)}
                       </p>
-                      <p className="text-gray-400 text-sm mt-2">
+                      <p className="text-muted-foreground text-sm mt-2">
                         Re ≈ {result.reynoldsNumber.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                       </p>
                     </div>
