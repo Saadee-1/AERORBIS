@@ -369,7 +369,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
 
           return (
             <div key={index} className="mb-2 last:mb-0">
-              <p className="text-cyan-400 font-semibold mb-1">
+              <p className="text-primary font-semibold mb-1">
                 {polar?.name || airfoilId}
               </p>
               <div className="text-sm space-y-1">
