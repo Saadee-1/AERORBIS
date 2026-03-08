@@ -504,8 +504,8 @@ export default function StructuralWeightEstimator() {
 
             <TabsContent value="iteration">
               <ToolSection>
-                <div className="p-4 bg-slate-800/50 rounded-lg border border-cyan-400/20">
-                  <h3 className="text-lg font-semibold text-cyan-400 mb-4">Iteration History</h3>
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-primary/20">
+                  <h3 className="text-lg font-semibold text-primary mb-4">Iteration History</h3>
                   <div className="space-y-2">
                     {results.iteration.history.map((h, i) => (
                       <div key={i} className="p-2 bg-slate-700/30 rounded text-sm">
