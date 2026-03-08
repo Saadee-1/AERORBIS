@@ -689,7 +689,7 @@ export default function StabilityCalculator() {
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">τ_a (Aileron)</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.control.tau_a != null ? extendedResults.control.tau_a.toFixed(3) : 'N/A'}
                         </p>
                       </div>
