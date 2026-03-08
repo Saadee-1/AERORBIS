@@ -110,7 +110,7 @@ const Research = () => {
           {isLoading && (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <Card key={i} className="bg-slate-800/50 backdrop-blur-lg border-cyan-400/20">
+                <Card key={i} className="bg-card/50 backdrop-blur-lg border-primary/20">
                   <CardContent className="p-0">
                     <Skeleton className="w-full h-48 rounded-t-lg" />
                     <div className="p-6 space-y-3">
