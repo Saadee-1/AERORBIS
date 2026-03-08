@@ -82,6 +82,7 @@ const CATEGORIES = [
 
 const MaterialsDatabase = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { isCalculating, runCalculation } = useCalculationAnimation({ minDuration: 800 });
   const [materials, setMaterials] = useState<Material[]>(MATERIALS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
