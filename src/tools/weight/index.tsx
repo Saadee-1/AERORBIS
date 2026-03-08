@@ -521,8 +521,8 @@ export default function StructuralWeightEstimator() {
 
             <TabsContent value="classification">
               <ToolSection>
-                <div className="p-4 bg-slate-800/50 rounded-lg border border-cyan-400/20">
-                  <h3 className="text-lg font-semibold text-cyan-400 mb-4">Aircraft Classification</h3>
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-primary/20">
+                  <h3 className="text-lg font-semibold text-primary mb-4">Aircraft Classification</h3>
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm text-gray-400 mb-1">Class</p>
