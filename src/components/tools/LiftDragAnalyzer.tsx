@@ -1579,7 +1579,7 @@ const point: Record<string, unknown> = { alpha };
                         className="bg-input border-border text-foreground"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1.5">
+                    <p className="text-xs text-muted-foreground/70 mt-1.5">
                       1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
                     </p>
                   </div>
