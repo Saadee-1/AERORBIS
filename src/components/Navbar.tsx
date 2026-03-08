@@ -36,11 +36,12 @@ function DockItem({
   });
 
   // magnification: items within ~80px get scaled
-  const scaleRaw = useTransform(distance, [-100, 0, 100], [1, 1.45, 1]);
-  const scale = useSpring(scaleRaw, { stiffness: 300, damping: 20, mass: 0.5 });
+  // Buttery smooth spring: lower stiffness + higher damping = silky macOS feel
+  const scaleRaw = useTransform(distance, [-120, 0, 120], [1, 1.4, 1]);
+  const scale = useSpring(scaleRaw, { stiffness: 170, damping: 22, mass: 0.4 });
 
-  const yRaw = useTransform(distance, [-100, 0, 100], [0, -8, 0]);
-  const y = useSpring(yRaw, { stiffness: 300, damping: 20, mass: 0.5 });
+  const yRaw = useTransform(distance, [-120, 0, 120], [0, -10, 0]);
+  const y = useSpring(yRaw, { stiffness: 170, damping: 22, mass: 0.4 });
 
   return (
     <motion.div style={{ scale, y }} className="relative flex flex-col items-center">
