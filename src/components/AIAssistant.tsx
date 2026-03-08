@@ -389,8 +389,8 @@ const AIAssistant: React.FC = () => {
                   exit={{ width: 0, opacity: 0 }}
                     className="bg-slate-900/60 overflow-hidden flex-shrink-0 flex flex-col overscroll-contain rounded-2xl ml-2"
                 >
-                    <div className="p-2 border-b border-cyan-400/10 flex-shrink-0 flex items-center justify-between">
-                      <p className="text-xs font-semibold text-cyan-400">Recent Chats</p>
+                    <div className="p-2 border-b border-emerald-500/10 flex-shrink-0 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-emerald-500">Recent Chats</p>
                       <Button
                         variant="ghost"
                         size="icon"
