@@ -1235,12 +1235,12 @@ const AntennaPatternAnalyzer = () => {
 
                     {/* Assumptions */}
                     {result.metadata.assumptions && result.metadata.assumptions.length > 0 && (
-                      <div className="p-3 bg-blue-400/10 rounded-lg border border-blue-400/20">
-                        <p className="text-blue-400 font-semibold text-sm mb-2">Assumptions</p>
+                      <div className="p-3 bg-emerald-400/10 rounded-lg border border-emerald-400/20">
+                        <p className="text-emerald-400 font-semibold text-sm mb-2">Assumptions</p>
                         <ul className="space-y-1 text-xs text-gray-300">
                           {result.metadata.assumptions.map((assumption, i) => (
                             <li key={i} className="flex items-start gap-2">
-                              <span className="text-blue-400 mt-1">•</span>
+                              <span className="text-emerald-400 mt-1">•</span>
                               <span>{assumption}</span>
                             </li>
                           ))}
