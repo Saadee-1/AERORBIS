@@ -172,6 +172,9 @@ export function OrbitalGroundTrack({
   onLaunchSiteClick,
 }: GroundTrackProps) {
   const [showCoords, setShowCoords] = useState(true);
+  const [hoveredSite, setHoveredSite] = useState<typeof LAUNCH_SITES[number] | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement>(null);
 
   // Orbit color palette (HSL strings)
   const ORBIT_COLORS = useMemo(() => [
