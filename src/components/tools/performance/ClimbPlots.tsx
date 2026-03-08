@@ -31,7 +31,7 @@ import { ClimbPoint, ClimbResult } from "./utils/climb";
 // High-contrast graph styling constants
 const GRAPH_STYLES = {
   dragStroke: '#ef4444', // Red for drag
-  thrustStroke: '#22d3ee', // Cyan for thrust
+  thrustStroke: '#10b981', // Emerald for thrust
   pReqStroke: '#f59e0b', // Amber for power required
   pAvailStroke: '#10b981', // Emerald for power available
   rocStroke: '#8b5cf6', // Purple for ROC

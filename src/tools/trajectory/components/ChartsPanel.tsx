@@ -110,7 +110,7 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
               id: 'velocity',
               name: 'Velocity',
               role: 'km/s',
-              color: '#06b6d4',
+              color: '#10b981',
             }]}
           />
         </div>

@@ -615,7 +615,7 @@ export function WingLoadingGraphs({
                     label={{
                       value: `Current: ${currentAltitudeFt.toFixed(0)} ft`,
                       position: "insideTop",
-                      fill: "#22d3ee",
+                      fill: "#10b981",
                       fontWeight: 600,
                       fontSize: 10,
                     }}

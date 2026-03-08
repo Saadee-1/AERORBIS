@@ -269,10 +269,10 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               <XAxis dataKey="W_to" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Takeoff Weight (kg)', position: 'insideBottom', offset: -5 }} />
               <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Wing Loading (kg/m²)', angle: -90, position: 'insideLeft' }} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
-                formatter={(value: number) => `${value.toFixed(1)} kg/m²`}
-              />
-              <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} name="Wing Loading (kg/m²)" dot={{ fill: '#22d3ee', r: 3 }} legendType="none" />
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
+              formatter={(value: number) => `${value.toFixed(1)} kg/m²`}
+            />
+            <Line type="monotone" dataKey="wingLoading" stroke="#10b981" strokeWidth={2} name="Wing Loading (kg/m²)" dot={{ fill: '#10b981', r: 3 }} legendType="none" />
             </LineChart>
           </ResponsiveContainer>
           <div className="mt-3 pt-3 border-t border-slate-700/50">
