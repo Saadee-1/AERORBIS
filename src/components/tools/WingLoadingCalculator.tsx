@@ -1340,9 +1340,9 @@ const WingLoadingCalculator = () => {
               </AeroFormField>
               )}
               
-              <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
+              <div className="mt-2 p-2 bg-slate-900/50 rounded border border-primary/20">
                 <p className="text-sm text-gray-300">
-                  <span className="text-cyan-400">Current density:</span> {currentAirDensity.toFixed(3)} kg/m³
+                  <span className="text-primary">Current density:</span> {currentAirDensity.toFixed(3)} kg/m³
                 </p>
                 {airDensityMode === 'altitude' && (
                   <p className="text-xs text-gray-400 mt-1">
