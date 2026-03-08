@@ -766,10 +766,10 @@ const AdvancedThrustCalculator = () => {
               
               {/* Thrust Result */}
               {thrustResult && typeof thrustResult === 'object' && 'solvedFor' in thrustResult && (
-                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
-                  <p className="text-sm font-semibold text-cyan-400 mb-2">Part 2 Result (Thrust)</p>
-                    <p className="text-gray-400 text-sm mb-1">Solved: {(thrustResult as { solvedFor?: string }).solvedFor}</p>
-                    <p className="text-3xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/30 mb-4">
+                  <p className="text-sm font-semibold text-primary mb-2">Part 2 Result (Thrust)</p>
+                    <p className="text-muted-foreground text-sm mb-1">Solved: {(thrustResult as { solvedFor?: string }).solvedFor}</p>
+                    <p className="text-3xl font-bold text-primary">
                       {(() => {
                         const tr = thrustResult as { thrust?: number; massFlowRate?: number; exhaustVelocity?: number; exitArea?: number; exitPressure?: number; ambientPressure?: number };
                         if (tr.thrust) return `${convertFromSI(tr.thrust, "thrust").toFixed(2)} ${getUnit("thrust")}`;
@@ -781,17 +781,17 @@ const AdvancedThrustCalculator = () => {
                       })()}
                     </p>
                     <div className="mt-4 grid grid-cols-3 gap-3">
-                      <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                        <p className="text-gray-400 text-xs mb-1">Momentum Thrust</p>
-                        <p className="text-lg font-semibold text-blue-400">{convertFromSI((thrustResult as { momentumThrust?: number }).momentumThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-muted-foreground text-xs mb-1">Momentum Thrust</p>
+                        <p className="text-lg font-semibold text-primary">{convertFromSI((thrustResult as { momentumThrust?: number }).momentumThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
                       </div>
-                      <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                        <p className="text-gray-400 text-xs mb-1">Pressure Thrust</p>
-                        <p className="text-lg font-semibold text-blue-400">{convertFromSI((thrustResult as { pressureThrust?: number }).pressureThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-muted-foreground text-xs mb-1">Pressure Thrust</p>
+                        <p className="text-lg font-semibold text-primary">{convertFromSI((thrustResult as { pressureThrust?: number }).pressureThrust ?? 0, "thrust").toFixed(2)} {getUnit("thrust")}</p>
                       </div>
-                      <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                        <p className="text-gray-400 text-xs mb-1">Specific Impulse</p>
-                        <p className="text-lg font-semibold text-blue-400">{(thrustResult as unknown as { isp?: number }).isp ? (thrustResult as unknown as { isp: number }).isp.toFixed(1) : "N/A"} s</p>
+                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-muted-foreground text-xs mb-1">Specific Impulse</p>
+                        <p className="text-lg font-semibold text-primary">{(thrustResult as unknown as { isp?: number }).isp ? (thrustResult as unknown as { isp: number }).isp.toFixed(1) : "N/A"} s</p>
                       </div>
                     </div>
                   </div>
