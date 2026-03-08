@@ -1165,7 +1165,7 @@ const OrbitalVisualizer = () => {
                 value={saveOrbitName}
                 onChange={(e) => setSaveOrbitName(e.target.value)}
                 placeholder="e.g., My Custom LEO"
-                className="bg-slate-700/50 text-white"
+                className="bg-muted/50 text-foreground"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleSaveCustomOrbit();
