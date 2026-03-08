@@ -388,6 +388,15 @@ export function OrbitalAdvancedPanel({
       </AeroCard>
       {/* ═══ PORK-CHOP PLOT ═══ */}
       <PorkChopPlot onExportData={setPorkChopData} />
+
+      {/* ═══ GRAVITY ASSIST ═══ */}
+      <GravityAssistCalculator onResults={setGravityAssistResults} />
+
+      {/* ═══ LAUNCH VEHICLE C3 OVERLAY ═══ */}
+      <LaunchVehicleC3Overlay 
+        missionC3={porkChopData?.minC3 || (interplanetaryResults.length > 0 ? interplanetaryResults[0]?.value * interplanetaryResults[0]?.value : undefined)}
+        missionName={porkChopData ? `${porkChopData.departPlanet}→${porkChopData.arrivePlanet}` : undefined}
+      />
     </div>
   );
 }
