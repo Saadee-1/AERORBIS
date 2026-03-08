@@ -165,7 +165,7 @@ const ContactPage = () => {
               </Card>
 
               {/* Social Media */}
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+              <Card className="bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-2xl text-white">Follow Us</CardTitle>
                   <CardDescription className="text-gray-300">
