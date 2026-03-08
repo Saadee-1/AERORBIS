@@ -1728,10 +1728,10 @@ const WingLoadingCalculator = () => {
                   icon={Info}
                 >
                   <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="steps" className="border-cyan-400/20">
-                      <AccordionTrigger className="text-white hover:text-cyan-400">
+                    <AccordionItem value="steps" className="border-primary/20">
+                      <AccordionTrigger className="text-white hover:text-primary">
                         <div className="flex items-center gap-2">
-                          <Info className="w-4 h-4 text-cyan-400" />
+                          <Info className="w-4 h-4 text-primary" />
                           Show step-by-step solution
                   </div>
                       </AccordionTrigger>
