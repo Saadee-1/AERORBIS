@@ -53,7 +53,7 @@ const Community = () => {
               className="group"
             >
               <div className="text-center p-6 rounded-lg border border-transparent hover:border-primary/20 hover:bg-card/30 transition-all duration-300">
-                <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4 group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(185_85%_50%/0.15)] transition-all duration-300">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4 group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(160_84%_39%/0.15)] transition-all duration-300">
                   <feature.icon className="w-7 h-7 text-primary" />
                 </div>
                 <h3 className="text-base font-semibold mb-2 text-foreground font-[Rajdhani] tracking-wide">{feature.title}</h3>

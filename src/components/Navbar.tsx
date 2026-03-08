@@ -54,7 +54,7 @@ const Navbar = () => {
                   to={item.href}
                   className={`text-xs font-medium uppercase tracking-[0.15em] transition-all duration-300 px-4 py-2 rounded-md relative ${
                     isActive
-                      ? "text-primary bg-primary/10 shadow-[0_0_15px_hsl(185_85%_50%/0.2)]"
+                      ? "text-primary bg-primary/10 shadow-[0_0_15px_hsl(160_84%_39%/0.2)]"
                       : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
                   }`}
                 >

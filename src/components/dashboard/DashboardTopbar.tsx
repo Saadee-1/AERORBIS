@@ -116,7 +116,7 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
                   className={`absolute right-0 mt-2 w-80 rounded-lg overflow-hidden border shadow-lg ${
                     isLight 
                       ? 'border-border bg-card' 
-                      : 'border-primary/20 shadow-[0_0_30px_hsl(185_85%_50%/0.1)]'
+                      : 'border-primary/20 shadow-[0_0_30px_hsl(160_84%_39%/0.1)]'
                   }`}
                 >
                   {!isLight && <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" />}

@@ -51,8 +51,8 @@ const DashboardCard = ({ title, value, icon: Icon, description, trend, className
             </p>
           )}
         </div>
-        <div className="bg-primary/10 p-2.5 rounded-lg border border-primary/20 group-hover:shadow-[0_0_12px_hsl(185_85%_50%/0.2)] transition-shadow">
-          <Icon className="w-5 h-5 text-primary drop-shadow-[0_0_6px_hsl(185_85%_50%/0.6)]" />
+        <div className="bg-primary/10 p-2.5 rounded-lg border border-primary/20 group-hover:shadow-[0_0_12px_hsl(160_84%_39%/0.2)] transition-shadow">
+          <Icon className="w-5 h-5 text-primary drop-shadow-[0_0_6px_hsl(160_84%_39%/0.6)]" />
         </div>
       </div>
       {children && <div className="relative z-10">{children}</div>}

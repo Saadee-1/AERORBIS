@@ -89,7 +89,7 @@ const DashboardTools = () => {
           <div className="relative p-5">
             <div className="flex items-start justify-between mb-3">
               <motion.div
-                className="bg-primary/10 p-2.5 rounded-lg border border-primary/15 group-hover:shadow-[0_0_10px_hsl(185_85%_50%/0.15)] transition-shadow"
+                className="bg-primary/10 p-2.5 rounded-lg border border-primary/15 group-hover:shadow-[0_0_10px_hsl(160_84%_39%/0.15)] transition-shadow"
                 whileHover={{ rotate: [0, -8, 8, 0] }}
                 transition={{ duration: 0.4 }}
               >

@@ -256,8 +256,8 @@ const DashboardOverview = () => {
                     />
                     <defs>
                       <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="hsl(185 85% 50%)" />
-                        <stop offset="100%" stopColor="hsl(200 80% 55%)" />
+                        <stop offset="0%" stopColor="hsl(160 84% 39%)" />
+                        <stop offset="100%" stopColor="hsl(140 70% 45%)" />
                       </linearGradient>
                     </defs>
                   </svg>
