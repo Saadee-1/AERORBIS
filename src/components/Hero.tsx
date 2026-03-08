@@ -74,12 +74,13 @@ const FloatingIcon = ({ Icon, x, y, delay }: { Icon: any; x: string; y: string; 
 // Particle spark component for launch trail
 const LaunchParticles = ({ active }: { active: boolean }) => {
   if (!active) return null;
-  const particles = Array.from({ length: 8 }, (_, i) => ({
+  const particles = Array.from({ length: 10 }, (_, i) => ({
     id: i,
-    x: (Math.random() - 0.5) * 60,
-    y: Math.random() * 40 + 10,
-    size: Math.random() * 4 + 2,
-    delay: Math.random() * 0.3,
+    x: (Math.random() - 0.5) * 50,
+    y: Math.random() * 35 + 8,
+    size: Math.random() * 3 + 1.5,
+    delay: Math.random() * 0.2,
+    duration: 0.5 + Math.random() * 0.5,
   }));
 
   return (
@@ -92,22 +93,22 @@ const LaunchParticles = ({ active }: { active: boolean }) => {
             width: p.size,
             height: p.size,
             background: `hsl(var(--primary))`,
-            boxShadow: `0 0 6px hsl(var(--primary) / 0.8), 0 0 12px hsl(var(--primary) / 0.4)`,
+            boxShadow: `0 0 4px hsl(var(--primary) / 0.7), 0 0 8px hsl(var(--primary) / 0.3)`,
             left: '50%',
             top: '50%',
           }}
-          initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-          animate={{ opacity: 0, x: p.x, y: p.y, scale: 0 }}
-          transition={{ duration: 0.6 + Math.random() * 0.4, delay: p.delay, ease: 'easeOut' }}
+          initial={{ opacity: 0.9, x: 0, y: 0, scale: 1 }}
+          animate={{ opacity: 0, x: p.x, y: p.y, scale: 0.2 }}
+          transition={{ duration: p.duration, delay: p.delay, ease: [0.16, 1, 0.3, 1] }}
         />
       ))}
-      {/* Main exhaust trail */}
+      {/* Smooth exhaust trail */}
       <motion.span
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 w-1 rounded-full"
-        style={{ background: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--primary) / 0.3), transparent)' }}
-        initial={{ height: 0, opacity: 1 }}
-        animate={{ height: 80, opacity: 0, y: 20 }}
-        transition={{ duration: 0.7, ease: 'easeOut' }}
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 w-0.5 rounded-full"
+        style={{ background: 'linear-gradient(to bottom, hsl(var(--primary) / 0.8), hsl(var(--primary) / 0.2), transparent)' }}
+        initial={{ height: 0, opacity: 0.8 }}
+        animate={{ height: 60, opacity: 0, y: 15 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       />
     </>
   );
