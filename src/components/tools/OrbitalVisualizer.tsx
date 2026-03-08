@@ -1219,10 +1219,12 @@ const OrbitalVisualizer = () => {
 
   const loadPreset = (presetName: keyof typeof presets) => {
     const preset = presets[presetName];
-    const newInputs = {
+    const newInputs: OrbitalInputs = {
       periapsisAltitude: preset.periapsisAltitude,
       inclination: preset.inclination,
       eccentricity: preset.eccentricity,
+      raan: preset.raan,
+      argOfPeriapsis: preset.argOfPeriapsis,
       centralBodyRadius: preset.centralBodyRadius,
       gm: preset.gm,
       targetAltitude: preset.targetAltitude,
