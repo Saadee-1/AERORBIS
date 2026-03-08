@@ -698,7 +698,7 @@ const ReynoldsNumberCalculator = () => {
                   step="0.000001" 
                   value={inputs.density} 
                   onChange={(e) => handleInputChange("density", e.target.value)} 
-                  className="bg-slate-900/50 border-cyan-400/30 text-white" 
+                  className="bg-muted/50" 
                   placeholder="e.g., 1.225" 
                 />
               </AeroFormField>
