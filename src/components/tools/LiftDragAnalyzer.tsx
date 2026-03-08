@@ -2053,10 +2053,10 @@ const point: Record<string, unknown> = { alpha };
             )}
 
             {/* Save/Load Setups Section */}
-            <div className="mt-4 pt-4 border-t border-cyan-400/20">
+            <div className="mt-4 pt-4 border-t border-primary/20">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-cyan-300 text-sm font-medium">Saved Setups</Label>
+                  <Label className="text-primary text-sm font-medium">Saved Setups</Label>
                   <Button
                     variant="outline"
                     size="sm"
