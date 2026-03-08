@@ -31,7 +31,7 @@ export function ThreeDVisualizer({ planet, trajectory, currentState, result, mod
           console.log('Snapshot captured:', base64 ? 'Base64 data' : 'Empty');
         }}
       />
-      <div className="mt-4 p-3 bg-slate-800/30 rounded border border-cyan-400/20">
+      <div className="mt-4 p-3 bg-card/30 rounded border border-primary/20">
         <p className="text-xs text-gray-400">
           Cinematic 3D visualizer with Earth, trajectory path, markers, and multiple camera modes. Use timeline controls to play/pause and scrub through the flight.
         </p>

@@ -574,7 +574,7 @@ export default function TrajectorySimulator() {
         <AeroButton
           onClick={runSimulation}
           disabled={isRunning}
-          className="bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900"
+          className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white"
         >
           {isRunning ? (
             <>

@@ -60,7 +60,7 @@ const AudioToggle = () => {
         <PopoverContent className="w-72 p-4 bg-background/95 backdrop-blur-sm border-primary/20 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-foreground/80">
-              <Waves className="h-4 w-4 text-cyan-400" />
+              <Waves className="h-4 w-4 text-primary" />
               <span>Audio Console</span>
             </div>
             <div className="space-x-2">
@@ -76,7 +76,7 @@ const AudioToggle = () => {
           <div className="space-y-1">
             <p className="text-xs text-foreground/60">Active Track</p>
             <Select value={track.id} onValueChange={(value) => setTrack(value)}>
-              <SelectTrigger className="bg-slate-900/60 border-cyan-400/20 text-foreground">
+              <SelectTrigger className="bg-background/60 border-primary/20 text-foreground">
                 <SelectValue placeholder="Select track" />
               </SelectTrigger>
               <SelectContent>

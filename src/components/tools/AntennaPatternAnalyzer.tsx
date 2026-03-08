@@ -1145,31 +1145,31 @@ const AntennaPatternAnalyzer = () => {
                       {result.peakGainDbi.toFixed(2)} dBi
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                     <p className="text-xs text-gray-400 mb-1">Directivity</p>
-                    <p className="text-blue-400 font-bold text-lg">
+                    <p className="text-primary font-bold text-lg">
                       {result.directivityDbi.toFixed(2)} dBi
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                     <p className="text-xs text-gray-400 mb-1">EIRP</p>
                     <p className="text-purple-400 font-bold text-lg">
                       {result.eirp.eirpDbw.toFixed(2)} dBW
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                     <p className="text-xs text-gray-400 mb-1">HPBW (E-plane)</p>
                     <p className="text-green-400 font-bold text-lg">
                       {result.hpbmE ? `${result.hpbmE.toFixed(2)}°` : "N/A"}
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                     <p className="text-xs text-gray-400 mb-1">Side-Lobe Level</p>
                     <p className="text-yellow-400 font-bold text-lg">
                       {result.sideLobeLevel.toFixed(2)} dB
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                     <p className="text-xs text-gray-400 mb-1">F/B Ratio</p>
                     <p className="text-orange-400 font-bold text-lg">
                       {result.frontToBackRatio.toFixed(2)} dB
@@ -1199,7 +1199,7 @@ const AntennaPatternAnalyzer = () => {
                         <span className="text-gray-400">Approximation:</span>
                         <span className={`font-semibold ${
                           result.metadata.approxLevel === "analytic" ? "text-green-400" :
-                          result.metadata.approxLevel === "array-analytic" ? "text-blue-400" :
+                          result.metadata.approxLevel === "array-analytic" ? "text-primary" :
                           result.metadata.approxLevel === "hybrid" ? "text-yellow-400" :
                           "text-orange-400"
                         }`}>
@@ -1220,12 +1220,12 @@ const AntennaPatternAnalyzer = () => {
 
                     {/* Notes */}
                     {result.metadata.notes && result.metadata.notes.length > 0 && (
-                      <div className="p-3 bg-cyan-400/10 rounded-lg border border-cyan-400/20">
-                        <p className="text-cyan-400 font-semibold text-sm mb-2">Formulas & Notes</p>
+                      <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                        <p className="text-primary font-semibold text-sm mb-2">Formulas & Notes</p>
                         <ul className="space-y-1 text-xs text-gray-300">
                           {result.metadata.notes.map((note, i) => (
                             <li key={i} className="flex items-start gap-2">
-                              <span className="text-cyan-400 mt-1">•</span>
+                              <span className="text-primary mt-1">•</span>
                               <span>{note}</span>
                             </li>
                           ))}
@@ -1235,12 +1235,12 @@ const AntennaPatternAnalyzer = () => {
 
                     {/* Assumptions */}
                     {result.metadata.assumptions && result.metadata.assumptions.length > 0 && (
-                      <div className="p-3 bg-blue-400/10 rounded-lg border border-blue-400/20">
-                        <p className="text-blue-400 font-semibold text-sm mb-2">Assumptions</p>
+                      <div className="p-3 bg-emerald-400/10 rounded-lg border border-emerald-400/20">
+                        <p className="text-emerald-400 font-semibold text-sm mb-2">Assumptions</p>
                         <ul className="space-y-1 text-xs text-gray-300">
                           {result.metadata.assumptions.map((assumption, i) => (
                             <li key={i} className="flex items-start gap-2">
-                              <span className="text-blue-400 mt-1">•</span>
+                              <span className="text-emerald-400 mt-1">•</span>
                               <span>{assumption}</span>
                             </li>
                           ))}
@@ -1455,7 +1455,7 @@ const AntennaPatternAnalyzer = () => {
             </Button>
             <Button
               onClick={handleSaveCustomPreset}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold"
             >
               <Save className="w-4 h-4 mr-2" />
               Save

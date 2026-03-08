@@ -45,35 +45,22 @@ export function PDFExportButton({ requestId, toolName, disabled }: PDFExportButt
 
   const handleExport = async () => {
     if (!requestId) {
-      toast({
-        title: 'Error',
-        description: 'No calculation found. Please run a calculation first.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'No calculation found. Please run a calculation first.', variant: 'destructive' });
       return;
     }
-
     setIsExporting(true);
     try {
       const response = await exportToPDF(requestId, options);
-      
       if (response.html) {
         await downloadHTMLAsPDF(response.html, `${toolName}-report-${Date.now()}.pdf`);
-        toast({
-          title: 'Success',
-          description: 'PDF exported successfully!',
-        });
+        toast({ title: 'Success', description: 'PDF exported successfully!' });
         setIsDialogOpen(false);
       } else {
         throw new Error('No HTML content received');
       }
     } catch (error) {
       console.error('PDF export error:', error);
-      toast({
-        title: 'Export Failed',
-        description: error instanceof Error ? error.message : 'Failed to export PDF',
-        variant: 'destructive',
-      });
+      toast({ title: 'Export Failed', description: error instanceof Error ? error.message : 'Failed to export PDF', variant: 'destructive' });
     } finally {
       setIsExporting(false);
     }
@@ -85,7 +72,7 @@ export function PDFExportButton({ requestId, toolName, disabled }: PDFExportButt
         variant="outline"
         onClick={() => setIsDialogOpen(true)}
         disabled={disabled || !requestId}
-        className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="border-primary/40 text-primary hover:bg-primary/10 disabled:opacity-50 disabled:cursor-not-allowed"
         title={!requestId ? "Run a calculation first to enable PDF export" : "Export PDF report"}
       >
         <Download className="w-4 h-4 mr-2" />
@@ -96,7 +83,7 @@ export function PDFExportButton({ requestId, toolName, disabled }: PDFExportButt
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-cyan-400" />
+              <FileText className="w-5 h-5 text-primary" />
               Export PDF Report
             </DialogTitle>
             <DialogDescription>
@@ -106,30 +93,15 @@ export function PDFExportButton({ requestId, toolName, disabled }: PDFExportButt
 
           <div className="space-y-4 py-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="include-explanation" className="text-gray-300">
-                Include AI Explanation
-              </Label>
-              <Switch
-                id="include-explanation"
-                checked={options.includeAssistantExplanation}
-                onCheckedChange={(checked) =>
-                  setOptions({ ...options, includeAssistantExplanation: checked })
-                }
-              />
+              <Label htmlFor="include-explanation" className="text-muted-foreground">Include AI Explanation</Label>
+              <Switch id="include-explanation" checked={options.includeAssistantExplanation} onCheckedChange={(checked) => setOptions({ ...options, includeAssistantExplanation: checked })} />
             </div>
 
             {options.includeAssistantExplanation && (
               <div className="space-y-2">
-                <Label htmlFor="explanation-level" className="text-gray-300">
-                  Explanation Level
-                </Label>
-                <Select
-                  value={options.explanationLevel}
-                  onValueChange={(value: 'brief' | 'detailed' | 'teaching') =>
-                    setOptions({ ...options, explanationLevel: value })
-                  }
-                >
-                  <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                <Label htmlFor="explanation-level" className="text-muted-foreground">Explanation Level</Label>
+                <Select value={options.explanationLevel} onValueChange={(value: 'brief' | 'detailed' | 'teaching') => setOptions({ ...options, explanationLevel: value })}>
+                  <SelectTrigger className="bg-background/50 border-primary/30 text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -142,55 +114,23 @@ export function PDFExportButton({ requestId, toolName, disabled }: PDFExportButt
             )}
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="include-charts" className="text-gray-300">
-                Include Charts
-              </Label>
-              <Switch
-                id="include-charts"
-                checked={options.includeCharts}
-                onCheckedChange={(checked) =>
-                  setOptions({ ...options, includeCharts: checked })
-                }
-              />
+              <Label htmlFor="include-charts" className="text-muted-foreground">Include Charts</Label>
+              <Switch id="include-charts" checked={options.includeCharts} onCheckedChange={(checked) => setOptions({ ...options, includeCharts: checked })} />
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="include-attachments" className="text-gray-300">
-                Include Attachments
-              </Label>
-              <Switch
-                id="include-attachments"
-                checked={options.includeAttachments}
-                onCheckedChange={(checked) =>
-                  setOptions({ ...options, includeAttachments: checked })
-                }
-              />
+              <Label htmlFor="include-attachments" className="text-muted-foreground">Include Attachments</Label>
+              <Switch id="include-attachments" checked={options.includeAttachments} onCheckedChange={(checked) => setOptions({ ...options, includeAttachments: checked })} />
             </div>
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDialogOpen(false)}
-              disabled={isExporting}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleExport}
-              disabled={isExporting}
-              className="bg-cyan-500 hover:bg-cyan-600"
-            >
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isExporting}>Cancel</Button>
+            <Button onClick={handleExport} disabled={isExporting} className="bg-primary hover:bg-primary/90 text-primary-foreground">
               {isExporting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Exporting...
-                </>
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Exporting...</>
               ) : (
-                <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Export PDF
-                </>
+                <><Download className="w-4 h-4 mr-2" />Export PDF</>
               )}
             </Button>
           </DialogFooter>
@@ -199,4 +139,3 @@ export function PDFExportButton({ requestId, toolName, disabled }: PDFExportButt
     </>
   );
 }
-

@@ -580,10 +580,10 @@ export default function StandardAtmosphereCalculator() {
               >
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {/* Temperature */}
-                  <div className="p-4 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-lg border border-cyan-400/20">
+                  <div className="p-4 bg-gradient-to-br from-primary/10 to-emerald-400/10 rounded-lg border border-primary/20">
                     <p className="text-xs text-gray-400 mb-1">Static Temperature</p>
                     <p className="text-xs text-gray-500 mb-1">(T, ambient air temperature)</p>
-                    <p className="text-cyan-400 font-bold text-xl">
+                    <p className="text-primary font-bold text-xl">
                       {unitSystem === "Imperial"
                         ? `${((result.temperature * 9) / 5 - 459.67).toFixed(2)} °F`
                         : `${(result.temperature - 273.15).toFixed(2)} °C`}
@@ -642,7 +642,7 @@ export default function StandardAtmosphereCalculator() {
                   </div>
 
                   {/* Viscosity */}
-                  <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-blue-400/10 rounded-lg border border-indigo-400/20">
+                  <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-primary/10 rounded-lg border border-indigo-400/20">
                     <p className="text-xs text-gray-400 mb-1">Dynamic Viscosity</p>
                     <p className="text-xs text-gray-500 mb-1">(μ, for Reynolds number)</p>
                     <p className="text-indigo-400 font-bold text-xl">
@@ -656,10 +656,10 @@ export default function StandardAtmosphereCalculator() {
                   </div>
 
                   {/* Gravity */}
-                  <div className="p-4 bg-gradient-to-br from-cyan-400/10 to-teal-400/10 rounded-lg border border-cyan-400/20">
+                  <div className="p-4 bg-gradient-to-br from-primary/10 to-teal-400/10 rounded-lg border border-primary/20">
                     <p className="text-xs text-gray-400 mb-1">Local Gravity</p>
                     <p className="text-xs text-gray-500 mb-1">(g, acceleration due to gravity)</p>
-                    <p className="text-cyan-400 font-bold text-xl">
+                    <p className="text-primary font-bold text-xl">
                       {unitSystem === "Imperial"
                         ? `${(result.gravity / 0.3048).toFixed(4)} ft/s²`
                         : `${result.gravity.toFixed(4)} m/s²`}

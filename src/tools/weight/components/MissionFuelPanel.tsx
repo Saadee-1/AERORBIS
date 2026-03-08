@@ -53,7 +53,7 @@ export function MissionFuelPanel({ profile, onProfileChange }: MissionFuelPanelP
             type="number"
             value={1000} // Default, will be calculated from profile
             onChange={(e) => handleNumberChange('range', e.target.value)}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
+            className="bg-muted/50 border-primary/30 text-foreground"
             min="0"
             step="100"
           />
@@ -66,7 +66,7 @@ export function MissionFuelPanel({ profile, onProfileChange }: MissionFuelPanelP
             value={profile.phases.find(p => p.name === 'Loiter') ? 
               ((1 - profile.phases.find(p => p.name === 'Loiter')!.weightFraction) / 0.015).toFixed(1) : '0'}
             onChange={(e) => handleNumberChange('loiterTime', e.target.value)}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
+            className="bg-muted/50 border-primary/30 text-foreground"
             min="0"
             step="0.5"
           />
@@ -78,7 +78,7 @@ export function MissionFuelPanel({ profile, onProfileChange }: MissionFuelPanelP
             type="number"
             value={(profile.reserve || 0) * 100}
             onChange={(e) => handleNumberChange('reserve', e.target.value)}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
+            className="bg-muted/50 border-primary/30 text-foreground"
             min="0"
             max="20"
             step="1"
@@ -96,13 +96,13 @@ export function MissionFuelPanel({ profile, onProfileChange }: MissionFuelPanelP
           />
         </div>
 
-        <div className="border-t border-cyan-400/20 pt-4">
-          <h3 className="text-sm font-semibold text-cyan-400 mb-3">Mission Phases</h3>
+        <div className="border-t border-primary/20 pt-4">
+          <h3 className="text-sm font-semibold text-primary mb-3">Mission Phases</h3>
           <div className="space-y-2">
             {profile.phases.map((phase, i) => (
               <div key={i} className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
                 <span className="text-sm text-gray-300">{phase.name}</span>
-                <span className="text-sm text-cyan-400">
+                <span className="text-sm text-primary">
                   {(1 - phase.weightFraction) * 100}% fuel used
                 </span>
               </div>

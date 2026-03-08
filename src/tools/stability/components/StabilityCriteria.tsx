@@ -62,7 +62,7 @@ export function StabilityCriteriaPanel({
         <div className="grid grid-cols-2 gap-4">
           <AeroFormField label="Aircraft Category">
             <Select value={category} onValueChange={(value) => onCategoryChange(value as 'A' | 'B' | 'C')}>
-              <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+              <SelectTrigger className="bg-muted/50 border-primary/30 text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -75,7 +75,7 @@ export function StabilityCriteriaPanel({
 
           <AeroFormField label="Flight Phase">
             <Select value={phase} onValueChange={(value: string) => onPhaseChange(value as 'approach' | 'cruise' | 'landing' | 'takeoff')}>
-              <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+              <SelectTrigger className="bg-muted/50 border-primary/30 text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -89,7 +89,7 @@ export function StabilityCriteriaPanel({
         </div>
 
         {/* Overall Rating */}
-        <div className="p-4 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-lg border border-cyan-400/20">
+        <div className="p-4 bg-gradient-to-br from-primary/10 to-emerald-400/10 rounded-lg border border-primary/20">
           <div className="flex items-center gap-2 mb-2">
             {getLevelIcon(criteria.overall_level)}
             <p className={`text-lg font-bold ${getLevelColor(criteria.overall_level)}`}>

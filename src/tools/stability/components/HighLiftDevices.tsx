@@ -59,7 +59,7 @@ export function HighLiftDevicesPanel({
               onPresetLoad(preset);
             }
           }}>
-            <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+            <SelectTrigger className="bg-muted/50 border-primary/30 text-foreground">
               <SelectValue placeholder="Select preset..." />
             </SelectTrigger>
             <SelectContent>
@@ -73,9 +73,9 @@ export function HighLiftDevicesPanel({
         </AeroFormField>
 
         {devices.map((device, index) => (
-          <div key={index} className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20 space-y-3">
+          <div key={index} className="p-4 bg-muted/30 rounded-lg border border-border space-y-3">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-semibold text-white">Device {index + 1}</p>
+              <p className="text-sm font-semibold text-foreground">Device {index + 1}</p>
               <Button
                 variant="ghost"
                 size="sm"
@@ -92,7 +92,7 @@ export function HighLiftDevicesPanel({
                   value={device.type}
                   onValueChange={(value: string) => updateDevice(index, { type: value as 'fowler-flap' | 'plain-flap' | 'slat' | 'slotted-flap' | 'spoiler' })}
                 >
-                  <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-muted/50 border-primary/30 text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -110,7 +110,7 @@ export function HighLiftDevicesPanel({
                   type="number"
                   value={device.deflection}
                   onChange={(e) => updateDevice(index, { deflection: parseFloat(e.target.value) || 0 })}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  className="bg-muted/50 border-primary/30 text-foreground"
                   min="0"
                   max="60"
                   step="1"
@@ -122,7 +122,7 @@ export function HighLiftDevicesPanel({
                   type="number"
                   value={device.span_fraction}
                   onChange={(e) => updateDevice(index, { span_fraction: parseFloat(e.target.value) || 0 })}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  className="bg-muted/50 border-primary/30 text-foreground"
                   min="0"
                   max="1"
                   step="0.01"
@@ -134,7 +134,7 @@ export function HighLiftDevicesPanel({
                   type="number"
                   value={device.chord_fraction}
                   onChange={(e) => updateDevice(index, { chord_fraction: parseFloat(e.target.value) || 0 })}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  className="bg-muted/50 border-primary/30 text-foreground"
                   min="0"
                   max="1"
                   step="0.01"
@@ -146,7 +146,7 @@ export function HighLiftDevicesPanel({
                   value={device.position}
                   onValueChange={(value: string) => updateDevice(index, { position: value as 'leading-edge' | 'trailing-edge' })}
                 >
-                  <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-muted/50 border-primary/30 text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -172,4 +172,3 @@ export function HighLiftDevicesPanel({
     </AeroCard>
   );
 }
-

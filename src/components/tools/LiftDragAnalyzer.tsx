@@ -1999,14 +1999,14 @@ const point: Record<string, unknown> = { alpha };
                 }}
                 disabled={comparedAirfoilIds.length >= MAX_COMPARED_AIRFOILS}
               >
-                <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-400/30 text-white">
+                <SelectTrigger className="w-48 bg-muted/50 border-primary/30 text-foreground">
                   <Plus className="w-4 h-4 mr-2" />
                   <span>Add airfoil</span>
                 </SelectTrigger>
                 <SelectContent className="max-h-[400px]">
                   {AIRFOIL_GROUPS.filter(group => !group.airfoils.some(af => af.custom)).map((group) => (
                     <SelectGroup key={group.label}>
-                      <SelectLabel className="text-cyan-400 font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
+                      <SelectLabel className="text-primary font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
                         {group.label}
                       </SelectLabel>
                       {group.airfoils

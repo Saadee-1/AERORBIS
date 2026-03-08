@@ -50,8 +50,8 @@ const ContactPage = () => {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <Mail className="w-16 h-16 mx-auto mb-6 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <Mail className="w-16 h-16 mx-auto mb-6 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
               Contact AeroVerse
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
@@ -71,7 +71,7 @@ const ContactPage = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+              <Card className="bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-2xl text-white">Send us a Message</CardTitle>
                   <CardDescription className="text-gray-300">
@@ -87,7 +87,7 @@ const ContactPage = () => {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
-                        className="bg-slate-900/50 border-cyan-400/20 text-white"
+                        className="bg-background/50 border-primary/20 text-foreground"
                       />
                     </div>
 
@@ -99,7 +99,7 @@ const ContactPage = () => {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         required
-                        className="bg-slate-900/50 border-cyan-400/20 text-white"
+                        className="bg-background/50 border-primary/20 text-foreground"
                       />
                     </div>
 
@@ -110,7 +110,7 @@ const ContactPage = () => {
                         value={formData.subject}
                         onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                         required
-                        className="bg-slate-900/50 border-cyan-400/20 text-white"
+                        className="bg-background/50 border-primary/20 text-foreground"
                       />
                     </div>
 
@@ -122,11 +122,11 @@ const ContactPage = () => {
                         value={formData.message}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                         required
-                        className="bg-slate-900/50 border-cyan-400/20 text-white"
+                        className="bg-background/50 border-primary/20 text-foreground"
                       />
                     </div>
 
-                    <Button type="submit" className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300" size="lg">
+                    <Button type="submit" className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:shadow-[0_0_50px_hsl(160_84%_39%/0.6)] font-semibold transition-all duration-300" size="lg">
                       Send Message
                     </Button>
                   </form>
@@ -142,7 +142,7 @@ const ContactPage = () => {
               className="space-y-8"
             >
               {/* Contact Information */}
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+              <Card className="bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-2xl text-white">Contact Information</CardTitle>
                   <CardDescription className="text-gray-300">
@@ -152,8 +152,8 @@ const ContactPage = () => {
                 <CardContent className="space-y-6">
                   {contactInfo.map((item) => (
                     <div key={item.label} className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-cyan-400/10 flex items-center justify-center flex-shrink-0">
-                        <item.icon className="w-6 h-6 text-cyan-400" />
+                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <item.icon className="w-6 h-6 text-primary" />
                       </div>
                       <div>
                         <p className="font-semibold mb-1 text-white">{item.label}</p>
@@ -165,7 +165,7 @@ const ContactPage = () => {
               </Card>
 
               {/* Social Media */}
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+              <Card className="bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-2xl text-white">Follow Us</CardTitle>
                   <CardDescription className="text-gray-300">
@@ -180,7 +180,7 @@ const ContactPage = () => {
                         href={social.href}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className={`flex items-center gap-3 p-4 rounded-lg bg-slate-900/50 hover:bg-cyan-400/10 border border-cyan-400/20 hover:border-cyan-400/40 transition-all ${social.color}`}
+                        className={`flex items-center gap-3 p-4 rounded-lg bg-background/50 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all ${social.color}`}
                       >
                         <social.icon className="w-6 h-6" />
                         <span className="font-medium text-white">{social.label}</span>
@@ -191,7 +191,7 @@ const ContactPage = () => {
               </Card>
 
               {/* Office Hours */}
-              <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+              <Card className="bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-2xl text-white">Support Hours</CardTitle>
                 </CardHeader>
@@ -226,9 +226,9 @@ const ContactPage = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">
               Global Community, Local Impact
             </h2>
-            <div className="relative h-96 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl flex items-center justify-center overflow-hidden">
+            <div className="relative h-96 bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl flex items-center justify-center overflow-hidden">
               <div className="relative z-10 text-center">
-                <MapPin className="w-24 h-24 mx-auto mb-4 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+                <MapPin className="w-24 h-24 mx-auto mb-4 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
                 <p className="text-xl text-gray-300 max-w-md mx-auto">
                   Connecting aerospace enthusiasts from every corner of the globe
                 </p>

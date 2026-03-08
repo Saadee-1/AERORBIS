@@ -31,7 +31,7 @@ const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({ audioLevel, dur
         return (
           <motion.div
             key={index}
-            className="w-1 bg-gradient-to-t from-cyan-400 to-blue-400 rounded-full"
+            className="w-1 bg-gradient-to-t from-primary to-emerald-400 rounded-full"
             animate={{
               height: `${height}%`,
             }}
@@ -41,14 +41,14 @@ const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({ audioLevel, dur
               ease: 'easeOut',
             }}
             style={{
-              boxShadow: audioLevel > 0.3 ? '0 0 10px rgba(34, 211, 238, 0.6)' : 'none',
+              boxShadow: audioLevel > 0.3 ? '0 0 10px hsl(160 84% 39% / 0.6)' : 'none',
             }}
           />
         );
       })}
       </div>
       <div className="text-center">
-        <span className="text-sm font-mono text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+        <span className="text-sm font-mono text-primary drop-shadow-[0_0_10px_hsl(160_84%_39%/0.8)]">
           {formatDuration(duration)}
         </span>
       </div>
