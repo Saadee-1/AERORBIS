@@ -281,7 +281,7 @@ const AIAssistant: React.FC = () => {
                           clearToolContext();
                           startNewChat();
                         }}
-                        className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-400/10"
+                        className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10"
                       >
                       <Plus className="w-4 h-4 mr-2" />
                       New Chat
