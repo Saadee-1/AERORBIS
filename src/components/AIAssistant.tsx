@@ -318,8 +318,8 @@ const AIAssistant: React.FC = () => {
                           className={cn(
                             'flex-1 text-xs h-7',
                             mode === 'summarize' 
-                              ? 'bg-blue-400/20 text-blue-400 hover:bg-blue-400/30' 
-                              : 'text-gray-400 hover:text-blue-400'
+                              ? 'bg-primary/20 text-primary hover:bg-primary/30' 
+                              : 'text-muted-foreground hover:text-primary'
                           )}
                         >
                           Summarize
