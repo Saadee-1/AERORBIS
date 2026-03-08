@@ -330,7 +330,7 @@ export function WingLoadingGraphs({
         variant="outline"
         size="sm"
         onClick={() => handleSavePng(graphRef, title)}
-        className="h-7 px-2 text-xs border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10"
+        className="h-7 px-2 text-xs border-primary/30 text-primary hover:bg-primary/10"
       >
         📥 PNG
       </Button>
@@ -338,7 +338,7 @@ export function WingLoadingGraphs({
         variant="outline"
         size="sm"
         onClick={() => handleSaveSvg(graphRef, title)}
-        className="h-7 px-2 text-xs border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10"
+        className="h-7 px-2 text-xs border-primary/30 text-primary hover:bg-primary/10"
       >
         💾 SVG
       </Button>

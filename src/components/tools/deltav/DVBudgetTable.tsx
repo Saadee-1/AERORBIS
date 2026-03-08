@@ -45,10 +45,10 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
   return (
     <div className="space-y-6">
       {/* Mission Δv Budget */}
-      <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+      <Card className="bg-slate-800/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
-            <Calculator className="w-5 h-5 text-cyan-400" />
+            <Calculator className="w-5 h-5 text-primary" />
             Mission Δv Budget
           </CardTitle>
           <CardDescription className="text-gray-400">
@@ -58,16 +58,16 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow className="bg-slate-900/50 border-b border-cyan-400/20">
-                <TableHead className="text-cyan-400 font-semibold">Component</TableHead>
-                <TableHead className="text-cyan-400 font-semibold text-right">Δv</TableHead>
-                <TableHead className="text-cyan-400 font-semibold">Notes</TableHead>
+              <TableRow className="bg-slate-900/50 border-b border-primary/20">
+                <TableHead className="text-primary font-semibold">Component</TableHead>
+                <TableHead className="text-primary font-semibold text-right">Δv</TableHead>
+                <TableHead className="text-primary font-semibold">Notes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow className="border-cyan-400/10">
+              <TableRow className="border-primary/10">
                 <TableCell className="text-white">Orbital Δv</TableCell>
-                <TableCell className="text-right text-cyan-400 font-semibold">
+                <TableCell className="text-right text-primary font-semibold">
                   {formatDeltaV(breakdown.orbitalDeltaV)}
                 </TableCell>
                 <TableCell className="text-gray-400 text-sm">
@@ -75,9 +75,9 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
                 </TableCell>
               </TableRow>
               {breakdown.hohmannDeltaV > 0 && (
-                <TableRow className="border-cyan-400/10">
+                <TableRow className="border-primary/10">
                   <TableCell className="text-white">Hohmann Transfer</TableCell>
-                  <TableCell className="text-right text-cyan-400 font-semibold">
+                  <TableCell className="text-right text-primary font-semibold">
                     {formatDeltaV(breakdown.hohmannDeltaV)}
                   </TableCell>
                   <TableCell className="text-gray-400 text-sm">
@@ -86,9 +86,9 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
                 </TableRow>
               )}
               {breakdown.planeChangeDeltaV > 0 && (
-                <TableRow className="border-cyan-400/10">
+                <TableRow className="border-primary/10">
                   <TableCell className="text-white">Plane Change</TableCell>
-                  <TableCell className="text-right text-cyan-400 font-semibold">
+                  <TableCell className="text-right text-primary font-semibold">
                     {formatDeltaV(breakdown.planeChangeDeltaV)}
                   </TableCell>
                   <TableCell className="text-gray-400 text-sm">
@@ -96,43 +96,43 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
                   </TableCell>
                 </TableRow>
               )}
-              <TableRow className="border-cyan-400/10">
+              <TableRow className="border-primary/10">
                 <TableCell className="text-white">Gravity Loss</TableCell>
-                <TableCell className="text-right text-cyan-400 font-semibold">
+                <TableCell className="text-right text-primary font-semibold">
                   {formatDeltaV(breakdown.gravityLoss)}
                 </TableCell>
                 <TableCell className="text-gray-400 text-sm">
                   Ascent trajectory losses
                 </TableCell>
               </TableRow>
-              <TableRow className="border-cyan-400/10">
+              <TableRow className="border-primary/10">
                 <TableCell className="text-white">Drag Loss</TableCell>
-                <TableCell className="text-right text-cyan-400 font-semibold">
+                <TableCell className="text-right text-primary font-semibold">
                   {formatDeltaV(breakdown.dragLoss)}
                 </TableCell>
                 <TableCell className="text-gray-400 text-sm">
                   Atmospheric drag
                 </TableCell>
               </TableRow>
-              <TableRow className="border-cyan-400/10">
+              <TableRow className="border-primary/10">
                 <TableCell className="text-white">Steering Loss</TableCell>
-                <TableCell className="text-right text-cyan-400 font-semibold">
+                <TableCell className="text-right text-primary font-semibold">
                   {formatDeltaV(breakdown.steeringLoss)}
                 </TableCell>
                 <TableCell className="text-gray-400 text-sm">
                   Trajectory inefficiency
                 </TableCell>
               </TableRow>
-              <TableRow className="border-t-2 border-cyan-400/30 bg-slate-900/30">
+              <TableRow className="border-t-2 border-primary/30 bg-slate-900/30">
                 <TableCell className="text-white font-bold">Total Required</TableCell>
-                <TableCell className="text-right text-cyan-400 font-bold text-lg">
+                <TableCell className="text-right text-primary font-bold text-lg">
                   {formatDeltaV(breakdown.totalRequired)}
                 </TableCell>
                 <TableCell className="text-gray-400 text-sm">
                   Sum of all components
                 </TableCell>
               </TableRow>
-              <TableRow className="border-cyan-400/10 bg-slate-900/30">
+              <TableRow className="border-primary/10 bg-slate-900/30">
                 <TableCell className="text-white font-semibold">With Margin</TableCell>
                 <TableCell className="text-right text-yellow-400 font-semibold">
                   {formatDeltaV(breakdown.totalWithMargin)}
@@ -141,7 +141,7 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
                   Including reserve margin
                 </TableCell>
               </TableRow>
-              <TableRow className="border-cyan-400/10 bg-slate-900/30">
+              <TableRow className="border-primary/10 bg-slate-900/30">
                 <TableCell className="text-white font-semibold">Achievable</TableCell>
                 <TableCell className="text-right font-semibold text-lg">
                   <span className={breakdown.isFeasible ? "text-green-400" : "text-red-400"}>
@@ -168,7 +168,7 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
       </Card>
 
       {/* Stage Results */}
-      <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+      <Card className="bg-slate-800/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
         <CardHeader>
           <CardTitle className="text-white">Stage Performance</CardTitle>
           <CardDescription className="text-gray-400">
@@ -180,7 +180,7 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
             {stageResults.map((result, index) => (
               <div
                 key={result.stage.id}
-                className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10"
+                className="p-4 bg-slate-900/50 rounded-lg border border-primary/10"
               >
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-white font-semibold text-lg">
@@ -204,19 +204,19 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
                     <p className="text-gray-400">Initial Mass</p>
-                    <p className="text-cyan-400 font-semibold">
+                    <p className="text-primary font-semibold">
                       {(result.initialMass / 1000).toFixed(1)} t
                     </p>
                   </div>
                   <div>
                     <p className="text-gray-400">Final Mass</p>
-                    <p className="text-cyan-400 font-semibold">
+                    <p className="text-primary font-semibold">
                       {(result.finalMass / 1000).toFixed(1)} t
                     </p>
                   </div>
                   <div>
                     <p className="text-gray-400">Achievable Δv</p>
-                    <p className="text-cyan-400 font-semibold">
+                    <p className="text-primary font-semibold">
                       {formatDeltaV(result.achievableDeltaV)}
                     </p>
                   </div>
@@ -227,7 +227,7 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
                     </p>
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-cyan-400/10 grid grid-cols-3 gap-4 text-xs">
+                <div className="mt-3 pt-3 border-t border-primary/10 grid grid-cols-3 gap-4 text-xs">
                   <div>
                     <p className="text-gray-400">Isp: {result.effectiveIsp.toFixed(1)} s</p>
                   </div>
@@ -252,4 +252,3 @@ const DVBudgetTable = ({ breakdown, stageResults, unitSystem, customUnitName, cu
 };
 
 export default DVBudgetTable;
-

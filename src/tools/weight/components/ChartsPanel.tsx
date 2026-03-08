@@ -202,9 +202,9 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
             headerActions={<ChartExportButtons exportAsPng={cgExport.exportAsPng} exportAsSvg={cgExport.exportAsSvg} />}
           >
           <div className="p-4">
-            <div className="relative h-8 bg-slate-700/50 rounded border border-cyan-400/30">
+            <div className="relative h-8 bg-slate-700/50 rounded border border-primary/30">
               <div 
-                className="absolute top-0 bottom-0 w-1 bg-cyan-400"
+                className="absolute top-0 bottom-0 w-1 bg-primary"
                 style={{ left: `${cg.x_cg_MAC * 100}%` }}
               />
               <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-400">

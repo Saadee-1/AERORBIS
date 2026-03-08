@@ -31,7 +31,7 @@ export function PropulsionPanel({ inputs, onInputChange }: PropulsionPanelProps)
             value={inputs.propulsion.type}
             onValueChange={(value) => onInputChange(['propulsion', 'type'], value)}
           >
-            <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+            <SelectTrigger className="bg-slate-700/50 border-primary/30 text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -54,7 +54,7 @@ export function PropulsionPanel({ inputs, onInputChange }: PropulsionPanelProps)
               type="number"
               value={inputs.propulsion.power || ''}
               onChange={(e) => handleNumberChange(['propulsion', 'power'], e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
+              className="bg-slate-700/50 border-primary/30 text-white"
               min="0"
               step="1000"
             />
@@ -66,7 +66,7 @@ export function PropulsionPanel({ inputs, onInputChange }: PropulsionPanelProps)
               type="number"
               value={inputs.propulsion.n_engines || ''}
               onChange={(e) => handleNumberChange(['propulsion', 'n_engines'], e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
+              className="bg-slate-700/50 border-primary/30 text-white"
               min="1"
               step="1"
             />

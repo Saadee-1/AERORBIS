@@ -295,7 +295,7 @@ export default function PowerSystemCalculator() {
                     type="number"
                     value={location.latitude}
                     onChange={(e) => setLocation({ ...location, latitude: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                     min="-90"
                     max="90"
                     step="0.1"
@@ -307,7 +307,7 @@ export default function PowerSystemCalculator() {
                     type="number"
                     value={location.longitude}
                     onChange={(e) => setLocation({ ...location, longitude: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                     min="-180"
                     max="180"
                     step="0.1"
@@ -319,7 +319,7 @@ export default function PowerSystemCalculator() {
                     type="number"
                     value={location.altitude}
                     onChange={(e) => setLocation({ ...location, altitude: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                     min="0"
                     step="100"
                   />
@@ -332,7 +332,7 @@ export default function PowerSystemCalculator() {
                   type="number"
                   value={dayOfYear}
                   onChange={(e) => setDayOfYear(Math.max(1, Math.min(365, parseInt(e.target.value) || 180)))}
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                   min="1"
                   max="365"
                   step="1"

@@ -308,11 +308,11 @@ export function InlineInterlinkHint({
   const isImported = !isLocalValueEmpty && previousValue !== null && importedSessionValue !== undefined && valuesMatch(localValue, importedSessionValue);
   if (isImported) {
     return (
-      <div className={cn("text-[11px] text-cyan-400/80 mt-1 flex items-center gap-2", className)}>
+      <div className={cn("text-[11px] text-primary/80 mt-1 flex items-center gap-2", className)}>
         <span>Imported: {typeof importedSessionValue === 'number' ? importedSessionValue.toPrecision(4) : importedSessionValue}</span>
         <button
           onClick={handleUndo}
-          className="text-cyan-300 hover:text-cyan-200 underline"
+          className="text-primary hover:text-primary/80 underline"
         >
           Undo
         </button>
@@ -323,11 +323,11 @@ export function InlineInterlinkHint({
   // State 2a: Data available (show import) - localValue empty AND sessionValue exists
   if (isLocalValueEmpty && hasData) {
     return (
-      <div className={cn("text-[11px] text-cyan-400/60 mt-1 flex items-center gap-2", className)}>
+      <div className={cn("text-[11px] text-primary/60 mt-1 flex items-center gap-2", className)}>
         <span>Available from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
         <button
           onClick={handleImport}
-          className="text-cyan-300 hover:text-cyan-200 underline"
+          className="text-primary hover:text-primary/80 underline"
         >
           Import
         </button>
@@ -341,11 +341,11 @@ export function InlineInterlinkHint({
   if (previousValue !== null && hasData && !valuesMatch(localValue, sessionValue) && 
       importedSessionValue !== undefined && !valuesMatch(importedSessionValue, sessionValue)) {
     return (
-      <div className={cn("text-[11px] text-cyan-400/60 mt-1 flex items-center gap-2", className)}>
+      <div className={cn("text-[11px] text-primary/60 mt-1 flex items-center gap-2", className)}>
         <span>Updated from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
         <button
           onClick={handleImport}
-          className="text-cyan-300 hover:text-cyan-200 underline"
+          className="text-primary hover:text-primary/80 underline"
         >
           Import
         </button>
@@ -359,7 +359,7 @@ export function InlineInterlinkHint({
       <button
         onClick={() => navigate(toolPath)}
         className={cn(
-          "text-[11px] text-slate-400 hover:text-cyan-400 mt-1 flex items-center gap-1",
+          "text-[11px] text-slate-400 hover:text-primary mt-1 flex items-center gap-1",
           className
         )}
       >
@@ -452,7 +452,7 @@ export default function InterlinkCTA(props: Props) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      className="ml-auto text-cyan-300"
+                      className="ml-auto text-primary"
                       onClick={() => navigator.clipboard.writeText(String(available[f] ?? ''))}
                       aria-label={`Copy ${labelForField(f)}`}
                     >

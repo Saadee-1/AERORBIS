@@ -46,7 +46,7 @@ export function PerformanceMonitor({
           variant="outline"
           size="sm"
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-slate-900/90 border-cyan-400/30 text-cyan-400"
+          className="bg-slate-900/90 border-primary/30 text-primary"
         >
           <Activity className="w-3 h-3 mr-1" />
           <span className={getFPSColor(metrics.fps)}>{metrics.fps} FPS</span>
@@ -62,7 +62,7 @@ export function PerformanceMonitor({
           variant="outline"
           size="sm"
           onClick={() => setIsOpen(true)}
-          className="bg-slate-900/90 border-cyan-400/30 text-cyan-400"
+          className="bg-slate-900/90 border-primary/30 text-primary"
         >
           <Activity className="w-4 h-4 mr-2" />
           Performance
@@ -72,9 +72,9 @@ export function PerformanceMonitor({
   }
 
   return (
-    <div className={`fixed ${positionClasses[position]} z-50 bg-slate-900/95 backdrop-blur-lg border border-cyan-400/30 rounded-lg p-3 w-64`}>
+    <div className={`fixed ${positionClasses[position]} z-50 bg-slate-900/95 backdrop-blur-lg border border-primary/30 rounded-lg p-3 w-64`}>
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-sm font-semibold text-cyan-400">Performance</h3>
+        <h3 className="text-sm font-semibold text-primary">Performance</h3>
         <Button
           variant="ghost"
           size="sm"

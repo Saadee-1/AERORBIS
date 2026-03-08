@@ -87,17 +87,17 @@ const ThrustCalculator = ({ initialMode = 'rocket' }: ThrustCalculatorProps) => 
         <div className="space-y-4">
           {/* Mode Tabs */}
           <Tabs value={mode} onValueChange={(v) => setMode(v as ThrustMode)}>
-            <TabsList className="w-full grid grid-cols-2 bg-slate-800/60 border border-cyan-400/20">
+            <TabsList className="w-full grid grid-cols-2 bg-slate-800/60 border border-primary/20">
               <TabsTrigger 
                 value="rocket"
-                className="data-[state=active]:bg-cyan-400/20 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-300"
+                className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-[0_0_15px_hsl(160_84%_39%/0.5)] transition-all duration-300"
               >
                 <Rocket className="w-4 h-4 mr-2" />
                 Rocket Thrust
               </TabsTrigger>
               <TabsTrigger 
                 value="aircraft"
-                className="data-[state=active]:bg-cyan-400/20 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-300"
+                className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-[0_0_15px_hsl(160_84%_39%/0.5)] transition-all duration-300"
               >
                 <Plane className="w-4 h-4 mr-2" />
                 Aircraft Thrust Loading
@@ -106,10 +106,10 @@ const ThrustCalculator = ({ initialMode = 'rocket' }: ThrustCalculatorProps) => 
           </Tabs>
 
           {/* Mode Description */}
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-900/50 border border-cyan-400/10">
-            <currentModeInfo.icon className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-900/50 border border-primary/10">
+            <currentModeInfo.icon className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-cyan-400">{currentModeInfo.title}</p>
+              <p className="text-sm font-medium text-primary">{currentModeInfo.title}</p>
               <p className="text-xs text-gray-400 mt-1">{currentModeInfo.description}</p>
             </div>
           </div>
