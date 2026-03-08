@@ -888,7 +888,23 @@ const OrbitalVisualizer = () => {
           threeRef.current.orbitalParams.meanAnomaly0 = meanAnomaly;
         }
 
-        // Render with bloom
+        // Animate orbit particles along the path
+        if (threeRef.current?.orbitParticles && threeRef.current.orbitParticlePhases && threeRef.current.orbitPoints.length > 0) {
+          const pts = threeRef.current.orbitPoints;
+          const phases = threeRef.current.orbitParticlePhases;
+          const posAttr = threeRef.current.orbitParticles.geometry.attributes.position as THREE.BufferAttribute;
+          const speed = currentTime * 0.0008; // animation speed
+          for (let pi = 0; pi < phases.length; pi++) {
+            const phase = (phases[pi] + speed) % (2 * Math.PI);
+            const idx = Math.floor((phase / (2 * Math.PI)) * pts.length) % pts.length;
+            posAttr.array[pi * 3] = pts[idx].x;
+            posAttr.array[pi * 3 + 1] = pts[idx].y;
+            posAttr.array[pi * 3 + 2] = pts[idx].z;
+          }
+          posAttr.needsUpdate = true;
+        }
+
+        // Render
         composer.render();
 
         if (threeRef.current) {
