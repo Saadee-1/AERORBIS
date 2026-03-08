@@ -646,7 +646,7 @@ const ReynoldsNumberCalculator = () => {
             >
               <AeroFormField label="Select a preset scenario">
                 <Select value={selectedPreset} onValueChange={handlePresetChange}>
-                  <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-muted/50 border-border text-foreground">
                     <SelectValue placeholder="Select a preset scenario..." />
                   </SelectTrigger>
                   <SelectContent>
