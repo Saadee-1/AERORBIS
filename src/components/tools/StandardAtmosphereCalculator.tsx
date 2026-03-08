@@ -485,7 +485,7 @@ export default function StandardAtmosphereCalculator() {
                     min="0"
                     max={unitSystem === "SI" ? "86000" : "282152"}
                     step={unitSystem === "SI" ? "1" : "1"}
-                    className="bg-slate-700/50 border-cyan-400/30 text-white"
+                    className="bg-slate-700/50 border-primary/30 text-white"
                   />
                   {altitude.trim() && (() => {
                     const val = parseFloat(altitude);
