@@ -1466,7 +1466,7 @@ const ThrustLoadingCalculator = () => {
                       placeholder="e.g., 3.0"
                       min="0"
                     />
-                    <span className="text-sm text-gray-400 whitespace-nowrap">%</span>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">%</span>
                   </div>
                   {gammaReqPercent && !isNaN(parseFloat(gammaReqPercent)) && (
                     <p className="text-xs text-gray-400 mt-1">
