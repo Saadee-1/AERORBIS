@@ -7,20 +7,15 @@
 import { useMemo } from 'react';
 
 interface GroundTrackProps {
-  /** Semi-major axis in km */
   semiMajorAxis: number;
-  /** Eccentricity */
   eccentricity: number;
-  /** Inclination in radians */
   inclination: number;
-  /** RAAN in radians */
   raan: number;
-  /** Argument of periapsis in radians */
   argOfPeriapsis: number;
-  /** GM in km³/s² */
   gm: number;
-  /** Number of orbits to trace */
   numOrbits?: number;
+  /** Current true anomaly in radians - for real-time satellite dot */
+  currentTrueAnomaly?: number;
 }
 
 // Physics: Solve Kepler's equation M = E - e·sin(E)
@@ -62,6 +57,7 @@ export function OrbitalGroundTrack({
   argOfPeriapsis,
   gm,
   numOrbits = 3,
+  currentTrueAnomaly,
 }: GroundTrackProps) {
   const { tracks, currentPos } = useMemo(() => {
     if (!semiMajorAxis || semiMajorAxis <= 0 || !gm || gm <= 0) {
@@ -155,6 +151,25 @@ export function OrbitalGroundTrack({
     return segments;
   }, [tracks]);
 
+  // Compute real-time satellite position on ground track from current true anomaly
+  const satelliteSVG = useMemo(() => {
+    if (currentTrueAnomaly === undefined || !semiMajorAxis || semiMajorAxis <= 0) return null;
+
+    const nu = currentTrueAnomaly;
+    const r = semiMajorAxis * (1 - eccentricity * eccentricity) / (1 + eccentricity * Math.cos(nu));
+    const x_p = r * Math.cos(nu);
+    const y_p = r * Math.sin(nu);
+    const [x, y, z] = perifocalToECI(x_p, y_p, inclination, raan, argOfPeriapsis);
+
+    const rMag = Math.sqrt(x * x + y * y + z * z);
+    const lat = Math.asin(z / rMag) * (180 / Math.PI);
+    // Note: For real-time dot we skip Earth rotation (t=0 snapshot) to match the static ground track
+    let lon = Math.atan2(y, x) * (180 / Math.PI);
+    lon = ((lon + 540) % 360) - 180;
+
+    return toSVG(lat, lon);
+  }, [currentTrueAnomaly, semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis]);
+
   if (tracks.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground text-sm">
@@ -244,6 +259,24 @@ export function OrbitalGroundTrack({
             <circle cx={currentSVG[0]} cy={currentSVG[1]} r="3" fill="hsl(var(--primary))" />
             <text x={currentSVG[0] + 10} y={currentSVG[1] + 3} fill="hsl(var(--primary))" fontSize="9" fontWeight="600">
               START
+            </text>
+          </g>
+        )}
+
+        {/* Real-time satellite position */}
+        {satelliteSVG && (
+          <g>
+            {/* Pulse ring */}
+            <circle cx={satelliteSVG[0]} cy={satelliteSVG[1]} r="8" fill="none" stroke="hsl(var(--destructive))" strokeWidth="1" opacity="0.4">
+              <animate attributeName="r" values="5;10;5" dur="2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite" />
+            </circle>
+            {/* Glow */}
+            <circle cx={satelliteSVG[0]} cy={satelliteSVG[1]} r="5" fill="hsl(var(--destructive))" opacity="0.2" />
+            {/* Dot */}
+            <circle cx={satelliteSVG[0]} cy={satelliteSVG[1]} r="3.5" fill="hsl(var(--destructive))" stroke="hsl(var(--background))" strokeWidth="1" />
+            <text x={satelliteSVG[0] + 10} y={satelliteSVG[1] - 6} fill="hsl(var(--destructive))" fontSize="8" fontWeight="700">
+              SAT
             </text>
           </g>
         )}
