@@ -395,7 +395,7 @@ const AIAssistant: React.FC = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => setShowHistory(false)}
-                        className="h-6 w-6 text-gray-400 hover:text-gray-200 hover:bg-cyan-400/10"
+                        className="h-6 w-6 text-gray-400 hover:text-gray-200 hover:bg-emerald-500/10"
                         title="Close history"
                       >
                         <X className="w-3 h-3" />
