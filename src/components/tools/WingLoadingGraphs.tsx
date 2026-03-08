@@ -502,7 +502,7 @@ export function WingLoadingGraphs({
                 borderRadius: 10,
                 padding: "8px 12px",
               }}
-              labelStyle={{ color: "#22d3ee", fontWeight: 600 }}
+              labelStyle={{ color: "#10b981", fontWeight: 600 }}
               itemStyle={{ color: "#c084fc", fontWeight: 500 }}
               formatter={(value: number, name: string) => {
                 if (name === 'wsMinKg') return [value.toFixed(1), 'Min W/S (kg/m²)'];
