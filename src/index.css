@@ -244,13 +244,13 @@
   .heading-display {
     font-family: 'Orbitron', sans-serif;
     @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-wider uppercase;
-    text-shadow: 0 0 30px hsl(185 85% 50% / 0.3), 0 0 60px hsl(185 85% 50% / 0.1);
+    text-shadow: 0 0 30px hsl(160 84% 39% / 0.3), 0 0 60px hsl(160 84% 39% / 0.1);
   }
 
   .heading-1 {
     font-family: 'Orbitron', sans-serif;
     @apply text-3xl md:text-4xl font-semibold tracking-wide uppercase;
-    text-shadow: 0 0 20px hsl(185 85% 50% / 0.2);
+    text-shadow: 0 0 20px hsl(160 84% 39% / 0.2);
   }
 
   .heading-2 {
