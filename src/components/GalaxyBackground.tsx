@@ -34,8 +34,13 @@ interface AuroraWave {
 }
 
 const GalaxyBackground = () => {
+  const { theme } = useTheme();
   const { mouseX, mouseY, scrollY } = useParallax();
   const [isMobile, setIsMobile] = useState(false);
+
+  if (theme === 'light') {
+    return null;
+  }
   const [isTablet, setIsTablet] = useState(false);
 
   // Detect device type for responsive star count
