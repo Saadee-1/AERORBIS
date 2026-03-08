@@ -41,13 +41,13 @@ const GRAPH_STYLES = {
   markerStroke: '#fff',
   markerStrokeWidth: 1.4,
   markerRadius: 5,
-  gridStroke: 'rgba(255,255,255,0.12)',
-  axisTickText: 'rgba(255,255,255,0.85)',
-  axisLabelText: '#fff',
+  gridStroke: 'hsl(var(--border))',
+  axisTickText: 'hsl(var(--muted-foreground))',
+  axisLabelText: 'hsl(var(--foreground))',
   referenceLineColor: '#fbbf24', // Yellow for V_x/V_y markers
   referenceLineDash: '6 6',
-  tooltipBg: 'rgba(20, 20, 20, 0.92)',
-  tooltipText: '#00eaff',
+  tooltipBg: 'hsl(var(--popover))',
+  tooltipText: 'hsl(var(--primary))',
 } as const;
 
 interface ClimbPlotsProps {
@@ -62,11 +62,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   if (active && payload && payload.length) {
     return (
       <div 
-        className="backdrop-blur-sm border rounded-lg p-3 shadow-xl"
-        style={{ 
-          background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 35, 0.92) 100%)',
-          borderColor: `${GRAPH_STYLES.tooltipText}30`
-        }}
+        className="backdrop-blur-sm border border-border rounded-lg p-3 shadow-xl bg-popover"
       >
         <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
           {`Speed: ${typeof label === 'number' ? label.toFixed(1) : label || 0} m/s`}
@@ -124,7 +120,7 @@ export function ClimbPlots({ result }: ClimbPlotsProps) {
   if (!result || !result.points || result.points.length === 0) {
     return (
       <AeroCard title="Climb Performance Plots">
-        <div className="text-center p-8 text-gray-400">
+        <div className="text-center p-8 text-muted-foreground">
           <p>Run a calculation to see climb performance plots</p>
         </div>
       </AeroCard>

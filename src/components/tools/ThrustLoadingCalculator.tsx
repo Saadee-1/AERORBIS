@@ -1619,21 +1619,21 @@ const ThrustLoadingCalculator = () => {
                   icon={CheckCircle}
                 >
                   <div className="space-y-4">
-                    <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-                      <p className="text-sm text-gray-400 mb-1">Thrust-to-Weight Ratio (T/W)</p>
-                      <p className="text-xs text-gray-500 mb-1">(Dimensionless ratio: T_total / W)</p>
-                      <p className="text-3xl font-bold text-cyan-400">
+                    <div className="p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/30">
+                      <p className="text-sm text-muted-foreground mb-1">Thrust-to-Weight Ratio (T/W)</p>
+                      <p className="text-xs text-muted-foreground/70 mb-1">(Dimensionless ratio: T_total / W)</p>
+                      <p className="text-3xl font-bold text-primary">
                         {result.thrustToWeight.toFixed(3)}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground/70 mt-1">
                         Ratio of total installed thrust to aircraft weight. Used for: takeoff performance, climb capability, go-around margin. Higher T/W improves acceleration and climb but increases fuel consumption.
                       </p>
                     </div>
                     
-                    <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
-                      <p className="text-sm text-gray-400 mb-1">Total Installed Thrust</p>
-                      <p className="text-xs text-gray-500 mb-1">(T_total, sum of all engines)</p>
-                      <p className="text-2xl font-bold text-green-400">
+                    <div className="p-4 bg-gradient-to-r from-green-400/10 to-primary/10 rounded-lg border border-green-400/30">
+                      <p className="text-sm text-muted-foreground mb-1">Total Installed Thrust</p>
+                      <p className="text-xs text-muted-foreground/70 mb-1">(T_total, sum of all engines)</p>
+                      <p className="text-2xl font-bold text-green-500 dark:text-green-400">
                         {(() => {
                           if (!result || result.totalThrustN === undefined || isNaN(result.totalThrustN)) return '0';
                           const thrustUnit: ThrustUnit = outputUnits?.thrust === 'lbf' ? 'lbf' : outputUnits?.thrust === 'kgf' ? 'kgf' : 'N';
@@ -1642,18 +1642,18 @@ const ThrustLoadingCalculator = () => {
                           return converted.toFixed(0);
                         })()} {outputUnits?.thrust || 'N'}
                       </p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         ({result?.totalThrustN?.toFixed(0) || '0'} N)
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground/70 mt-1">
                         Reference condition: ISA sea level static (SLS) unless otherwise specified. Used for: T/W calculation, takeoff distance, climb performance analysis.
                       </p>
                     </div>
                     
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                      <p className="text-sm text-gray-400 mb-1">Per-Engine Thrust</p>
-                      <p className="text-xs text-gray-500 mb-1">(T_per_engine = T_total / N_engines)</p>
-                      <p className="text-xl font-bold text-cyan-300">
+                    <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                      <p className="text-sm text-muted-foreground mb-1">Per-Engine Thrust</p>
+                      <p className="text-xs text-muted-foreground/70 mb-1">(T_per_engine = T_total / N_engines)</p>
+                      <p className="text-xl font-bold text-primary">
                         {(() => {
                           if (!result || result.perEngineThrustN === undefined || isNaN(result.perEngineThrustN)) return '0';
                           const thrustUnit: ThrustUnit = outputUnits?.thrust === 'lbf' ? 'lbf' : outputUnits?.thrust === 'kgf' ? 'kgf' : 'N';
@@ -1662,26 +1662,26 @@ const ThrustLoadingCalculator = () => {
                           return converted.toFixed(0);
                         })()} {outputUnits?.thrust || 'N'}
                       </p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         ({result?.perEngineThrustN?.toFixed(0) || '0'} N)
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground/70 mt-1">
                         Thrust produced by a single engine. Reference condition: ISA sea level static (SLS). Used for: engine sizing, redundancy analysis, multi-engine aircraft design.
                       </p>
                     </div>
                     
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                      <p className="text-sm text-gray-400 mb-1">T/W Classification</p>
-                      <p className="text-xs text-gray-500 mb-1">(Relative to {missionType !== 'None' ? `${missionType} mission` : 'generic'} envelope)</p>
+                    <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                      <p className="text-sm text-muted-foreground mb-1">T/W Classification</p>
+                      <p className="text-xs text-muted-foreground/70 mb-1">(Relative to {missionType !== 'None' ? `${missionType} mission` : 'generic'} envelope)</p>
                       <p className={`text-xl font-bold ${getClassificationColor(result.twClass)}`}>
                         {result.twClass}
                       </p>
                       {result.jetLowBandLabel && (
-                        <p className="text-xs text-yellow-400 mt-1 italic">
+                        <p className="text-xs text-yellow-500 dark:text-yellow-400 mt-1 italic">
                           {result.jetLowBandLabel}
                         </p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground/70 mt-1">
                         Classification based on comparison with typical {missionType !== 'None' ? `${missionType} mission` : 'generic aircraft'} T/W ranges. "Within" indicates typical performance, "Low"/"High" indicate deviations from typical.
                       </p>
                     </div>
@@ -1695,22 +1695,22 @@ const ThrustLoadingCalculator = () => {
                   icon={TrendingUp}
                 >
                   <div className="space-y-3">
-                    <p className="text-sm text-gray-300">
-                      Typical <span className="text-cyan-400 font-semibold">{missionType !== 'None' ? missionType : 'generic aircraft'}</span> T/W range:{" "}
-                      <span className="text-cyan-400">
+                    <p className="text-sm text-foreground/80">
+                      Typical <span className="text-primary font-semibold">{missionType !== 'None' ? missionType : 'generic aircraft'}</span> T/W range:{" "}
+                      <span className="text-primary">
                         {missionType !== 'None' ? `${getMissionThrustData(missionType).twMin.toFixed(2)}–${getMissionThrustData(missionType).twMax.toFixed(2)}` : 'N/A (Manual mode)'}
                       </span>
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground/70">
                       Typical T/W ranges for {missionType !== 'None' ? `${missionType} mission` : 'generic aircraft'} based on historical data and design practice. Used as reference for preliminary sizing and performance assessment.
                     </p>
-                    <div className="relative h-12 bg-slate-700/50 rounded border border-cyan-400/30">
+                    <div className="relative h-12 bg-muted/50 rounded border border-border">
                       {/* Range indicator */}
                       {(() => {
                         const rangePos = getRangeBarPosition();
                         return (
                           <div
-                            className="absolute h-full bg-cyan-400/30 border-l border-r border-cyan-400/50"
+                            className="absolute h-full bg-primary/30 border-l border-r border-primary/50"
                             style={{
                               left: `${rangePos.left}%`,
                               width: `${rangePos.width}%`
@@ -1721,12 +1721,12 @@ const ThrustLoadingCalculator = () => {
                       
                       {/* Current position marker */}
                       <div
-                        className="absolute top-0 h-full w-1 bg-cyan-400 z-10"
+                        className="absolute top-0 h-full w-1 bg-primary z-10"
                         style={{ left: `${getEnvelopePosition()}%` }}
                       />
                       
                       {/* Labels */}
-                      <div className="absolute -top-6 left-0 right-0 flex justify-between text-xs text-gray-400">
+                      <div className="absolute -top-6 left-0 right-0 flex justify-between text-xs text-muted-foreground">
                         {missionType !== 'None' && (
                           <>
                             <span>{(0.8 * getMissionThrustData(missionType).twMin).toFixed(2)}</span>
@@ -1735,10 +1735,10 @@ const ThrustLoadingCalculator = () => {
                         )}
                       </div>
                     </div>
-                    <p className="text-sm text-cyan-400 text-center">
+                    <p className="text-sm text-primary text-center">
                       Current T/W: {result.thrustToWeight.toFixed(3)}
                     </p>
-                    <p className="text-xs text-gray-500 text-center">
+                    <p className="text-xs text-muted-foreground/70 text-center">
                       Position relative to typical {missionType !== 'None' ? `${missionType} mission` : 'generic'} envelope. Shaded region indicates typical range.
                     </p>
                   </div>
@@ -1752,37 +1752,37 @@ const ThrustLoadingCalculator = () => {
                     icon={TrendingUp}
                   >
                     <div className="space-y-3">
-                      <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                        <p className="text-sm text-gray-400 mb-1">Climb Gradient</p>
-                        <p className="text-xs text-gray-500 mb-1">(γ = arcsin((T/W) - 1/(L/D)), climb angle)</p>
-                        <p className="text-xl font-bold text-cyan-300">
+                      <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-sm text-muted-foreground mb-1">Climb Gradient</p>
+                        <p className="text-xs text-muted-foreground/70 mb-1">(γ = arcsin((T/W) - 1/(L/D)), climb angle)</p>
+                        <p className="text-xl font-bold text-primary">
                           {(result.climbGradient * 180 / Math.PI).toFixed(2)}°
                         </p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           ({result.climbGradient.toFixed(4)} rad)
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground/70 mt-1">
                           Steady-state climb angle. Used for: obstacle clearance, certification requirements, operational climb performance. Typical: 3-6° for normal category, higher for utility/acrobatic.
                         </p>
                       </div>
                       
-                      <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                        <p className="text-sm text-gray-400 mb-1">Rate of Climb (ROC)</p>
-                        <p className="text-xs text-gray-500 mb-1">(ROC = V_climb × sin(γ), vertical velocity)</p>
-                        <p className="text-xl font-bold text-cyan-300">
+                      <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-sm text-muted-foreground mb-1">Rate of Climb (ROC)</p>
+                        <p className="text-xs text-muted-foreground/70 mb-1">(ROC = V_climb × sin(γ), vertical velocity)</p>
+                        <p className="text-xl font-bold text-primary">
                           {result.rateOfClimb.toFixed(2)} m/s
                         </p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           ({((result.rateOfClimb * 60) / 0.3048).toFixed(0)} ft/min)
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground/70 mt-1">
                           Vertical component of climb velocity. Reference condition: specified climb velocity (V_climb) and climb configuration. Used for: time-to-altitude, service ceiling estimation, operational planning.
                         </p>
                       </div>
                       
                       {result.climbWarning && (
-                        <div className="p-4 bg-yellow-900/30 rounded-lg border border-yellow-400/30">
-                          <p className="text-sm text-yellow-200 whitespace-pre-wrap leading-relaxed">
+                        <div className="p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                          <p className="text-sm text-yellow-700 dark:text-yellow-200 whitespace-pre-wrap leading-relaxed">
                             {result.climbWarning}
                           </p>
                         </div>
@@ -1797,8 +1797,8 @@ const ThrustLoadingCalculator = () => {
                     title="Engineering Interpretation"
                     icon={Info}
                   >
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                      <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">
+                    <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                      <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
                         {result.interpretation}
                       </p>
                     </div>
@@ -1811,10 +1811,10 @@ const ThrustLoadingCalculator = () => {
                   icon={Info}
                 >
                   <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="steps" className="border-cyan-400/20">
-                      <AccordionTrigger className="text-white hover:text-cyan-400">
+                    <AccordionItem value="steps" className="border-border">
+                      <AccordionTrigger className="text-foreground hover:text-primary">
                         <div className="flex items-center gap-2">
-                          <Info className="w-4 h-4 text-cyan-400" />
+                          <Info className="w-4 h-4 text-primary" />
                           Show step-by-step solution
                         </div>
                       </AccordionTrigger>
@@ -1828,8 +1828,8 @@ const ThrustLoadingCalculator = () => {
             ) : (
               <AeroCard title="Results" icon={Gauge}>
                 <div className="text-center py-12">
-                  <Gauge className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-                  <p className="text-gray-400">Enter values and click Calculate to see results</p>
+                  <Gauge className="w-16 h-16 mx-auto mb-4 text-primary/30" />
+                  <p className="text-muted-foreground">Enter aircraft parameters and click Calculate to see results</p>
                 </div>
               </AeroCard>
             )}

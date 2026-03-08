@@ -903,7 +903,7 @@ const OrbitalVisualizer = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30 text-white">
+              <SelectTrigger className="w-32 bg-muted/50 border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -934,14 +934,14 @@ const OrbitalVisualizer = () => {
       />
 
       {error && (
-        <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-300 mb-4">
+        <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {/* 3D Visualization */}
         <AeroCard title="3D Orbital Visualization" icon={Orbit} className="mb-6">
-          <div className="relative rounded-xl overflow-hidden border border-cyan-400/30 bg-black h-[450px]">
+          <div className="relative rounded-xl overflow-hidden border border-border bg-black h-[450px]">
             {visualizerError && (
               <div className="absolute inset-0 flex items-center justify-center text-red-300 text-sm p-4 text-center z-10 bg-black/60">
                 Unable to initialize 3D visualizer: {visualizerError}
@@ -975,7 +975,7 @@ const OrbitalVisualizer = () => {
                   </AeroButton>
                 ))}
               </div>
-              <p className="text-sm text-slate-400 mt-4">
+              <p className="text-sm text-muted-foreground mt-4">
                 Click any preset to instantly load real-world satellite parameters
               </p>
             </AeroCard>
@@ -992,14 +992,14 @@ const OrbitalVisualizer = () => {
                   {id: 'vel', label: 'Velocity', unit: 'km/s'},
                   {id: 'time', label: 'Time', unit: 'min'},
                 ].map(field => (
-                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                    <Label className="text-white font-semibold">{field.label}</Label>
+                  <div key={field.id} className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                    <Label className="text-foreground font-semibold">{field.label}</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <Input 
                         placeholder="Unit Name" 
                         value={customUnitNames[field.id as keyof typeof customUnitNames]}
                         onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-muted/50 border-border text-foreground"
                       />
                       <Input 
                         type="number"
@@ -1007,10 +1007,10 @@ const OrbitalVisualizer = () => {
                         placeholder="SI Factor"
                         value={customFactors[field.id as keyof typeof customFactors]}
                         onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-muted/50 border-border text-foreground"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1.5">
+                    <p className="text-xs text-muted-foreground/70 mt-1.5">
                       1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
                     </p>
                   </div>
@@ -1022,20 +1022,20 @@ const OrbitalVisualizer = () => {
             <AeroCard title="Part 1: Define Initial Orbit" icon={Orbit}>
               <div className="grid grid-cols-2 gap-4">
                 <AeroFormField label={`Periapsis Altitude (${getUnit("dist")})`}>
-                  <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-slate-700/50" />
+                  <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
                 <AeroFormField label="Eccentricity (0-1)">
-                  <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-slate-700/50" />
+                  <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
                 <AeroFormField label={`Inclination (${getUnit("incl")})`}>
-                  <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-slate-700/50" />
+                  <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
                 <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
-                  <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-slate-700/50" />
+                  <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
               </div>
               <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
-                <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-slate-700/50" />
+                <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-muted/50" />
               </AeroFormField>
               <AeroButton type="button" onClick={() => runCalculation(() => calculateOrbit(inputs))} variant="primary" icon={Orbit} className="w-full">
                 Calculate Orbit
@@ -1045,25 +1045,25 @@ const OrbitalVisualizer = () => {
             {/* --- Part 2: Maneuver Calculator --- */}
             <AeroCard title="Part 2: Hohmann Transfer" icon={Move}>
               <AeroFormField label={`Target Circular Altitude (${getUnit("dist")})`}>
-                <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-slate-700/50" placeholder="e.g., 800" />
+                <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-muted/50" placeholder="e.g., 800" />
               </AeroFormField>
               <AeroButton type="button" onClick={() => runCalculation(calculateManeuver)} variant="primary" icon={Move} className="w-full" disabled={!orbitResult}>
                 Calculate Maneuver
               </AeroButton>
               {maneuverResult && (
                 <div className="space-y-2 pt-2">
-                  <div className="p-3 rounded-lg bg-slate-700/50">
-                    <div className="text-sm text-cyan-300">First Burn (Δv₁)</div>
-                    <div className="text-xl font-bold text-white">{format("vel", maneuverResult.delta_v1)}</div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <div className="text-sm text-primary">First Burn (Δv₁)</div>
+                    <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v1)}</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-slate-700/50">
-                    <div className="text-sm text-cyan-300">Second Burn (Δv₂)</div>
-                    <div className="text-xl font-bold text-white">{format("vel", maneuverResult.delta_v2)}</div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <div className="text-sm text-primary">Second Burn (Δv₂)</div>
+                    <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v2)}</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Total Maneuver Δv</div>
-                    <div className="text-2xl font-bold text-cyan-400">{format("vel", maneuverResult.total_dv)}</div>
-                    <div className="text-sm text-slate-400 mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Total Maneuver Δv</div>
+                    <div className="text-2xl font-bold text-primary">{format("vel", maneuverResult.total_dv)}</div>
+                    <div className="text-sm text-muted-foreground mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
                   </div>
                 </div>
               )}
@@ -1100,30 +1100,30 @@ const OrbitalVisualizer = () => {
               }
               >
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Orbital Period</div>
-                    <div className="text-2xl font-bold text-white">{format("time", orbitResult.orbitalPeriod)}</div>
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Orbital Period</div>
+                    <div className="text-2xl font-bold text-foreground">{format("time", orbitResult.orbitalPeriod)}</div>
                   </div>
-                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Semi-Major Axis</div>
-                    <div className="text-2xl font-bold text-white">{format("dist", orbitResult.semiMajorAxis)}</div>
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Semi-Major Axis</div>
+                    <div className="text-2xl font-bold text-foreground">{format("dist", orbitResult.semiMajorAxis)}</div>
                   </div>
-                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Apoapsis Altitude</div>
-                    <div className="text-2xl font-bold text-white">{format("dist", orbitResult.apoapsisAltitude)}</div>
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Apoapsis Altitude</div>
+                    <div className="text-2xl font-bold text-foreground">{format("dist", orbitResult.apoapsisAltitude)}</div>
                   </div>
-                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Periapsis Velocity</div>
-                    <div className="text-2xl font-bold text-white">{format("vel", orbitResult.periapsisVelocity)}</div>
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Periapsis Velocity</div>
+                    <div className="text-2xl font-bold text-foreground">{format("vel", orbitResult.periapsisVelocity)}</div>
                   </div>
                 </div>
 
-                <Accordion type="single" collapsible className="bg-slate-800/50 rounded-lg border border-cyan-400/20">
+                <Accordion type="single" collapsible className="bg-muted/50 rounded-lg border border-border">
                   <AccordionItem value="explanation" className="border-none">
-                    <AccordionTrigger className="px-4 text-cyan-300 hover:text-cyan-400">
+                    <AccordionTrigger className="px-4 text-primary hover:text-primary/80">
                       <div className="flex items-center gap-2"><Info className="w-4 h-4" />Orbit Interpretation</div>
                     </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4 text-slate-300 space-y-4">
+                    <AccordionContent className="px-4 pb-4 text-foreground/80 space-y-4">
                       <p className="text-base">
                         This orbit has an eccentricity of {orbitResult.eccentricity.toFixed(4)}, making it {orbitResult.eccentricity < 0.01 ? 'nearly circular' : 'noticeably elliptical'}. 
                         It completes one orbit every {format("time", orbitResult.orbitalPeriod)}.
@@ -1139,8 +1139,8 @@ const OrbitalVisualizer = () => {
             ) : (
               <AeroCard title="Orbit Results">
                 <div className="text-center py-12">
-                  <Orbit className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-                  <p className="text-gray-400">Results will appear here</p>
+                  <Orbit className="w-16 h-16 mx-auto mb-4 text-primary/30" />
+                  <p className="text-muted-foreground">Results will appear here</p>
                 </div>
               </AeroCard>
             )}
@@ -1150,22 +1150,22 @@ const OrbitalVisualizer = () => {
 
       {/* Save Custom Orbit Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Custom Orbit</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Save the current orbit parameters as a custom preset
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="orbitName" className="text-cyan-300">Orbit Name</Label>
+              <Label htmlFor="orbitName" className="text-primary">Orbit Name</Label>
               <Input
                 id="orbitName"
                 value={saveOrbitName}
                 onChange={(e) => setSaveOrbitName(e.target.value)}
                 placeholder="e.g., My Custom LEO"
-                className="bg-slate-700/50 text-white"
+                className="bg-muted/50 text-foreground"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleSaveCustomOrbit();
@@ -1173,7 +1173,7 @@ const OrbitalVisualizer = () => {
                 }}
               />
             </div>
-            <div className="text-sm text-gray-400 space-y-1">
+            <div className="text-sm text-muted-foreground space-y-1">
               <p>Periapsis: {inputs.periapsisAltitude} {getUnit("dist")}</p>
               <p>Inclination: {inputs.inclination}°</p>
               <p>Eccentricity: {inputs.eccentricity}</p>
@@ -1199,30 +1199,30 @@ const OrbitalVisualizer = () => {
 
       {/* Load Custom Orbit Dialog */}
       <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Load Custom Orbit</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Select a saved custom orbit to load
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
             {customOrbits.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No custom orbits saved yet</p>
+              <p className="text-muted-foreground text-center py-8">No custom orbits saved yet</p>
             ) : (
               customOrbits.map((orbit, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border hover:border-primary/40 transition-colors"
                 >
                   <div className="flex-1">
-                    <p className="text-white font-semibold">{orbit.name}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-foreground font-semibold">{orbit.name}</p>
+                    <p className="text-xs text-muted-foreground">
                       Periapsis: {orbit.inputs.periapsisAltitude} {getUnit("dist")} | 
                       Inc: {orbit.inputs.inclination}° | 
                       e: {orbit.inputs.eccentricity}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground/70">
                       Saved: {new Date(orbit.timestamp).toLocaleDateString()}
                     </p>
                   </div>

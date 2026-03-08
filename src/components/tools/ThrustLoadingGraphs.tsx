@@ -39,17 +39,17 @@ const GRAPH_STYLES = {
   markerStroke: '#fff',
   markerStrokeWidth: 1.4,
   markerRadius: 5.5,
-  gridStroke: 'rgba(255,255,255,0.12)',
-  axisTickText: 'rgba(255,255,255,0.85)',
-  axisLabelText: '#fff',
+  gridStroke: 'hsl(var(--border))',
+  axisTickText: 'hsl(var(--muted-foreground))',
+  axisLabelText: 'hsl(var(--foreground))',
   referenceLineColor: '#fbbf24', // Yellow for dotted lines
   referenceLineDash: '6 6',
   referenceMarkerStroke: '#ff4df0',
   referenceMarkerFill: '#ff4df0',
-  tooltipBg: 'rgba(20, 20, 20, 0.92)',
-  tooltipText: '#00eaff',
-  currentLabelColor: '#22d3ee', // Cyan for "Current" label
-  valueLabelColor: '#22d3ee', // Cyan for value labels
+  tooltipBg: 'hsl(var(--popover))',
+  tooltipText: 'hsl(var(--primary))',
+  currentLabelColor: 'hsl(var(--primary))',
+  valueLabelColor: 'hsl(var(--primary))',
   envelopeBarColor: '#8b5cf6', // Purple for mission envelope bars
 } as const;
 
@@ -78,11 +78,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   if (active && payload && payload.length) {
     return (
       <div 
-        className="backdrop-blur-sm border rounded-lg p-3 shadow-xl"
-        style={{ 
-          background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 35, 0.92) 100%)',
-          borderColor: `${GRAPH_STYLES.tooltipText}30`
-        }}
+        className="backdrop-blur-sm border border-border rounded-lg p-3 shadow-xl bg-popover"
       >
         <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
           {`${label}`}
@@ -237,7 +233,7 @@ export function ThrustLoadingGraphs({
         variant="outline"
         size="sm"
         onClick={() => handleSavePng(graphRef, title)}
-        className="h-7 px-2 text-xs border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10"
+        className="h-7 px-2 text-xs border-border text-primary hover:bg-primary/10"
       >
         📥 PNG
       </Button>
@@ -245,7 +241,7 @@ export function ThrustLoadingGraphs({
         variant="outline"
         size="sm"
         onClick={() => handleSaveSvg(graphRef, title)}
-        className="h-7 px-2 text-xs border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10"
+        className="h-7 px-2 text-xs border-border text-primary hover:bg-primary/10"
       >
         💾 SVG
       </Button>
