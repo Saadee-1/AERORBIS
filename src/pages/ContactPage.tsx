@@ -126,7 +126,7 @@ const ContactPage = () => {
                       />
                     </div>
 
-                    <Button type="submit" className="w-full bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] font-semibold transition-all duration-300" size="lg">
+                    <Button type="submit" className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:shadow-[0_0_50px_hsl(160_84%_39%/0.6)] font-semibold transition-all duration-300" size="lg">
                       Send Message
                     </Button>
                   </form>
