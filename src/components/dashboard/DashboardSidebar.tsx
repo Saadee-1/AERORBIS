@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, BookOpen, FlaskConical, Wrench, User, Rocket, Activity } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface DashboardSidebarProps {
   isOpen: boolean;
@@ -9,6 +10,8 @@ interface DashboardSidebarProps {
 
 const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
   const location = useLocation();
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   const menuItems = [
     { name: "COMMAND CENTER", href: "/dashboard", icon: Home },
@@ -27,29 +30,43 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
         isOpen ? "w-64" : "w-20"
       }`}
     >
-      {/* Background with holographic effect */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/95 via-slate-900/90 to-slate-950/95 backdrop-blur-xl" />
-      <div className="absolute inset-0 grid-overlay opacity-30" />
+      {/* Background */}
+      <div className={`absolute inset-0 backdrop-blur-xl ${
+        isLight 
+          ? 'bg-card border-r border-border' 
+          : 'bg-gradient-to-b from-slate-950/95 via-slate-900/90 to-slate-950/95'
+      }`} />
+      {!isLight && <div className="absolute inset-0 grid-overlay opacity-30" />}
       
-      {/* Right edge glow */}
-      <div className="absolute top-0 right-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary/50 to-transparent" />
-      <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
+      {/* Right edge glow - dark only */}
+      {!isLight && (
+        <>
+          <div className="absolute top-0 right-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary/50 to-transparent" />
+          <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
+        </>
+      )}
       
-      {/* HUD corners */}
-      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/50" />
-      <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/50" />
-      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary/50" />
-      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary/50" />
+      {/* HUD corners - dark only */}
+      {!isLight && (
+        <>
+          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/50" />
+          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/50" />
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary/50" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary/50" />
+        </>
+      )}
 
       {/* Logo */}
-      <Link to="/" className="relative flex items-center p-6 border-b border-primary/20 group">
+      <Link to="/" className={`relative flex items-center p-6 border-b group ${isLight ? 'border-border' : 'border-primary/20'}`}>
         <div className="relative">
-          <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute -inset-1 rounded-full border border-primary/20"
-          />
-          <Rocket className="w-8 h-8 text-primary transition-transform group-hover:rotate-12 flex-shrink-0 drop-shadow-[0_0_15px_hsl(185_85%_50%/0.8)]" />
+          {!isLight && (
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute -inset-1 rounded-full border border-primary/20"
+            />
+          )}
+          <Rocket className={`w-8 h-8 text-primary transition-transform group-hover:rotate-12 flex-shrink-0 ${!isLight ? 'drop-shadow-[0_0_15px_hsl(185_85%_50%/0.8)]' : ''}`} />
         </div>
         {isOpen && (
           <motion.div
@@ -61,7 +78,7 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
             <span className="text-lg font-bold text-foreground tracking-wider" style={{ fontFamily: 'Orbitron, sans-serif' }}>
               AERORBIS
             </span>
-            <span className="text-[10px] text-primary font-medium tracking-[0.3em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+            <span className={`text-[10px] font-medium tracking-[0.3em] uppercase ${isLight ? 'text-muted-foreground' : 'text-primary'}`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
               Mission Control
             </span>
           </motion.div>
@@ -73,7 +90,7 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative mx-4 mt-4 mb-2 px-3 py-2 rounded border border-primary/10 bg-primary/5"
+          className={`relative mx-4 mt-4 mb-2 px-3 py-2 rounded border ${isLight ? 'border-border bg-muted/50' : 'border-primary/10 bg-primary/5'}`}
         >
           <div className="flex items-center gap-2">
             <motion.div
@@ -110,21 +127,25 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
                 to={item.href}
                 className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
                   isActive
-                    ? "bg-primary/15 text-primary border border-primary/40 shadow-[0_0_20px_hsl(185_85%_50%/0.15)]"
-                    : "text-muted-foreground hover:bg-primary/5 hover:text-foreground hover:border hover:border-primary/10"
+                    ? isLight
+                      ? "bg-primary/10 text-primary border border-primary/30"
+                      : "bg-primary/15 text-primary border border-primary/40 shadow-[0_0_20px_hsl(185_85%_50%/0.15)]"
+                    : isLight
+                      ? "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : "text-muted-foreground hover:bg-primary/5 hover:text-foreground hover:border hover:border-primary/10"
                 }`}
               >
                 {/* Active indicator line */}
                 {isActive && (
                   <motion.div
                     layoutId="activeIndicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r shadow-[0_0_8px_hsl(185_85%_50%/0.6)]"
+                    className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r ${!isLight ? 'shadow-[0_0_8px_hsl(185_85%_50%/0.6)]' : ''}`}
                   />
                 )}
                 <Icon className={`w-4 h-4 flex-shrink-0 ${
                   isActive 
-                    ? "drop-shadow-[0_0_8px_hsl(185_85%_50%/0.8)]" 
-                    : "group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(185_85%_50%/0.4)]"
+                    ? !isLight ? "drop-shadow-[0_0_8px_hsl(185_85%_50%/0.8)]" : ""
+                    : !isLight ? "group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(185_85%_50%/0.4)]" : "group-hover:text-primary"
                 }`} />
                 {isOpen && (
                   <motion.span
@@ -151,7 +172,7 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
           className="absolute bottom-6 left-0 right-0 px-4 space-y-3"
         >
           {/* Mini telemetry bars */}
-          <div className="px-3 py-3 rounded border border-primary/10 bg-slate-900/50">
+          <div className={`px-3 py-3 rounded border ${isLight ? 'border-border bg-muted/50' : 'border-primary/10 bg-slate-900/50'}`}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-[9px] text-muted-foreground tracking-[0.2em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
                 System Load
@@ -171,8 +192,8 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
             </div>
           </div>
 
-          <div className="border border-primary/10 bg-gradient-to-br from-primary/5 to-transparent p-3 rounded">
-            <p className="text-[10px] text-primary/70 italic font-medium" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+          <div className={`p-3 rounded border ${isLight ? 'border-border bg-muted/30' : 'border-primary/10 bg-gradient-to-br from-primary/5 to-transparent'}`}>
+            <p className={`text-[10px] italic font-medium ${isLight ? 'text-muted-foreground' : 'text-primary/70'}`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
               "The sky is not the limit — it's just the beginning."
             </p>
           </div>

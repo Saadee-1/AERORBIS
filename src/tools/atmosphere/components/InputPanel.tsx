@@ -83,7 +83,6 @@ export function InputPanel({
             value={velocity}
             onChange={(e) => onVelocityChange(e.target.value)}
             placeholder="0"
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
             min="0"
           />
         </AeroFormField>
