@@ -66,7 +66,7 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
               className="absolute -inset-1 rounded-full border border-primary/20"
             />
           )}
-          <Rocket className={`w-8 h-8 text-primary transition-transform group-hover:rotate-12 flex-shrink-0 ${!isLight ? 'drop-shadow-[0_0_15px_hsl(185_85%_50%/0.8)]' : ''}`} />
+          <Rocket className={`w-8 h-8 text-primary transition-transform group-hover:rotate-12 flex-shrink-0 ${!isLight ? 'drop-shadow-[0_0_15px_hsl(160_84%_39%/0.8)]' : ''}`} />
         </div>
         {isOpen && (
           <motion.div
@@ -129,7 +129,7 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
                   isActive
                     ? isLight
                       ? "bg-primary/10 text-primary border border-primary/30"
-                      : "bg-primary/15 text-primary border border-primary/40 shadow-[0_0_20px_hsl(185_85%_50%/0.15)]"
+                      : "bg-primary/15 text-primary border border-primary/40 shadow-[0_0_20px_hsl(160_84%_39%/0.15)]"
                     : isLight
                       ? "text-muted-foreground hover:bg-muted hover:text-foreground"
                       : "text-muted-foreground hover:bg-primary/5 hover:text-foreground hover:border hover:border-primary/10"
@@ -139,13 +139,13 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
                 {isActive && (
                   <motion.div
                     layoutId="activeIndicator"
-                    className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r ${!isLight ? 'shadow-[0_0_8px_hsl(185_85%_50%/0.6)]' : ''}`}
+                    className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r ${!isLight ? 'shadow-[0_0_8px_hsl(160_84%_39%/0.6)]' : ''}`}
                   />
                 )}
                 <Icon className={`w-4 h-4 flex-shrink-0 ${
                   isActive 
-                    ? !isLight ? "drop-shadow-[0_0_8px_hsl(185_85%_50%/0.8)]" : ""
-                    : !isLight ? "group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(185_85%_50%/0.4)]" : "group-hover:text-primary"
+                    ? !isLight ? "drop-shadow-[0_0_8px_hsl(160_84%_39%/0.8)]" : ""
+                    : !isLight ? "group-hover:text-primary group-hover:drop-shadow-[0_0_4px_hsl(160_84%_39%/0.4)]" : "group-hover:text-primary"
                 }`} />
                 {isOpen && (
                   <motion.span

@@ -34,10 +34,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 width: `${Math.random() * 2 + 1}px`,
                 height: `${Math.random() * 2 + 1}px`,
                 background: i % 3 === 0
-                  ? 'hsl(185 85% 50% / 0.4)'
+                  ? 'hsl(160 84% 39% / 0.4)'
                   : i % 3 === 1
-                    ? 'hsl(200 80% 55% / 0.3)'
-                    : 'hsl(210 30% 70% / 0.2)',
+                    ? 'hsl(140 70% 45% / 0.3)'
+                    : 'hsl(150 30% 70% / 0.2)',
               }}
               animate={{
                 opacity: [0.1, 0.8, 0.1],
@@ -61,7 +61,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <motion.div
           className="absolute left-0 right-0 h-px z-[1] pointer-events-none"
           style={{
-            background: 'linear-gradient(90deg, transparent, hsl(185 85% 50% / 0.15), transparent)',
+            background: 'linear-gradient(90deg, transparent, hsl(160 84% 39% / 0.15), transparent)',
           }}
           animate={{ top: ['0%', '100%'] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}

@@ -37,7 +37,7 @@ export function ToolHeader({
   return (
     <div className={`text-center ${className}`}>
       <div className="flex items-center justify-center gap-3 mb-4">
-        <Icon className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+        <Icon className="w-12 h-12 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
         <h2 className={typography.toolTitle}>
           {title}
         </h2>

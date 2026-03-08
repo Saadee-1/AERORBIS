@@ -66,10 +66,10 @@ const Research = () => {
               transition={{ duration: 0.5, type: "spring" }}
               className="inline-block mb-6"
             >
-              <Microscope className="w-20 h-20 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+              <Microscope className="w-20 h-20 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
             </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
               Aerospace Research & Innovation Hub
             </h1>
             
@@ -90,13 +90,13 @@ const Research = () => {
             transition={{ duration: 0.6 }}
             className="flex justify-center mb-12"
           >
-            <div className="flex items-center gap-4 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl p-4 shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-              <Filter className="w-5 h-5 text-cyan-400" />
+            <div className="flex items-center gap-4 bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl p-4 shadow-[0_0_30px_hsl(160_84%_39%/0.2)]">
+              <Filter className="w-5 h-5 text-primary" />
               <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger className="w-[200px] bg-transparent border-cyan-400/30 text-white">
+                <SelectTrigger className="w-[200px] bg-transparent border-primary/30 text-foreground">
                   <SelectValue placeholder="Filter by source" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-cyan-400/30">
+                <SelectContent className="bg-popover border-primary/30">
                   <SelectItem value="all">All Sources</SelectItem>
                   <SelectItem value="nasa">NASA</SelectItem>
                   <SelectItem value="esa">ESA</SelectItem>
@@ -110,7 +110,7 @@ const Research = () => {
           {isLoading && (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <Card key={i} className="bg-slate-800/50 backdrop-blur-lg border-cyan-400/20">
+                <Card key={i} className="bg-card/50 backdrop-blur-lg border-primary/20">
                   <CardContent className="p-0">
                     <Skeleton className="w-full h-48 rounded-t-lg" />
                     <div className="p-6 space-y-3">
@@ -146,7 +146,7 @@ const Research = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   whileHover={{ scale: 1.03, y: -5 }}
                 >
-                  <Card className="h-full bg-slate-800/50 backdrop-blur-lg border-cyan-400/20 rounded-2xl overflow-hidden hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300">
+                  <Card className="h-full bg-card/50 backdrop-blur-lg border-primary/20 rounded-2xl overflow-hidden hover:border-primary/60 hover:shadow-[0_0_40px_hsl(160_84%_39%/0.3)] transition-all duration-300">
                     <CardContent className="p-0">
                       {article.image_url && (
                         <div className="relative h-48 overflow-hidden">
@@ -161,8 +161,8 @@ const Research = () => {
                       
                       <div className="p-6 space-y-3">
                         <div className="flex items-center gap-2">
-                          <Rocket className="w-4 h-4 text-cyan-400" />
-                          <span className="text-xs text-cyan-400 font-semibold uppercase tracking-wider">
+                          <Rocket className="w-4 h-4 text-primary" />
+                          <span className="text-xs text-primary font-semibold uppercase tracking-wider">
                             {article.source}
                           </span>
                         </div>
@@ -183,7 +183,7 @@ const Research = () => {
                             href={article.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-400 hover:text-cyan-300 text-sm font-semibold transition-colors duration-200"
+                            className="text-primary hover:text-primary/80 text-sm font-semibold transition-colors duration-200"
                           >
                             Read full article →
                           </a>
@@ -207,7 +207,7 @@ const Research = () => {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="max-w-2xl mx-auto text-center"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent">
               Submit Your Research
             </h2>
             <p className="text-gray-300 mb-8 leading-relaxed">
@@ -215,7 +215,7 @@ const Research = () => {
             </p>
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transition-all duration-300"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-[0_0_30px_hsl(160_84%_39%/0.4)] hover:shadow-[0_0_50px_hsl(160_84%_39%/0.6)] transition-all duration-300"
             >
               Submit Research Paper
             </Button>

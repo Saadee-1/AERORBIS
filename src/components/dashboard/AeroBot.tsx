@@ -31,7 +31,7 @@ const AeroBot = () => {
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="fixed bottom-6 right-6 z-50">
         <motion.div
           onClick={() => setIsOpen(!isOpen)}
-          className="w-12 h-12 rounded-lg bg-slate-900/90 border border-primary/25 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:shadow-[0_0_15px_hsl(185_85%_50%/0.2)] transition-all"
+          className="w-12 h-12 rounded-lg bg-slate-900/90 border border-primary/25 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:shadow-[0_0_15px_hsl(160_84%_39%/0.2)] transition-all"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >

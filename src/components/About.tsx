@@ -51,7 +51,7 @@ const About = () => {
                 className="relative group"
               >
                 <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-lg p-8 h-full transition-all duration-300 hover:border-primary/40 hover:bg-card/60 hud-corners">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-5 group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(185_85%_50%/0.15)] transition-all duration-300">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-5 group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(160_84%_39%/0.15)] transition-all duration-300">
                     <pillar.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground mb-2 font-[Rajdhani] tracking-wide">{pillar.title}</h3>

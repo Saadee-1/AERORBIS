@@ -92,7 +92,7 @@ const DashboardOverview = () => {
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Rocket className="w-7 h-7 text-primary drop-shadow-[0_0_10px_hsl(185_85%_50%/0.6)]" />
+              <Rocket className="w-7 h-7 text-primary drop-shadow-[0_0_10px_hsl(160_84%_39%/0.6)]" />
             </motion.div>
             <span className="px-3 py-1 bg-primary/10 border border-primary/30 rounded-full text-[10px] font-semibold text-primary uppercase tracking-[0.2em]" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
               Clearance Level 3
@@ -105,7 +105,7 @@ const DashboardOverview = () => {
             animate={welcomeInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
-            Welcome back, <span className="text-primary drop-shadow-[0_0_15px_hsl(185_85%_50%/0.5)]">Saad</span>
+            Welcome back, <span className="text-primary drop-shadow-[0_0_15px_hsl(160_84%_39%/0.5)]">Saad</span>
           </motion.h1>
           <motion.p
             className="text-muted-foreground text-sm"
@@ -186,7 +186,7 @@ const DashboardOverview = () => {
 
                   <div className="relative z-10 text-center">
                     <motion.div
-                      className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center mb-3 mx-auto group-hover:shadow-[0_0_12px_hsl(185_85%_50%/0.2)] transition-shadow"
+                      className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center mb-3 mx-auto group-hover:shadow-[0_0_12px_hsl(160_84%_39%/0.2)] transition-shadow"
                       whileHover={{ rotate: [0, -5, 5, 0] }}
                       transition={{ duration: 0.4 }}
                     >
@@ -256,8 +256,8 @@ const DashboardOverview = () => {
                     />
                     <defs>
                       <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="hsl(185 85% 50%)" />
-                        <stop offset="100%" stopColor="hsl(200 80% 55%)" />
+                        <stop offset="0%" stopColor="hsl(160 84% 39%)" />
+                        <stop offset="100%" stopColor="hsl(140 70% 45%)" />
                       </linearGradient>
                     </defs>
                   </svg>

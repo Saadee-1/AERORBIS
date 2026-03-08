@@ -20,21 +20,21 @@
     --popover: 220 70% 6% / 0.95;
     --popover-foreground: 200 20% 92%;
 
-    /* Primary: Cyan accent */
-    --primary: 185 85% 50%;
-    --primary-foreground: 220 20% 5%;
+    /* Primary: Emerald Green accent */
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Steel blue */
-    --secondary: 210 30% 30%;
-    --secondary-foreground: 200 20% 90%;
+    /* Secondary: Deep forest */
+    --secondary: 160 25% 25%;
+    --secondary-foreground: 150 20% 90%;
 
     /* Muted: Deep space */
     --muted: 220 35% 15%;
     --muted-foreground: 210 15% 60%;
 
-    /* Accent: Teal */
-    --accent: 185 50% 22%;
-    --accent-foreground: 200 20% 90%;
+    /* Accent: Dark emerald */
+    --accent: 160 40% 20%;
+    --accent-foreground: 150 20% 90%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -44,31 +44,31 @@
     --warning: 38 92% 50%;
     --info: 200 80% 55%;
 
-    /* Borders: Holographic edge */
-    --border: 200 35% 22%;
+    /* Borders: Emerald edge */
+    --border: 160 25% 22%;
     --input: 220 35% 12%;
-    --ring: 185 85% 50%;
+    --ring: 160 84% 39%;
 
-    /* Cyan glow */
-    --cyan-glow: 185 85% 50%;
+    /* Emerald glow */
+    --emerald-glow: 160 84% 39%;
 
     /* Radius */
     --radius: 0.375rem;
 
     /* Sidebar */
     --sidebar-background: 220 60% 6% / 0.85;
-    --sidebar-foreground: 200 20% 85%;
-    --sidebar-primary: 185 85% 50%;
-    --sidebar-primary-foreground: 220 20% 5%;
-    --sidebar-accent: 185 50% 18%;
-    --sidebar-accent-foreground: 200 20% 85%;
-    --sidebar-border: 200 35% 22%;
-    --sidebar-ring: 185 85% 50%;
+    --sidebar-foreground: 150 20% 85%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 40% 18%;
+    --sidebar-accent-foreground: 150 20% 85%;
+    --sidebar-border: 160 25% 22%;
+    --sidebar-ring: 160 84% 39%;
 
     /* Chart */
-    --chart-1: 185 75% 55%;
-    --chart-2: 200 55% 50%;
-    --chart-3: 160 50% 45%;
+    --chart-1: 160 70% 45%;
+    --chart-2: 140 55% 50%;
+    --chart-3: 180 50% 45%;
     --chart-4: 38 70% 55%;
     --chart-5: 280 50% 55%;
   }
@@ -88,17 +88,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 12%;
 
-    --primary: 200 75% 42%;
+    --primary: 160 70% 36%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 12% 92%;
-    --secondary-foreground: 220 20% 25%;
+    --secondary: 160 10% 92%;
+    --secondary-foreground: 160 20% 25%;
 
-    --muted: 210 14% 95%;
-    --muted-foreground: 220 10% 42%;
+    --muted: 150 14% 95%;
+    --muted-foreground: 160 10% 42%;
 
-    --accent: 200 25% 93%;
-    --accent-foreground: 220 20% 25%;
+    --accent: 160 20% 93%;
+    --accent-foreground: 160 20% 25%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -107,26 +107,26 @@
     --warning: 38 92% 45%;
     --info: 200 80% 45%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 95%;
-    --ring: 200 75% 42%;
+    --border: 160 12% 88%;
+    --input: 150 15% 95%;
+    --ring: 160 70% 36%;
 
-    --cyan-glow: 200 75% 42%;
+    --emerald-glow: 160 70% 36%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 20% 25%;
-    --sidebar-primary: 200 75% 42%;
+    --sidebar-foreground: 160 20% 25%;
+    --sidebar-primary: 160 70% 36%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 25% 94%;
-    --sidebar-accent-foreground: 220 20% 25%;
-    --sidebar-border: 220 15% 90%;
-    --sidebar-ring: 200 75% 42%;
+    --sidebar-accent: 160 20% 94%;
+    --sidebar-accent-foreground: 160 20% 25%;
+    --sidebar-border: 150 15% 90%;
+    --sidebar-ring: 160 70% 36%;
 
-    --chart-1: 200 65% 45%;
-    --chart-2: 210 50% 50%;
-    --chart-3: 160 45% 40%;
+    --chart-1: 160 60% 40%;
+    --chart-2: 140 50% 45%;
+    --chart-3: 180 45% 40%;
     --chart-4: 38 65% 50%;
     --chart-5: 280 45% 50%;
   }
@@ -138,23 +138,23 @@
 @layer utilities {
   /* Glow system */
   .glow-cyan {
-    box-shadow: 0 0 10px hsl(185 85% 50% / 0.4), 0 0 20px hsl(185 85% 50% / 0.15);
+    box-shadow: 0 0 10px hsl(160 84% 39% / 0.4), 0 0 20px hsl(160 84% 39% / 0.15);
   }
   .glow-cyan-hover:hover {
-    box-shadow: 0 0 15px hsl(185 85% 50% / 0.5), 0 0 30px hsl(185 85% 50% / 0.25);
+    box-shadow: 0 0 15px hsl(160 84% 39% / 0.5), 0 0 30px hsl(160 84% 39% / 0.25);
   }
   .glow-cyan-strong {
-    box-shadow: 0 0 20px hsl(185 85% 50% / 0.6), 0 0 40px hsl(185 85% 50% / 0.25), 0 0 60px hsl(185 85% 50% / 0.1);
+    box-shadow: 0 0 20px hsl(160 84% 39% / 0.6), 0 0 40px hsl(160 84% 39% / 0.25), 0 0 60px hsl(160 84% 39% / 0.1);
   }
 
   /* Holographic border glow */
   .holo-border {
-    border: 1px solid hsl(185 85% 50% / 0.2);
-    box-shadow: inset 0 0 20px hsl(185 85% 50% / 0.03), 0 0 15px hsl(185 85% 50% / 0.05);
+    border: 1px solid hsl(160 84% 39% / 0.2);
+    box-shadow: inset 0 0 20px hsl(160 84% 39% / 0.03), 0 0 15px hsl(160 84% 39% / 0.05);
   }
   .holo-border-active {
-    border: 1px solid hsl(185 85% 50% / 0.5);
-    box-shadow: inset 0 0 30px hsl(185 85% 50% / 0.05), 0 0 25px hsl(185 85% 50% / 0.15);
+    border: 1px solid hsl(160 84% 39% / 0.5);
+    box-shadow: inset 0 0 30px hsl(160 84% 39% / 0.05), 0 0 25px hsl(160 84% 39% / 0.15);
   }
 
   /* Scanline overlay effect */
@@ -166,8 +166,8 @@
       0deg,
       transparent,
       transparent 2px,
-      hsl(185 85% 50% / 0.015) 2px,
-      hsl(185 85% 50% / 0.015) 4px
+      hsl(160 84% 39% / 0.015) 2px,
+      hsl(160 84% 39% / 0.015) 4px
     );
     pointer-events: none;
     z-index: 1;
@@ -179,8 +179,8 @@
     position: absolute;
     inset: 0;
     background-image: 
-      linear-gradient(hsl(185 85% 50% / 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(185 85% 50% / 0.03) 1px, transparent 1px);
+      linear-gradient(hsl(160 84% 39% / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(160 84% 39% / 0.03) 1px, transparent 1px);
     background-size: 50px 50px;
     pointer-events: none;
     z-index: 0;
@@ -196,7 +196,7 @@
     position: absolute;
     width: 12px;
     height: 12px;
-    border-color: hsl(185 85% 50% / 0.5);
+    border-color: hsl(160 84% 39% / 0.5);
     pointer-events: none;
     z-index: 2;
   }
@@ -227,13 +227,13 @@
   .cursor-blink::after {
     content: '▊';
     animation: cursorBlink 1s step-end infinite;
-    color: hsl(185 85% 50%);
+    color: hsl(160 84% 39%);
   }
 
   /* Section divider line */
   .section-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, hsl(185 85% 50% / 0.3), transparent);
+    background: linear-gradient(90deg, transparent, hsl(160 84% 39% / 0.3), transparent);
   }
 }
 
@@ -244,13 +244,13 @@
   .heading-display {
     font-family: 'Orbitron', sans-serif;
     @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-wider uppercase;
-    text-shadow: 0 0 30px hsl(185 85% 50% / 0.3), 0 0 60px hsl(185 85% 50% / 0.1);
+    text-shadow: 0 0 30px hsl(160 84% 39% / 0.3), 0 0 60px hsl(160 84% 39% / 0.1);
   }
 
   .heading-1 {
     font-family: 'Orbitron', sans-serif;
     @apply text-3xl md:text-4xl font-semibold tracking-wide uppercase;
-    text-shadow: 0 0 20px hsl(185 85% 50% / 0.2);
+    text-shadow: 0 0 20px hsl(160 84% 39% / 0.2);
   }
 
   .heading-2 {
@@ -266,7 +266,7 @@
   .text-hud {
     font-family: 'Rajdhani', sans-serif;
     @apply text-sm font-medium uppercase tracking-[0.2em];
-    color: hsl(185 85% 50%);
+    color: hsl(160 84% 39%);
   }
 
   .body-text {
@@ -304,14 +304,14 @@
 }
 
 @keyframes pulseRing {
-  0% { box-shadow: 0 0 0 0 hsl(185 85% 50% / 0.4); }
-  70% { box-shadow: 0 0 0 10px hsl(185 85% 50% / 0); }
-  100% { box-shadow: 0 0 0 0 hsl(185 85% 50% / 0); }
+  0% { box-shadow: 0 0 0 0 hsl(160 84% 39% / 0.4); }
+  70% { box-shadow: 0 0 0 10px hsl(160 84% 39% / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(160 84% 39% / 0); }
 }
 
 @keyframes holoBorder {
-  0%, 100% { border-color: hsl(185 85% 50% / 0.2); }
-  50% { border-color: hsl(185 85% 50% / 0.5); }
+  0%, 100% { border-color: hsl(160 84% 39% / 0.2); }
+  50% { border-color: hsl(160 84% 39% / 0.5); }
 }
 
 @keyframes scanMove {
@@ -409,8 +409,8 @@
 .hero-intro-logo {
   font-size: 3rem;
   font-weight: 700;
-  color: hsl(185 85% 50%);
-  text-shadow: 0 0 40px hsl(185 85% 50% / 0.5);
+  color: hsl(160 84% 39%);
+  text-shadow: 0 0 40px hsl(160 84% 39% / 0.5);
 }
 
 .fade-out {
@@ -425,7 +425,7 @@
   height: 48px;
   border-radius: 4px;
   background: hsl(220 60% 8%);
-  border: 1px solid hsl(185 85% 50% / 0.2);
+  border: 1px solid hsl(160 84% 39% / 0.2);
   position: relative;
   display: flex;
   align-items: center;
@@ -436,8 +436,8 @@
 
 .aerobot-icon:hover {
   background: hsl(220 60% 12%);
-  border-color: hsl(185 85% 50% / 0.5);
-  box-shadow: 0 0 20px hsl(185 85% 50% / 0.2);
+  border-color: hsl(160 84% 39% / 0.5);
+  box-shadow: 0 0 20px hsl(160 84% 39% / 0.2);
 }
 
 .aerobot-icon:active {
@@ -468,11 +468,11 @@
   background: hsl(220 60% 6%);
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(185 85% 50% / 0.3);
+  background: hsl(160 84% 39% / 0.3);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(185 85% 50% / 0.5);
+  background: hsl(160 84% 39% / 0.5);
 }
 
 .light ::-webkit-scrollbar-track,
@@ -493,16 +493,16 @@
    =================================== */
 .light .hud-corners::before,
 .light .hud-corners::after {
-  border-color: hsl(200 75% 42% / 0.25);
+  border-color: hsl(160 70% 36% / 0.25);
 }
 
 .light .holo-border {
-  border-color: hsl(220 15% 88%);
-  box-shadow: 0 1px 3px hsl(220 25% 12% / 0.05);
+  border-color: hsl(150 15% 88%);
+  box-shadow: 0 1px 3px hsl(160 25% 12% / 0.05);
 }
 
 .light .glow-cyan {
-  box-shadow: 0 1px 4px hsl(200 75% 42% / 0.1);
+  box-shadow: 0 1px 4px hsl(160 70% 36% / 0.1);
 }
 
 .light .scanlines::after,
@@ -511,9 +511,9 @@
 }
 
 .light .text-hud {
-  color: hsl(200 75% 42%);
+  color: hsl(160 70% 36%);
 }
 
 .light .section-divider {
-  background: linear-gradient(90deg, transparent, hsl(220 15% 85%), transparent);
+  background: linear-gradient(90deg, transparent, hsl(150 15% 85%), transparent);
 }

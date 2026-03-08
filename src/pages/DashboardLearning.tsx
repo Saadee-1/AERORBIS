@@ -62,7 +62,7 @@ const DashboardLearning = () => {
           // Training Division
         </p>
         <h1 className="text-3xl font-bold text-foreground mb-2" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-          Learning <span className="text-primary drop-shadow-[0_0_15px_hsl(185_85%_50%/0.4)]">Progress</span>
+          Learning <span className="text-primary drop-shadow-[0_0_15px_hsl(160_84%_39%/0.4)]">Progress</span>
         </h1>
         <p className="text-sm text-muted-foreground" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
           Track your aerospace education trajectory
@@ -85,7 +85,7 @@ const DashboardLearning = () => {
         <div className="relative p-6 flex flex-col items-center text-center space-y-3">
           <motion.div
             className="w-14 h-14 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center"
-            animate={{ scale: [1, 1.08, 1], boxShadow: ['0 0 0px hsl(185 85% 50% / 0)', '0 0 20px hsl(185 85% 50% / 0.3)', '0 0 0px hsl(185 85% 50% / 0)'] }}
+            animate={{ scale: [1, 1.08, 1], boxShadow: ['0 0 0px hsl(160 84% 39% / 0)', '0 0 20px hsl(160 84% 39% / 0.3)', '0 0 0px hsl(160 84% 39% / 0)'] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           >
             <Flame className="w-7 h-7 text-primary" />
@@ -236,7 +236,7 @@ const DashboardLearning = () => {
                   whileHover={{ scale: badge.earned ? 1.08 : 1, y: badge.earned ? -3 : 0 }}
                   className={`p-4 rounded-lg text-center transition-all duration-300 border ${
                     badge.earned
-                      ? "bg-primary/5 border-primary/20 hover:shadow-[0_0_15px_hsl(185_85%_50%/0.1)]"
+                      ? "bg-primary/5 border-primary/20 hover:shadow-[0_0_15px_hsl(160_84%_39%/0.1)]"
                       : "bg-muted/5 border-muted/10 opacity-40"
                   }`}
                 >

@@ -59,7 +59,7 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
               className={`pl-10 text-foreground placeholder:text-muted-foreground text-sm ${
                 isLight 
                   ? 'bg-muted/50 border-border focus:border-primary/40' 
-                  : 'bg-slate-800/30 border-primary/15 focus:border-primary/40 focus:shadow-[0_0_15px_hsl(185_85%_50%/0.1)]'
+                  : 'bg-slate-800/30 border-primary/15 focus:border-primary/40 focus:shadow-[0_0_15px_hsl(160_84%_39%/0.1)]'
               }`}
               style={{ fontFamily: 'Rajdhani, sans-serif' }}
             />
@@ -103,7 +103,7 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
               <motion.span
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_hsl(185_85%_50%/0.8)]"
+                className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_hsl(160_84%_39%/0.8)]"
               />
             </Button>
 
@@ -116,7 +116,7 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
                   className={`absolute right-0 mt-2 w-80 rounded-lg overflow-hidden border shadow-lg ${
                     isLight 
                       ? 'border-border bg-card' 
-                      : 'border-primary/20 shadow-[0_0_30px_hsl(185_85%_50%/0.1)]'
+                      : 'border-primary/20 shadow-[0_0_30px_hsl(160_84%_39%/0.1)]'
                   }`}
                 >
                   {!isLight && <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" />}

@@ -87,7 +87,7 @@ const Contact = () => {
                 key={social.label}
                 href={social.href}
                 aria-label={social.label}
-                className="w-11 h-11 rounded-lg bg-card/40 border border-border/40 flex items-center justify-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/10 hover:shadow-[0_0_15px_hsl(185_85%_50%/0.15)] group"
+                className="w-11 h-11 rounded-lg bg-card/40 border border-border/40 flex items-center justify-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/10 hover:shadow-[0_0_15px_hsl(160_84%_39%/0.15)] group"
               >
                 <social.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </a>

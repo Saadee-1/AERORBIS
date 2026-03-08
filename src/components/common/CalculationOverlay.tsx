@@ -34,7 +34,7 @@ export function CalculationOverlay({ isActive, label = "Computing", progress }: 
               {/* Outer ring */}
               <motion.div
                 className="absolute inset-0 rounded-full border-2 border-primary/30"
-                style={{ borderTopColor: 'hsl(185 85% 50% / 0.8)', borderRightColor: 'hsl(185 85% 50% / 0.4)' }}
+                style={{ borderTopColor: 'hsl(160 84% 39% / 0.8)', borderRightColor: 'hsl(160 84% 39% / 0.4)' }}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
               />
@@ -50,7 +50,7 @@ export function CalculationOverlay({ isActive, label = "Computing", progress }: 
               {/* Inner ring */}
               <motion.div
                 className="absolute inset-6 rounded-full border border-primary/20"
-                style={{ borderTopColor: 'hsl(185 85% 50% / 0.6)' }}
+                style={{ borderTopColor: 'hsl(160 84% 39% / 0.6)' }}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
               />
@@ -60,9 +60,9 @@ export function CalculationOverlay({ isActive, label = "Computing", progress }: 
                 className="absolute inset-10 rounded-full bg-primary/5 border border-primary/20 flex items-center justify-center"
                 animate={{
                   boxShadow: [
-                    '0 0 0px hsl(185 85% 50% / 0)',
-                    '0 0 30px hsl(185 85% 50% / 0.3)',
-                    '0 0 0px hsl(185 85% 50% / 0)',
+                    '0 0 0px hsl(160 84% 39% / 0)',
+                    '0 0 30px hsl(160 84% 39% / 0.3)',
+                    '0 0 0px hsl(160 84% 39% / 0)',
                   ],
                 }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
@@ -79,7 +79,7 @@ export function CalculationOverlay({ isActive, label = "Computing", progress }: 
               {[0, 1, 2, 3].map((i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(185_85%_50%/0.8)]"
+                  className="absolute w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(160_84%_39%/0.8)]"
                   style={{
                     top: '50%',
                     left: '50%',
