@@ -275,8 +275,8 @@ const ToolsLauncher = () => {
                               onClick={() => handleToolClick(tool.id)}
                               className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all duration-200 ${
                                 activeTab === tool.id
-                                  ? 'bg-cyan-400/30 text-cyan-400 border border-cyan-400/50'
-                                  : 'text-slate-300 hover:bg-slate-700/50 hover:text-cyan-400'
+                                  ? 'bg-primary/30 text-primary border border-primary/50'
+                                  : 'text-muted-foreground hover:bg-muted hover:text-primary'
                               }`}
                             >
                               <Icon className="w-4 h-4 flex-shrink-0" />
