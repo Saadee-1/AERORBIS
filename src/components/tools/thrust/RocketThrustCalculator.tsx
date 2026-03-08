@@ -820,16 +820,16 @@ const AdvancedThrustCalculator = () => {
               >
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis dataKey="ambientPressure" stroke="#94a3b8" tickFormatter={(val) => val.toFixed(0)}
-                      label={{ value: `Ambient Pressure (${getUnit("ambientPressure")})`, position: 'insideBottom', offset: -5, fill: '#94a3B8' }}/>
-                    <YAxis stroke="#94a3b8" tickFormatter={(val) => val.toFixed(0)}
-                      label={{ value: `Thrust (${getUnit("thrust")})`, angle: -90, position: 'insideLeft', fill: '#94a3b8' }}/>
-                    <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee40' }} formatter={(value: number) => value.toFixed(2)}/>
-                    <Line type="monotone" dataKey="thrust" stroke="#22d3ee" strokeWidth={2} dot={false} name="Thrust" legendType="none" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="ambientPressure" stroke="hsl(var(--muted-foreground))" tickFormatter={(val) => val.toFixed(0)}
+                      label={{ value: `Ambient Pressure (${getUnit("ambientPressure")})`, position: 'insideBottom', offset: -5, fill: 'hsl(var(--muted-foreground))' }}/>
+                    <YAxis stroke="hsl(var(--muted-foreground))" tickFormatter={(val) => val.toFixed(0)}
+                      label={{ value: `Thrust (${getUnit("thrust")})`, angle: -90, position: 'insideLeft', fill: 'hsl(var(--muted-foreground))' }}/>
+                    <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))' }} formatter={(value: number) => value.toFixed(2)}/>
+                    <Line type="monotone" dataKey="thrust" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="Thrust" legendType="none" />
                   </LineChart>
                 </ResponsiveContainer>
-                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                <div className="mt-3 pt-3 border-t border-border">
                   <AeroverseLegend
                     items={[{
                       id: 'thrust',
