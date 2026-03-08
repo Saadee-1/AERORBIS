@@ -1856,7 +1856,7 @@ const point: Record<string, unknown> = { alpha };
 
           {/* Polar Data Display - Collapsible */}
           {polarData && computedLD.length > 0 && (
-            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl border border-cyan-400/20 overflow-hidden backdrop-blur-sm">
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl border border-primary/20 overflow-hidden backdrop-blur-sm">
               <button
                 type="button"
                 onClick={() => setIsPolarTableOpen((v) => !v)}
