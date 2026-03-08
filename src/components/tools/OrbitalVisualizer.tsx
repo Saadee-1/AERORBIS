@@ -1173,7 +1173,7 @@ const OrbitalVisualizer = () => {
                 }}
               />
             </div>
-            <div className="text-sm text-gray-400 space-y-1">
+            <div className="text-sm text-muted-foreground space-y-1">
               <p>Periapsis: {inputs.periapsisAltitude} {getUnit("dist")}</p>
               <p>Inclination: {inputs.inclination}°</p>
               <p>Eccentricity: {inputs.eccentricity}</p>
