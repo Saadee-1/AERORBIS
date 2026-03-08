@@ -3,7 +3,7 @@
  * Enhanced lighting and composition
  */
 
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { TrajectoryData, extractEventMarkers, downsampleFrames, TrajectoryFrame } from '../../utils/three/threeUtils';
