@@ -678,7 +678,7 @@ export default function ClimbPerformanceCalculator() {
               {clMax && (() => {
                 const parsed = parseFloat(clMax);
                 if (Number.isFinite(parsed) && parsed > 0) {
-                  return <p className="text-xs text-cyan-400 mt-1">User-specified CL_max override active</p>;
+                  return <p className="text-xs text-primary mt-1">User-specified CL_max override active</p>;
                 }
                 return null;
               })()}
