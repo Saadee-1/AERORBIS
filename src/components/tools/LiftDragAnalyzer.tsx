@@ -1529,7 +1529,7 @@ const point: Record<string, unknown> = { alpha };
                         label="Lift Curve Slope (CL_α)"
                         helperText="Lift curve slope: change in lift coefficient per degree of angle of attack. Typical range: 0.08-0.12 per degree (≈ 2π per radian for thin airfoils). Used in linear lift model: CL = CL₀ + CL_α × α. Valid only in pre-stall region."
                       >
-                        <Input id="clAlpha" type="number" value={customAirfoil.CL_alpha} onChange={(e) => handleCustomAirfoilChange("CL_alpha", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.001" min="0" />
+                        <Input id="clAlpha" type="number" value={customAirfoil.CL_alpha} onChange={(e) => handleCustomAirfoilChange("CL_alpha", e.target.value)} step="0.001" min="0" />
                       </AeroFormField>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
