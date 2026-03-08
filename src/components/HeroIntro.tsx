@@ -62,7 +62,7 @@ const IntroGlobe = () => {
       </mesh>
       <mesh ref={ring2Ref} rotation={[Math.PI / 3, Math.PI / 4, 0]}>
         <torusGeometry args={[1.7, 0.008, 16, 100]} />
-        <meshBasicMaterial color="#22d3ee" transparent opacity={0.25} />
+        <meshBasicMaterial color="#10b981" transparent opacity={0.25} />
       </mesh>
 
       <Sphere args={[1.2, 32, 32]}>
