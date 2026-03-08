@@ -2030,7 +2030,7 @@ const point: Record<string, unknown> = { alpha };
                   return (
                     <div
                       key={airfoilId}
-                      className="flex items-center gap-2 bg-cyan-600/20 border border-cyan-400/40 rounded-lg px-3 py-1.5 text-white"
+                      className="flex items-center gap-2 bg-primary/20 border border-primary/40 rounded-lg px-3 py-1.5 text-white"
                     >
                       <span className="text-sm font-medium">{airfoilData?.name || airfoilId}</span>
                       <button
