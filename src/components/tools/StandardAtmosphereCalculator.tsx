@@ -397,6 +397,8 @@ export default function StandardAtmosphereCalculator() {
   }, [result, unitSystem]);
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Atmosphere" />
     <ToolWrapper>
       <ToolHeader
         title="Standard Atmosphere (1976) Calculator"
