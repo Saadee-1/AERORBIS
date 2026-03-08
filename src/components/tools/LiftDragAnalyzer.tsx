@@ -1568,7 +1568,7 @@ const point: Record<string, unknown> = { alpha };
                         placeholder="Unit Name" 
                         value={customUnitNames[field.id as keyof typeof customUnitNames]}
                         onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-input border-border text-foreground"
                       />
                       <Input 
                         type="number"
