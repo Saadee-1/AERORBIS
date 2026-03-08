@@ -144,7 +144,6 @@ varying vec3 vNormal;
 varying vec3 vPosition;
 varying vec2 vUv;
 
-// Simple hash-based noise
 float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
 }
@@ -171,64 +170,91 @@ float fbm(vec2 p) {
   return v;
 }
 
+// Warp-domain noise for more organic continent shapes
+float warpedFbm(vec2 p) {
+  vec2 q = vec2(fbm(p), fbm(p + vec2(5.2, 1.3)));
+  vec2 r = vec2(fbm(p + 4.0 * q + vec2(1.7, 9.2)), fbm(p + 4.0 * q + vec2(8.3, 2.8)));
+  return fbm(p + 3.0 * r);
+}
+
 void main() {
   vec3 normal = normalize(vNormal);
   
-  // Procedural continents
-  vec2 uv = vUv * 8.0;
-  float continent = fbm(uv + vec2(time * 0.001, 0.0));
-  float detail = fbm(uv * 3.0 + vec2(0.0, time * 0.002));
+  // Spherical UV with warp for realistic continent shapes
+  vec2 uv = vUv * 6.0;
   
-  // Ice caps based on latitude
+  // Multi-layer continent generation with domain warping
+  float warp1 = warpedFbm(uv * 0.8 + vec2(2.1, 3.4));
+  float warp2 = fbm(uv * 1.5 + vec2(7.3, 1.1));
+  float continent = warp1 * 0.7 + warp2 * 0.3;
+  
+  // Latitude-based biome zones
   float latitude = abs(vUv.y - 0.5) * 2.0;
-  float iceCap = smoothstep(0.82, 0.95, latitude);
+  float tropicalZone = 1.0 - smoothstep(0.0, 0.3, latitude);
+  float temperateZone = smoothstep(0.15, 0.35, latitude) * (1.0 - smoothstep(0.55, 0.75, latitude));
+  float polarZone = smoothstep(0.7, 0.88, latitude);
+  float iceCap = smoothstep(0.85, 0.95, latitude);
   
-  // Ocean / Land distinction
-  float landMask = smoothstep(0.42, 0.52, continent + detail * 0.15);
+  // Land/ocean threshold — adjusted for ~30% land coverage
+  float landMask = smoothstep(0.46, 0.54, continent);
   
-  // Colors
-  vec3 deepOcean = vec3(0.02, 0.06, 0.18);
-  vec3 shallowOcean = vec3(0.04, 0.15, 0.35);
-  vec3 land = vec3(0.08, 0.22, 0.06);
-  vec3 desert = vec3(0.35, 0.28, 0.15);
-  vec3 mountain = vec3(0.25, 0.22, 0.18);
-  vec3 ice = vec3(0.85, 0.9, 0.95);
+  // Coastal shelf
+  float coastalShelf = smoothstep(0.40, 0.46, continent) * (1.0 - landMask);
   
-  // Blend ocean
-  float oceanDepth = fbm(uv * 2.0);
-  vec3 oceanColor = mix(deepOcean, shallowOcean, oceanDepth);
+  // Elevation detail on land
+  float elevation = fbm(uv * 5.0 + vec2(3.7, 8.2));
+  float mountainMask = smoothstep(0.6, 0.78, elevation) * landMask;
   
-  // Blend land types
-  float elevation = fbm(uv * 4.0);
-  vec3 landColor = mix(land, desert, smoothstep(0.4, 0.6, elevation));
-  landColor = mix(landColor, mountain, smoothstep(0.65, 0.8, elevation));
+  // Colors - richer and more varied
+  vec3 deepOcean = vec3(0.01, 0.04, 0.14);
+  vec3 midOcean = vec3(0.03, 0.10, 0.28);
+  vec3 shallowOcean = vec3(0.06, 0.18, 0.38);
+  vec3 coastWater = vec3(0.08, 0.25, 0.40);
   
-  // Combine
+  vec3 tropicalForest = vec3(0.04, 0.20, 0.03);
+  vec3 temperateGreen = vec3(0.10, 0.28, 0.08);
+  vec3 savanna = vec3(0.28, 0.26, 0.10);
+  vec3 desert = vec3(0.42, 0.35, 0.18);
+  vec3 tundra = vec3(0.30, 0.32, 0.28);
+  vec3 mountain = vec3(0.22, 0.20, 0.18);
+  vec3 snow = vec3(0.90, 0.92, 0.95);
+  vec3 ice = vec3(0.82, 0.88, 0.94);
+  
+  // Ocean color by depth
+  float oceanNoise = fbm(uv * 3.0);
+  vec3 oceanColor = mix(deepOcean, midOcean, oceanNoise);
+  oceanColor = mix(oceanColor, shallowOcean, coastalShelf * 0.7);
+  oceanColor = mix(oceanColor, coastWater, coastalShelf);
+  
+  // Land color by biome
+  vec3 landColor = temperateGreen;
+  landColor = mix(landColor, tropicalForest, tropicalZone * 0.8);
+  landColor = mix(landColor, savanna, tropicalZone * smoothstep(0.45, 0.6, elevation) * 0.7);
+  landColor = mix(landColor, desert, smoothstep(0.35, 0.55, elevation) * (1.0 - tropicalZone * 0.5) * (1.0 - temperateZone));
+  landColor = mix(landColor, temperateGreen, temperateZone * 0.6);
+  landColor = mix(landColor, tundra, polarZone * 0.8);
+  landColor = mix(landColor, mountain, mountainMask);
+  landColor = mix(landColor, snow, mountainMask * smoothstep(0.72, 0.85, elevation));
+  
+  // Combine surface
   vec3 surfaceColor = mix(oceanColor, landColor, landMask);
   surfaceColor = mix(surfaceColor, ice, iceCap);
   
-  // Lighting - Lambertian diffuse
+  // Lighting - clean daylight, NO night side effects
   float diffuse = max(dot(normal, sunDirection), 0.0);
+  float ambient = 0.12;
+  vec3 finalColor = surfaceColor * (ambient + diffuse * 1.3);
   
-  // City lights on dark side
-  float nightSide = 1.0 - smoothstep(-0.05, 0.15, diffuse);
-  float cities = step(0.72, fbm(uv * 12.0)) * landMask * nightSide;
-  vec3 cityGlow = vec3(1.0, 0.85, 0.4) * cities * 0.8;
+  // Subtle rim light
+  float fresnel = pow(1.0 - max(dot(normal, normalize(cameraPosition - vPosition)), 0.0), 4.0);
+  finalColor += vec3(0.15, 0.25, 0.5) * fresnel * 0.1;
   
-  // Atmosphere scattering at edges - subtle, not blurry
-  float fresnel = pow(1.0 - max(dot(normal, normalize(cameraPosition - vPosition)), 0.0), 5.0);
-  vec3 atmosScatter = vec3(0.3, 0.5, 1.0) * fresnel * 0.15;
-  
-  // Final color - sharper lighting
-  vec3 dayColor = surfaceColor * (0.1 + diffuse * 1.4);
-  vec3 finalColor = dayColor + cityGlow + atmosScatter;
-  
-  // Ocean specular
+  // Ocean specular highlight
   if (landMask < 0.5) {
     vec3 viewDir = normalize(cameraPosition - vPosition);
     vec3 halfDir = normalize(sunDirection + viewDir);
-    float spec = pow(max(dot(normal, halfDir), 0.0), 80.0) * diffuse;
-    finalColor += vec3(0.6, 0.7, 0.8) * spec * 0.5;
+    float spec = pow(max(dot(normal, halfDir), 0.0), 120.0) * diffuse;
+    finalColor += vec3(0.7, 0.8, 0.9) * spec * 0.4;
   }
   
   gl_FragColor = vec4(finalColor, 1.0);
@@ -527,6 +553,8 @@ const OrbitalVisualizer = () => {
     trailPoints: THREE.Points;
     trailPositions: Float32Array;
     trailIndex: number;
+    orbitParticles: THREE.Points | null;
+    orbitParticlePhases: Float32Array | null;
     animationId: number;
     lastTime: number;
     orbitalParams: OrbitalParams | null;
@@ -860,7 +888,23 @@ const OrbitalVisualizer = () => {
           threeRef.current.orbitalParams.meanAnomaly0 = meanAnomaly;
         }
 
-        // Render with bloom
+        // Animate orbit particles along the path
+        if (threeRef.current?.orbitParticles && threeRef.current.orbitParticlePhases && threeRef.current.orbitPoints.length > 0) {
+          const pts = threeRef.current.orbitPoints;
+          const phases = threeRef.current.orbitParticlePhases;
+          const posAttr = threeRef.current.orbitParticles.geometry.attributes.position as THREE.BufferAttribute;
+          const speed = currentTime * 0.0008; // animation speed
+          for (let pi = 0; pi < phases.length; pi++) {
+            const phase = (phases[pi] + speed) % (2 * Math.PI);
+            const idx = Math.floor((phase / (2 * Math.PI)) * pts.length) % pts.length;
+            posAttr.array[pi * 3] = pts[idx].x;
+            posAttr.array[pi * 3 + 1] = pts[idx].y;
+            posAttr.array[pi * 3 + 2] = pts[idx].z;
+          }
+          posAttr.needsUpdate = true;
+        }
+
+        // Render
         composer.render();
 
         if (threeRef.current) {
@@ -875,6 +919,8 @@ const OrbitalVisualizer = () => {
         orbitTube, orbitGlow, transferOrbitLine, 
         satellite, satelliteLight,
         trailPoints, trailPositions, trailIndex: 0,
+        orbitParticles: null,
+        orbitParticlePhases: null,
         animationId: 0, 
         lastTime: performance.now(),
         orbitalParams: null,
@@ -1043,6 +1089,43 @@ const OrbitalVisualizer = () => {
         });
         t.orbitGlow.geometry = glowGeo;
         t.orbitGlow.material = glowMat;
+
+        // ── Animated orbit particles (direction-of-travel indicator) ──
+        if (t.orbitParticles) {
+          t.scene.remove(t.orbitParticles);
+          t.orbitParticles.geometry.dispose();
+          (t.orbitParticles.material as THREE.Material).dispose();
+        }
+        const PARTICLE_COUNT = 40;
+        const particlePositions = new Float32Array(PARTICLE_COUNT * 3);
+        const particleSizes = new Float32Array(PARTICLE_COUNT);
+        const particlePhases = new Float32Array(PARTICLE_COUNT);
+        for (let pi = 0; pi < PARTICLE_COUNT; pi++) {
+          particlePhases[pi] = (pi / PARTICLE_COUNT) * 2 * Math.PI;
+          particleSizes[pi] = tubeRadius * (1.5 + Math.random() * 2.0);
+          // Initial position along orbit
+          const idx = Math.floor((pi / PARTICLE_COUNT) * orbitPoints.length) % orbitPoints.length;
+          particlePositions[pi * 3] = orbitPoints[idx].x;
+          particlePositions[pi * 3 + 1] = orbitPoints[idx].y;
+          particlePositions[pi * 3 + 2] = orbitPoints[idx].z;
+        }
+        const particleGeo = new THREE.BufferGeometry();
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        particleGeo.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+        const particleMat = new THREE.PointsMaterial({
+          color: 0x88ffff,
+          size: tubeRadius * 3,
+          sizeAttenuation: true,
+          transparent: true,
+          opacity: 0.7,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const orbitParticles = new THREE.Points(particleGeo, particleMat);
+        orbitParticles.frustumCulled = false;
+        t.scene.add(orbitParticles);
+        t.orbitParticles = orbitParticles;
+        t.orbitParticlePhases = particlePhases;
 
         t.orbitPoints = orbitPoints;
         
