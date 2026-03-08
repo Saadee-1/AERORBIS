@@ -147,6 +147,7 @@ const STORAGE_KEY_CUSTOM_PRESETS = "antennaPatternAnalyzer_customPresets";
 const AntennaPatternAnalyzer = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
+  const { isCalculating, runCalculation } = useCalculationAnimation({ minDuration: 900 });
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
 
