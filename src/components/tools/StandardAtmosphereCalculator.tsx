@@ -757,7 +757,7 @@ export default function StandardAtmosphereCalculator() {
                       yAxisId="left"
                       type="monotone"
                       dataKey="temperature"
-                      stroke="#3b82f6"
+                      stroke="#10b981"
                       strokeWidth={2}
                       name={`Temperature (${unitSystem === "Imperial" ? "°F" : "°C"})`}
                       dot={false}
