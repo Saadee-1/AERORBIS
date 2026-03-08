@@ -1041,7 +1041,7 @@ const AntennaPatternAnalyzer = () => {
                         placeholder="Unit Name" 
                         value={customFrequencyUnitName}
                         onChange={(e) => setCustomFrequencyUnitName(e.target.value)}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-slate-800 border-primary/30 text-white"
                       />
                       <Input 
                         type="number"
