@@ -1145,9 +1145,9 @@ const AntennaPatternAnalyzer = () => {
                       {result.peakGainDbi.toFixed(2)} dBi
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                     <p className="text-xs text-gray-400 mb-1">Directivity</p>
-                    <p className="text-blue-400 font-bold text-lg">
+                    <p className="text-primary font-bold text-lg">
                       {result.directivityDbi.toFixed(2)} dBi
                     </p>
                   </div>
