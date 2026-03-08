@@ -546,6 +546,11 @@ export default function TrajectorySimulator() {
                 </div>
               </div>
             </div>
+          </ToolSection>
+        </TabsContent>
+
+        <TabsContent value="guidance">
+          <ToolSection>
             <GuidanceConfig
               mode={mode}
               guidance2D={guidance2D}
