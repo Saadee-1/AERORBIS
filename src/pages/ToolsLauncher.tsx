@@ -188,7 +188,7 @@ const ToolsLauncher = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
+    <div className="min-h-screen flex flex-col relative">
       {/* Globe loader for tool transitions */}
       <GlobeLoader isLoading={isToolTransitioning} />
       
@@ -205,7 +205,7 @@ const ToolsLauncher = () => {
               <Button
                 variant="outline"
                 onClick={showAllTools}
-                className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+                className="border-primary/40 text-primary hover:bg-primary/10"
               >
                 <Grid3x3 className="w-4 h-4 mr-2" />
                 Show All Tools
@@ -227,7 +227,7 @@ const ToolsLauncher = () => {
                     initial={{ opacity: 0, scale: 0.95, y: -10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    className="absolute right-0 top-full mt-2 z-50 w-64 bg-slate-800/95 backdrop-blur-lg border border-cyan-400/30 rounded-lg shadow-xl overflow-hidden"
+                    className="absolute right-0 top-full mt-2 z-50 w-64 bg-popover backdrop-blur-lg border border-border rounded-lg shadow-xl overflow-hidden"
                     style={{ maxHeight: '11rem' }}
                     onMouseEnter={() => setIsHoveringTools(true)}
                     onMouseLeave={() => setIsHoveringTools(false)}
@@ -257,14 +257,14 @@ const ToolsLauncher = () => {
                         {/* Show All Tabs button */}
                         <button
                           onClick={showAllTabs}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all duration-200 bg-cyan-400/20 text-cyan-400 border border-cyan-400/40 hover:bg-cyan-400/30 mb-1"
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all duration-200 bg-primary/20 text-primary border border-primary/40 hover:bg-primary/30 mb-1"
                         >
                           <Grid3x3 className="w-4 h-4 flex-shrink-0" />
                           <span className="text-sm font-medium">Show All Tabs</span>
                         </button>
                         
                         {/* Divider */}
-                        <div className="h-px bg-slate-700/50 my-1" />
+                        <div className="h-px bg-border my-1" />
                         
                         {/* Tools list */}
                         {allTools.map((tool, index) => {
@@ -275,8 +275,8 @@ const ToolsLauncher = () => {
                               onClick={() => handleToolClick(tool.id)}
                               className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all duration-200 ${
                                 activeTab === tool.id
-                                  ? 'bg-cyan-400/30 text-cyan-400 border border-cyan-400/50'
-                                  : 'text-slate-300 hover:bg-slate-700/50 hover:text-cyan-400'
+                                  ? 'bg-primary/30 text-primary border border-primary/50'
+                                  : 'text-muted-foreground hover:bg-muted hover:text-primary'
                               }`}
                             >
                               <Icon className="w-4 h-4 flex-shrink-0" />
@@ -300,7 +300,7 @@ const ToolsLauncher = () => {
             >
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               {!hideTabs && (
-                <TabsList className="flex flex-wrap w-full max-w-full mx-auto bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-3 gap-2 sm:gap-3 rounded-xl mb-8 overflow-hidden">
+                <TabsList className="flex flex-wrap w-full max-w-full mx-auto bg-muted/50 backdrop-blur-lg border border-border p-3 gap-2 sm:gap-3 rounded-xl mb-8 overflow-hidden">
                 <TabsTrigger 
                   value="thrust"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
