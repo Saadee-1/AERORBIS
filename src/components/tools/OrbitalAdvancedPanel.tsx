@@ -131,6 +131,9 @@ export function OrbitalAdvancedPanel({
   // ── Low-thrust results ──
   const [lowThrustResults, setLowThrustResults] = useState<AdvancedResult[]>([]);
 
+  // ── Gauss OD results ──
+  const [gaussResults, setGaussResults] = useState<AdvancedResult[]>([]);
+
   // ── Results ──
   const [maneuverResults, setManeuverResults] = useState<AdvancedResult[]>([]);
   const [lambertResult, setLambertResult] = useState<AdvancedResult | null>(null);
