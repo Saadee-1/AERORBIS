@@ -53,7 +53,7 @@ export function MissionFuelPanel({ profile, onProfileChange }: MissionFuelPanelP
             type="number"
             value={1000} // Default, will be calculated from profile
             onChange={(e) => handleNumberChange('range', e.target.value)}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
+            className="bg-muted/50 border-primary/30 text-foreground"
             min="0"
             step="100"
           />
