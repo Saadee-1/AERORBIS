@@ -155,7 +155,7 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               ))}
             </Pie>
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
             />
           </PieChart>
