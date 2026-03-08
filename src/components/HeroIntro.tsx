@@ -52,7 +52,7 @@ const IntroGlobe = () => {
       </Sphere>
 
       <Sphere ref={wireframeRef} args={[1.03, 32, 32]}>
-        <meshBasicMaterial color="#22d3ee" wireframe transparent opacity={0.15} />
+        <meshBasicMaterial color="#10b981" wireframe transparent opacity={0.15} />
       </Sphere>
 
       {/* Orbital rings */}
