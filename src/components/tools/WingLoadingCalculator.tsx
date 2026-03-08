@@ -1714,7 +1714,7 @@ const WingLoadingCalculator = () => {
                   title="Engineering Interpretation"
                   icon={Info}
                 >
-                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/20">
                     <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">
                       {result.interpretation}
                     </p>
