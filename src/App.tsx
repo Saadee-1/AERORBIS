@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useAudioSection } from "@/hooks/useAudioSection";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import AIAssistant from "@/components/AIAssistant";
 import PageTransition from "./components/PageTransition";
 import GalaxyBackground from "./components/GalaxyBackground";
