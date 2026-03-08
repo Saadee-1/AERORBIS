@@ -67,7 +67,7 @@ const MaterialDetailsDrawer = ({
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">SI Units:</span>
-                <span className="text-cyan-400 font-bold text-lg">
+                <span className="text-primary font-bold text-lg">
                   {material.density.toLocaleString('en-US', { maximumFractionDigits: 0 })} kg/m³
                 </span>
               </div>
