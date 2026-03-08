@@ -146,7 +146,7 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
                 }}
                 formatter={(value: number) => [`${value.toFixed(2)} ${unit}`, "Δv"]}
               />
-              <Bar dataKey="value" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-3 pt-3 border-t border-slate-700/50 px-6 pb-4">
