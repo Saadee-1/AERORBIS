@@ -847,7 +847,7 @@ const ReynoldsNumberCalculator = () => {
                           <Alert key={idx} variant="default" className="bg-yellow-400/10 border-yellow-400/30">
                             <AlertTriangle className="h-4 w-4 text-yellow-400" />
                             <AlertTitle className="text-yellow-400">Warning</AlertTitle>
-                            <AlertDescription className="text-gray-300">{warning}</AlertDescription>
+                            <AlertDescription className="text-foreground/80">{warning}</AlertDescription>
                           </Alert>
                         ))}
                       </div>
