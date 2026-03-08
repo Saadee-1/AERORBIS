@@ -62,7 +62,7 @@ export function StabilityCriteriaPanel({
         <div className="grid grid-cols-2 gap-4">
           <AeroFormField label="Aircraft Category">
             <Select value={category} onValueChange={(value) => onCategoryChange(value as 'A' | 'B' | 'C')}>
-              <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+              <SelectTrigger className="bg-muted/50 border-primary/30 text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
