@@ -432,7 +432,7 @@ export function WingLoadingGraphs({
                     label={{
                       value: "Current",
                       position: "insideTop",
-                      fill: "#22d3ee",
+                      fill: "#10b981",
                       fontWeight: 600,
                       fontSize: 10,
                     }}
