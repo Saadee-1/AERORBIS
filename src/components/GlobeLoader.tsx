@@ -112,7 +112,7 @@ const GlobeLoader = ({ isLoading }: GlobeLoaderProps) => {
               className="absolute bottom-[-40px] left-1/2 transform -translate-x-1/2"
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.3, ease: smoothEase }}
+              transition={{ delay: 0.15, duration: 0.3, ease: smoothEaseStr }}
             >
               <div className="flex items-center gap-1 text-sm" style={{ color: 'hsl(220, 15%, 55%)' }}>
                 <span>Loading</span>
