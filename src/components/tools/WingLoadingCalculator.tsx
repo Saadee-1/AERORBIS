@@ -1774,6 +1774,7 @@ const WingLoadingCalculator = () => {
         </div>
       )}
     </ToolWrapper>
+    </>
   );
 };
 

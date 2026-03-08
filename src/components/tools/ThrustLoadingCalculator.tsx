@@ -2183,6 +2183,7 @@ const ThrustLoadingCalculator = () => {
         );
       })()}
     </ToolWrapper>
+    </>
   );
 };
 
