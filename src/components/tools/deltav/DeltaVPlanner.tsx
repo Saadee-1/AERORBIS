@@ -624,7 +624,7 @@ const DeltaVPlanner = () => {
                       placeholder="Unit Name" 
                       value={customUnitName}
                       onChange={(e) => setCustomUnitName(e.target.value)}
-                      className="bg-slate-800 border-cyan-400/30 text-white"
+                      className="bg-slate-800 border-primary/30 text-foreground"
                     />
                     <Input 
                       type="number"
