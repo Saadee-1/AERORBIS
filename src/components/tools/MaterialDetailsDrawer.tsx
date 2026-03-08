@@ -73,7 +73,7 @@ const MaterialDetailsDrawer = ({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Imperial Units:</span>
-                <span className="text-cyan-400 font-bold text-lg">
+                <span className="text-primary font-bold text-lg">
                   {densityImperial.toLocaleString('en-US', { maximumFractionDigits: 2 })} lb/ft³
                 </span>
               </div>
