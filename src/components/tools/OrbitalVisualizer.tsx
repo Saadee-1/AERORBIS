@@ -1383,6 +1383,21 @@ const OrbitalVisualizer = () => {
             gm={parseFloat(inputs.gm)}
             numOrbits={3}
             currentTrueAnomaly={currentTrueAnomaly}
+            onLaunchSiteClick={(params, siteName) => {
+              const newInputs: OrbitalInputs = {
+                ...inputs,
+                periapsisAltitude: params.periapsisAltitude,
+                inclination: params.inclination,
+                eccentricity: params.eccentricity,
+                raan: params.raan,
+                argOfPeriapsis: params.argOfPeriapsis,
+                trueAnomaly: params.trueAnomaly,
+              };
+              setInputs(newInputs);
+              calculateOrbit(newInputs);
+              setError("");
+              toast({ title: `${siteName} Loaded`, description: `Typical orbit: i=${params.inclination}°, h=${params.periapsisAltitude} km` });
+            }}
           />
         </AeroCard>
       )}
