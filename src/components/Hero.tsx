@@ -305,7 +305,7 @@ const Hero = () => {
                       exit={{ y: -200, x: 80, scale: 2.5, opacity: 0, rotate: -30 }}
                       transition={{ duration: 0.8, ease: [0.32, 0, 0.67, 0] }}
                     >
-                      <Zap className="w-5 h-5 group-hover:text-primary transition-colors duration-500" />
+                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-primary transition-colors duration-500" />
                     </motion.span>
                   )}
                 </AnimatePresence>
