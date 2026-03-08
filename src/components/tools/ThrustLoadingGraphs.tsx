@@ -46,10 +46,10 @@ const GRAPH_STYLES = {
   referenceLineDash: '6 6',
   referenceMarkerStroke: '#ff4df0',
   referenceMarkerFill: '#ff4df0',
-  tooltipBg: 'rgba(20, 20, 20, 0.92)',
-  tooltipText: '#00eaff',
-  currentLabelColor: '#22d3ee', // Cyan for "Current" label
-  valueLabelColor: '#22d3ee', // Cyan for value labels
+  tooltipBg: 'hsl(var(--popover))',
+  tooltipText: 'hsl(var(--primary))',
+  currentLabelColor: 'hsl(var(--primary))',
+  valueLabelColor: 'hsl(var(--primary))',
   envelopeBarColor: '#8b5cf6', // Purple for mission envelope bars
 } as const;
 
