@@ -3,16 +3,17 @@
  * Enhanced lighting and composition
  */
 
-import { memo, useCallback, useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { TrajectoryData, extractEventMarkers, downsampleFrames } from '../../utils/three/threeUtils';
+import { TrajectoryData, extractEventMarkers, downsampleFrames, TrajectoryFrame } from '../../utils/three/threeUtils';
 import { VisualizerSettings } from './useVisualizerState';
 import { Planet } from '../../data/planets';
 import { EarthScene } from './EarthScene';
 import { RocketModel } from './RocketModel';
 import { TrajectoryPath } from './TrajectoryPath';
 import { Markers } from './Markers';
+import { StageSeparation } from './StageSeparation';
 import { CameraController } from './CameraController';
 import { EffectsStack } from './EffectsStack';
 import { isDevEnv } from '@/lib/env';
@@ -40,6 +41,30 @@ export const VisualizerScene = memo(function VisualizerScene({
 }: VisualizerSceneProps) {
   const { gl } = useThree();
   const frames = trajectoryData?.frames ?? [];
+  
+  // Track active stage separation events
+  const [activeSeparations, setActiveSeparations] = useState<Array<{ id: string; frame: TrajectoryFrame }>>([]);
+  const triggeredSeparations = useRef(new Set<number>());
+  
+  // Detect stage separation events as playback progresses
+  const prevFrameIndex = useRef(currentFrameIndex);
+  useEffect(() => {
+    if (frames.length === 0 || !settings.showStaging) return;
+    
+    const start = Math.min(prevFrameIndex.current, currentFrameIndex);
+    const end = Math.max(prevFrameIndex.current, currentFrameIndex);
+    
+    for (let i = start; i <= end && i < frames.length; i++) {
+      const frame = frames[i];
+      if (frame.events?.includes('stageSep') && !triggeredSeparations.current.has(i)) {
+        triggeredSeparations.current.add(i);
+        const sepId = `sep-${i}-${Date.now()}`;
+        setActiveSeparations(prev => [...prev, { id: sepId, frame }]);
+      }
+    }
+    
+    prevFrameIndex.current = currentFrameIndex;
+  }, [currentFrameIndex, frames, settings.showStaging]);
 
   useEffect(() => {
     if (!gl?.domElement) {
@@ -203,6 +228,17 @@ export const VisualizerScene = memo(function VisualizerScene({
             thrustLevel={currentFrame.mass ? 1.0 : 0}
           />
         )}
+
+        {/* Stage separation effects */}
+        {activeSeparations.map((sep) => (
+          <StageSeparation
+            key={sep.id}
+            frame={sep.frame}
+            onComplete={() => {
+              setActiveSeparations(prev => prev.filter(s => s.id !== sep.id));
+            }}
+          />
+        ))}
 
         <CameraController
           mode={settings.cameraMode}
