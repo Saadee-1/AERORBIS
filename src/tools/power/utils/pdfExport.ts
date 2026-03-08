@@ -164,7 +164,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
     }
     .recommendation {
       background-color: #dbeafe;
-      border-left: 4px solid #3b82f6;
+      border-left: 4px solid #059669;
       padding: 12px 16px;
       margin: 12px 0;
       border-radius: 4px;
