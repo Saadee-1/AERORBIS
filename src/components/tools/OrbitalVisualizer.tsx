@@ -9,12 +9,12 @@
  * - Added warning for Hohmann transfer when initial orbit is not circular (e > 0.01)
  * - Added physics formula comments and test cases
  * - Fixed computeLineDistances call order for dashed lines
+ * - CINEMATIC UPGRADE: Procedural Earth shaders, bloom post-processing, glowing orbit tubes, satellite trail
  */
 
 import { useState, useEffect, useRef } from "react";
 import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
 import { CalculationOverlay } from "@/components/common/CalculationOverlay";
-import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2 } from "lucide-react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { useToolContext } from "@/hooks/useToolContext";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
@@ -43,11 +46,9 @@ import { useToast } from "@/hooks/use-toast";
 type UnitSystem = "SI" | "Imperial" | "Custom";
 
 // --- Constants ---
-// Physics: Earth's gravitational parameter μ = GM (km³/s²)
-const GM_EARTH = 398600.4418; // Earth's gravitational parameter (km³/s²)
-// Unit conversion constants (fixed values)
-const KM_TO_MI = 0.621371; // 1 km = 0.621371 miles
-const MI_TO_KM = 1.60934; // 1 mile = 1.60934 km
+const GM_EARTH = 398600.4418;
+const KM_TO_MI = 0.621371;
+const MI_TO_KM = 1.60934;
 
 interface OrbitalInputs {
   periapsisAltitude: string;
@@ -58,14 +59,13 @@ interface OrbitalInputs {
   targetAltitude: string;
 }
 
-// Interface for orbital parameters used in propagation
 interface OrbitalParams {
-  semiMajorAxis: number; // km
+  semiMajorAxis: number;
   eccentricity: number;
-  inclination: number; // radians
-  GM: number; // km³/s²
-  periapsisRadius: number; // km
-  meanAnomaly0: number; // Initial mean anomaly (radians)
+  inclination: number;
+  GM: number;
+  periapsisRadius: number;
+  meanAnomaly0: number;
 }
 
 interface SavedOrbit {
@@ -78,11 +78,249 @@ const STORAGE_KEY_CUSTOM_ORBITS = "orbitalVisualizer_customOrbits";
 
 type ToolPayload = {
   tool: string;
-  // TODO: refine type for `inputs` — changed any -> unknown automatically by chore/typed-cleanup
   inputs: Record<string, unknown>;
-  // TODO: refine type for `results` — changed any -> unknown automatically by chore/typed-cleanup
   results: Record<string, unknown>;
 };
+
+// ─── Procedural Earth Shaders ───────────────────────────────────────────────
+const EARTH_VERTEX = `
+varying vec3 vNormal;
+varying vec3 vPosition;
+varying vec2 vUv;
+void main() {
+  vNormal = normalize(normalMatrix * normal);
+  vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+const EARTH_FRAGMENT = `
+uniform float time;
+uniform vec3 sunDirection;
+varying vec3 vNormal;
+varying vec3 vPosition;
+varying vec2 vUv;
+
+// Simple hash-based noise
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash(i);
+  float b = hash(i + vec2(1.0, 0.0));
+  float c = hash(i + vec2(0.0, 1.0));
+  float d = hash(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float fbm(vec2 p) {
+  float v = 0.0;
+  float a = 0.5;
+  for (int i = 0; i < 6; i++) {
+    v += a * noise(p);
+    p *= 2.1;
+    a *= 0.5;
+  }
+  return v;
+}
+
+void main() {
+  vec3 normal = normalize(vNormal);
+  
+  // Procedural continents
+  vec2 uv = vUv * 8.0;
+  float continent = fbm(uv + vec2(time * 0.001, 0.0));
+  float detail = fbm(uv * 3.0 + vec2(0.0, time * 0.002));
+  
+  // Ice caps based on latitude
+  float latitude = abs(vUv.y - 0.5) * 2.0;
+  float iceCap = smoothstep(0.82, 0.95, latitude);
+  
+  // Ocean / Land distinction
+  float landMask = smoothstep(0.42, 0.52, continent + detail * 0.15);
+  
+  // Colors
+  vec3 deepOcean = vec3(0.02, 0.06, 0.18);
+  vec3 shallowOcean = vec3(0.04, 0.15, 0.35);
+  vec3 land = vec3(0.08, 0.22, 0.06);
+  vec3 desert = vec3(0.35, 0.28, 0.15);
+  vec3 mountain = vec3(0.25, 0.22, 0.18);
+  vec3 ice = vec3(0.85, 0.9, 0.95);
+  
+  // Blend ocean
+  float oceanDepth = fbm(uv * 2.0);
+  vec3 oceanColor = mix(deepOcean, shallowOcean, oceanDepth);
+  
+  // Blend land types
+  float elevation = fbm(uv * 4.0);
+  vec3 landColor = mix(land, desert, smoothstep(0.4, 0.6, elevation));
+  landColor = mix(landColor, mountain, smoothstep(0.65, 0.8, elevation));
+  
+  // Combine
+  vec3 surfaceColor = mix(oceanColor, landColor, landMask);
+  surfaceColor = mix(surfaceColor, ice, iceCap);
+  
+  // Lighting - Lambertian diffuse
+  float diffuse = max(dot(normal, sunDirection), 0.0);
+  
+  // City lights on dark side
+  float nightSide = 1.0 - smoothstep(-0.05, 0.15, diffuse);
+  float cities = step(0.72, fbm(uv * 12.0)) * landMask * nightSide;
+  vec3 cityGlow = vec3(1.0, 0.85, 0.4) * cities * 0.8;
+  
+  // Atmosphere scattering at edges
+  float fresnel = pow(1.0 - max(dot(normal, normalize(cameraPosition - vPosition)), 0.0), 3.0);
+  vec3 atmosScatter = vec3(0.3, 0.5, 1.0) * fresnel * 0.3;
+  
+  // Final color
+  vec3 dayColor = surfaceColor * (0.08 + diffuse * 1.2);
+  vec3 finalColor = dayColor + cityGlow + atmosScatter;
+  
+  // Ocean specular
+  if (landMask < 0.5) {
+    vec3 viewDir = normalize(cameraPosition - vPosition);
+    vec3 halfDir = normalize(sunDirection + viewDir);
+    float spec = pow(max(dot(normal, halfDir), 0.0), 80.0) * diffuse;
+    finalColor += vec3(0.6, 0.7, 0.8) * spec * 0.5;
+  }
+  
+  gl_FragColor = vec4(finalColor, 1.0);
+}`;
+
+// ─── Atmosphere Glow Shader ─────────────────────────────────────────────────
+const ATMO_VERTEX = `
+varying vec3 vNormal;
+varying vec3 vPosition;
+void main() {
+  vNormal = normalize(normalMatrix * normal);
+  vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+const ATMO_FRAGMENT = `
+varying vec3 vNormal;
+varying vec3 vPosition;
+uniform vec3 sunDirection;
+void main() {
+  vec3 normal = normalize(vNormal);
+  vec3 viewDir = normalize(cameraPosition - vPosition);
+  float intensity = pow(0.65 - dot(normal, viewDir), 4.0);
+  float sunFacing = max(dot(normal, sunDirection) * 0.5 + 0.5, 0.15);
+  vec3 col = mix(vec3(0.1, 0.3, 0.8), vec3(0.3, 0.6, 1.0), intensity);
+  gl_FragColor = vec4(col * sunFacing, intensity * 0.7);
+}`;
+
+// ─── Orbit Glow Shader ─────────────────────────────────────────────────────
+const ORBIT_GLOW_VERTEX = `
+attribute float alpha;
+varying float vAlpha;
+void main() {
+  vAlpha = alpha;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+const ORBIT_GLOW_FRAGMENT = `
+uniform vec3 color;
+uniform float opacity;
+varying float vAlpha;
+void main() {
+  gl_FragColor = vec4(color, opacity * vAlpha);
+}`;
+
+// ─── Build Satellite ────────────────────────────────────────────────────────
+function buildSatelliteMesh(): THREE.Group {
+  const group = new THREE.Group();
+
+  // Main body - metallic capsule
+  const bodyGeo = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 12);
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: 0xcccccc,
+    metalness: 0.8,
+    roughness: 0.2,
+    emissive: 0x111111,
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.rotation.z = Math.PI / 2;
+  group.add(body);
+
+  // Solar panels
+  const panelGeo = new THREE.BoxGeometry(0.05, 1.6, 0.8);
+  const panelMat = new THREE.MeshStandardMaterial({
+    color: 0x1a2a6c,
+    metalness: 0.4,
+    roughness: 0.3,
+    emissive: 0x0a1a4c,
+  });
+  const leftPanel = new THREE.Mesh(panelGeo, panelMat);
+  leftPanel.position.set(0, 0, 1.0);
+  group.add(leftPanel);
+
+  const rightPanel = new THREE.Mesh(panelGeo, panelMat);
+  rightPanel.position.set(0, 0, -1.0);
+  group.add(rightPanel);
+
+  // Panel struts
+  const strutGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.6, 6);
+  const strutMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.6 });
+  const leftStrut = new THREE.Mesh(strutGeo, strutMat);
+  leftStrut.position.set(0, 0, 0.6);
+  leftStrut.rotation.x = Math.PI / 2;
+  group.add(leftStrut);
+
+  const rightStrut = new THREE.Mesh(strutGeo, strutMat);
+  rightStrut.position.set(0, 0, -0.6);
+  rightStrut.rotation.x = Math.PI / 2;
+  group.add(rightStrut);
+
+  // Antenna dish
+  const dishGeo = new THREE.ConeGeometry(0.25, 0.15, 12);
+  const dishMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, metalness: 0.5 });
+  const dish = new THREE.Mesh(dishGeo, dishMat);
+  dish.position.set(0, 0.8, 0);
+  group.add(dish);
+
+  return group;
+}
+
+// ─── Build cinematic starfield ──────────────────────────────────────────────
+function buildStarfield(scene: THREE.Scene): { geometry: THREE.BufferGeometry; points: THREE.Points }[] {
+  const layers: { geometry: THREE.BufferGeometry; points: THREE.Points }[] = [];
+  
+  const configs = [
+    { count: 4000, size: 3, spread: 80000, color: 0xffffff },
+    { count: 1500, size: 6, spread: 90000, color: 0xaaddff },
+    { count: 300, size: 10, spread: 70000, color: 0xffeedd },
+  ];
+
+  configs.forEach(cfg => {
+    const verts = [];
+    for (let i = 0; i < cfg.count; i++) {
+      verts.push(
+        THREE.MathUtils.randFloatSpread(cfg.spread),
+        THREE.MathUtils.randFloatSpread(cfg.spread),
+        THREE.MathUtils.randFloatSpread(cfg.spread)
+      );
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    const mat = new THREE.PointsMaterial({
+      color: cfg.color,
+      size: cfg.size,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const pts = new THREE.Points(geo, mat);
+    scene.add(pts);
+    layers.push({ geometry: geo, points: pts });
+  });
+
+  return layers;
+}
 
 const OrbitalVisualizer = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
@@ -136,7 +374,6 @@ const OrbitalVisualizer = () => {
     };
   });
 
-  // --- Preset Orbital Configurations ---
   const presets = {
     ISS: {
       periapsisAltitude: "408",
@@ -214,18 +451,29 @@ const OrbitalVisualizer = () => {
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
+    composer: EffectComposer;
     controls: OrbitControls;
     earth: THREE.Mesh;
     atmosphere: THREE.Mesh;
-    orbitLine: THREE.Line;
+    innerAtmosphere: THREE.Mesh;
+    cloudLayer: THREE.Mesh;
+    orbitTube: THREE.Mesh;
+    orbitGlow: THREE.Mesh;
     transferOrbitLine: THREE.Line;
-    satellite: THREE.Mesh;
+    satellite: THREE.Group;
+    satelliteLight: THREE.PointLight;
+    trailPoints: THREE.Points;
+    trailPositions: Float32Array;
+    trailIndex: number;
     animationId: number;
     lastTime: number;
     orbitalParams: OrbitalParams | null;
     orbitPoints: THREE.Vector3[];
-    stars: THREE.Points;
-    starsGeometry: THREE.BufferGeometry;
+    starLayers: { geometry: THREE.BufferGeometry; points: THREE.Points }[];
+    earthMaterial: THREE.ShaderMaterial;
+    sunDirection: THREE.Vector3;
+    disposables: THREE.Material[];
+    disposableGeometries: THREE.BufferGeometry[];
   } | null>(null);
 
   // --- LocalStorage Effects ---
@@ -236,22 +484,14 @@ const OrbitalVisualizer = () => {
   useEffect(() => {
     const stored = localStorage.getItem("orbitalCustomUnitNames");
     if (stored) {
-      try {
-        setCustomUnitNames(JSON.parse(stored));
-      } catch (e) {
-        console.warn("Failed to load custom unit names");
-      }
+      try { setCustomUnitNames(JSON.parse(stored)); } catch (e) { console.warn("Failed to load custom unit names"); }
     }
   }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("orbitalCustomFactors");
     if (stored) {
-      try {
-        setCustomFactors(JSON.parse(stored));
-      } catch (e) {
-        console.warn("Failed to load custom factors");
-      }
+      try { setCustomFactors(JSON.parse(stored)); } catch (e) { console.warn("Failed to load custom factors"); }
     }
   }, []);
 
@@ -272,10 +512,9 @@ const OrbitalVisualizer = () => {
     const key = (param === "periapsisAltitude" || param === "centralBodyRadius" || param === "targetAltitude") ? "dist" : "other";
     if (key !== "dist") return value;
 
-    // Convert to SI first
     let valueInSI = value;
     if (unitSystem === "Imperial") {
-      valueInSI = value * MI_TO_KM; // miles to km
+      valueInSI = value * MI_TO_KM;
     } else if (unitSystem === "Custom") {
       const factor = parseFloat(customFactors.dist);
       if (!isNaN(factor) && factor > 0) {
@@ -283,9 +522,8 @@ const OrbitalVisualizer = () => {
       }
     }
 
-    // Convert from SI to target
     if (to === "SI") return valueInSI;
-    if (to === "Imperial") return valueInSI * KM_TO_MI; // km to miles
+    if (to === "Imperial") return valueInSI * KM_TO_MI;
     if (to === "Custom") {
       const factor = parseFloat(customFactors.dist);
       if (!isNaN(factor) && factor > 0) {
@@ -312,15 +550,13 @@ const OrbitalVisualizer = () => {
   };
 
   // Physics: Solve Kepler's equation E - e*sin(E) = M using Newton-Raphson
-  // where E = eccentric anomaly, M = mean anomaly, e = eccentricity
   const solveKeplersEquation = (M: number, e: number, maxIterations = 50, tolerance = 1e-10): number => {
-    if (e < 1e-6) return M; // Near-circular: E ≈ M
-    
-    let E = M; // Initial guess
+    if (e < 1e-6) return M;
+    let E = M;
     for (let i = 0; i < maxIterations; i++) {
       const f = E - e * Math.sin(E) - M;
       const fPrime = 1 - e * Math.cos(E);
-      if (Math.abs(fPrime) < 1e-10) break; // Avoid division by zero
+      if (Math.abs(fPrime) < 1e-10) break;
       const deltaE = f / fPrime;
       E -= deltaE;
       if (Math.abs(deltaE) < tolerance) break;
@@ -329,30 +565,25 @@ const OrbitalVisualizer = () => {
   };
 
   // Physics: Convert eccentric anomaly E to true anomaly ν
-  // tan(ν/2) = sqrt((1+e)/(1-e)) * tan(E/2)
   const eccentricToTrueAnomaly = (E: number, e: number): number => {
-    if (e < 1e-6) return E; // Near-circular: ν ≈ E
+    if (e < 1e-6) return E;
     const sqrtTerm = Math.sqrt((1 + e) / (1 - e));
     const nu = 2 * Math.atan2(sqrtTerm * Math.sin(E / 2), Math.cos(E / 2));
     return nu;
   };
 
   // Physics: Get position vector from true anomaly
-  // r = a(1 - e²) / (1 + e*cos(ν))
   const getPositionFromTrueAnomaly = (nu: number, params: OrbitalParams): THREE.Vector3 => {
     const { semiMajorAxis, eccentricity, periapsisRadius } = params;
     const r = (semiMajorAxis * (1 - eccentricity * eccentricity)) / (1 + eccentricity * Math.cos(nu));
     
-    // Position in orbital plane (X-Y)
     const x_orbital = r * Math.cos(nu);
     const y_orbital = r * Math.sin(nu);
     
-    // Apply focal offset (Kepler's 1st Law: focus at one end)
     const focalDistance = semiMajorAxis * eccentricity;
     const x_offset = x_orbital - focalDistance;
     const y_offset = y_orbital;
     
-    // Rotate for inclination around X-axis
     const x_final = x_offset;
     const y_final = y_offset * Math.cos(params.inclination);
     const z_final = y_offset * Math.sin(params.inclination);
@@ -360,128 +591,241 @@ const OrbitalVisualizer = () => {
     return new THREE.Vector3(x_final, y_final, z_final);
   };
 
-  // --- Three.js Initialization ---
+  // ─── Three.js Cinematic Initialization ────────────────────────────────────
   useEffect(() => {
     if (!canvasRef.current || threeRef.current) return;
 
     let cleanup: (() => void) | undefined;
+    const disposables: THREE.Material[] = [];
+    const disposableGeometries: THREE.BufferGeometry[] = [];
 
     try {
       const canvas = canvasRef.current;
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x020617);
+      scene.background = new THREE.Color(0x000308);
+      scene.fog = new THREE.FogExp2(0x000308, 0.000008);
 
-      const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 100000);
-      camera.position.set(0, 15000, 20000);
+      const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 200000);
+      camera.position.set(0, 12000, 22000);
       
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        powerPreference: 'high-performance',
+      });
       renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.2;
 
+      // ── Post-processing: Bloom ──
+      const composer = new EffectComposer(renderer);
+      const renderPass = new RenderPass(scene, camera);
+      composer.addPass(renderPass);
+
+      const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(canvas.clientWidth, canvas.clientHeight),
+        0.6,   // strength
+        0.4,   // radius
+        0.85   // threshold
+      );
+      composer.addPass(bloomPass);
+
+      // ── Controls ──
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
+      controls.dampingFactor = 0.04;
       controls.minDistance = 1000;
-      controls.maxDistance = 50000;
+      controls.maxDistance = 80000;
+      controls.rotateSpeed = 0.5;
+      controls.zoomSpeed = 0.8;
 
-      // Add stars
-      const starsVertices = [];
-      for (let i = 0; i < 2000; i++) {
-        starsVertices.push(THREE.MathUtils.randFloatSpread(100000));
-        starsVertices.push(THREE.MathUtils.randFloatSpread(100000));
-        starsVertices.push(THREE.MathUtils.randFloatSpread(100000));
-      }
-      const starsGeometry = new THREE.BufferGeometry();
-      starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-      const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 5, sizeAttenuation: true });
-      const stars = new THREE.Points(starsGeometry, starsMaterial);
-      scene.add(stars);
+      // ── Sun direction ──
+      const sunDirection = new THREE.Vector3(1, 0.3, 0.5).normalize();
 
-      // Add Central Body (Earth)
-      const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
-      const earthMaterial = new THREE.MeshPhongMaterial({ color: 0x2288ff, emissive: 0x112244, shininess: 30 });
-      const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+      // ── Starfield ──
+      const starLayers = buildStarfield(scene);
+
+      // ── Procedural Earth ──
+      const earthGeo = new THREE.SphereGeometry(1, 128, 64);
+      disposableGeometries.push(earthGeo);
+      const earthMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          time: { value: 0.0 },
+          sunDirection: { value: sunDirection },
+        },
+        vertexShader: EARTH_VERTEX,
+        fragmentShader: EARTH_FRAGMENT,
+      });
+      disposables.push(earthMaterial);
+      const earth = new THREE.Mesh(earthGeo, earthMaterial);
       scene.add(earth);
 
-      // Add Atmosphere
-      const atmosphereGeometry = new THREE.SphereGeometry(1, 64, 64);
-      const atmosphereMaterial = new THREE.ShaderMaterial({
-        uniforms: { "c": { value: 0.1 }, "p": { value: 6.0 } },
-        vertexShader: `
-        varying vec3 vNormal;
-        void main() {
-          vNormal = normalize( normalMatrix * normal );
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vNormal;
-        void main() {
-          float intensity = pow( 0.7 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 6.0 );
-          gl_FragColor = vec4( 0.0, 0.5, 1.0, 1.0 ) * intensity;
-        }
-      `,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      transparent: true
+      // ── Cloud layer ──
+      const cloudGeo = new THREE.SphereGeometry(1.005, 64, 32);
+      disposableGeometries.push(cloudGeo);
+      const cloudMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.12,
+        depthWrite: false,
       });
-      const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+      disposables.push(cloudMat);
+      const cloudLayer = new THREE.Mesh(cloudGeo, cloudMat);
+      scene.add(cloudLayer);
+
+      // ── Outer atmosphere glow ──
+      const atmoGeo = new THREE.SphereGeometry(1.06, 64, 32);
+      disposableGeometries.push(atmoGeo);
+      const atmoMat = new THREE.ShaderMaterial({
+        uniforms: {
+          sunDirection: { value: sunDirection },
+        },
+        vertexShader: ATMO_VERTEX,
+        fragmentShader: ATMO_FRAGMENT,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+      });
+      disposables.push(atmoMat);
+      const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
       scene.add(atmosphere);
 
-      // Add Lights
-      scene.add(new THREE.AmbientLight(0x404040, 2));
-      const sunLight = new THREE.DirectionalLight(0xffffff, 3);
-      sunLight.position.set(1, 0, 0.5);
+      // ── Inner atmosphere rim ──
+      const innerAtmoGeo = new THREE.SphereGeometry(1.015, 64, 32);
+      disposableGeometries.push(innerAtmoGeo);
+      const innerAtmoMat = new THREE.MeshBasicMaterial({
+        color: 0x4488ff,
+        transparent: true,
+        opacity: 0.04,
+        side: THREE.FrontSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      disposables.push(innerAtmoMat);
+      const innerAtmosphere = new THREE.Mesh(innerAtmoGeo, innerAtmoMat);
+      scene.add(innerAtmosphere);
+
+      // ── Cinematic Lighting ──
+      // Key light (Sun)
+      const sunLight = new THREE.DirectionalLight(0xfff8e7, 2.5);
+      sunLight.position.copy(sunDirection.clone().multiplyScalar(50000));
       scene.add(sunLight);
 
-      // Satellite
-      const satelliteGeometry = new THREE.SphereGeometry(1, 16, 16);
-      const satelliteMaterial = new THREE.MeshPhongMaterial({ color: 0xff4444, emissive: 0xff0000 });
-      const satellite = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
+      // Fill light
+      const fillLight = new THREE.DirectionalLight(0x4488cc, 0.3);
+      fillLight.position.set(-10000, -5000, -8000);
+      scene.add(fillLight);
+
+      // Rim light
+      const rimLight = new THREE.DirectionalLight(0xaaccff, 0.4);
+      rimLight.position.set(0, 15000, -10000);
+      scene.add(rimLight);
+
+      // Ambient
+      scene.add(new THREE.AmbientLight(0x182040, 0.5));
+
+      // Hemisphere
+      const hemiLight = new THREE.HemisphereLight(0x6688cc, 0x222244, 0.15);
+      scene.add(hemiLight);
+
+      // ── Satellite ──
+      const satellite = buildSatelliteMesh();
       scene.add(satellite);
 
-      // Orbit Lines
-      const orbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: 2 }));
-      scene.add(orbitLine);
-      const transferOrbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineDashedMaterial({ color: 0xffaa00, dashSize: 200, gapSize: 100, linewidth: 2 }));
+      // Satellite point light (subtle glow)
+      const satelliteLight = new THREE.PointLight(0x44aaff, 0.5, 2000);
+      satellite.add(satelliteLight);
+
+      // ── Satellite Trail ──
+      const TRAIL_LENGTH = 400;
+      const trailPositions = new Float32Array(TRAIL_LENGTH * 3);
+      const trailAlphas = new Float32Array(TRAIL_LENGTH);
+      for (let i = 0; i < TRAIL_LENGTH; i++) {
+        trailAlphas[i] = i / TRAIL_LENGTH;
+      }
+      const trailGeo = new THREE.BufferGeometry();
+      trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+      trailGeo.setAttribute('alpha', new THREE.BufferAttribute(trailAlphas, 1));
+      disposableGeometries.push(trailGeo);
+      const trailMat = new THREE.ShaderMaterial({
+        uniforms: {
+          color: { value: new THREE.Color(0x22d3ee) },
+          opacity: { value: 0.6 },
+        },
+        vertexShader: ORBIT_GLOW_VERTEX,
+        fragmentShader: ORBIT_GLOW_FRAGMENT,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      disposables.push(trailMat);
+      const trailPoints = new THREE.Points(trailGeo, trailMat);
+      trailPoints.frustumCulled = false;
+      scene.add(trailPoints);
+
+      // ── Orbit Tube (placeholder, built on calculate) ──
+      const orbitTube = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial());
+      scene.add(orbitTube);
+      const orbitGlow = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial());
+      scene.add(orbitGlow);
+
+      // ── Transfer orbit line ──
+      const transferOrbitLine = new THREE.Line(
+        new THREE.BufferGeometry(),
+        new THREE.LineDashedMaterial({ color: 0xffaa00, dashSize: 200, gapSize: 100, linewidth: 2 })
+      );
       scene.add(transferOrbitLine);
 
-      // FIXED: Time-based Kepler propagation animation
+      // ── Animation Loop ──
       let lastTime = performance.now();
+      let trailIndex = 0;
+
       const animate = () => {
         const animationId = requestAnimationFrame(animate);
         const currentTime = performance.now();
-        const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+        const deltaTime = (currentTime - lastTime) / 1000;
         lastTime = currentTime;
         
-        earth.rotation.y += 0.0005;
+        // Rotate Earth slowly
+        earth.rotation.y += 0.0003;
+        cloudLayer.rotation.y += 0.00035;
+
+        // Update earth shader time
+        earthMaterial.uniforms.time.value = currentTime * 0.001;
+
         controls.update();
 
-        // FIXED: Use Kepler propagation for physically accurate motion
-        if (threeRef.current?.orbitalParams && threeRef.current.orbitalParams) {
+        // Kepler propagation for satellite (physics frozen)
+        if (threeRef.current?.orbitalParams) {
           const params = threeRef.current.orbitalParams;
-          
-          // Physics: Mean motion n = sqrt(μ / a³)
           const meanMotion = Math.sqrt(params.GM / Math.pow(params.semiMajorAxis, 3));
-          
-          // Physics: Mean anomaly M = M₀ + n * t
           const meanAnomaly = (params.meanAnomaly0 + meanMotion * deltaTime) % (2 * Math.PI);
-          
-          // Solve Kepler's equation for eccentric anomaly
           const eccentricAnomaly = solveKeplersEquation(meanAnomaly, params.eccentricity);
-          
-          // Convert to true anomaly
           const trueAnomaly = eccentricToTrueAnomaly(eccentricAnomaly, params.eccentricity);
-          
-          // Get position from true anomaly
           const position = getPositionFromTrueAnomaly(trueAnomaly, params);
-          satellite.position.copy(position);
           
-          // Update stored mean anomaly for next frame
+          satellite.position.copy(position);
+          satellite.lookAt(new THREE.Vector3(0, 0, 0));
+          satelliteLight.position.set(0, 0, 0);
+
+          // Update trail
+          if (threeRef.current) {
+            const tp = threeRef.current.trailPositions;
+            const idx = threeRef.current.trailIndex % TRAIL_LENGTH;
+            tp[idx * 3] = position.x;
+            tp[idx * 3 + 1] = position.y;
+            tp[idx * 3 + 2] = position.z;
+            threeRef.current.trailIndex++;
+            trailGeo.attributes.position.needsUpdate = true;
+          }
+
           threeRef.current.orbitalParams.meanAnomaly0 = meanAnomaly;
         }
 
-        renderer.render(scene, camera);
+        // Render with bloom
+        composer.render();
 
         if (threeRef.current) {
           threeRef.current.animationId = animationId;
@@ -489,24 +833,26 @@ const OrbitalVisualizer = () => {
         }
       };
       
-      // Store all objects in the ref
       threeRef.current = { 
-        scene, camera, renderer, controls, 
-        earth, atmosphere, 
-        orbitLine, transferOrbitLine, 
-        satellite, 
+        scene, camera, renderer, composer, controls, 
+        earth, atmosphere, innerAtmosphere, cloudLayer,
+        orbitTube, orbitGlow, transferOrbitLine, 
+        satellite, satelliteLight,
+        trailPoints, trailPositions, trailIndex: 0,
         animationId: 0, 
         lastTime: performance.now(),
         orbitalParams: null,
         orbitPoints: [],
-        stars,
-        starsGeometry
+        starLayers,
+        earthMaterial,
+        sunDirection,
+        disposables,
+        disposableGeometries,
       };
       
       animate();
       setVisualizerError(null);
 
-      // Handle Resize
       const handleResize = () => {
         const t = threeRef.current;
         if (!canvasRef.current || !t) return;
@@ -514,43 +860,21 @@ const OrbitalVisualizer = () => {
         t.camera.aspect = clientWidth / clientHeight;
         t.camera.updateProjectionMatrix();
         t.renderer.setSize(clientWidth, clientHeight);
+        t.composer.setSize(clientWidth, clientHeight);
       };
       window.addEventListener('resize', handleResize);
       
-      // Initial calculation
       calculateOrbit(inputs);
 
       cleanup = () => {
         window.removeEventListener('resize', handleResize);
         if (threeRef.current) {
           cancelAnimationFrame(threeRef.current.animationId);
-          
-          // Dispose geometries
-          if (threeRef.current.orbitLine.geometry) {
-            threeRef.current.orbitLine.geometry.dispose();
-          }
-          if (threeRef.current.transferOrbitLine.geometry) {
-            threeRef.current.transferOrbitLine.geometry.dispose();
-          }
-          if (threeRef.current.starsGeometry) {
-            threeRef.current.starsGeometry.dispose();
-          }
-          
-          // Dispose materials
-          (threeRef.current.orbitLine.material as THREE.Material).dispose();
-          (threeRef.current.transferOrbitLine.material as THREE.Material).dispose();
-          (threeRef.current.stars.material as THREE.Material).dispose();
-          (threeRef.current.earth.material as THREE.Material).dispose();
-          (threeRef.current.atmosphere.material as THREE.Material).dispose();
-          (threeRef.current.satellite.material as THREE.Material).dispose();
-          
-          // Dispose geometries
-          (threeRef.current.earth.geometry as THREE.BufferGeometry).dispose();
-          (threeRef.current.atmosphere.geometry as THREE.BufferGeometry).dispose();
-          (threeRef.current.satellite.geometry as THREE.BufferGeometry).dispose();
-          
+          threeRef.current.disposables.forEach(m => m.dispose());
+          threeRef.current.disposableGeometries.forEach(g => g.dispose());
           threeRef.current.renderer.dispose();
           threeRef.current.controls.dispose();
+          threeRef.current.composer.dispose();
         }
         threeRef.current = null;
       };
@@ -563,7 +887,7 @@ const OrbitalVisualizer = () => {
     return cleanup;
   }, []);
 
-  // --- Calculation Functions ---
+  // --- Calculation Functions (PHYSICS FROZEN) ---
   const calculateOrbit = async (currentInputs: OrbitalInputs) => {
     setError("");
     setManeuverResult(null);
@@ -592,66 +916,56 @@ const OrbitalVisualizer = () => {
         throw new Error("Inclination must be between -180° and 180°");
       }
 
-      // FIXED: Handle near-circular edge cases
       if (eccentricity < 1e-6) {
         console.warn("Eccentricity is extremely small. Using circular orbit approximation.");
       }
 
-      // --- 1. CONVERT TO SI (km) ---
       const periapsisAlt_SI = (unitSystem === 'Imperial') ? convert(periapsisAltitude, "periapsisAltitude", "SI") : periapsisAltitude;
       const radius_SI = (unitSystem === 'Imperial') ? convert(centralBodyRadius, "centralBodyRadius", "SI") : centralBodyRadius;
       const inclinationRad = (inclination * Math.PI) / 180;
 
-      // --- 2. CORE CALCULATIONS ---
-      // Physics: Periapsis radius r_p = R + h_p
       const periapsisRadius = radius_SI + periapsisAlt_SI;
       
-      // Physics: Semi-major axis a = r_p / (1 - e)
-      // FIXED: Guard against division by zero for e = 1
       if (Math.abs(1 - eccentricity) < 1e-10) {
         throw new Error("Eccentricity too close to 1 (parabolic/hyperbolic orbit not supported)");
       }
       const semiMajorAxis = periapsisRadius / (1 - eccentricity);
-      
-      // Physics: Apoapsis radius r_a = a(1 + e)
       const apoapsisRadius = semiMajorAxis * (1 + eccentricity);
       const apoapsisAltitude = apoapsisRadius - radius_SI;
       
-      // Physics: Vis-viva equation v = sqrt(μ(2/r - 1/a))
       const periapsisVelocity = Math.sqrt(GM * ((2 / periapsisRadius) - (1 / semiMajorAxis)));
       const apoapsisVelocity = Math.sqrt(GM * ((2 / apoapsisRadius) - (1 / semiMajorAxis)));
       
-      // Physics: Kepler's 3rd Law: T = 2π√(a³/μ)
       const orbitalPeriod = 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / GM);
       const orbitalPeriodMinutes = orbitalPeriod / 60;
 
-      // --- 3. 3D VISUALIZATION ---
+      // ── Cinematic Orbit Visualization ──
       if (threeRef.current) {
         const t = threeRef.current;
         
+        // Scale Earth and atmosphere layers
         t.earth.scale.set(radius_SI, radius_SI, radius_SI);
-        const atmosScale = radius_SI + (radius_SI * 0.02);
+        const atmosScale = radius_SI * 1.06;
         t.atmosphere.scale.set(atmosScale, atmosScale, atmosScale);
+        t.innerAtmosphere.scale.set(radius_SI * 1.015, radius_SI * 1.015, radius_SI * 1.015);
+        t.cloudLayer.scale.set(radius_SI * 1.005, radius_SI * 1.005, radius_SI * 1.005);
         
-        const satScale = radius_SI * 0.015;
+        // Scale satellite
+        const satScale = radius_SI * 0.012;
         t.satellite.scale.set(satScale, satScale, satScale);
         
+        // Build orbit path points (physics frozen)
         const orbitPoints: THREE.Vector3[] = [];
-        const segments = 200;
-        
-        // Physics: Kepler's 1st Law - elliptical orbit with focus offset
+        const segments = 256;
         const focalDistance = semiMajorAxis * eccentricity;
         
         for (let i = 0; i <= segments; i++) {
           const theta = (i / segments) * 2 * Math.PI;
-          // Physics: Polar equation of ellipse r = a(1-e²)/(1+e*cos(θ))
           const r = (semiMajorAxis * (1 - eccentricity * eccentricity)) / (1 + eccentricity * Math.cos(theta));
           
-          // Position in orbital plane
           const x = (r * Math.cos(theta)) - focalDistance;
           const y = r * Math.sin(theta);
           
-          // Rotate for inclination around X-axis
           const x_final = x;
           const y_final = y * Math.cos(inclinationRad);
           const z_final = y * Math.sin(inclinationRad);
@@ -659,12 +973,43 @@ const OrbitalVisualizer = () => {
           orbitPoints.push(new THREE.Vector3(x_final, y_final, z_final));
         }
 
-        // FIXED: Dispose previous geometry before creating new one
-        if (t.orbitLine.geometry) {
-          t.orbitLine.geometry.dispose();
-        }
-        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints);
-        t.orbitLine.geometry = orbitGeometry;
+        // ── Build orbit as glowing tube ──
+        // Remove old meshes
+        if (t.orbitTube.geometry) t.orbitTube.geometry.dispose();
+        if (t.orbitTube.material instanceof THREE.Material) t.orbitTube.material.dispose();
+        if (t.orbitGlow.geometry) t.orbitGlow.geometry.dispose();
+        if (t.orbitGlow.material instanceof THREE.Material) t.orbitGlow.material.dispose();
+
+        const curve = new THREE.CatmullRomCurve3(orbitPoints, true, 'centripetal');
+        const tubeRadius = radius_SI * 0.003;
+        
+        // Main orbit tube
+        const tubeGeo = new THREE.TubeGeometry(curve, segments, tubeRadius, 8, true);
+        const tubeMat = new THREE.MeshStandardMaterial({
+          color: 0x22d3ee,
+          emissive: 0x0088aa,
+          emissiveIntensity: 0.8,
+          metalness: 0.3,
+          roughness: 0.4,
+          transparent: true,
+          opacity: 0.9,
+        });
+        t.orbitTube.geometry = tubeGeo;
+        t.orbitTube.material = tubeMat;
+
+        // Outer glow tube
+        const glowGeo = new THREE.TubeGeometry(curve, segments, tubeRadius * 3, 8, true);
+        const glowMat = new THREE.MeshBasicMaterial({
+          color: 0x22d3ee,
+          transparent: true,
+          opacity: 0.08,
+          side: THREE.DoubleSide,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        t.orbitGlow.geometry = glowGeo;
+        t.orbitGlow.material = glowMat;
+
         t.orbitPoints = orbitPoints;
         
         // Store orbital parameters for propagation
@@ -674,24 +1019,26 @@ const OrbitalVisualizer = () => {
           inclination: inclinationRad,
           GM,
           periapsisRadius,
-          meanAnomaly0: 0 // Start at periapsis (M = 0)
+          meanAnomaly0: 0
         };
+
+        // Reset trail
+        t.trailPositions.fill(0);
+        t.trailIndex = 0;
       }
 
-      // --- 4. SET RESULTS ---
       const resultData = {
-        semiMajorAxis: semiMajorAxis,
+        semiMajorAxis,
         orbitalPeriod: orbitalPeriodMinutes,
-        periapsisRadius: periapsisRadius,
-        apoapsisRadius: apoapsisRadius,
-        apoapsisAltitude: apoapsisAltitude,
-        periapsisVelocity: periapsisVelocity,
-        apoapsisVelocity: apoapsisVelocity,
-        inclination: inclination,
-        eccentricity: eccentricity,
+        periapsisRadius,
+        apoapsisRadius,
+        apoapsisAltitude,
+        periapsisVelocity,
+        apoapsisVelocity,
+        inclination,
+        eccentricity,
       };
       
-      // Generate calculation steps for PDF
       const calculationSteps = [
         `Periapsis radius: r_p = R + h_p = ${radius_SI.toFixed(2)} + ${periapsisAlt_SI.toFixed(2)} = ${periapsisRadius.toFixed(2)} km`,
         `Semi-major axis: a = r_p / (1 - e) = ${periapsisRadius.toFixed(2)} / (1 - ${eccentricity.toFixed(4)}) = ${semiMajorAxis.toFixed(2)} km`,
@@ -701,9 +1048,6 @@ const OrbitalVisualizer = () => {
         `Orbital period: T = 2π√(a³/μ) = ${orbitalPeriodMinutes.toFixed(2)} minutes`
       ];
       
-      // Send calculation event to assistant
-      const convertToDisplay = (val: number) => unitSystem === "Imperial" ? val * KM_TO_MI : val;
-      const unit = unitSystem === "Imperial" ? "mi" : "km";
       const toolInputs = {
         periapsisAltitude: periapsisAlt_SI,
         inclination,
@@ -739,7 +1083,7 @@ const OrbitalVisualizer = () => {
     }
   };
 
-  // --- Calculate Hohmann Transfer ---
+  // --- Calculate Hohmann Transfer (PHYSICS FROZEN) ---
   const calculateManeuver = () => {
     if (!orbitResult) {
       setError("Calculate the initial orbit (Part 1) first.");
@@ -759,7 +1103,6 @@ const OrbitalVisualizer = () => {
       const v1 = orbitResult.periapsisVelocity;
       
       const eccentricity = parseFloat(inputs.eccentricity);
-      // FIXED: Warn if initial orbit is not circular
       if (eccentricity > 0.01) {
         setError("Warning: Hohmann transfer calculation assumes a circular starting orbit (or burn at periapsis). Results are approximate for elliptical orbits.");
       }
@@ -769,25 +1112,17 @@ const OrbitalVisualizer = () => {
         throw new Error("Target altitude must be higher than current periapsis.");
       }
 
-      // Physics: Circular orbit velocity v = sqrt(μ/r)
       const v2 = Math.sqrt(GM / r2);
-
-      // Physics: Transfer orbit semi-major axis a_transfer = (r1 + r2) / 2
       const a_transfer = (r1 + r2) / 2;
-      
-      // Physics: Vis-viva equation for transfer orbit
       const v_transfer_1 = Math.sqrt(GM * (2/r1 - 1/a_transfer));
       const v_transfer_2 = Math.sqrt(GM * (2/r2 - 1/a_transfer));
 
-      // Calculate burns
       const delta_v1 = v_transfer_1 - v1;
       const delta_v2 = v2 - v_transfer_2;
       const total_dv = delta_v1 + delta_v2;
-      
-      // Physics: Transfer time = half period of transfer orbit
-      const transferTime = Math.PI * Math.sqrt(Math.pow(a_transfer, 3) / GM) / 60; // in minutes
+      const transferTime = Math.PI * Math.sqrt(Math.pow(a_transfer, 3) / GM) / 60;
 
-      // --- Draw Transfer Orbit ---
+      // Draw Transfer Orbit
       if (threeRef.current) {
         const t = threeRef.current;
         const e_transfer = (r2 - r1) / (r2 + r1);
@@ -798,7 +1133,7 @@ const OrbitalVisualizer = () => {
         const segments = 100;
         
         for (let i = 0; i <= segments; i++) {
-          const theta = (i / segments) * Math.PI; // Only 0 to Pi (half ellipse)
+          const theta = (i / segments) * Math.PI;
           const r = (a_transfer * (1 - e_transfer * e_transfer)) / (1 + e_transfer * Math.cos(theta));
           
           const x = (r * Math.cos(theta)) - focalDistance;
@@ -811,13 +1146,11 @@ const OrbitalVisualizer = () => {
           ));
         }
         
-        // FIXED: Dispose previous geometry
         if (t.transferOrbitLine.geometry) {
           t.transferOrbitLine.geometry.dispose();
         }
         const transferGeometry = new THREE.BufferGeometry().setFromPoints(transferPoints);
         t.transferOrbitLine.geometry = transferGeometry;
-        // FIXED: Compute line distances AFTER setting geometry for dashed lines
         t.transferOrbitLine.computeLineDistances();
       }
       
@@ -828,18 +1161,16 @@ const OrbitalVisualizer = () => {
     }
   };
 
-  // --- Helper to format for results display ---
   const format = (param: string, value: number) => {
     if (param === "dist") return `${value.toFixed(2)} ${getUnit("dist")}`;
     if (param === "vel") {
-      // FIXED: Convert velocity units correctly
       let converted = value;
       if (unitSystem === "Imperial") {
-        converted = value * KM_TO_MI; // km/s to mi/s
+        converted = value * KM_TO_MI;
       } else if (unitSystem === "Custom") {
         const factor = parseFloat(customFactors.vel);
         if (!isNaN(factor) && factor > 0) {
-          converted = value / factor; // Convert from SI (km/s) to custom
+          converted = value / factor;
         }
       }
       return `${converted.toFixed(3)} ${getUnit("vel")}`;
@@ -941,9 +1272,9 @@ const OrbitalVisualizer = () => {
 
       {/* 3D Visualization */}
         <AeroCard title="3D Orbital Visualization" icon={Orbit} className="mb-6">
-          <div className="relative rounded-xl overflow-hidden border border-border bg-black h-[450px]">
+          <div className="relative rounded-xl overflow-hidden border border-border bg-background h-[550px]">
             {visualizerError && (
-              <div className="absolute inset-0 flex items-center justify-center text-red-300 text-sm p-4 text-center z-10 bg-black/60">
+              <div className="absolute inset-0 flex items-center justify-center text-destructive text-sm p-4 text-center z-10 bg-background/80">
                 Unable to initialize 3D visualizer: {visualizerError}
               </div>
             )}
@@ -953,6 +1284,20 @@ const OrbitalVisualizer = () => {
               style={{ display: "block" }}
               aria-hidden={!!visualizerError}
             />
+            {/* Cinematic overlay labels */}
+            <div className="absolute bottom-3 left-3 flex gap-3 pointer-events-none">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-mono">
+                Kepler Propagation • ACES Filmic
+              </span>
+            </div>
+            <div className="absolute top-3 right-3 flex gap-2 pointer-events-none">
+              <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-mono border border-primary/20">
+                BLOOM
+              </span>
+              <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-mono border border-primary/20">
+                HDR
+              </span>
+            </div>
           </div>
       </AeroCard>
 
@@ -1074,7 +1419,6 @@ const OrbitalVisualizer = () => {
         {/* Right Column - Results */}
         <div>
           <div className={spacingVertical.L}>
-            {/* Results */}
             {orbitResult ? (
               <AeroCard
                 title="Orbit Results"
