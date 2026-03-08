@@ -300,7 +300,7 @@ const ToolsLauncher = () => {
             >
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               {!hideTabs && (
-                <TabsList className="flex flex-wrap w-full max-w-full mx-auto bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 p-3 gap-2 sm:gap-3 rounded-xl mb-8 overflow-hidden">
+                <TabsList className="flex flex-wrap w-full max-w-full mx-auto bg-muted/50 backdrop-blur-lg border border-border p-3 gap-2 sm:gap-3 rounded-xl mb-8 overflow-hidden">
                 <TabsTrigger 
                   value="thrust"
                   className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
