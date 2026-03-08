@@ -54,6 +54,8 @@ interface OrbitalInputs {
   periapsisAltitude: string;
   inclination: string;
   eccentricity: string;
+  raan: string;           // Right Ascension of Ascending Node (Ω) in degrees
+  argOfPeriapsis: string; // Argument of Periapsis (ω) in degrees
   centralBodyRadius: string;
   gm: string;
   targetAltitude: string;
@@ -62,10 +64,35 @@ interface OrbitalInputs {
 interface OrbitalParams {
   semiMajorAxis: number;
   eccentricity: number;
-  inclination: number;
+  inclination: number;   // rad
+  raan: number;          // rad (Ω)
+  argOfPeriapsis: number; // rad (ω)
   GM: number;
   periapsisRadius: number;
   meanAnomaly0: number;
+}
+
+// Physics: Rotate from perifocal frame to ECI using Ω, i, ω
+// R = R_z(-Ω) · R_x(-i) · R_z(-ω)
+function rotateToECI(
+  x_peri: number, y_peri: number,
+  incl: number, raan: number, argPeri: number
+): [number, number, number] {
+  const cosO = Math.cos(raan);
+  const sinO = Math.sin(raan);
+  const cosI = Math.cos(incl);
+  const sinI = Math.sin(incl);
+  const cosW = Math.cos(argPeri);
+  const sinW = Math.sin(argPeri);
+
+  // Combined rotation matrix elements (perifocal → ECI)
+  const x = (cosO * cosW - sinO * sinW * cosI) * x_peri +
+            (-cosO * sinW - sinO * cosW * cosI) * y_peri;
+  const y = (sinO * cosW + cosO * sinW * cosI) * x_peri +
+            (-sinO * sinW + cosO * cosW * cosI) * y_peri;
+  const z = (sinW * sinI) * x_peri + (cosW * sinI) * y_peri;
+
+  return [x, y, z];
 }
 
 interface SavedOrbit {
