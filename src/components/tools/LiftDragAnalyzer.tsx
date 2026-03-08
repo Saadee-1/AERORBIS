@@ -1713,7 +1713,7 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xl font-bold text-blue-400">
                       {typeof displayCheck.display.Lift === "number" ? convertFromSI(displayCheck.display.Lift, "force").toFixed(2) : displayCheck.display.Lift} {getUnit("force")}
                     </p>
-                        <p className="text-xs text-gray-500 mt-1">Vertical component balances weight in steady flight</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Vertical component balances weight in steady flight</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: Lift not displayable" : "Invalid lift force"}</p>
