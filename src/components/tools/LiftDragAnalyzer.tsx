@@ -1420,7 +1420,7 @@ const point: Record<string, unknown> = { alpha };
                   label={`Wing Span (${getUnit("span")})`}
                   helperText="Total wing span (tip-to-tip distance). Used with wing area to compute aspect ratio: AR = b²/S. Aspect ratio affects induced drag factor k = 1/(π × AR × e), where e is Oswald efficiency."
                 >
-                  <Input id="wingSpan" type="number" value={inputs.wingSpan} onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0" step="0.1" />
+                  <Input id="wingSpan" type="number" value={inputs.wingSpan} onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })} min="0" step="0.1" />
                 </AeroFormField>
               </div>
 
