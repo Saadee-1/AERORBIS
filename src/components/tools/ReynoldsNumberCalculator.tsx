@@ -731,7 +731,7 @@ const ReynoldsNumberCalculator = () => {
                   step="0.00000001" 
                   value={inputs.viscosity} 
                   onChange={(e) => handleInputChange("viscosity", e.target.value)} 
-                  className="bg-slate-900/50 border-cyan-400/30 text-white" 
+                  className="bg-muted/50" 
                   placeholder="e.g., 1.81e-5" 
                 />
               </AeroFormField>
