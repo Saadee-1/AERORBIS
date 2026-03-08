@@ -308,11 +308,11 @@ export function InlineInterlinkHint({
   const isImported = !isLocalValueEmpty && previousValue !== null && importedSessionValue !== undefined && valuesMatch(localValue, importedSessionValue);
   if (isImported) {
     return (
-      <div className={cn("text-[11px] text-cyan-400/80 mt-1 flex items-center gap-2", className)}>
+      <div className={cn("text-[11px] text-primary/80 mt-1 flex items-center gap-2", className)}>
         <span>Imported: {typeof importedSessionValue === 'number' ? importedSessionValue.toPrecision(4) : importedSessionValue}</span>
         <button
           onClick={handleUndo}
-          className="text-cyan-300 hover:text-cyan-200 underline"
+          className="text-primary hover:text-primary/80 underline"
         >
           Undo
         </button>
