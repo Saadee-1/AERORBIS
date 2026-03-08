@@ -38,19 +38,19 @@ export function AeroCard({
   titleBadge
 }: AeroCardProps) {
   return (
-    <Card className={`bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl ${className}`}>
+    <Card className={`bg-card backdrop-blur-lg border border-border rounded-2xl shadow-sm ${className}`}>
       {(title || Icon) && (
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {Icon && <Icon className="w-5 h-5 text-cyan-400" />}
+              {Icon && <Icon className="w-5 h-5 text-primary" />}
               {title && <CardTitle className={typography.cardTitle}>{title}</CardTitle>}
               {titleBadge}
             </div>
             {headerActions}
           </div>
           {description && (
-            <CardDescription className="text-gray-400">{description}</CardDescription>
+            <CardDescription className="text-muted-foreground">{description}</CardDescription>
           )}
         </CardHeader>
       )}
