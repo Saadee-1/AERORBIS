@@ -58,6 +58,7 @@ export { handleCalculate } from './handleCalculate';
 export default function StabilityCalculator() {
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
 
