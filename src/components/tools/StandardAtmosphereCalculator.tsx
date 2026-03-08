@@ -409,7 +409,7 @@ export default function StandardAtmosphereCalculator() {
             <AeroButton
               variant="primary"
               icon={Calculator}
-              onClick={calculate}
+              onClick={() => runCalculation(calculate)}
               disabled={!altitude.trim()}
             >
               Calculate

@@ -737,7 +737,7 @@ const ReynoldsNumberCalculator = () => {
               </AeroFormField>
               <AeroButton 
                 type="button" 
-                onClick={calculateReynolds} 
+                onClick={() => runCalculation(calculateReynolds)} 
                 variant="primary"
                 icon={Calculator}
                 className="w-full"
