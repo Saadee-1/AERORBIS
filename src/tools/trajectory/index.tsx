@@ -395,9 +395,9 @@ export default function TrajectorySimulator() {
       {/* Mode Selection */}
       <ToolSection>
         <div className="flex items-center gap-4 mb-4">
-          <Label className="text-sm font-semibold text-cyan-400">Simulation Mode:</Label>
+          <Label className="text-sm font-semibold text-primary">Simulation Mode:</Label>
           <Select value={mode} onValueChange={(value: '1D' | '2D' | '3D') => setMode(value)}>
-            <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30 text-white">
+            <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
