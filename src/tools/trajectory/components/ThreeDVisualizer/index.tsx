@@ -58,7 +58,7 @@ const Placeholder = ({
     <div className="relative w-full min-h-[600px] bg-slate-900 rounded-lg border border-slate-800 flex flex-col items-center justify-center text-gray-400 p-6">
       <p>Run a simulation to see the 3D visualization.</p>
       {IS_DEV && (
-        <pre className="mt-4 max-w-full overflow-auto text-xs text-left bg-slate-950/60 text-cyan-300 p-3 rounded border border-cyan-400/20">
+        <pre className="mt-4 max-w-full overflow-auto text-xs text-left bg-slate-950/60 text-primary p-3 rounded border border-primary/20">
           {JSON.stringify({ reason, ...details }, null, 2)}
         </pre>
       )}
@@ -242,7 +242,7 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
         <div className="absolute inset-0">{renderCanvas()}</div>
 
         {!sceneReady && !lastSceneError && (
-          <div className="absolute inset-0 flex items-center justify-center text-cyan-200 text-sm bg-slate-900/40 backdrop-blur-sm pointer-events-none z-40">
+          <div className="absolute inset-0 flex items-center justify-center text-primary/80 text-sm bg-slate-900/40 backdrop-blur-sm pointer-events-none z-40">
             Initializing 3D scene...
           </div>
         )}
@@ -262,7 +262,7 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
         )}
 
         {DEBUG_VIS && (
-          <div className="absolute top-3 left-3 z-20 text-xs bg-slate-950/80 text-cyan-200 px-3 py-2 rounded shadow-lg space-y-0.5">
+          <div className="absolute top-3 left-3 z-20 text-xs bg-slate-950/80 text-primary/80 px-3 py-2 rounded shadow-lg space-y-0.5">
             <div>frames: {totalFrames}</div>
             <div>duration: {timelineDuration.toFixed(2)}s</div>
             <div>frame index: {state.currentFrameIndex}</div>

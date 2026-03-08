@@ -1823,7 +1823,7 @@ const point: Record<string, unknown> = { alpha };
                           });
                         }
                       }}
-                      className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+                      className="border-primary/40 text-primary hover:bg-primary/10"
                     >
                       Use as climb L/D in Thrust Calculator
                     </Button>
@@ -1831,8 +1831,8 @@ const point: Record<string, unknown> = { alpha };
                 )}
 
                 <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="steps" className="border-cyan-400/20">
-                    <AccordionTrigger className="text-cyan-400 hover:text-cyan-300">
+                  <AccordionItem value="steps" className="border-primary/20">
+                    <AccordionTrigger className="text-primary hover:text-primary/80">
                       <div className="flex items-center gap-2">
                         <Info className="w-4 h-4" />
                         View Calculation Steps
@@ -1847,8 +1847,8 @@ const point: Record<string, unknown> = { alpha };
           ) ; })() : (
             <AeroCard title="Analysis Results">
               <div className="h-full flex flex-col items-center justify-center py-12">
-                <Plane className="w-24 h-24 text-cyan-400/10" />
-                <h3 className="text-xl font-semibold text-cyan-400 mt-4">Results will appear here</h3>
+                <Plane className="w-24 h-24 text-primary/10" />
+                <h3 className="text-xl font-semibold text-primary mt-4">Results will appear here</h3>
                 <p className="text-slate-400 text-center mt-2">Fill in the configuration and click "Analyze Performance" to see the results.</p>
               </div>
             </AeroCard>
@@ -1856,7 +1856,7 @@ const point: Record<string, unknown> = { alpha };
 
           {/* Polar Data Display - Collapsible */}
           {polarData && computedLD.length > 0 && (
-            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl border border-cyan-400/20 overflow-hidden backdrop-blur-sm">
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl border border-primary/20 overflow-hidden backdrop-blur-sm">
               <button
                 type="button"
                 onClick={() => setIsPolarTableOpen((v) => !v)}
@@ -1865,7 +1865,7 @@ const point: Record<string, unknown> = { alpha };
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="flex flex-col text-left">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold text-cyan-300">
+                      <span className="text-sm font-semibold text-primary">
                         Polar Data (Re = 1,000,000)
                       </span>
                       {(() => {
@@ -1898,11 +1898,11 @@ const point: Record<string, unknown> = { alpha };
                 <div className="border-t border-slate-700/50 max-h-[60vh] overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 bg-slate-900/95 backdrop-blur-sm">
-                      <tr className="border-b border-cyan-400/30">
-                        <th className="text-left py-2 px-3 text-cyan-300">α (°)</th>
-                        <th className="text-left py-2 px-3 text-cyan-300">Cl</th>
-                        <th className="text-left py-2 px-3 text-cyan-300">Cd</th>
-                        <th className="text-left py-2 px-3 text-cyan-300">L/D</th>
+                      <tr className="border-b border-primary/30">
+                        <th className="text-left py-2 px-3 text-primary">α (°)</th>
+                        <th className="text-left py-2 px-3 text-primary">Cl</th>
+                        <th className="text-left py-2 px-3 text-primary">Cd</th>
+                        <th className="text-left py-2 px-3 text-primary">L/D</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1938,7 +1938,7 @@ const point: Record<string, unknown> = { alpha };
         </div>
       <div className="mt-8 flex items-start gap-4">
   {/* Validity Envelope Legend */}
-  <div className="p-3 rounded-lg bg-slate-800 border border-cyan-700/30 text-xs max-w-xs" style={{minWidth:'220px'}}>
+  <div className="p-3 rounded-lg bg-slate-800 border border-primary/30 text-xs max-w-xs" style={{minWidth:'220px'}}>
     <b className="text-white">Validity Envelope</b> <span className="ml-2 align-middle">ℹ️</span>
     <ul className="mt-2 ml-1">
       <li><span className="inline-block w-3 h-3 rounded-full align-middle bg-green-600 mr-1" /> <span className="text-green-400">Green:</span> Physically valid (linear aerodynamics)</li>
@@ -1956,12 +1956,12 @@ const point: Record<string, unknown> = { alpha };
 
       {/* Comparison Chart */}
       {(comparisonData.length > 0 || comparisonPolars.length > 0) && (
-        <div className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-cyan-400/30 p-6 shadow-lg backdrop-blur-sm">
+        <div className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-primary/30 p-6 shadow-lg backdrop-blur-sm">
           {/* Graph Header */}
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-xl font-bold text-cyan-300">
+                <h3 className="text-xl font-bold text-primary">
                   {graphMode === "ld" && "Performance Comparison (L/D Ratio)"}
                   {graphMode === "cl" && "Lift Coefficient (CL) vs Angle of Attack"}
                   {graphMode === "cd" && "Drag Coefficient (CD) vs Angle of Attack"}
@@ -1985,9 +1985,9 @@ const point: Record<string, unknown> = { alpha };
           </div>
 
           {/* Graph Toolbar - Comparison Controls */}
-          <div className="flex flex-col gap-3 p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
+          <div className="flex flex-col gap-3 p-4 bg-slate-700/30 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <Label className="text-cyan-300 text-sm font-medium">
+              <Label className="text-primary text-sm font-medium">
                 Comparing with ({comparedAirfoilIds.length} / {MAX_COMPARED_AIRFOILS})
               </Label>
               <Select
@@ -2030,12 +2030,12 @@ const point: Record<string, unknown> = { alpha };
                   return (
                     <div
                       key={airfoilId}
-                      className="flex items-center gap-2 bg-cyan-600/20 border border-cyan-400/40 rounded-lg px-3 py-1.5 text-white"
+                      className="flex items-center gap-2 bg-primary/20 border border-primary/40 rounded-lg px-3 py-1.5 text-white"
                     >
                       <span className="text-sm font-medium">{airfoilData?.name || airfoilId}</span>
                       <button
                         onClick={() => setComparedAirfoilIds(comparedAirfoilIds.filter(id => id !== airfoilId))}
-                        className="ml-1 hover:bg-cyan-500/30 rounded p-0.5 transition-colors"
+                        className="ml-1 hover:bg-primary/30 rounded p-0.5 transition-colors"
                         aria-label={`Remove ${airfoilData?.name || airfoilId}`}
                       >
                         <X className="w-3 h-3" />
@@ -2053,10 +2053,10 @@ const point: Record<string, unknown> = { alpha };
             )}
 
             {/* Save/Load Setups Section */}
-            <div className="mt-4 pt-4 border-t border-cyan-400/20">
+            <div className="mt-4 pt-4 border-t border-primary/20">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-cyan-300 text-sm font-medium">Saved Setups</Label>
+                  <Label className="text-primary text-sm font-medium">Saved Setups</Label>
                   <Button
                     variant="outline"
                     size="sm"
@@ -2065,7 +2065,7 @@ const point: Record<string, unknown> = { alpha };
                       if (!name) return;
                       saveCurrentSetup(name);
                     }}
-                    className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-600/20 text-white text-xs"
+                    className="bg-slate-700/50 border-primary/30 hover:bg-primary/20 text-white text-xs"
                   >
                     <Download className="w-3 h-3 mr-1" />
                     Save Setup
@@ -2080,11 +2080,11 @@ const point: Record<string, unknown> = { alpha };
                       .map((setup) => (
                         <div
                           key={setup.id}
-                          className="flex items-center justify-between gap-2 bg-slate-700/30 border border-cyan-400/20 rounded px-2 py-1.5 text-xs"
+                          className="flex items-center justify-between gap-2 bg-slate-700/30 border border-primary/20 rounded px-2 py-1.5 text-xs"
                         >
                           <button
                             onClick={() => loadSetup(setup.id)}
-                            className="flex-1 text-left text-cyan-300 hover:text-cyan-200 hover:underline truncate"
+                            className="flex-1 text-left text-primary hover:text-primary/80 hover:underline truncate"
                             title={`Load: ${setup.name}`}
                           >
                             {setup.name}
@@ -2114,20 +2114,20 @@ const point: Record<string, unknown> = { alpha };
 
           {/* Mode Selector Tabs */}
           <Tabs value={graphMode} onValueChange={(value) => setGraphMode(value as GraphMode)}>
-            <TabsList className="bg-slate-700/50 border border-cyan-400/30 w-full justify-start">
-              <TabsTrigger value="ld" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+            <TabsList className="bg-slate-700/50 border border-primary/30 w-full justify-start">
+              <TabsTrigger value="ld" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                 L/D vs α
               </TabsTrigger>
-              <TabsTrigger value="cl" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+              <TabsTrigger value="cl" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                 CL vs α
               </TabsTrigger>
-              <TabsTrigger value="cd" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+              <TabsTrigger value="cd" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                 CD vs α
               </TabsTrigger>
-              <TabsTrigger value="cm" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+              <TabsTrigger value="cm" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                 CM vs α
               </TabsTrigger>
-              <TabsTrigger value="dragPolar" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+              <TabsTrigger value="dragPolar" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                 Drag Polar (CD vs CL)
               </TabsTrigger>
             </TabsList>

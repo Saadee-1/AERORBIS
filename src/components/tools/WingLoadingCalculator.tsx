@@ -919,7 +919,7 @@ const WingLoadingCalculator = () => {
   const getClassificationColor = (wsClass: WingLoadingClass): string => {
     switch (wsClass) {
       case 'Very Low': return 'text-blue-400';
-      case 'Low': return 'text-cyan-400';
+      case 'Low': return 'text-emerald-400';
       case 'Within': return 'text-green-400';
       case 'High': return 'text-yellow-400';
       case 'Very High': return 'text-orange-400';
@@ -972,7 +972,7 @@ const WingLoadingCalculator = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+              <SelectTrigger className="w-32 bg-slate-900/50 border-primary/30 text-primary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1020,7 +1020,7 @@ const WingLoadingCalculator = () => {
               >
                 <AeroFormField label="Mode">
                   <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-slate-900/50 border-primary/30 text-primary">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1030,7 +1030,7 @@ const WingLoadingCalculator = () => {
                     </SelectContent>
                   </Select>
                 </AeroFormField>
-                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
+                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-primary/20">
                   <p className="text-xs text-gray-300">
                     {calculatorMode === 'Beginner' && 'Simplified interface with essential features only.'}
                     {calculatorMode === 'University' && 'Standard features with full functionality.'}
@@ -1047,7 +1047,7 @@ const WingLoadingCalculator = () => {
               >
                 <AeroFormField label="Mission Type">
                   <Select value={missionType} onValueChange={(v) => setMissionType(v as MissionType)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-slate-900/50 border-primary/30 text-primary">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1061,20 +1061,20 @@ const WingLoadingCalculator = () => {
                   </Select>
                 </AeroFormField>
                 {missionType !== 'None' && (
-                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-primary/20">
                     <p className="text-sm text-gray-300">
-                      <span className="text-cyan-400 font-semibold">CL,max:</span> {currentClMax.toFixed(2)}
+                      <span className="text-primary font-semibold">CL,max:</span> {currentClMax.toFixed(2)}
                     </p>
                     <p className="text-sm text-gray-300 mt-1">
-                      <span className="text-cyan-400 font-semibold">Typical W/S:</span> {getMissionData(missionType).wsMinKg}–{getMissionData(missionType).wsMaxKg} kg/m²
+                      <span className="text-primary font-semibold">Typical W/S:</span> {getMissionData(missionType).wsMinKg}–{getMissionData(missionType).wsMaxKg} kg/m²
                     </p>
                     <p className="text-sm text-gray-300 mt-1">
-                      <span className="text-cyan-400 font-semibold">Typical V_s:</span> {getMissionData(missionType).vsMin}–{getMissionData(missionType).vsMax} m/s
+                      <span className="text-primary font-semibold">Typical V_s:</span> {getMissionData(missionType).vsMin}–{getMissionData(missionType).vsMax} m/s
                     </p>
                   </div>
                 )}
                 {missionType === 'None' && (
-                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-primary/20">
                     <p className="text-sm text-gray-300">
                       Mission-specific parameters will not auto-change. Use manual CL,max override if needed.
                     </p>
@@ -1091,7 +1091,7 @@ const WingLoadingCalculator = () => {
             >
               <AeroFormField label="Aircraft Preset">
                 <Select value={aircraftPreset} onValueChange={(v) => handleAircraftPresetChange(v as AircraftPreset)}>
-                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                  <SelectTrigger className="w-full bg-slate-900/50 border-primary/30 text-primary">
                     <SelectValue placeholder="Select aircraft preset (optional)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1107,7 +1107,7 @@ const WingLoadingCalculator = () => {
                 </Select>
               </AeroFormField>
               {aircraftPreset !== 'none' && (
-                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
+                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-primary/20">
                   <p className="text-xs text-gray-300">
                     {AIRCRAFT_PRESETS[aircraftPreset].description}
                   </p>
@@ -1124,12 +1124,12 @@ const WingLoadingCalculator = () => {
               <div className="flex items-center gap-3 mb-4">
                 <Label className="text-sm text-gray-300">Input Mode:</Label>
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm ${weightMode === 'mass' ? 'text-cyan-400' : 'text-gray-500'}`}>Mass (kg)</span>
+                  <span className={`text-sm ${weightMode === 'mass' ? 'text-primary' : 'text-gray-500'}`}>Mass (kg)</span>
                   <Switch
                     checked={weightMode === 'weight'}
                     onCheckedChange={(checked) => setWeightMode(checked ? 'weight' : 'mass')}
                   />
-                  <span className={`text-sm ${weightMode === 'weight' ? 'text-cyan-400' : 'text-gray-500'}`}>Weight (N)</span>
+                  <span className={`text-sm ${weightMode === 'weight' ? 'text-primary' : 'text-gray-500'}`}>Weight (N)</span>
               </div>
               </div>
               {weightMode === 'mass' ? (
@@ -1142,7 +1142,7 @@ const WingLoadingCalculator = () => {
                     step="0.01"
                     value={massKg}
                     onChange={(e) => setMassKg(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-slate-900/50 border-primary/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '10000' : '22046'}`}
                     min="0"
                   />
@@ -1171,7 +1171,7 @@ const WingLoadingCalculator = () => {
                     step="0.01"
                     value={weightN}
                     onChange={(e) => setWeightN(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-slate-900/50 border-primary/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
                     min="0"
                   />
@@ -1208,7 +1208,7 @@ const WingLoadingCalculator = () => {
                   step="0.01"
                   value={wingAreaM2}
                   onChange={(e) => setWingAreaM2(e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30"
+                  className="bg-slate-900/50 border-primary/30"
                   placeholder={`e.g., ${unitSystem === 'SI' ? '30' : '323'}`}
                   min="0"
                 />
@@ -1237,7 +1237,7 @@ const WingLoadingCalculator = () => {
             >
               <AeroFormField label="Air Density Mode">
                 <Select value={airDensityMode} onValueChange={(v) => setAirDensityMode(v as AirDensityMode)}>
-                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                  <SelectTrigger className="w-full bg-slate-900/50 border-primary/30 text-primary">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1251,7 +1251,7 @@ const WingLoadingCalculator = () => {
               {airDensityMode === 'preset' && (
                 <AeroFormField label="Altitude Preset">
                   <Select value={airDensityPreset} onValueChange={(v) => setAirDensityPreset(v as AirDensityPreset)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-slate-900/50 border-primary/30 text-primary">
                       <SelectValue />
                     </SelectTrigger>
                   <SelectContent>
@@ -1280,7 +1280,7 @@ const WingLoadingCalculator = () => {
                       step="0.01"
                       value={airDensityAltitude}
                       onChange={(e) => setAirDensityAltitude(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-slate-900/50 border-primary/30"
                       placeholder={`e.g., ${unitSystem === 'SI' ? '0' : '0'}`}
                     />
               </AeroFormField>
@@ -1293,7 +1293,7 @@ const WingLoadingCalculator = () => {
                       step="0.1"
                       value={airDensityDeltaT}
                       onChange={(e) => setAirDensityDeltaT(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-slate-900/50 border-primary/30"
                       placeholder="e.g., 0"
                     />
               </AeroFormField>
@@ -1311,7 +1311,7 @@ const WingLoadingCalculator = () => {
                     step="0.001"
                     value={airDensityCustom}
                     onChange={(e) => setAirDensityCustom(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-slate-900/50 border-primary/30"
                     placeholder="e.g., 1.225"
                     min="0"
                   />
@@ -1340,9 +1340,9 @@ const WingLoadingCalculator = () => {
               </AeroFormField>
               )}
               
-              <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
+              <div className="mt-2 p-2 bg-slate-900/50 rounded border border-primary/20">
                 <p className="text-sm text-gray-300">
-                  <span className="text-cyan-400">Current density:</span> {currentAirDensity.toFixed(3)} kg/m³
+                  <span className="text-primary">Current density:</span> {currentAirDensity.toFixed(3)} kg/m³
                 </p>
                 {airDensityMode === 'altitude' && (
                   <p className="text-xs text-gray-400 mt-1">
@@ -1361,8 +1361,8 @@ const WingLoadingCalculator = () => {
               icon={Info}
             >
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="advanced" className="border-cyan-400/20">
-                  <AccordionTrigger className="text-white hover:text-cyan-400 text-sm">
+                <AccordionItem value="advanced" className="border-primary/20">
+                  <AccordionTrigger className="text-white hover:text-primary text-sm">
                     Show Advanced Settings
                   </AccordionTrigger>
                   <AccordionContent className="pt-4 space-y-4">
@@ -1384,7 +1384,7 @@ const WingLoadingCalculator = () => {
                           step="0.01"
                           value={clMaxOverride}
                           onChange={(e) => setClMaxOverride(e.target.value)}
-                          className="bg-slate-900/50 border-cyan-400/30"
+                          className="bg-slate-900/50 border-primary/30"
                           placeholder={`e.g., ${getMissionData(missionType).clMax.toFixed(2)}`}
                           min="0"
                         />
@@ -1406,7 +1406,7 @@ const WingLoadingCalculator = () => {
                     )}
                     
                     {/* MTOW and Landing Weight */}
-                    <div className="pt-2 border-t border-cyan-400/20">
+                    <div className="pt-2 border-t border-primary/20">
                       <Label className="text-sm text-gray-300 mb-2 block">Weight Analysis (Optional)</Label>
                       <AeroFormField 
                         label={`MTOW (${weightMode === 'mass' ? inputUnits.mass : inputUnits.weight})`} 
@@ -1417,7 +1417,7 @@ const WingLoadingCalculator = () => {
                           step="0.01"
                           value={mtow}
                           onChange={(e) => setMtow(e.target.value)}
-                          className="bg-slate-900/50 border-cyan-400/30"
+                          className="bg-slate-900/50 border-primary/30"
                           placeholder="Leave empty to skip"
                         />
                       </AeroFormField>
@@ -1433,7 +1433,7 @@ const WingLoadingCalculator = () => {
                             max="1"
                             value={landingWeightFraction}
                             onChange={(e) => setLandingWeightFraction(e.target.value)}
-                            className="bg-slate-900/50 border-cyan-400/30"
+                            className="bg-slate-900/50 border-primary/30"
                             placeholder="0.7"
                           />
                           {landingWeightFraction.trim() && (() => {
@@ -1480,10 +1480,10 @@ const WingLoadingCalculator = () => {
                   icon={CheckCircle}
                 >
                   <div className="space-y-4">
-                    <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
+                    <div className="p-4 bg-gradient-to-r from-primary/10 to-blue-400/10 rounded-lg border border-primary/30">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading (Weight)</p>
                       <p className="text-xs text-gray-500 mb-1">(W/S in N/m², weight per unit area)</p>
-                      <p className="text-3xl font-bold text-cyan-400">
+                      <p className="text-3xl font-bold text-primary">
                         {convertWingLoadingNm2FromSI(result.wingLoadingNm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingNm2}
                       </p>
                       <p className="text-sm text-gray-400 mt-1">
@@ -1494,10 +1494,10 @@ const WingLoadingCalculator = () => {
                       </p>
                     </div>
                     
-                    <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
+                    <div className="p-4 bg-gradient-to-r from-primary/10 to-blue-400/10 rounded-lg border border-primary/30">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading (Mass)</p>
                       <p className="text-xs text-gray-500 mb-1">(W/S in kg/m², mass per unit area)</p>
-                      <p className="text-3xl font-bold text-cyan-400">
+                      <p className="text-3xl font-bold text-primary">
                         {convertWingLoadingKgm2FromSI(result.wingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
                     </p>
                       <p className="text-sm text-gray-400 mt-1">
@@ -1508,7 +1508,7 @@ const WingLoadingCalculator = () => {
                     </p>
                   </div>
                     
-                    <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
+                    <div className="p-4 bg-gradient-to-r from-green-400/10 to-primary/10 rounded-lg border border-green-400/30">
                       <p className="text-sm text-gray-400 mb-1">Stall Speed</p>
                       <p className="text-xs text-gray-500 mb-1">(V_s, minimum steady flight speed at C_L,max)</p>
                       {(() => {
@@ -1530,10 +1530,10 @@ const WingLoadingCalculator = () => {
                         </div>
                     
                     {result.mtowWingLoadingKgm2 !== undefined && (
-                      <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                      <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/20">
                         <p className="text-sm text-gray-400 mb-1">Wing Loading at Takeoff</p>
                         <p className="text-xs text-gray-500 mb-1">(W/S at MTOW condition)</p>
-                        <p className="text-xl font-bold text-cyan-300">
+                        <p className="text-xl font-bold text-primary">
                           {convertWingLoadingKgm2FromSI(result.mtowWingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
@@ -1543,7 +1543,7 @@ const WingLoadingCalculator = () => {
                           <>
                             <p className="text-sm text-gray-400 mb-1 mt-3">Wing Loading at Landing</p>
                             <p className="text-xs text-gray-500 mb-1">(W/S at landing weight condition)</p>
-                            <p className="text-xl font-bold text-cyan-300">
+                            <p className="text-xl font-bold text-primary">
                               {convertWingLoadingKgm2FromSI(result.landingWingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
@@ -1554,7 +1554,7 @@ const WingLoadingCalculator = () => {
                 </div>
               )}
                     
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/20">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading Classification</p>
                       <p className="text-xs text-gray-500 mb-1">(Relative to {missionType !== 'None' ? `${missionType} mission` : 'generic'} envelope)</p>
                       <p className={`text-xl font-bold ${getClassificationColor(result.wsClass)}`}>
@@ -1577,18 +1577,18 @@ const WingLoadingCalculator = () => {
                 >
                   <div className="space-y-3">
                     <p className="text-sm text-gray-300">
-                      Typical <span className="text-cyan-400 font-semibold">{missionType !== 'None' ? missionType : 'generic aircraft'}</span> wing loading:{" "}
-                      <span className="text-cyan-400">
+                      Typical <span className="text-primary font-semibold">{missionType !== 'None' ? missionType : 'generic aircraft'}</span> wing loading:{" "}
+                      <span className="text-primary">
                         {missionType !== 'None' ? `${getMissionData(missionType).wsMinKg}–${getMissionData(missionType).wsMaxKg} kg/m²` : 'N/A (Manual mode)'}
                       </span>
                     </p>
-                    <div className="relative h-12 bg-slate-700/50 rounded border border-cyan-400/30">
+                    <div className="relative h-12 bg-slate-700/50 rounded border border-primary/30">
                       {/* Range indicator (typical range) */}
                       {(() => {
                         const rangePos = getRangeBarPosition();
                         return (
                           <div
-                            className="absolute h-full bg-cyan-400/30 border-l border-r border-cyan-400/50"
+                            className="absolute h-full bg-primary/30 border-l border-r border-primary/50"
                             style={{
                               left: `${rangePos.left}%`,
                               width: `${rangePos.width}%`
@@ -1624,7 +1624,7 @@ const WingLoadingCalculator = () => {
                       
                       {/* Current position marker */}
                       <div
-                        className="absolute top-0 h-full w-1 bg-cyan-400 z-10"
+                        className="absolute top-0 h-full w-1 bg-primary z-10"
                         style={{ left: `${getEnvelopePosition()}%` }}
                       />
                       
@@ -1662,7 +1662,7 @@ const WingLoadingCalculator = () => {
                         );
                       })()}
           </div>
-                    <p className="text-sm text-cyan-400 text-center">
+                    <p className="text-sm text-primary text-center">
                       Current: {result.wingLoadingKgm2.toFixed(2)} kg/m²
                     </p>
                     <p className="text-xs text-gray-500 text-center">
@@ -1694,7 +1694,7 @@ const WingLoadingCalculator = () => {
                   title="Best Use Case / Mission Fit"
                   icon={TrendingUp}
                 >
-                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/20">
                     <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">
                       {generateBestUseCase(
                         missionType,
@@ -1714,7 +1714,7 @@ const WingLoadingCalculator = () => {
                   title="Engineering Interpretation"
                   icon={Info}
                 >
-                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/20">
                     <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">
                       {result.interpretation}
                     </p>
@@ -1728,10 +1728,10 @@ const WingLoadingCalculator = () => {
                   icon={Info}
                 >
                   <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="steps" className="border-cyan-400/20">
-                      <AccordionTrigger className="text-white hover:text-cyan-400">
+                    <AccordionItem value="steps" className="border-primary/20">
+                      <AccordionTrigger className="text-white hover:text-primary">
                         <div className="flex items-center gap-2">
-                          <Info className="w-4 h-4 text-cyan-400" />
+                          <Info className="w-4 h-4 text-primary" />
                           Show step-by-step solution
                   </div>
                       </AccordionTrigger>
@@ -1745,7 +1745,7 @@ const WingLoadingCalculator = () => {
             ) : (
               <AeroCard title="Results" icon={Gauge}>
                 <div className="text-center py-12">
-                  <Gauge className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
+                  <Gauge className="w-16 h-16 mx-auto mb-4 text-primary/30" />
                   <p className="text-gray-400">Enter values and click Calculate to see results</p>
                 </div>
               </AeroCard>

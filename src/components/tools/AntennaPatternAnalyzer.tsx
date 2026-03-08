@@ -957,7 +957,7 @@ const AntennaPatternAnalyzer = () => {
             >
               <AeroFormField label="Antenna Type">
                 <Select value={selectedAntennaId} onValueChange={handleAntennaChange}>
-                  <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-slate-900/50 border-primary/30 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -976,7 +976,7 @@ const AntennaPatternAnalyzer = () => {
               {/* Dynamic Parameters */}
               {selectedAntenna &&
                 Object.keys(selectedAntenna.defaultParams).length > 0 && (
-                  <div className={`${spacingVertical.M} pt-2 border-t border-cyan-400/10`}>
+                  <div className={`${spacingVertical.M} pt-2 border-t border-primary/10`}>
                     <Label className="text-gray-300">Antenna Parameters</Label>
                     {Object.entries(selectedAntenna.defaultParams).map(([key, defaultValue]) => (
                       <AeroFormField 
@@ -994,7 +994,7 @@ const AntennaPatternAnalyzer = () => {
                               handleParamChange(key, parsed);
                             }
                           }}
-                          className="bg-slate-900/50 border-cyan-400/30 text-white"
+                          className="bg-slate-900/50 border-primary/30 text-white"
                         />
                       </AeroFormField>
                     ))}
@@ -1015,12 +1015,12 @@ const AntennaPatternAnalyzer = () => {
                     step="0.1"
                     value={frequency}
                     onChange={(e) => setFrequency(parseFloat(e.target.value) || 0)}
-                    className="bg-slate-900/50 border-cyan-400/30 text-white"
+                   className="bg-slate-900/50 border-primary/30 text-white"
                   />
                 </AeroFormField>
                 <AeroFormField label="Unit">
                   <Select value={frequencyUnit} onValueChange={(v: "Hz" | "MHz" | "GHz" | "Custom") => setFrequencyUnit(v)}>
-                    <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                   <SelectTrigger className="bg-slate-900/50 border-primary/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1034,14 +1034,14 @@ const AntennaPatternAnalyzer = () => {
 
                 {/* Custom Frequency Unit Card */}
                 {frequencyUnit === "Custom" && (
-                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10 mt-4">
+                  <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10 mt-4">
                     <Label className="text-white font-semibold">Custom Frequency Unit</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <Input 
                         placeholder="Unit Name" 
                         value={customFrequencyUnitName}
                         onChange={(e) => setCustomFrequencyUnitName(e.target.value)}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-slate-800 border-primary/30 text-white"
                       />
                       <Input 
                         type="number"
@@ -1049,7 +1049,7 @@ const AntennaPatternAnalyzer = () => {
                         placeholder="Hz Factor"
                         value={customFrequencyFactor}
                         onChange={(e) => setCustomFrequencyFactor(e.target.value)}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-slate-800 border-primary/30 text-white"
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-1.5">
@@ -1065,12 +1065,12 @@ const AntennaPatternAnalyzer = () => {
                   step="0.1"
                   value={transmitPower}
                   onChange={(e) => setTransmitPower(parseFloat(e.target.value) || 0)}
-                  className="bg-slate-900/50 border-cyan-400/30 text-white"
+                  className="bg-slate-900/50 border-primary/30 text-white"
                 />
               </AeroFormField>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+              <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                 <p className="text-xs text-gray-400">Wavelength</p>
-                <p className="text-cyan-400 font-semibold">
+                <p className="text-primary font-semibold">
                   λ = {(lambda * 1000).toFixed(3)} mm
                 </p>
               </div>
@@ -1094,7 +1094,7 @@ const AntennaPatternAnalyzer = () => {
               </AeroFormField>
               <AeroFormField label="Polarization">
                 <Select value={polarization} onValueChange={setPolarization}>
-                  <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-slate-900/50 border-primary/30 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1139,9 +1139,9 @@ const AntennaPatternAnalyzer = () => {
                   }
               >
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                     <p className="text-xs text-gray-400 mb-1">Peak Gain</p>
-                    <p className="text-cyan-400 font-bold text-lg">
+                    <p className="text-primary font-bold text-lg">
                       {result.peakGainDbi.toFixed(2)} dBi
                     </p>
                   </div>
@@ -1300,7 +1300,7 @@ const AntennaPatternAnalyzer = () => {
                   <RechartsTooltip
                     contentStyle={{
                       backgroundColor: "#1e293b",
-                      border: "1px solid #22d3ee40",
+                      border: "1px solid hsl(160 84% 39% / 0.25)",
                       borderRadius: "8px",
                     }}
                     formatter={(value: number) => [`${value.toFixed(2)} dBi`, "Gain"]}
@@ -1308,7 +1308,7 @@ const AntennaPatternAnalyzer = () => {
                   <Line
                     type="monotone"
                     dataKey="gain"
-                    stroke="#22d3ee"
+                    stroke="#10b981"
                     strokeWidth={2}
                     name="E-plane"
                     dot={false}
@@ -1329,7 +1329,7 @@ const AntennaPatternAnalyzer = () => {
               <div className="mt-3 pt-3 border-t border-slate-700/50">
                 <AeroverseLegend
                   items={[
-                    { id: 'e-plane', name: 'E-plane', color: '#22d3ee' },
+                    { id: 'e-plane', name: 'E-plane', color: '#10b981' },
                     { id: 'h-plane', name: 'H-plane', color: '#3b82f6' },
                   ]}
                 />
@@ -1343,7 +1343,7 @@ const AntennaPatternAnalyzer = () => {
                 description="Interactive 3D visualization of antenna radiation pattern"
                 icon={Zap}
               >
-                  <div className="relative w-full h-[500px] rounded-lg bg-slate-900 border border-cyan-400/20">
+                  <div className="relative w-full h-[500px] rounded-lg bg-slate-900 border border-primary/20">
                     {threeError && (
                       <div className="absolute inset-0 flex items-center justify-center text-red-300 text-sm p-4 text-center">
                         Unable to initialize 3D visualization: {threeError}
@@ -1364,41 +1364,41 @@ const AntennaPatternAnalyzer = () => {
               icon={Info}
             >
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="formulas" className="border-cyan-400/20">
-                  <AccordionTrigger className="text-white hover:text-cyan-400">
+                <AccordionItem value="formulas" className="border-primary/20">
+                  <AccordionTrigger className="text-white hover:text-primary">
                     Antenna Theory Formulas
                   </AccordionTrigger>
                   <AccordionContent className="text-gray-300 space-y-4 pt-2">
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <p className="text-cyan-400 font-semibold mb-2">Wavelength</p>
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10">
+                      <p className="text-primary font-semibold mb-2">Wavelength</p>
                       <code className="text-sm block mb-2">λ = c / f</code>
                       <p className="text-xs text-gray-400">
                         where c = 299,792,458 m/s (speed of light), f = frequency
                       </p>
                     </div>
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <p className="text-cyan-400 font-semibold mb-2">Directivity</p>
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10">
+                      <p className="text-primary font-semibold mb-2">Directivity</p>
                       <code className="text-sm block mb-2">D = 4π * U_max / P_rad</code>
                       <p className="text-xs text-gray-400">
                         where U_max is peak radiation intensity, P_rad is total radiated power
                       </p>
                     </div>
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <p className="text-cyan-400 font-semibold mb-2">Parabolic Dish Gain</p>
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10">
+                      <p className="text-primary font-semibold mb-2">Parabolic Dish Gain</p>
                       <code className="text-sm block mb-2">G = η * (4πA / λ²)</code>
                       <p className="text-xs text-gray-400">
                         where η is efficiency, A = πD²/4 is aperture area, D is diameter
                       </p>
                     </div>
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <p className="text-cyan-400 font-semibold mb-2">EIRP</p>
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10">
+                      <p className="text-primary font-semibold mb-2">EIRP</p>
                       <code className="text-sm block mb-2">EIRP = Pt * Gt</code>
                       <p className="text-xs text-gray-400">
                         where Pt is transmit power, Gt is transmit antenna gain (linear)
                       </p>
                     </div>
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <p className="text-cyan-400 font-semibold mb-2">Array Factor (Linear)</p>
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10">
+                      <p className="text-primary font-semibold mb-2">Array Factor (Linear)</p>
                       <code className="text-sm block mb-2">
                         AF(θ) = (1/N) * sin(N*ψ/2) / sin(ψ/2)
                       </code>
@@ -1416,7 +1416,7 @@ const AntennaPatternAnalyzer = () => {
 
       {/* Save Custom Preset Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-slate-800 border-primary/20 text-white max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Custom Preset</DialogTitle>
             <DialogDescription className="text-gray-400">
@@ -1425,7 +1425,7 @@ const AntennaPatternAnalyzer = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="presetName" className="text-cyan-300">Preset Name</Label>
+              <Label htmlFor="presetName" className="text-primary">Preset Name</Label>
               <Input
                 id="presetName"
                 value={savePresetName}
@@ -1466,7 +1466,7 @@ const AntennaPatternAnalyzer = () => {
 
       {/* Load Custom Preset Dialog */}
       <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-slate-800 border-primary/20 text-white max-w-lg">
           <DialogHeader>
             <DialogTitle>Load Custom Preset</DialogTitle>
             <DialogDescription className="text-gray-400">
@@ -1482,7 +1482,7 @@ const AntennaPatternAnalyzer = () => {
                 return (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                    className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-primary/20 hover:border-primary/40 transition-colors"
                   >
                     <div className="flex-1">
                       <p className="text-white font-semibold">{preset.name}</p>
@@ -1497,7 +1497,7 @@ const AntennaPatternAnalyzer = () => {
                       <Button
                         size="sm"
                         onClick={() => handleLoadCustomPreset(preset)}
-                        className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
+                        className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30"
                       >
                         <FolderOpen className="w-4 h-4" />
                       </Button>
