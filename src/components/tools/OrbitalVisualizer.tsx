@@ -215,12 +215,12 @@ void main() {
   float cities = step(0.72, fbm(uv * 12.0)) * landMask * nightSide;
   vec3 cityGlow = vec3(1.0, 0.85, 0.4) * cities * 0.8;
   
-  // Atmosphere scattering at edges
-  float fresnel = pow(1.0 - max(dot(normal, normalize(cameraPosition - vPosition)), 0.0), 3.0);
-  vec3 atmosScatter = vec3(0.3, 0.5, 1.0) * fresnel * 0.3;
+  // Atmosphere scattering at edges - subtle, not blurry
+  float fresnel = pow(1.0 - max(dot(normal, normalize(cameraPosition - vPosition)), 0.0), 5.0);
+  vec3 atmosScatter = vec3(0.3, 0.5, 1.0) * fresnel * 0.15;
   
-  // Final color
-  vec3 dayColor = surfaceColor * (0.08 + diffuse * 1.2);
+  // Final color - sharper lighting
+  vec3 dayColor = surfaceColor * (0.1 + diffuse * 1.4);
   vec3 finalColor = dayColor + cityGlow + atmosScatter;
   
   // Ocean specular
