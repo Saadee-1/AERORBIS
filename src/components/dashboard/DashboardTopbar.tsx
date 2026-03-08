@@ -59,7 +59,7 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
               className={`pl-10 text-foreground placeholder:text-muted-foreground text-sm ${
                 isLight 
                   ? 'bg-muted/50 border-border focus:border-primary/40' 
-                  : 'bg-slate-800/30 border-primary/15 focus:border-primary/40 focus:shadow-[0_0_15px_hsl(185_85%_50%/0.1)]'
+                  : 'bg-slate-800/30 border-primary/15 focus:border-primary/40 focus:shadow-[0_0_15px_hsl(160_84%_39%/0.1)]'
               }`}
               style={{ fontFamily: 'Rajdhani, sans-serif' }}
             />
