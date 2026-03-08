@@ -1251,7 +1251,7 @@ const WingLoadingCalculator = () => {
               {airDensityMode === 'preset' && (
                 <AeroFormField label="Altitude Preset">
                   <Select value={airDensityPreset} onValueChange={(v) => setAirDensityPreset(v as AirDensityPreset)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-slate-900/50 border-primary/30 text-primary">
                       <SelectValue />
                     </SelectTrigger>
                   <SelectContent>
