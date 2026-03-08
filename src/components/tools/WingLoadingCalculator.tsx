@@ -1129,7 +1129,7 @@ const WingLoadingCalculator = () => {
                     checked={weightMode === 'weight'}
                     onCheckedChange={(checked) => setWeightMode(checked ? 'weight' : 'mass')}
                   />
-                  <span className={`text-sm ${weightMode === 'weight' ? 'text-cyan-400' : 'text-gray-500'}`}>Weight (N)</span>
+                  <span className={`text-sm ${weightMode === 'weight' ? 'text-primary' : 'text-gray-500'}`}>Weight (N)</span>
               </div>
               </div>
               {weightMode === 'mass' ? (
