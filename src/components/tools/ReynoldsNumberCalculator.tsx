@@ -899,22 +899,22 @@ const ReynoldsNumberCalculator = () => {
 
             {/* --- Formula Card --- */}
             <AeroCard title="Formula" icon={Info}>
-              <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                <p className="text-center text-lg font-mono text-cyan-400 mb-2">Re = (ρ × V × L) / μ</p>
-                <div className="text-gray-400 text-sm space-y-1">
-                  <p><span className="text-cyan-400">Re</span> = Reynolds Number (dimensionless)</p>
-                  <p><span className="text-cyan-400">ρ</span> = Fluid Density (kg/m³)</p>
-                  <p><span className="text-cyan-400">V</span> = Flow Velocity (m/s)</p>
-                  <p><span className="text-cyan-400">L</span> = Characteristic Length (m)</p>
-                  <p><span className="text-cyan-400">μ</span> = Dynamic Viscosity (Pa·s)</p>
+              <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                <p className="text-center text-lg font-mono text-primary mb-2">Re = (ρ × V × L) / μ</p>
+                <div className="text-muted-foreground text-sm space-y-1">
+                  <p><span className="text-primary">Re</span> = Reynolds Number (dimensionless)</p>
+                  <p><span className="text-primary">ρ</span> = Fluid Density (kg/m³)</p>
+                  <p><span className="text-primary">V</span> = Flow Velocity (m/s)</p>
+                  <p><span className="text-primary">L</span> = Characteristic Length (m)</p>
+                  <p><span className="text-primary">μ</span> = Dynamic Viscosity (Pa·s)</p>
                 </div>
               </div>
-                <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/30">
-                  <p className="text-cyan-400 font-semibold text-sm mb-2">Flow Regime Thresholds</p>
-                  <div className="text-gray-400 text-sm space-y-1">
-                    <p>• <span className="text-green-400">Laminar:</span> Re &lt; 2,300</p>
-                    <p>• <span className="text-yellow-400">Transitional:</span> 2,300 ≤ Re &lt; 40,000</p>
-                    <p>• <span className="text-red-400">Turbulent:</span> Re ≥ 40,000</p>
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-primary font-semibold text-sm mb-2">Flow Regime Thresholds</p>
+                  <div className="text-muted-foreground text-sm space-y-1">
+                    <p>• <span className="text-green-500 dark:text-green-400">Laminar:</span> Re &lt; 2,300</p>
+                    <p>• <span className="text-yellow-500 dark:text-yellow-400">Transitional:</span> 2,300 ≤ Re &lt; 40,000</p>
+                    <p>• <span className="text-red-500 dark:text-red-400">Turbulent:</span> Re ≥ 40,000</p>
                   </div>
                 </div>
               </AeroCard>
