@@ -1150,10 +1150,10 @@ const OrbitalVisualizer = () => {
 
       {/* Save Custom Orbit Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Custom Orbit</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Save the current orbit parameters as a custom preset
             </DialogDescription>
           </DialogHeader>
