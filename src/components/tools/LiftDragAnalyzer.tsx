@@ -1847,8 +1847,8 @@ const point: Record<string, unknown> = { alpha };
           ) ; })() : (
             <AeroCard title="Analysis Results">
               <div className="h-full flex flex-col items-center justify-center py-12">
-                <Plane className="w-24 h-24 text-cyan-400/10" />
-                <h3 className="text-xl font-semibold text-cyan-400 mt-4">Results will appear here</h3>
+                <Plane className="w-24 h-24 text-primary/10" />
+                <h3 className="text-xl font-semibold text-primary mt-4">Results will appear here</h3>
                 <p className="text-slate-400 text-center mt-2">Fill in the configuration and click "Analyze Performance" to see the results.</p>
               </div>
             </AeroCard>
