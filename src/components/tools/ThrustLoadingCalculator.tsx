@@ -1426,7 +1426,7 @@ const ThrustLoadingCalculator = () => {
                     step="0.1"
                     value={ldClimb}
                     onChange={(e) => setLdClimb(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-input border-border"
                     placeholder="e.g., 12.0"
                     min="0"
                   />
