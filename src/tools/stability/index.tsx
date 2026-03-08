@@ -493,6 +493,7 @@ export default function StabilityCalculator() {
 
   return (
     <ErrorBoundary toolName="Stability & Control Derivatives">
+      <CalculationOverlay isActive={isCalculating} label="Analyzing Stability Derivatives" />
       <ToolWrapper>
         <ToolHeader
           title="Stability & Control Derivatives"
