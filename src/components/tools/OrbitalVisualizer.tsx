@@ -1222,7 +1222,7 @@ const OrbitalVisualizer = () => {
                       Inc: {orbit.inputs.inclination}° | 
                       e: {orbit.inputs.eccentricity}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground/70">
                       Saved: {new Date(orbit.timestamp).toLocaleDateString()}
                     </p>
                   </div>

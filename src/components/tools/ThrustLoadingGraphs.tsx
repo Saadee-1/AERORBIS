@@ -78,11 +78,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   if (active && payload && payload.length) {
     return (
       <div 
-        className="backdrop-blur-sm border rounded-lg p-3 shadow-xl"
-        style={{ 
-          background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 35, 0.92) 100%)',
-          borderColor: `${GRAPH_STYLES.tooltipText}30`
-        }}
+        className="backdrop-blur-sm border border-border rounded-lg p-3 shadow-xl bg-popover"
       >
         <p className="font-semibold mb-2 text-sm" style={{ color: GRAPH_STYLES.tooltipText }}>
           {`${label}`}

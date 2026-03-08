@@ -120,7 +120,7 @@ export function ClimbPlots({ result }: ClimbPlotsProps) {
   if (!result || !result.points || result.points.length === 0) {
     return (
       <AeroCard title="Climb Performance Plots">
-        <div className="text-center p-8 text-gray-400">
+        <div className="text-center p-8 text-muted-foreground">
           <p>Run a calculation to see climb performance plots</p>
         </div>
       </AeroCard>
