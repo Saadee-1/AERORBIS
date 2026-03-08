@@ -151,7 +151,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
       margin: 12px 0; 
       padding: 12px 16px; 
       background-color: #f1f5f9; 
-      border-left: 4px solid #22d3ee; 
+      border-left: 4px solid #10b981; 
       border-radius: 4px;
     }
     .warning {
