@@ -39,9 +39,9 @@ const GRAPH_STYLES = {
   markerStroke: '#fff',
   markerStrokeWidth: 1.4,
   markerRadius: 5.5,
-  gridStroke: 'rgba(255,255,255,0.12)',
-  axisTickText: 'rgba(255,255,255,0.85)',
-  axisLabelText: '#fff',
+  gridStroke: 'hsl(var(--border))',
+  axisTickText: 'hsl(var(--muted-foreground))',
+  axisLabelText: 'hsl(var(--foreground))',
   referenceLineColor: '#fbbf24', // Yellow for dotted lines
   referenceLineDash: '6 6',
   referenceMarkerStroke: '#ff4df0',
