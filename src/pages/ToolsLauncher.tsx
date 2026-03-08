@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Footer from "@/components/Footer";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import GlobeLoader from "@/components/GlobeLoader";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Rocket, Plane, Orbit, TrendingUp, Wind, Database, Zap, Radio, Grid3x3, Cloud, Scale, Target, Battery, ArrowUp } from "lucide-react";
