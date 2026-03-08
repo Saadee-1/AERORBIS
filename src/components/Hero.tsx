@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Rocket, ChevronDown, Zap, Target, Shield, Cpu } from "lucide-react";
+import { Rocket, Zap, Target, Shield, Cpu } from "lucide-react";
 import aerorbisLogo from "@/assets/aerorbis-logo-refined.png";
 
 // Holographic scan line component
@@ -361,21 +361,6 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 3 }}
-      >
-        <span className="text-[9px] font-rajdhani tracking-[0.3em] text-primary/40 uppercase">Scroll</span>
-        <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          <ChevronDown className="w-5 h-5 text-primary/50" />
-        </motion.div>
-      </motion.div>
     </section>
   );
 };
