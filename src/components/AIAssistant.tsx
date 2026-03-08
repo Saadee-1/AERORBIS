@@ -412,8 +412,8 @@ const AIAssistant: React.FC = () => {
                           className={cn(
                             "w-full p-3 rounded-lg text-left transition-all group flex flex-col gap-1",
                             session.id === currentSessionId
-                              ? "bg-cyan-400/20 border border-cyan-400/50"
-                              : "bg-slate-800/50 border border-cyan-400/10 hover:border-cyan-400/30 hover:bg-slate-800/70"
+                              ? "bg-emerald-500/20 border border-emerald-500/50"
+                              : "bg-slate-800/50 border border-emerald-500/10 hover:border-emerald-500/30 hover:bg-slate-800/70"
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
