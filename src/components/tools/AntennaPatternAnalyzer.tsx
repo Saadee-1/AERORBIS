@@ -1376,8 +1376,8 @@ const AntennaPatternAnalyzer = () => {
                         where c = 299,792,458 m/s (speed of light), f = frequency
                       </p>
                     </div>
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <p className="text-cyan-400 font-semibold mb-2">Directivity</p>
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10">
+                      <p className="text-primary font-semibold mb-2">Directivity</p>
                       <code className="text-sm block mb-2">D = 4π * U_max / P_rad</code>
                       <p className="text-xs text-gray-400">
                         where U_max is peak radiation intensity, P_rad is total radiated power
