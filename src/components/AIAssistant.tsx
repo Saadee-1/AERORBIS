@@ -271,8 +271,8 @@ const AIAssistant: React.FC = () => {
                       <Menu className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-cyan-400/30 rounded-xl">
-                    <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-400/10">
+                      <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-emerald-500/30 rounded-xl">
+                    <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10">
                       <History className="w-4 h-4 mr-2" />
                       {showHistory ? 'Hide' : 'Show'} History
                     </DropdownMenuItem>
