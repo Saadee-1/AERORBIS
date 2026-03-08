@@ -85,7 +85,7 @@ const DashboardLearning = () => {
         <div className="relative p-6 flex flex-col items-center text-center space-y-3">
           <motion.div
             className="w-14 h-14 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center"
-            animate={{ scale: [1, 1.08, 1], boxShadow: ['0 0 0px hsl(185 85% 50% / 0)', '0 0 20px hsl(185 85% 50% / 0.3)', '0 0 0px hsl(185 85% 50% / 0)'] }}
+            animate={{ scale: [1, 1.08, 1], boxShadow: ['0 0 0px hsl(160 84% 39% / 0)', '0 0 20px hsl(160 84% 39% / 0.3)', '0 0 0px hsl(160 84% 39% / 0)'] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           >
             <Flame className="w-7 h-7 text-primary" />
