@@ -493,7 +493,40 @@ export function OrbitalGroundTrack({
         </text>
       </svg>
 
-      {/* Sub-satellite point info box */}
+      {/* Launch site hover tooltip */}
+      {hoveredSite && (
+        <div
+          className="absolute z-10 pointer-events-none bg-background/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2.5 shadow-xl text-xs"
+          style={{
+            left: Math.min(tooltipPos.x + 16, (svgRef.current?.getBoundingClientRect().width ?? W) - 200),
+            top: Math.max(tooltipPos.y - 80, 4),
+            minWidth: 185,
+          }}
+        >
+          <div className="font-bold text-foreground text-[11px] mb-1.5 flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full" style={{ background: 'hsl(45 90% 55%)' }} />
+            {hoveredSite.name}
+          </div>
+          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-muted-foreground font-mono">
+            <span>Country</span>
+            <span className="text-foreground">{hoveredSite.country}</span>
+            <span>Operator</span>
+            <span className="text-foreground">{hoveredSite.operator}</span>
+            <span>Pads</span>
+            <span className="text-foreground">{hoveredSite.pads}</span>
+            <span>Active</span>
+            <span className="text-foreground">Since {hoveredSite.since}</span>
+            <span>Lat/Lon</span>
+            <span className="text-foreground">{hoveredSite.lat.toFixed(1)}° / {hoveredSite.lon.toFixed(1)}°</span>
+            <span>Typical i</span>
+            <span className="text-foreground">{hoveredSite.orbit.inclination}°</span>
+          </div>
+          {onLaunchSiteClick && (
+            <div className="mt-1.5 text-[9px] text-muted-foreground/60 italic">Click to load orbit</div>
+          )}
+        </div>
+      )}
+
       {satelliteData && showCoords && (
         <div
           className="absolute bottom-2 left-2 bg-background/85 backdrop-blur-sm border border-border rounded-md px-3 py-2 text-xs font-mono shadow-lg"
