@@ -95,7 +95,7 @@ const Tools = () => {
           transition={{ delay: 0.6 }}
           className="text-center mt-10"
         >
-          <Button asChild size="lg" className="gap-2 glow-primary">
+          <Button asChild size="lg" className="gap-2 glow-cyan">
             <Link to="/tools">
               Access All Tools <ArrowRight className="w-4 h-4" />
             </Link>

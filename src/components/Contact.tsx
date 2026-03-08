@@ -74,7 +74,7 @@ const Contact = () => {
                 rows={6}
                 className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 resize-none focus:border-primary/50 focus:ring-primary/20 transition-all"
               />
-              <Button type="submit" size="lg" className="w-full gap-2 glow-primary font-semibold tracking-wide">
+              <Button type="submit" size="lg" className="w-full gap-2 glow-cyan font-semibold tracking-wide">
                 <Send className="w-4 h-4" />
                 Send Transmission
               </Button>
