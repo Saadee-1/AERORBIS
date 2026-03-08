@@ -73,16 +73,25 @@ const FloatingIcon = ({ Icon, x, y, delay }: { Icon: any; x: string; y: string; 
 
 const Hero = () => {
   const [rocketLaunched, setRocketLaunched] = useState(false);
+  const [zapLaunched, setZapLaunched] = useState(false);
   const navigate = useNavigate();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleLaunchTools = () => {
     if (rocketLaunched) return;
     setRocketLaunched(true);
-    // Navigate after animation
     setTimeout(() => {
       navigate("/tools");
       setRocketLaunched(false);
+    }, 900);
+  };
+
+  const handleExploreModules = () => {
+    if (zapLaunched) return;
+    setZapLaunched(true);
+    setTimeout(() => {
+      navigate("/learn");
+      setZapLaunched(false);
     }, 900);
   };
 
@@ -237,15 +246,35 @@ const Hero = () => {
               Launch Tools
             </Button>
             <Button 
-              asChild 
               variant="outline" 
               size="lg" 
-              className="px-10 py-6 gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-base tracking-wider uppercase font-rajdhani group"
+              onClick={handleExploreModules}
+              className="px-10 py-6 gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-base tracking-wider uppercase font-rajdhani group relative overflow-visible"
             >
-              <Link to="/learn">
-                <Zap className="w-5 h-5 group-hover:text-primary transition-colors" />
-                Explore Modules
-              </Link>
+              <span className="relative">
+                <AnimatePresence>
+                  {!zapLaunched && (
+                    <motion.span
+                      key="zap-static"
+                      className="inline-block"
+                      exit={{ y: -200, x: 80, scale: 2, opacity: 0, rotate: -30 }}
+                      transition={{ duration: 0.8, ease: [0.32, 0, 0.67, 0] }}
+                    >
+                      <Zap className="w-5 h-5 group-hover:text-primary transition-colors duration-500" />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                {zapLaunched && (
+                  <motion.span
+                    className="absolute -top-1 left-0 w-2 h-6 rounded-full"
+                    style={{ background: 'linear-gradient(to top, hsl(var(--primary) / 0.8), transparent)' }}
+                    initial={{ opacity: 1, scaleY: 1 }}
+                    animate={{ opacity: 0, scaleY: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                  />
+                )}
+              </span>
+              Explore Modules
             </Button>
           </motion.div>
 
