@@ -79,7 +79,7 @@ function DockItem({
         <motion.span
           layoutId="dock-dot"
           className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_hsl(160_84%_39%/0.6)]"
-          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+          transition={{ type: "spring", stiffness: 200, damping: 28, mass: 0.8 }}
         />
       )}
     </motion.div>

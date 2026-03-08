@@ -44,7 +44,7 @@ const AnimatedRoutes = () => {
       const timer = setTimeout(() => {
         setIsTransitioning(false);
         setPreviousPath(location.pathname);
-      }, 600);
+      }, 400);
       return () => clearTimeout(timer);
     }
   }, [location.pathname, previousPath]);
