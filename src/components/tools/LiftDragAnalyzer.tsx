@@ -1694,7 +1694,7 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-2xl font-bold text-green-400 pt-1">
                       {result.L_D_ratio > 25 ? "Excellent" : result.L_D_ratio > 15 ? "Good" : result.L_D_ratio > 8 ? "Moderate" : "Poor"}
                     </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground/70 mt-1">
                           {result.L_D_ratio > 25 ? "(Glider-like)" : result.L_D_ratio > 15 ? "(Airliner)" : result.L_D_ratio > 8 ? "(Prop plane)" : "(High drag)"}
                         </p>
                       </>
