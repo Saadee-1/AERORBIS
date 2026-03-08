@@ -117,25 +117,7 @@ const Hero = () => {
         <HUDCorner position="br" />
       </div>
 
-      {/* Status indicators */}
-      <motion.div 
-        className="absolute top-8 md:top-16 left-8 md:left-16 flex items-center gap-2"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 2 }}
-      >
-        <div className="w-2 h-2 rounded-full bg-[hsl(var(--success))] animate-pulse" />
-        <span className="text-[10px] font-rajdhani tracking-[0.2em] text-primary/50 uppercase">System Online</span>
-      </motion.div>
-
-      <motion.div 
-        className="absolute top-8 md:top-16 right-8 md:right-16 text-right"
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 2.2 }}
-      >
-        <span className="text-[10px] font-rajdhani tracking-[0.2em] text-primary/40 uppercase">EST. 2024</span>
-      </motion.div>
+      {/* Status indicators removed for cleaner look */}
 
       <div className="container mx-auto px-6 lg:px-8 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
