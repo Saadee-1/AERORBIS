@@ -554,19 +554,19 @@ function generatePDFHTML(context: CalculationEvent, options: { includeAssistantE
     @page { margin: 2cm; }
     body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 40px; line-height: 1.6; color: #1e293b; }
     .cover { text-align: center; page-break-after: always; padding: 60px 0; }
-    h1 { color: #22d3ee; font-size: 2.5em; margin-bottom: 10px; }
-    h2 { color: #3b82f6; margin-top: 30px; page-break-after: avoid; }
-    h3 { color: #60a5fa; margin-top: 20px; }
+    h1 { color: #10b981; font-size: 2.5em; margin-bottom: 10px; }
+    h2 { color: #059669; margin-top: 30px; page-break-after: avoid; }
+    h3 { color: #047857; margin-top: 20px; }
     table { border-collapse: collapse; width: 100%; margin: 20px 0; page-break-inside: avoid; }
     th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: left; }
     th { background-color: #1e293b; color: white; font-weight: 600; }
-    .step { margin: 15px 0; padding: 15px; background: #f1f5f9; border-left: 4px solid #22d3ee; page-break-inside: avoid; }
-    .result { font-size: 1.2em; font-weight: bold; color: #22d3ee; }
+    .step { margin: 15px 0; padding: 15px; background: #f1f5f9; border-left: 4px solid #10b981; page-break-inside: avoid; }
+    .result { font-size: 1.2em; font-weight: bold; color: #10b981; }
     .metadata { font-size: 0.9em; color: #64748b; background: #f8fafc; padding: 15px; border-radius: 8px; }
     .formula { font-family: 'Courier New', monospace; background: #f1f5f9; padding: 8px; border-radius: 4px; margin: 10px 0; }
     .toc { page-break-after: always; }
     .toc-item { margin: 8px 0; }
-    .toc-item a { color: #3b82f6; text-decoration: none; }
+    .toc-item a { color: #059669; text-decoration: none; }
     .footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; font-size: 0.85em; color: #64748b; }
     .json-record { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.75em; overflow-x: auto; page-break-inside: avoid; }
     .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 15px 0; }
