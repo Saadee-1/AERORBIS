@@ -166,7 +166,7 @@ const Hero = () => {
               />
             ))}
             {/* Logo with glassmorphic circular panel */}
-            <div className="relative z-10 w-32 h-32 md:w-40 md:h-40 rounded-full bg-card/30 backdrop-blur-2xl border border-primary/30 flex items-center justify-center shadow-[0_0_40px_hsl(var(--primary)/0.2),inset_0_0_20px_hsl(var(--primary)/0.05)] hover:border-primary/50 hover:shadow-[0_0_50px_hsl(var(--primary)/0.3),inset_0_0_25px_hsl(var(--primary)/0.08)] transition-all duration-500">
+            <div className="relative z-10 w-32 h-32 md:w-40 md:h-40 rounded-full bg-transparent border border-primary/35 flex items-center justify-center shadow-[0_0_40px_hsl(var(--primary)/0.22)] hover:border-primary/55 hover:shadow-[0_0_55px_hsl(var(--primary)/0.32)] transition-all duration-500">
               <img 
                 src={aerorbisLogo} 
                 alt="AERORBIS" 
