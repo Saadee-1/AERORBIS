@@ -1429,7 +1429,7 @@ const point: Record<string, unknown> = { alpha };
                   label="Geometric Angle of Attack (°)"
                   helperText="Geometric angle of attack (α): angle between the wing chord line and the freestream velocity vector. Assumes steady, level flight (or steady climb). Used to compute lift coefficient: CL = CL₀ + CL_α × α. Results are invalid beyond stall angle."
                 >
-                  <Input id="angleOfAttack" type="number" value={inputs.angleOfAttack} onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.1" />
+                  <Input id="angleOfAttack" type="number" value={inputs.angleOfAttack} onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })} step="0.1" />
                 </AeroFormField>
                 <AeroFormField 
                   label="Oswald Efficiency Factor (e)"
