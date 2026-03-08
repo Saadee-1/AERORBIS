@@ -77,21 +77,22 @@ const LearningModules = () => {
               variants={itemVariants}
               className="group relative"
             >
-              <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-lg p-6 h-full transition-all duration-300 hover:border-primary/40 hover:bg-card/60 flex gap-5 items-start hud-corners">
-                <div className="w-12 h-12 shrink-0 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(160_84%_39%/0.15)] transition-all duration-300">
-                  <mod.icon className="w-6 h-6 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-mono text-primary/70 bg-primary/10 px-2 py-0.5 rounded">{mod.tag}</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--success))]" />
-                    <span className="text-[10px] text-[hsl(var(--success))] uppercase tracking-wider">{mod.status}</span>
+              <Link to="/learn" className="block h-full">
+                <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-lg p-6 h-full transition-all duration-300 hover:border-primary/40 hover:bg-card/60 flex gap-5 items-start hud-corners cursor-pointer">
+                  <div className="w-12 h-12 shrink-0 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:border-primary/50 group-hover:shadow-[0_0_20px_hsl(160_84%_39%/0.15)] transition-all duration-300">
+                    <mod.icon className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="text-base font-semibold text-foreground mb-1 font-[Rajdhani] tracking-wide">{mod.title}</h3>
-                  <p className="text-sm text-muted-foreground">{mod.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-mono text-primary/70 bg-primary/10 px-2 py-0.5 rounded">{mod.tag}</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--success))]" />
+                      <span className="text-[10px] text-[hsl(var(--success))] uppercase tracking-wider">{mod.status}</span>
+                    </div>
+                    <h3 className="text-base font-semibold text-foreground mb-1 font-[Rajdhani] tracking-wide">{mod.title}</h3>
+                    <p className="text-sm text-muted-foreground">{mod.description}</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-primary/30 group-hover:text-primary group-hover:translate-x-1 transition-all mt-2 shrink-0" />
                 </div>
-                <ArrowRight className="w-4 h-4 text-primary/30 group-hover:text-primary group-hover:translate-x-1 transition-all mt-2 shrink-0" />
-              </div>
               </Link>
             </motion.div>
           ))}
