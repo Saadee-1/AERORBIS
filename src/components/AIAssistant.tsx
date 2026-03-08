@@ -326,20 +326,20 @@ const AIAssistant: React.FC = () => {
                         </Button>
                       </div>
                     </div>
-                    <DropdownMenuSeparator className="bg-cyan-400/20" />
+                    <DropdownMenuSeparator className="bg-emerald-500/20" />
                     <div className="px-2 py-1.5">
                       <p className="text-xs text-gray-400 mb-1.5">Language</p>
                       <Select value={language} onValueChange={setLanguage}>
-                        <SelectTrigger className="w-full h-7 bg-slate-800 border-cyan-400/30 text-cyan-400 text-xs">
+                        <SelectTrigger className="w-full h-7 bg-slate-800 border-emerald-500/30 text-emerald-500 text-xs">
                           <Globe className="w-3 h-3 mr-1" />
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-900 border-cyan-400/30">
+                        <SelectContent className="bg-slate-900 border-emerald-500/30">
                           {LANGUAGES.map((lang) => (
                             <SelectItem 
                               key={lang.code} 
                               value={lang.code}
-                              className="text-gray-300 focus:bg-cyan-400/20 focus:text-cyan-400 text-xs"
+                              className="text-gray-300 focus:bg-emerald-500/20 focus:text-emerald-500 text-xs"
                             >
                               {lang.name}
                             </SelectItem>
