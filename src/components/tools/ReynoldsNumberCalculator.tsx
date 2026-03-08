@@ -709,7 +709,7 @@ const ReynoldsNumberCalculator = () => {
                   step="0.01" 
                   value={inputs.velocity} 
                   onChange={(e) => handleInputChange("velocity", e.target.value)} 
-                  className="bg-slate-900/50 border-cyan-400/30 text-white" 
+                  className="bg-muted/50" 
                   placeholder="e.g., 50" 
                 />
               </AeroFormField>
