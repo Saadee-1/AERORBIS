@@ -24,8 +24,8 @@ const Community = () => {
   };
 
   return (
-    <section id="community" className="py-28 bg-transparent relative">
-      <div className="section-divider mb-28" />
+    <section id="community" className="py-16 sm:py-28 bg-transparent relative">
+      <div className="section-divider mb-16 sm:mb-28" />
       <div ref={ref} className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -44,7 +44,7 @@ const Community = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto mb-12"
+          className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 max-w-6xl mx-auto mb-12"
         >
           {features.map((feature) => (
             <motion.div

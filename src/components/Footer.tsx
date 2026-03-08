@@ -31,7 +31,7 @@ const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="flex gap-6">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
             {quickLinks.map((link) => (
               <Link
                 key={link.name}

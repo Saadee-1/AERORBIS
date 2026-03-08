@@ -37,8 +37,8 @@ const Testimonials = () => {
   };
 
   return (
-    <section id="testimonials" className="py-28 bg-transparent relative">
-      <div className="section-divider mb-28" />
+    <section id="testimonials" className="py-16 sm:py-28 bg-transparent relative">
+      <div className="section-divider mb-16 sm:mb-28" />
       <div ref={ref} className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -54,7 +54,7 @@ const Testimonials = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto"
+          className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto"
         >
           {testimonials.map((t) => (
             <motion.div

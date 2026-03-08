@@ -23,8 +23,8 @@ const Research = () => {
   };
 
   return (
-    <section id="research" className="py-28 bg-transparent relative">
-      <div className="section-divider mb-28" />
+    <section id="research" className="py-16 sm:py-28 bg-transparent relative">
+      <div className="section-divider mb-16 sm:mb-28" />
       <div ref={ref} className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

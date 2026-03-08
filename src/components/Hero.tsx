@@ -141,7 +141,7 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="min-h-screen flex items-center justify-center bg-transparent pt-14 relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center bg-transparent pt-16 pb-8 relative overflow-hidden"
     >
       {/* Animated grid background */}
       <div 
@@ -177,7 +177,7 @@ const Hero = () => {
       <FloatingIcon Icon={Cpu} x="12%" y="65%" delay={2.6} />
 
       {/* HUD Frame */}
-      <div className="absolute inset-8 md:inset-16 pointer-events-none">
+      <div className="absolute inset-4 sm:inset-8 md:inset-16 pointer-events-none">
         <HUDCorner position="tl" />
         <HUDCorner position="tr" />
         <HUDCorner position="bl" />
@@ -186,7 +186,7 @@ const Hero = () => {
 
       {/* Status indicators removed for cleaner look */}
 
-      <div className="container mx-auto px-6 lg:px-8 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
           
           {/* Logo with futuristic holographic treatment */}
@@ -194,13 +194,13 @@ const Hero = () => {
             initial={{ opacity: 0, scale: 0.5, filter: "blur(20px)" }}
             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-8 relative inline-flex items-center justify-center"
+            className="mb-6 sm:mb-8 relative inline-flex items-center justify-center"
           >
             {/* Clean logo (no glow/panel) */}
             <img 
               src={aerorbisLogo} 
               alt="AERORBIS" 
-              className="w-20 h-20 md:w-24 md:h-24 relative z-10"
+              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative z-10"
             />
           </motion.div>
 
@@ -209,10 +209,10 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.8 }}
-            className="mb-4 relative"
+            className="mb-3 sm:mb-4 relative"
           >
             <motion.h1
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground font-[Orbitron] tracking-tight leading-none"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground font-[Orbitron] tracking-tight leading-none"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -221,7 +221,7 @@ const Hero = () => {
             </motion.h1>
             {/* Underline accent */}
             <motion.div 
-              className="h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-4"
+              className="h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-3 sm:mt-4"
               initial={{ width: 0 }}
               animate={{ width: '60%' }}
               transition={{ delay: 1, duration: 0.8, ease: 'easeOut' }}
@@ -233,7 +233,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.2 }}
-            className="text-lg md:text-2xl text-primary font-rajdhani tracking-[0.3em] uppercase mb-8"
+            className="text-sm sm:text-lg md:text-2xl text-primary font-rajdhani tracking-[0.2em] sm:tracking-[0.3em] uppercase mb-6 sm:mb-8"
           >
             Where Aerospace Minds Connect
           </motion.p>
@@ -243,7 +243,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.5 }}
-            className="text-base md:text-lg text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto"
+            className="text-sm sm:text-base md:text-lg text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto px-2"
           >
             Professional-grade engineering tools, interactive simulators, and deep learning resources 
             for the next generation of aerospace engineers.
@@ -254,14 +254,14 @@ const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.8 }}
-            className="flex flex-wrap gap-4 justify-center mb-16"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-10 sm:mb-16 px-4 sm:px-0"
           >
              <Button 
               ref={buttonRef}
               variant="outline"
               size="lg" 
               onClick={handleLaunchTools}
-              className="px-10 py-6 gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-base tracking-wider uppercase font-rajdhani group transition-all duration-300 hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] relative overflow-visible"
+              className="px-6 sm:px-10 py-5 sm:py-6 gap-2 sm:gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-sm sm:text-base tracking-wider uppercase font-rajdhani group transition-all duration-300 hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] relative overflow-visible"
             >
               <span className="relative">
                 <AnimatePresence>
@@ -272,7 +272,7 @@ const Hero = () => {
                       exit={{ y: -200, x: 80, scale: 2.5, opacity: 0, rotate: -45 }}
                       transition={{ duration: 0.8, ease: [0.32, 0, 0.67, 0] }}
                     >
-                      <Rocket className="w-5 h-5 group-hover:text-primary group-hover:-rotate-45 transition-all duration-500" />
+                      <Rocket className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-primary group-hover:-rotate-45 transition-all duration-500" />
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -294,7 +294,7 @@ const Hero = () => {
               variant="outline" 
               size="lg" 
               onClick={handleExploreModules}
-              className="px-10 py-6 gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-base tracking-wider uppercase font-rajdhani group relative overflow-visible"
+              className="px-6 sm:px-10 py-5 sm:py-6 gap-2 sm:gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-sm sm:text-base tracking-wider uppercase font-rajdhani group relative overflow-visible"
             >
               <span className="relative">
                 <AnimatePresence>
@@ -305,7 +305,7 @@ const Hero = () => {
                       exit={{ y: -200, x: 80, scale: 2.5, opacity: 0, rotate: -30 }}
                       transition={{ duration: 0.8, ease: [0.32, 0, 0.67, 0] }}
                     >
-                      <Zap className="w-5 h-5 group-hover:text-primary transition-colors duration-500" />
+                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-primary transition-colors duration-500" />
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -329,7 +329,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 2.2 }}
-            className="grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto"
+            className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 max-w-2xl mx-auto"
           >
             {[
               { value: "15+", label: "Engineering Tools" },
@@ -338,7 +338,7 @@ const Hero = () => {
             ].map((stat, index) => (
               <motion.div 
                 key={stat.label} 
-                className="relative p-4 md:p-6 rounded-lg border border-primary/20 bg-card/20 backdrop-blur-sm group hover:border-primary/50 transition-colors"
+                className="relative p-3 sm:p-4 md:p-6 rounded-lg border border-primary/20 bg-card/20 backdrop-blur-sm group hover:border-primary/50 transition-colors"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 2.2 + index * 0.15 }}
@@ -349,10 +349,10 @@ const Hero = () => {
                 <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary/40" />
                 <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-primary/40" />
                 
-                <div className="text-2xl md:text-4xl font-bold text-primary font-[Orbitron] group-hover:drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all">
+                <div className="text-xl sm:text-2xl md:text-4xl font-bold text-primary font-[Orbitron] group-hover:drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all">
                   {stat.value}
                 </div>
-                <div className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mt-1 font-rajdhani">
+                <div className="text-[8px] sm:text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mt-1 font-rajdhani">
                   {stat.label}
                 </div>
               </motion.div>
