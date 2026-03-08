@@ -133,7 +133,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
     }
     th { 
       background-color: #0f172a; 
-      color: #22d3ee; 
+      color: #10b981; 
       font-weight: 600;
     }
     tr:last-child td {
