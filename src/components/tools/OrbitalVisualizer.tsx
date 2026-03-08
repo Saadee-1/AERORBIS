@@ -736,38 +736,18 @@ const OrbitalVisualizer = () => {
       const cloudLayer = new THREE.Mesh(cloudGeo, cloudMat);
       scene.add(cloudLayer);
 
-      // ── Outer atmosphere glow ──
-      const atmoGeo = new THREE.SphereGeometry(1.06, 64, 32);
+      // ── Atmosphere layers removed for clean look ──
+      const atmoGeo = new THREE.SphereGeometry(1.06, 8, 8);
       disposableGeometries.push(atmoGeo);
-      const atmoMat = new THREE.ShaderMaterial({
-        uniforms: {
-          sunDirection: { value: sunDirection },
-        },
-        vertexShader: ATMO_VERTEX,
-        fragmentShader: ATMO_FRAGMENT,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false,
-      });
+      const atmoMat = new THREE.MeshBasicMaterial({ visible: false });
       disposables.push(atmoMat);
       const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
-      scene.add(atmosphere);
 
-      // ── Inner atmosphere rim ──
-      const innerAtmoGeo = new THREE.SphereGeometry(1.015, 64, 32);
+      const innerAtmoGeo = new THREE.SphereGeometry(1.015, 8, 8);
       disposableGeometries.push(innerAtmoGeo);
-      const innerAtmoMat = new THREE.MeshBasicMaterial({
-        color: 0x4488ff,
-        transparent: true,
-        opacity: 0.04,
-        side: THREE.FrontSide,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
+      const innerAtmoMat = new THREE.MeshBasicMaterial({ visible: false });
       disposables.push(innerAtmoMat);
       const innerAtmosphere = new THREE.Mesh(innerAtmoGeo, innerAtmoMat);
-      scene.add(innerAtmosphere);
 
       // ── Cinematic Lighting ──
       // Key light (Sun)
