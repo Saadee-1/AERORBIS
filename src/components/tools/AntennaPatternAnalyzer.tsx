@@ -1364,8 +1364,8 @@ const AntennaPatternAnalyzer = () => {
               icon={Info}
             >
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="formulas" className="border-cyan-400/20">
-                  <AccordionTrigger className="text-white hover:text-cyan-400">
+                <AccordionItem value="formulas" className="border-primary/20">
+                  <AccordionTrigger className="text-white hover:text-primary">
                     Antenna Theory Formulas
                   </AccordionTrigger>
                   <AccordionContent className="text-gray-300 space-y-4 pt-2">
