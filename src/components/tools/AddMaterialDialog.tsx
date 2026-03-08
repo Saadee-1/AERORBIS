@@ -41,6 +41,7 @@ const CATEGORIES = [
   "Ceramic",
   "Fluid",
   "Wood",
+  "Coating",
   "Other",
 ];
 

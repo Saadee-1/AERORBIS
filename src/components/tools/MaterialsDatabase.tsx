@@ -26,59 +26,11 @@ import type { AeroverseAIPayload } from "@/ai/schema/AerorbisPayload";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
 import { buildMaterialsPayload } from "./materials/payloadBuilder";
 
-// Full Aerospace Materials Database
-const MATERIALS: Material[] = [
-  { "name": "Aluminum 2024-T3", "category": "Metal", "density": 2780, "description": "High strength aircraft aluminum alloy used in fuselage skins" },
-  { "name": "Aluminum 6061-T6", "category": "Metal", "density": 2700, "description": "General-purpose alloy used in spacecraft structures and machining" },
-  { "name": "Aluminum 7075-T6", "category": "Metal", "density": 2810, "description": "Very high strength alloy for wing spars and landing gear" },
-  { "name": "Titanium Ti-6Al-4V", "category": "Metal", "density": 4430, "description": "Primary aerospace titanium alloy used in jet engines and spacecraft" },
-  { "name": "Titanium CP Grade 2", "category": "Metal", "density": 4500, "description": "Commercially pure titanium, corrosion resistant" },
-  { "name": "Stainless Steel 304", "category": "Metal", "density": 8000, "description": "Common stainless steel, corrosion resistant" },
-  { "name": "Stainless Steel 316", "category": "Metal", "density": 8000, "description": "Marine-grade aerospace structural steel" },
-  { "name": "Maraging Steel 250", "category": "Metal", "density": 8100, "description": "Ultra-high strength steel for rocket motor casings" },
-  { "name": "Inconel 718", "category": "Superalloy", "density": 8190, "description": "High-temperature nickel alloy used in jet engines and turbines" },
-  { "name": "Inconel 625", "category": "Superalloy", "density": 8440, "description": "Heat-resistant alloy for exhaust systems" },
-  { "name": "Hastelloy X", "category": "Superalloy", "density": 8800, "description": "Used in aerospace combustion chambers" },
-  { "name": "Carbon Fiber (CFRP - Unidirectional)", "category": "Composite", "density": 1550, "description": "Primary composite for aircraft wings and fuselage" },
-  { "name": "Carbon Fiber (Woven Fabric)", "category": "Composite", "density": 1650, "description": "High stiffness fabric used in aircraft control surfaces" },
-  { "name": "Carbon Fiber (High Modulus)", "category": "Composite", "density": 1800, "description": "Used in satellites and high-performance UAVs" },
-  { "name": "Fiberglass (GFRP)", "category": "Composite", "density": 1850, "description": "Used in fairings, radomes, UAV bodies" },
-  { "name": "Kevlar (Aramid Fiber)", "category": "Composite", "density": 1440, "description": "Impact-resistant composite used in radomes and armor" },
-  { "name": "Aluminum Honeycomb Core", "category": "Composite", "density": 50, "description": "Aircraft floor panels, fairings" },
-  { "name": "Nomex Honeycomb Core", "category": "Composite", "density": 48, "description": "Fireproof lightweight core for aerospace panels" },
-  { "name": "ABS Plastic", "category": "Polymer", "density": 1050, "description": "Common polymer used in housings and interior components" },
-  { "name": "Polycarbonate", "category": "Polymer", "density": 1200, "description": "Impact-resistant transparent polymer" },
-  { "name": "Nylon (PA6)", "category": "Polymer", "density": 1150, "description": "Engineering plastic for gears and bushings" },
-  { "name": "PEEK (Aerospace Grade)", "category": "Polymer", "density": 1320, "description": "High-strength polymer for high-temperature components" },
-  { "name": "Polyurethane Foam", "category": "Foam", "density": 40, "description": "Used in UAV wings, insulation" },
-  { "name": "EPS Foam", "category": "Foam", "density": 20, "description": "Lightweight insulation foam" },
-  { "name": "Rohacell Foam", "category": "Foam", "density": 52, "description": "Aerospace-grade core material for CFRP sandwich structures" },
-  { "name": "Silica Tile (Space Shuttle)", "category": "Ceramic", "density": 144, "description": "Thermal Protection System for re-entry vehicles" },
-  { "name": "Zirconia Ceramic", "category": "Ceramic", "density": 5600, "description": "Used in high-temperature insulation" },
-  { "name": "Water", "category": "Fluid", "density": 1000, "description": "Standard fluid reference" },
-  { "name": "Jet A Fuel", "category": "Fluid", "density": 804, "description": "Standard aviation fuel" },
-  { "name": "RP-1 (Rocket Kerosene)", "category": "Fluid", "density": 810, "description": "Fuel used in Falcon 9, Soyuz, Saturn I" },
-  { "name": "Liquid Oxygen (LOX)", "category": "Fluid", "density": 1141, "description": "Rocket oxidizer" },
-  { "name": "Liquid Hydrogen (LH2)", "category": "Fluid", "density": 70, "description": "Cryogenic rocket fuel" },
-  { "name": "Balsa Wood", "category": "Wood", "density": 160, "description": "Very lightweight material used in RC aircraft" },
-  { "name": "Spruce Wood", "category": "Wood", "density": 400, "description": "Used in vintage wooden aircraft frames" },
-  { "name": "Magnesium Alloy", "category": "Metal", "density": 1800, "description": "Extremely lightweight alloy for aerospace usage" },
-  { "name": "Copper", "category": "Metal", "density": 8960, "description": "Used in electrical systems and cooling channels" },
-  { "name": "Brass", "category": "Metal", "density": 8500, "description": "Common engineering metal" }
-];
+import { ALL_MATERIALS, MATERIAL_CATEGORIES } from "./materials/materialsData";
 
-const CATEGORIES = [
-  "All",
-  "Metal",
-  "Superalloy",
-  "Composite",
-  "Polymer",
-  "Foam",
-  "Ceramic",
-  "Fluid",
-  "Wood",
-  "Other",
-];
+const MATERIALS = ALL_MATERIALS;
+
+const CATEGORIES = MATERIAL_CATEGORIES.map(c => c.id);
 
 const MaterialsDatabase = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
@@ -264,17 +216,17 @@ const MaterialsDatabase = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
-          <Database className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Aerospace Materials Density Database
+          <Database className="w-12 h-12 text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.6)]" />
+          <h2 className="text-4xl font-bold text-primary">
+            Aerospace Materials Database
           </h2>
         </div>
-        <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-          Comprehensive database of aerospace materials with density properties. Search, filter, and compare materials.
+        <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+          {materials.length}+ aerospace materials with density properties. Search, filter, and compare.
         </p>
         <div className="flex justify-center gap-2 mt-4">
           <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-            <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+            <SelectTrigger className="w-32 bg-card border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -286,126 +238,118 @@ const MaterialsDatabase = () => {
         </div>
       </motion.div>
 
-      {/* Controls */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid md:grid-cols-3 gap-4"
-      >
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl md:col-span-2">
+      {/* Search + Add */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <Card className="bg-card/50 backdrop-blur-lg border border-border rounded-2xl">
           <CardContent className="pt-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400" />
-              <Input
-                type="search"
-                placeholder="Search materials by name or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-900/50 border-cyan-400/30 text-white"
-              />
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
+                <Input
+                  type="search"
+                  placeholder="Search materials by name or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-background border-border text-foreground"
+                />
+              </div>
+              <Button
+                onClick={() => setIsAddDialogOpen(true)}
+                className="bg-primary text-primary-foreground font-semibold shrink-0"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Custom
+              </Button>
             </div>
           </CardContent>
         </Card>
-
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-cyan-400" />
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.filter((cat) => cat === "All" || availableCategories.includes(cat)).map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Custom Units Card */}
-        {unitSystem === "Custom" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Settings2 className="w-5 h-5 text-cyan-400" />
-                  Custom Unit Definitions
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Define conversion factor to SI (kg/m³)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                  <Label className="text-white font-semibold">Density (ρ)</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <Input 
-                      placeholder="Unit Name" 
-                      value={customUnitName}
-                      onChange={(e) => setCustomUnitName(e.target.value)}
-                      className="bg-slate-800 border-cyan-400/30 text-white"
-                    />
-                    <Input 
-                      type="number"
-                      step="0.0001"
-                      placeholder="SI Factor"
-                      value={customFactor}
-                      onChange={(e) => setCustomFactor(e.target.value)}
-                      className="bg-slate-800 border-cyan-400/30 text-white"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1.5">
-                    1 {customUnitName || "Unit"} = {customFactor || "..."} kg/m³
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
       </motion.div>
 
-      {/* Add Material Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="flex justify-end"
-      >
-        <Button
-          onClick={() => setIsAddDialogOpen(true)}
-          className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Custom Material
-        </Button>
-      </motion.div>
-
-      {/* Stats Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      {/* Category Chips */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
         transition={{ delay: 0.15 }}
+        className="flex flex-wrap gap-2"
       >
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+        {MATERIAL_CATEGORIES
+          .filter((cat) => cat.id === "All" || availableCategories.includes(cat.id))
+          .map((cat) => {
+            const isActive = selectedCategory === cat.id;
+            const count = cat.id === "All" ? materials.length : materials.filter(m => m.category === cat.id).length;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${
+                  isActive 
+                    ? "bg-primary/20 border-primary/50 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.2)]" 
+                    : "bg-card/50 border-border text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                }`}
+              >
+                {cat.label} <span className="opacity-60">({count})</span>
+              </button>
+            );
+          })}
+      </motion.div>
+
+      {/* Custom Units Card */}
+      {unitSystem === "Custom" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Card className="bg-card/50 backdrop-blur-lg border border-border rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Settings2 className="w-5 h-5 text-primary" />
+                Custom Unit Definitions
+              </CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Define conversion factor to SI (kg/m³)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                <Label className="text-foreground font-semibold">Density (ρ)</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <Input 
+                    placeholder="Unit Name" 
+                    value={customUnitName}
+                    onChange={(e) => setCustomUnitName(e.target.value)}
+                    className="bg-background border-border text-foreground"
+                  />
+                  <Input 
+                    type="number"
+                    step="0.0001"
+                    placeholder="SI Factor"
+                    value={customFactor}
+                    onChange={(e) => setCustomFactor(e.target.value)}
+                    className="bg-background border-border text-foreground"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  1 {customUnitName || "Unit"} = {customFactor || "..."} kg/m³
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Stats Row */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <Card className="bg-card/50 backdrop-blur-lg border border-border rounded-2xl">
           <CardContent className="pt-6">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <p className="text-3xl font-bold text-cyan-400 mb-2">{materials.length}</p>
-                <p className="text-gray-400 text-sm">Total Materials</p>
+                <p className="text-3xl font-bold text-primary mb-1">{materials.length}</p>
+                <p className="text-muted-foreground text-sm">Total Materials</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-blue-400 mb-2">{filteredMaterials.length}</p>
-                <p className="text-gray-400 text-sm">Filtered Results</p>
+                <p className="text-3xl font-bold text-primary mb-1">{filteredMaterials.length}</p>
+                <p className="text-muted-foreground text-sm">Filtered Results</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-cyan-400 mb-2">{availableCategories.length}</p>
-                <p className="text-gray-400 text-sm">Categories</p>
+                <p className="text-3xl font-bold text-primary mb-1">{availableCategories.length}</p>
+                <p className="text-muted-foreground text-sm">Categories</p>
               </div>
             </div>
           </CardContent>
@@ -414,21 +358,15 @@ const MaterialsDatabase = () => {
 
       {/* Table and Chart Grid */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Materials Table */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="space-y-4"
-        >
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="space-y-4">
+          <Card className="bg-card/50 backdrop-blur-lg border border-border rounded-2xl">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Database className="w-5 h-5 text-cyan-400" />
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Database className="w-5 h-5 text-primary" />
                 Materials Database
               </CardTitle>
-              <CardDescription className="text-gray-400">
-                Click on any material to view detailed information
+              <CardDescription className="text-muted-foreground">
+                Click any material for details · Sortable columns · 25 per page
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -443,25 +381,20 @@ const MaterialsDatabase = () => {
           </Card>
         </motion.div>
 
-        {/* Density Chart */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
           <DensityChart materials={filteredMaterials} unitSystem={unitSystem} />
         </motion.div>
       </div>
 
       {/* Material Details Drawer */}
-        <MaterialDetailsDrawer
-          material={selectedMaterial}
-          unitSystem={unitSystem}
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-          requestId={lastRequestId}
-          payload={lastPayload}
-        />
+      <MaterialDetailsDrawer
+        material={selectedMaterial}
+        unitSystem={unitSystem}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        requestId={lastRequestId}
+        payload={lastPayload}
+      />
 
       {/* Add Material Dialog */}
       <AddMaterialDialog
