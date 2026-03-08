@@ -229,6 +229,17 @@ export const VisualizerScene = memo(function VisualizerScene({
           />
         )}
 
+        {/* Stage separation effects */}
+        {activeSeparations.map((sep) => (
+          <StageSeparation
+            key={sep.id}
+            frame={sep.frame}
+            onComplete={() => {
+              setActiveSeparations(prev => prev.filter(s => s.id !== sep.id));
+            }}
+          />
+        ))}
+
         <CameraController
           mode={settings.cameraMode}
           currentFrame={currentFrame}
