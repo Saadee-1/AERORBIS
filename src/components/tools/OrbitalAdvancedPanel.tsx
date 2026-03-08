@@ -118,6 +118,9 @@ export function OrbitalAdvancedPanel({
   const [departPlanet, setDepartPlanet] = useState('earth');
   const [arrivePlanet, setArrivePlanet] = useState('mars');
 
+  // ── Pork-chop data ──
+  const [porkChopData, setPorkChopData] = useState<PorkChopData | null>(null);
+
   // ── Results ──
   const [maneuverResults, setManeuverResults] = useState<AdvancedResult[]>([]);
   const [lambertResult, setLambertResult] = useState<AdvancedResult | null>(null);
