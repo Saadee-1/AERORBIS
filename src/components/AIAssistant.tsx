@@ -451,13 +451,13 @@ const AIAssistant: React.FC = () => {
             </AnimatePresence>
 
             {/* Messages Area - Maximum Space with proper flex */}
-              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 scrollbar-track-transparent">
+              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-500/20 scrollbar-track-transparent">
                 {messages.length === 0 && (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center space-y-3">
-                    <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20 
-                                  flex items-center justify-center shadow-[0_0_30px_rgba(34,211,238,0.5)]">
-                      <AstronautIcon className="w-10 h-10 text-cyan-400" />
+                    <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
+                                  flex items-center justify-center shadow-[0_0_30px_hsl(160_84%_39%/0.5)]">
+                      <AstronautIcon className="w-10 h-10 text-emerald-500" />
                     </div>
                       <p className="text-gray-400 text-sm">
                         {mode === 'chat'
@@ -465,10 +465,10 @@ const AIAssistant: React.FC = () => {
                           : 'Paste text to summarize…'}
                       </p>
                       {hasToolData && mode === 'chat' && (
-                        <div className="mt-4 p-3 bg-cyan-400/10 border border-cyan-400/30 rounded-lg text-left max-w-xs mx-auto">
+                        <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-left max-w-xs mx-auto">
                         <div className="flex items-center gap-2 mb-2">
-                          <Rocket className="w-4 h-4 text-cyan-400" />
-                          <span className="text-xs font-semibold text-cyan-400">Tool Context Active</span>
+                          <Rocket className="w-4 h-4 text-emerald-500" />
+                          <span className="text-xs font-semibold text-emerald-500">Tool Context Active</span>
                         </div>
                         <p className="text-xs text-gray-400">
                             I can explain results from {toolContext?.tool}. Ask follow-up questions to dive deeper.
