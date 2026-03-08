@@ -126,6 +126,9 @@ export function OrbitalAdvancedPanel({
   // ── Gravity assist results ──
   const [gravityAssistResults, setGravityAssistResults] = useState<AdvancedResult[]>([]);
 
+  // ── Low-thrust results ──
+  const [lowThrustResults, setLowThrustResults] = useState<AdvancedResult[]>([]);
+
   // ── Results ──
   const [maneuverResults, setManeuverResults] = useState<AdvancedResult[]>([]);
   const [lambertResult, setLambertResult] = useState<AdvancedResult | null>(null);
