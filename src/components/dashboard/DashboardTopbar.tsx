@@ -103,7 +103,7 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
               <motion.span
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_hsl(185_85%_50%/0.8)]"
+                className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_hsl(160_84%_39%/0.8)]"
               />
             </Button>
 
