@@ -209,6 +209,7 @@ export function OrbitalAdvancedPanel({
           interplanetaryResults={interplanetaryResults}
           gravityAssistResults={gravityAssistResults}
           lowThrustResults={lowThrustResults}
+          gaussResults={gaussResults}
           porkChopData={porkChopData}
           orbitParams={semiMajorAxis && eccentricity !== undefined && inclination_deg !== undefined ? {
             semiMajorAxis,
