@@ -1208,7 +1208,7 @@ const WingLoadingCalculator = () => {
                   step="0.01"
                   value={wingAreaM2}
                   onChange={(e) => setWingAreaM2(e.target.value)}
-                  className="bg-slate-900/50 border-cyan-400/30"
+                  className="bg-slate-900/50 border-primary/30"
                   placeholder={`e.g., ${unitSystem === 'SI' ? '30' : '323'}`}
                   min="0"
                 />
