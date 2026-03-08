@@ -1025,7 +1025,7 @@ const OrbitalVisualizer = () => {
                   <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
                 <AeroFormField label="Eccentricity (0-1)">
-                  <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-slate-700/50" />
+                  <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
                 <AeroFormField label={`Inclination (${getUnit("incl")})`}>
                   <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-slate-700/50" />
