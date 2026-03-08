@@ -1387,7 +1387,7 @@ const point: Record<string, unknown> = { alpha };
                           <SelectItem 
                             key={airfoil.id} 
                             value={airfoil.id}
-                            className={airfoil.custom ? "text-cyan-400" : ""}
+                            className={airfoil.custom ? "text-primary" : ""}
                           >
                             {airfoil.name}
                           </SelectItem>
