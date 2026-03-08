@@ -962,6 +962,8 @@ const WingLoadingCalculator = () => {
   };
   
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Wing Loading" />
     <ToolWrapper>
       <ToolHeader
         title="Wing Loading Calculator"
