@@ -69,7 +69,7 @@ function DockItem({
         </span>
 
         {/* Label */}
-        <span className="relative z-10 text-[9px] font-semibold uppercase tracking-[0.18em] leading-none mt-0.5">
+        <span className="relative z-10 text-[8px] font-semibold uppercase tracking-[0.15em] leading-none">
           {item.name}
         </span>
       </Link>
