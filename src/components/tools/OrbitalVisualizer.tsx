@@ -813,6 +813,7 @@ const OrbitalVisualizer = () => {
       // ── Animation Loop ──
       let lastTime = performance.now();
       let trailIndex = 0;
+      let frameCounter = 0;
 
       const animate = () => {
         const animationId = requestAnimationFrame(animate);
