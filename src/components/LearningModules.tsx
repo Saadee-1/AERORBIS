@@ -92,6 +92,7 @@ const LearningModules = () => {
                 </div>
                 <ArrowRight className="w-4 h-4 text-primary/30 group-hover:text-primary group-hover:translate-x-1 transition-all mt-2 shrink-0" />
               </div>
+              </Link>
             </motion.div>
           ))}
         </motion.div>

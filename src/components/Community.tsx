@@ -70,8 +70,10 @@ const Community = () => {
           transition={{ delay: 0.6 }}
           className="text-center"
         >
-          <Button size="lg" className="gap-2 glow-cyan">
-            Join the Network <ArrowRight className="w-4 h-4" />
+          <Button asChild size="lg" className="gap-2 glow-cyan">
+            <Link to="/community">
+              Join the Network <ArrowRight className="w-4 h-4" />
+            </Link>
           </Button>
         </motion.div>
       </div>

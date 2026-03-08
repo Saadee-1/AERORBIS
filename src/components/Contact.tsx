@@ -82,17 +82,24 @@ const Contact = () => {
             </form>
           </div>
 
-          <div className="flex justify-center gap-4 mt-10">
-            {socials.map((social) => (
-              <a
-                key={social.label}
-                href={social.href}
-                aria-label={social.label}
-                className="w-11 h-11 rounded-lg bg-card/40 border border-border/40 flex items-center justify-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/10 hover:shadow-[0_0_15px_hsl(160_84%_39%/0.15)] group"
-              >
-                <social.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </a>
-            ))}
+          <div className="flex flex-col items-center gap-4 mt-10">
+            <Button asChild variant="outline" className="border-primary/30 hover:border-primary/60 hover:bg-primary/5 gap-2">
+              <Link to="/contact">
+                Full Contact Page <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+            <div className="flex justify-center gap-4">
+              {socials.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  aria-label={social.label}
+                  className="w-11 h-11 rounded-lg bg-card/40 border border-border/40 flex items-center justify-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/10 hover:shadow-[0_0_15px_hsl(160_84%_39%/0.15)] group"
+                >
+                  <social.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                </a>
+              ))}
+            </div>
           </div>
         </motion.div>
       </div>

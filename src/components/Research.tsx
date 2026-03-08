@@ -70,8 +70,10 @@ const Research = () => {
           transition={{ delay: 0.8 }}
           className="text-center mt-10"
         >
-          <Button size="lg" className="gap-2 glow-cyan">
-            Contribute Research <ArrowRight className="w-4 h-4" />
+          <Button asChild size="lg" className="gap-2 glow-cyan">
+            <Link to="/research">
+              Contribute Research <ArrowRight className="w-4 h-4" />
+            </Link>
           </Button>
         </motion.div>
       </div>

@@ -10,24 +10,28 @@ const tools = [
     title: "Rocket Thrust Calculator",
     description: "Calculate thrust, specific impulse, and performance metrics",
     status: "ONLINE",
+    toolId: "thrust",
   },
   {
     icon: TrendingUp,
     title: "Lift-to-Drag Analyzer",
     description: "Analyze aerodynamic efficiency with interactive charts",
     status: "ONLINE",
+    toolId: "ld-ratio",
   },
   {
     icon: Orbit,
     title: "Orbital Path Simulator",
     description: "Simulate and visualize satellite trajectories in 3D",
     status: "ONLINE",
+    toolId: "orbital",
   },
   {
     icon: Database,
     title: "Material Density Database",
     description: "Access comprehensive aerospace materials data",
     status: "ONLINE",
+    toolId: "material",
   },
 ];
 
