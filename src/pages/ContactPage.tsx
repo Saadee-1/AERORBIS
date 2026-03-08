@@ -87,7 +87,7 @@ const ContactPage = () => {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
-                        className="bg-slate-900/50 border-cyan-400/20 text-white"
+                        className="bg-background/50 border-primary/20 text-foreground"
                       />
                     </div>
 
