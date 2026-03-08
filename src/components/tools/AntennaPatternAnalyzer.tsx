@@ -1526,6 +1526,7 @@ const AntennaPatternAnalyzer = () => {
         </DialogContent>
       </Dialog>
     </ToolWrapper>
+    </>
   );
 };
 
