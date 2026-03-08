@@ -41,7 +41,7 @@ const MaterialDetailsDrawer = ({
       <SheetContent className="bg-background border-l border-primary/20 text-foreground overflow-y-auto">
         <SheetHeader>
           <div className="flex items-center gap-3 mb-2">
-            <Database className="w-8 h-8 text-cyan-400" />
+            <Database className="w-8 h-8 text-primary" />
             <SheetTitle className="text-2xl text-white">{material.name}</SheetTitle>
           </div>
           <SheetDescription className="text-gray-400">
