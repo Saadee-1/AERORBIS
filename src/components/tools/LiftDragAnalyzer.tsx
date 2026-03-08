@@ -1795,7 +1795,7 @@ const point: Record<string, unknown> = { alpha };
   style={{ color: getCDValidity(result.CD).color === 'green' ? '#22c55e' : getCDValidity(result.CD).color === 'amber' ? '#eab308' : '#ef4444' }}>
   {getCDValidity(result.CD).label}
 </span>
-                          <p className="text-xs text-gray-500 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
                           {isPostStall && result.CD > 1 && (
                             <p className="text-xs text-yellow-400 mt-1">Note: CD &gt; 1 is expected in post-stall conditions</p>
                           )}
