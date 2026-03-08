@@ -1167,6 +1167,8 @@ const OrbitalVisualizer = () => {
         const e_transfer = (r2 - r1) / (r2 + r1);
         const focalDistance = a_transfer * e_transfer;
         const inclinationRad = (parseFloat(inputs.inclination) * Math.PI) / 180;
+        const raanRad = (parseFloat(inputs.raan || "0") * Math.PI) / 180;
+        const argPeriRad = (parseFloat(inputs.argOfPeriapsis || "0") * Math.PI) / 180;
         
         const transferPoints: THREE.Vector3[] = [];
         const segments = 100;
@@ -1175,14 +1177,11 @@ const OrbitalVisualizer = () => {
           const theta = (i / segments) * Math.PI;
           const r = (a_transfer * (1 - e_transfer * e_transfer)) / (1 + e_transfer * Math.cos(theta));
           
-          const x = (r * Math.cos(theta)) - focalDistance;
-          const y = r * Math.sin(theta);
+          const x_peri = r * Math.cos(theta);
+          const y_peri = r * Math.sin(theta);
           
-          transferPoints.push(new THREE.Vector3(
-            x,
-            y * Math.cos(inclinationRad),
-            y * Math.sin(inclinationRad)
-          ));
+          const [x, y, z] = rotateToECI(x_peri, y_peri, inclinationRad, raanRad, argPeriRad);
+          transferPoints.push(new THREE.Vector3(x, y, z));
         }
         
         if (t.transferOrbitLine.geometry) {
