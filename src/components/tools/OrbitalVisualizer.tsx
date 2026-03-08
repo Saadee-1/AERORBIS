@@ -726,18 +726,18 @@ const OrbitalVisualizer = () => {
       // ── Starfield ──
       const starLayers = buildStarfield(scene);
 
-      // ── Procedural Earth ──
+      // ── Earth with NASA Blue Marble texture ──
       const earthGeo = new THREE.SphereGeometry(1, 64, 32);
       disposableGeometries.push(earthGeo);
-      const earthMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-          time: { value: 0.0 },
-          sunDirection: { value: sunDirection },
-        },
-        vertexShader: EARTH_VERTEX,
-        fragmentShader: EARTH_FRAGMENT,
-      });
-      disposables.push(earthMaterial);
+      const textureLoader = new THREE.TextureLoader();
+      const earthTexture = textureLoader.load('/textures/earth_bluemarble.jpg');
+      earthTexture.colorSpace = THREE.SRGBColorSpace;
+      const earthMaterial = new THREE.MeshStandardMaterial({
+        map: earthTexture,
+        roughness: 0.8,
+        metalness: 0.1,
+      }) as unknown as THREE.ShaderMaterial; // cast to keep threeRef type happy
+      disposables.push(earthMaterial as unknown as THREE.Material);
       const earth = new THREE.Mesh(earthGeo, earthMaterial);
       scene.add(earth);
 
