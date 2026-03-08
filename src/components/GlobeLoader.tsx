@@ -98,7 +98,7 @@ const GlobeLoader = ({ isLoading }: GlobeLoaderProps) => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 1.05, opacity: 0 }}
-            transition={{ duration: 0.4, ease: smoothEase }}
+            transition={{ duration: 0.4, ease: smoothEaseStr }}
           >
             <Suspense fallback={null}>
               <Canvas camera={{ position: [0, 0, 3], fov: 45 }}>
