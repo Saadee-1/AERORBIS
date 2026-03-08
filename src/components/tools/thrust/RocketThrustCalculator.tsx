@@ -666,22 +666,22 @@ const AdvancedThrustCalculator = () => {
             >
               <div className="grid grid-cols-2 gap-4">
                 <AeroFormField label={`Thrust (F) ${getUnit("thrust")}`}>
-                  <Input id="thrust" type="number" step="0.01" value={inputs.thrust} onChange={(e) => handleInputChange("thrust", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="thrust" type="number" step="0.01" value={inputs.thrust} onChange={(e) => handleInputChange("thrust", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
                 <AeroFormField label={`Mass Flow (ṁ) ${getUnit("massFlowRate")}`}>
-                  <Input id="massFlowRate" type="number" step="0.01" value={inputs.massFlowRate} onChange={(e) => handleInputChange("massFlowRate", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="massFlowRate" type="number" step="0.01" value={inputs.massFlowRate} onChange={(e) => handleInputChange("massFlowRate", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
                 <AeroFormField label={`Exit Area (Ae) ${getUnit("exitArea")}`}>
-                  <Input id="exitArea" type="number" step="0.001" value={inputs.exitArea} onChange={(e) => handleInputChange("exitArea", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="exitArea" type="number" step="0.001" value={inputs.exitArea} onChange={(e) => handleInputChange("exitArea", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
                 <AeroFormField label={`Exhaust Velocity (V_e) ${getUnit("exhaustVelocity")}`} helperText="From Part 1">
-                  <Input id="exhaustVelocity_part2" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="From Part 1" />
+                  <Input id="exhaustVelocity_part2" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-muted/50" placeholder="From Part 1" />
                 </AeroFormField>
                 <AeroFormField label={`Exit Pressure (Pe) ${getUnit("exitPressure")}`}>
-                  <Input id="exitPressure" type="number" step="1" value={inputs.exitPressure} onChange={(e) => handleInputChange("exitPressure", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="exitPressure" type="number" step="1" value={inputs.exitPressure} onChange={(e) => handleInputChange("exitPressure", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
                 <AeroFormField label={`Ambient Pressure (Pa) ${getUnit("ambientPressure")}`}>
-                  <Input id="ambientPressure" type="number" step="1" value={inputs.ambientPressure} onChange={(e) => handleInputChange("ambientPressure", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="Leave blank" />
+                  <Input id="ambientPressure" type="number" step="1" value={inputs.ambientPressure} onChange={(e) => handleInputChange("ambientPressure", e.target.value)} className="bg-muted/50" placeholder="Leave blank" />
                 </AeroFormField>
               </div>
               <AeroButton type="button" onClick={calculateThrust} variant="primary" icon={Calculator} className="w-full">
