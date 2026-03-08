@@ -115,17 +115,10 @@ serve(async (req) => {
       );
     }
 
-    // Authenticate user
+    // Authenticate user (optional - allow anonymous access for tools)
     const auth = await authenticateUser(req);
-    if (!auth) {
-      console.log('Unauthorized access attempt to assistant-events');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Authenticated user:', auth.user.id);
+    const userId = auth?.user?.id || 'anonymous';
+    console.log('Request from user:', userId);
 
     const url = new URL(req.url);
     const path = url.pathname;
