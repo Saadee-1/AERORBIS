@@ -4,6 +4,7 @@ import DashboardTopbar from "./DashboardTopbar";
 import AeroBot from "./AeroBot";
 import { motion } from "framer-motion";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
