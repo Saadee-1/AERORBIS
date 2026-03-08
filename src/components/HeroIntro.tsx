@@ -289,11 +289,13 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
         <div className="absolute -inset-8 bg-primary/5 rounded-full blur-3xl" />
         
         <FlickerText delay={0.5}>
-          <img
-            src={aerorbisLogo}
-            alt="Aerorbis Logo"
-            className="intro-logo w-14 h-14 md:w-18 md:h-18 object-contain mx-auto mb-4 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)] dark:mix-blend-screen"
-          />
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-card/40 backdrop-blur-xl border border-primary/20 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
+            <img
+              src={aerorbisLogo}
+              alt="Aerorbis Logo"
+              className="intro-logo w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
+            />
+          </div>
         </FlickerText>
 
         <FlickerText delay={0.8} className="mb-3">
