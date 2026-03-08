@@ -1985,9 +1985,9 @@ const point: Record<string, unknown> = { alpha };
           </div>
 
           {/* Graph Toolbar - Comparison Controls */}
-          <div className="flex flex-col gap-3 p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
+          <div className="flex flex-col gap-3 p-4 bg-slate-700/30 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <Label className="text-cyan-300 text-sm font-medium">
+              <Label className="text-primary text-sm font-medium">
                 Comparing with ({comparedAirfoilIds.length} / {MAX_COMPARED_AIRFOILS})
               </Label>
               <Select
