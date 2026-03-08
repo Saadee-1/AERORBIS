@@ -169,7 +169,7 @@ const Hero = () => {
             <img 
               src={aerorbisLogo} 
               alt="AERORBIS" 
-              className="w-24 h-24 md:w-32 md:h-32 relative z-10 drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)]"
+              className="w-24 h-24 md:w-32 md:h-32 relative z-10 drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)] dark:mix-blend-screen"
             />
           </motion.div>
 
