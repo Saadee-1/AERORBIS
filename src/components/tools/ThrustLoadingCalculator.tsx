@@ -1064,7 +1064,7 @@ const ThrustLoadingCalculator = () => {
               >
                 <AeroFormField label="Mode">
                   <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-input border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
