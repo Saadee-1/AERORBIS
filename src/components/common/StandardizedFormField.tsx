@@ -89,7 +89,7 @@ export function StandardizedFormField({
             onChange={(e) => handleChange(e.target.value)}
             placeholder={placeholder}
             disabled={disabled}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
+            className="bg-card/50 border-primary/30 text-foreground"
           />
         );
       
@@ -105,16 +105,16 @@ export function StandardizedFormField({
               step={step}
               placeholder={placeholder}
               disabled={disabled}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
+              className="bg-card/50 border-primary/30 text-foreground"
             />
-            {unit && <span className="text-sm text-gray-400">{unit}</span>}
+            {unit && <span className="text-sm text-muted-foreground">{unit}</span>}
           </div>
         );
       
       case 'select':
         return (
           <Select value={String(value ?? '')} onValueChange={handleChange} disabled={disabled}>
-            <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+            <SelectTrigger className="bg-card/50 border-primary/30 text-foreground">
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
@@ -134,7 +134,7 @@ export function StandardizedFormField({
             onChange={(e) => handleChange(e.target.value)}
             placeholder={placeholder}
             disabled={disabled}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
+            className="bg-card/50 border-primary/30 text-foreground"
             rows={compact ? 2 : 4}
           />
         );
@@ -159,9 +159,9 @@ export function StandardizedFormField({
               step={step}
               disabled={disabled}
             />
-            <div className="flex justify-between text-xs text-gray-400">
+            <div className="flex justify-between text-xs text-muted-foreground">
               <span>{min ?? 0}</span>
-              <span className="text-cyan-400 font-bold">{value ?? min ?? 0} {unit}</span>
+              <span className="text-primary font-bold">{value ?? min ?? 0} {unit}</span>
               <span>{max ?? 100}</span>
             </div>
           </div>

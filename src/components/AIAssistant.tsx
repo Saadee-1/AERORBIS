@@ -182,8 +182,8 @@ const AIAssistant: React.FC = () => {
                 setIsOpen(true);
                 clearNotification();
               }}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-4 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.6)] 
-                       border border-cyan-400/50 cursor-pointer hover:shadow-[0_0_50px_rgba(34,211,238,0.8)] transition-all"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white p-4 rounded-xl shadow-[0_0_30px_hsl(160_84%_39%/0.6)] 
+                       border border-emerald-500/50 cursor-pointer hover:shadow-[0_0_50px_hsl(160_84%_39%/0.8)] transition-all"
             >
               <div className="flex items-center gap-3">
                 <Rocket className="w-5 h-5 flex-shrink-0" />
@@ -215,8 +215,8 @@ const AIAssistant: React.FC = () => {
                 startNewChat();
                 setIsOpen(true);
               }}
-            className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 
-                     shadow-[0_0_40px_rgba(34,211,238,0.7)] hover:shadow-[0_0_60px_rgba(34,211,238,0.9)]
+            className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-600 
+                     shadow-[0_0_40px_hsl(160_84%_39%/0.7)] hover:shadow-[0_0_60px_hsl(160_84%_39%/0.9)]
                      flex items-center justify-center transition-all duration-300 hover:scale-110 group"
             style={{
               animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -238,17 +238,17 @@ const AIAssistant: React.FC = () => {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 className="fixed bottom-4 right-4 z-50 w-[320px] max-w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-h-[600px] min-h-[450px] flex flex-col min-h-0 overscroll-contain lg:w-[380px]
                        bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl 
-                       rounded-[32px] shadow-[0_0_80px_rgba(34,211,238,0.5)] overflow-hidden"
+                       rounded-[32px] shadow-[0_0_80px_hsl(160_84%_39%/0.5)] overflow-hidden"
           >
             {/* Minimal Header - Always Visible */}
-            <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
+            <div className="flex items-center justify-between p-3 border-b border-emerald-500/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
-                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-500/30 
+                              flex items-center justify-center shadow-[0_0_25px_hsl(160_84%_39%/0.7)] flex-shrink-0">
                   <AstronautIcon className="w-5 h-5 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
+                  <h3 className="text-sm font-bold bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 
                                bg-clip-text text-transparent truncate">
                     Aerobot
                   </h3>
@@ -265,14 +265,14 @@ const AIAssistant: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                      className="h-7 w-7 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
                       title="Menu"
                     >
                       <Menu className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-cyan-400/30 rounded-xl">
-                    <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-400/10">
+                      <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-emerald-500/30 rounded-xl">
+                    <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10">
                       <History className="w-4 h-4 mr-2" />
                       {showHistory ? 'Hide' : 'Show'} History
                     </DropdownMenuItem>
@@ -281,7 +281,7 @@ const AIAssistant: React.FC = () => {
                           clearToolContext();
                           startNewChat();
                         }}
-                        className="text-cyan-400 focus:text-cyan-300 focus:bg-cyan-400/10"
+                        className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10"
                       >
                       <Plus className="w-4 h-4 mr-2" />
                       New Chat
@@ -294,7 +294,7 @@ const AIAssistant: React.FC = () => {
                       <Trash2 className="w-4 h-4 mr-2" />
                       Clear Chat
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-cyan-400/20" />
+                    <DropdownMenuSeparator className="bg-emerald-500/20" />
                     <div className="px-2 py-1.5">
                       <p className="text-xs text-gray-400 mb-1.5">Mode</p>
                       <div className="flex gap-1">
@@ -305,8 +305,8 @@ const AIAssistant: React.FC = () => {
                           className={cn(
                             'flex-1 text-xs h-7',
                             mode === 'chat' 
-                              ? 'bg-cyan-400/20 text-cyan-400 hover:bg-cyan-400/30' 
-                              : 'text-gray-400 hover:text-cyan-400'
+                              ? 'bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30' 
+                              : 'text-gray-400 hover:text-emerald-500'
                           )}
                         >
                           Chat
@@ -326,20 +326,20 @@ const AIAssistant: React.FC = () => {
                         </Button>
                       </div>
                     </div>
-                    <DropdownMenuSeparator className="bg-cyan-400/20" />
+                    <DropdownMenuSeparator className="bg-emerald-500/20" />
                     <div className="px-2 py-1.5">
                       <p className="text-xs text-gray-400 mb-1.5">Language</p>
                       <Select value={language} onValueChange={setLanguage}>
-                        <SelectTrigger className="w-full h-7 bg-slate-800 border-cyan-400/30 text-cyan-400 text-xs">
+                        <SelectTrigger className="w-full h-7 bg-slate-800 border-emerald-500/30 text-emerald-500 text-xs">
                           <Globe className="w-3 h-3 mr-1" />
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-900 border-cyan-400/30">
+                        <SelectContent className="bg-slate-900 border-emerald-500/30">
                           {LANGUAGES.map((lang) => (
                             <SelectItem 
                               key={lang.code} 
                               value={lang.code}
-                              className="text-gray-300 focus:bg-cyan-400/20 focus:text-cyan-400 text-xs"
+                              className="text-gray-300 focus:bg-emerald-500/20 focus:text-emerald-500 text-xs"
                             >
                               {lang.name}
                             </SelectItem>
@@ -347,7 +347,7 @@ const AIAssistant: React.FC = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <DropdownMenuSeparator className="bg-cyan-400/20" />
+                    <DropdownMenuSeparator className="bg-emerald-500/20" />
                       <DropdownMenuItem 
                         onClick={() => setIsOpen(false)} 
                         className="text-gray-400 focus:text-gray-300 focus:bg-slate-800"
@@ -372,7 +372,7 @@ const AIAssistant: React.FC = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsOpen(false)}
-                  className="h-7 w-7 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  className="h-7 w-7 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
                   title="Close"
                 >
                   <X className="w-4 h-4" />
@@ -389,13 +389,13 @@ const AIAssistant: React.FC = () => {
                   exit={{ width: 0, opacity: 0 }}
                     className="bg-slate-900/60 overflow-hidden flex-shrink-0 flex flex-col overscroll-contain rounded-2xl ml-2"
                 >
-                    <div className="p-2 border-b border-cyan-400/10 flex-shrink-0 flex items-center justify-between">
-                      <p className="text-xs font-semibold text-cyan-400">Recent Chats</p>
+                    <div className="p-2 border-b border-emerald-500/10 flex-shrink-0 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-emerald-500">Recent Chats</p>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setShowHistory(false)}
-                        className="h-6 w-6 text-gray-400 hover:text-gray-200 hover:bg-cyan-400/10"
+                        className="h-6 w-6 text-gray-400 hover:text-gray-200 hover:bg-emerald-500/10"
                         title="Close history"
                       >
                         <X className="w-3 h-3" />
@@ -412,12 +412,12 @@ const AIAssistant: React.FC = () => {
                           className={cn(
                             "w-full p-3 rounded-lg text-left transition-all group flex flex-col gap-1",
                             session.id === currentSessionId
-                              ? "bg-cyan-400/20 border border-cyan-400/50"
-                              : "bg-slate-800/50 border border-cyan-400/10 hover:border-cyan-400/30 hover:bg-slate-800/70"
+                              ? "bg-emerald-500/20 border border-emerald-500/50"
+                              : "bg-slate-800/50 border border-emerald-500/10 hover:border-emerald-500/30 hover:bg-slate-800/70"
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs text-gray-300 truncate group-hover:text-cyan-400 transition-colors font-medium">
+                            <p className="text-xs text-gray-300 truncate group-hover:text-emerald-500 transition-colors font-medium">
                               {session.title}
                             </p>
                             <button
@@ -440,7 +440,7 @@ const AIAssistant: React.FC = () => {
                               {session.messages.length} messages
                             </p>
                             {session.id === currentSessionId && (
-                              <span className="text-[10px] text-cyan-400 font-semibold">Current</span>
+                              <span className="text-[10px] text-emerald-500 font-semibold">Current</span>
                             )}
                           </div>
                         </button>
@@ -451,13 +451,13 @@ const AIAssistant: React.FC = () => {
             </AnimatePresence>
 
             {/* Messages Area - Maximum Space with proper flex */}
-              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-cyan-400/20 scrollbar-track-transparent">
+              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-500/20 scrollbar-track-transparent">
                 {messages.length === 0 && (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center space-y-3">
-                    <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20 
-                                  flex items-center justify-center shadow-[0_0_30px_rgba(34,211,238,0.5)]">
-                      <AstronautIcon className="w-10 h-10 text-cyan-400" />
+                    <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
+                                  flex items-center justify-center shadow-[0_0_30px_hsl(160_84%_39%/0.5)]">
+                      <AstronautIcon className="w-10 h-10 text-emerald-500" />
                     </div>
                       <p className="text-gray-400 text-sm">
                         {mode === 'chat'
@@ -465,10 +465,10 @@ const AIAssistant: React.FC = () => {
                           : 'Paste text to summarize…'}
                       </p>
                       {hasToolData && mode === 'chat' && (
-                        <div className="mt-4 p-3 bg-cyan-400/10 border border-cyan-400/30 rounded-lg text-left max-w-xs mx-auto">
+                        <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-left max-w-xs mx-auto">
                         <div className="flex items-center gap-2 mb-2">
-                          <Rocket className="w-4 h-4 text-cyan-400" />
-                          <span className="text-xs font-semibold text-cyan-400">Tool Context Active</span>
+                          <Rocket className="w-4 h-4 text-emerald-500" />
+                          <span className="text-xs font-semibold text-emerald-500">Tool Context Active</span>
                         </div>
                         <p className="text-xs text-gray-400">
                             I can explain results from {toolContext?.tool}. Ask follow-up questions to dive deeper.
@@ -494,22 +494,22 @@ const AIAssistant: React.FC = () => {
                     )}
                   >
                     {message.role === 'assistant' && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20 
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
                                     flex items-center justify-center flex-shrink-0 mt-1">
-                        <AstronautIcon className="w-5 h-5 text-cyan-400" />
+                        <AstronautIcon className="w-5 h-5 text-emerald-500" />
                       </div>
                     )}
                     <div
                       className={cn(
                         'max-w-[75%] p-3 rounded-2xl',
                         message.role === 'user'
-                          ? 'bg-gradient-to-r from-cyan-400/20 to-blue-400/20 border border-cyan-400/30 text-gray-200'
-                          : 'bg-slate-800/60 backdrop-blur-sm border border-cyan-400/20 text-gray-300'
+                          ? 'bg-gradient-to-r from-emerald-500/20 to-teal-400/20 border border-emerald-500/30 text-gray-200'
+                          : 'bg-slate-800/60 backdrop-blur-sm border border-emerald-500/20 text-gray-300'
                       )}
                     >
                       <p className="text-sm whitespace-pre-wrap leading-relaxed">{displayContent}</p>
                       {isLastAssistant && isTyping && (
-                        <span className="inline-block w-1 h-4 ml-1 bg-cyan-400 animate-pulse" />
+                        <span className="inline-block w-1 h-4 ml-1 bg-emerald-500 animate-pulse" />
                       )}
                     </div>
                     {message.role === 'user' && (
@@ -528,15 +528,15 @@ const AIAssistant: React.FC = () => {
                   animate={{ opacity: 1 }}
                   className="flex justify-start gap-3"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20 
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
                                 flex items-center justify-center flex-shrink-0">
-                    <AstronautIcon className="w-5 h-5 text-cyan-400" />
+                    <AstronautIcon className="w-5 h-5 text-emerald-500" />
                   </div>
-                  <div className="bg-slate-800/60 backdrop-blur-sm border border-cyan-400/20 p-4 rounded-2xl">
+                  <div className="bg-slate-800/60 backdrop-blur-sm border border-emerald-500/20 p-4 rounded-2xl">
                     <div className="flex gap-1.5">
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   </div>
                 </motion.div>
@@ -546,7 +546,7 @@ const AIAssistant: React.FC = () => {
             </div>
 
             {/* Input Area - Always Visible */}
-              <div className="p-3 border-t border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky bottom-0">
+              <div className="p-3 border-t border-emerald-500/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky bottom-0">
               <div className="flex gap-2">
                 <Input
                   ref={inputRef}
@@ -555,13 +555,13 @@ const AIAssistant: React.FC = () => {
                   onKeyPress={handleKeyPress}
                   placeholder={mode === 'chat' ? 'Ask Aerobot anything...' : 'Paste text to summarize...'}
                   disabled={isLoading}
-                  className="flex-1 bg-slate-900/70 border-cyan-400/30 text-gray-200 placeholder:text-gray-500
-                           focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 rounded-xl"
+                  className="flex-1 bg-slate-900/70 border-emerald-500/30 text-gray-200 placeholder:text-gray-500
+                           focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 rounded-xl"
                 />
                 <Button
                   onClick={handleSend}
                   disabled={isLoading || !inputValue.trim()}
-                  className="bg-gradient-to-r from-cyan-400 to-blue-400 text-white hover:shadow-[0_0_30px_rgba(34,211,238,0.6)]
+                  className="bg-gradient-to-r from-emerald-500 to-emerald-400 text-white hover:shadow-[0_0_30px_hsl(160_84%_39%/0.6)]
                            disabled:opacity-50 disabled:cursor-not-allowed rounded-xl px-4"
                 >
                   <Send className="w-4 h-4" />

@@ -94,7 +94,7 @@ export function LdPdfButton({ selectedAirfoils, re, disabled }: LdPdfButtonProps
             onClick={handleExport}
             disabled={disabled || isGenerating || !selectedAirfoils || selectedAirfoils.length === 0}
             variant="default"
-            className="bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-400/40"
+            className="bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-500/40"
             style={{ height: 'auto', fontSize: '14px' }}
             aria-label="Export PDF - Generate full NASA-style aerodynamic report"
           >

@@ -166,7 +166,7 @@ export function InterlinkCard({
             variant="outline"
             onClick={handleUse}
             disabled={imported}
-            className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+            className="border-emerald-500/40 text-emerald-500 hover:bg-emerald-500/10"
             aria-label={`Use ${effectiveSourceName} data in this calculator`}
           >
             {imported ? `Imported from ${effectiveSourceName}` : 'Use in this calculator'}

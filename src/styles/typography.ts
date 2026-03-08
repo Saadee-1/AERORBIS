@@ -13,7 +13,7 @@
 
 export const typography = {
   /** Tool title: 28px bold - Main tool name in header */
-  toolTitle: 'text-3xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent',
+  toolTitle: 'text-3xl font-bold bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 bg-clip-text text-transparent',
   
   /** Section title: 20px semibold - Section headings within tools */
   sectionTitle: 'text-xl font-semibold text-white',
@@ -31,10 +31,10 @@ export const typography = {
   small: 'text-xs text-gray-400',
   
   /** Number: 16px semibold monospace - For displaying calculated values */
-  number: 'text-base font-semibold font-mono text-cyan-400',
+  number: 'text-base font-semibold font-mono text-emerald-500',
   
   /** Result value: 24px bold - Large result numbers */
-  resultValue: 'text-2xl font-bold text-cyan-400',
+  resultValue: 'text-2xl font-bold text-emerald-500',
 } as const;
 
 /**

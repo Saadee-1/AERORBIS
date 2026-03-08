@@ -966,7 +966,7 @@ const ThrustLoadingCalculator = () => {
       case 'Very Low': return 'text-red-400';
       case 'Low': return 'text-orange-400';
       case 'Within': return 'text-green-400';
-      case 'High': return 'text-cyan-400';
+      case 'High': return 'text-emerald-500';
       case 'Very High': return 'text-purple-400';
     }
   };
