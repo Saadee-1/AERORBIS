@@ -126,6 +126,8 @@ const GalaxyBackground = () => {
   // Bright stars count - responsive
   const brightStarsCount = isMobile ? 8 : isTablet ? 12 : 18;
 
+  if (theme === 'light') return null;
+
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       {/* Deep space gradient base - clean dark sky */}
