@@ -207,7 +207,7 @@ const Research = () => {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="max-w-2xl mx-auto text-center"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent">
               Submit Your Research
             </h2>
             <p className="text-gray-300 mb-8 leading-relaxed">
