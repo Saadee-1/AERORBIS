@@ -1068,9 +1068,9 @@ const AntennaPatternAnalyzer = () => {
                   className="bg-slate-900/50 border-primary/30 text-white"
                 />
               </AeroFormField>
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+              <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                 <p className="text-xs text-gray-400">Wavelength</p>
-                <p className="text-cyan-400 font-semibold">
+                <p className="text-primary font-semibold">
                   λ = {(lambda * 1000).toFixed(3)} mm
                 </p>
               </div>
