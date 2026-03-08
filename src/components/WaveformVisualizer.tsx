@@ -31,7 +31,7 @@ const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({ audioLevel, dur
         return (
           <motion.div
             key={index}
-            className="w-1 bg-gradient-to-t from-cyan-400 to-blue-400 rounded-full"
+            className="w-1 bg-gradient-to-t from-primary to-emerald-400 rounded-full"
             animate={{
               height: `${height}%`,
             }}
