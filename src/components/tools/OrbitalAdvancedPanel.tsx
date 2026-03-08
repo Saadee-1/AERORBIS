@@ -186,7 +186,22 @@ export function OrbitalAdvancedPanel({
 
   return (
     <div className="space-y-4">
-      {/* ═══ ENERGY & MOMENTUM (Auto from current orbit) ═══ */}
+      {/* ═══ PDF EXPORT BUTTON ═══ */}
+      <div className="flex justify-end">
+        <AdvancedPDFExportButton
+          energyResults={energyResults}
+          j2Results={j2Results}
+          maneuverResults={maneuverResults}
+          lambertResult={lambertResult}
+          interplanetaryResults={interplanetaryResults}
+          porkChopData={porkChopData}
+          orbitParams={semiMajorAxis && eccentricity !== undefined && inclination_deg !== undefined ? {
+            semiMajorAxis,
+            eccentricity: eccentricity ?? 0,
+            inclination_deg: inclination_deg ?? 0,
+          } : undefined}
+        />
+      </div>
       {energyResults && (
         <AeroCard title="Energy & Momentum Analysis" icon={Atom}>
           <p className="text-xs text-muted-foreground mb-3">
