@@ -182,8 +182,8 @@ const AIAssistant: React.FC = () => {
                 setIsOpen(true);
                 clearNotification();
               }}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-4 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.6)] 
-                       border border-cyan-400/50 cursor-pointer hover:shadow-[0_0_50px_rgba(34,211,238,0.8)] transition-all"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white p-4 rounded-xl shadow-[0_0_30px_hsl(160_84%_39%/0.6)] 
+                       border border-emerald-500/50 cursor-pointer hover:shadow-[0_0_50px_hsl(160_84%_39%/0.8)] transition-all"
             >
               <div className="flex items-center gap-3">
                 <Rocket className="w-5 h-5 flex-shrink-0" />
