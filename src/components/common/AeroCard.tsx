@@ -38,7 +38,7 @@ export function AeroCard({
   titleBadge
 }: AeroCardProps) {
   return (
-    <Card className={`bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl ${className}`}>
+    <Card className={`bg-card backdrop-blur-lg border border-border rounded-2xl shadow-sm ${className}`}>
       {(title || Icon) && (
         <CardHeader>
           <div className="flex items-center justify-between">

@@ -474,3 +474,46 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(185 85% 50% / 0.5);
 }
+
+.light ::-webkit-scrollbar-track,
+.light::-webkit-scrollbar-track {
+  background: hsl(210 20% 96%);
+}
+.light ::-webkit-scrollbar-thumb,
+.light::-webkit-scrollbar-thumb {
+  background: hsl(220 15% 78%);
+}
+.light ::-webkit-scrollbar-thumb:hover,
+.light::-webkit-scrollbar-thumb:hover {
+  background: hsl(220 15% 65%);
+}
+
+/* ===================================
+   LIGHT MODE REFINEMENTS
+   =================================== */
+.light .hud-corners::before,
+.light .hud-corners::after {
+  border-color: hsl(200 75% 42% / 0.25);
+}
+
+.light .holo-border {
+  border-color: hsl(220 15% 88%);
+  box-shadow: 0 1px 3px hsl(220 25% 12% / 0.05);
+}
+
+.light .glow-cyan {
+  box-shadow: 0 1px 4px hsl(200 75% 42% / 0.1);
+}
+
+.light .scanlines::after,
+.light .grid-overlay::before {
+  display: none;
+}
+
+.light .text-hud {
+  color: hsl(200 75% 42%);
+}
+
+.light .section-divider {
+  background: linear-gradient(90deg, transparent, hsl(220 15% 85%), transparent);
+}
