@@ -1377,7 +1377,7 @@ const ThrustLoadingCalculator = () => {
                   helperText={`Propulsion system type. Used for reference in performance analysis. Prop: propeller-driven (piston/turboprop). Turbofan: high-bypass turbofan. Turbojet: low-bypass or pure jet.`}
                 >
                   <Select value={engineType} onValueChange={(v) => setEngineType(v as EngineType)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-input border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
