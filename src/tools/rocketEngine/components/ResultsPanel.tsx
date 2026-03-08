@@ -74,7 +74,7 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">Mass Flow (ṁ)</p>
-            <p className="text-cyan-400 font-bold text-xl">
+            <p className="text-primary font-bold text-xl">
               {results.mdot.toFixed(3)} kg/s
             </p>
             <p className="text-xs text-gray-500 mt-1">
