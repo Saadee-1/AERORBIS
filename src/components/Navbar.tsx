@@ -37,10 +37,10 @@ function DockItem({
 
   // magnification: items within ~80px get scaled
   // Buttery smooth spring: lower stiffness + higher damping = silky macOS feel
-  const scaleRaw = useTransform(distance, [-120, 0, 120], [1, 1.4, 1]);
+  const scaleRaw = useTransform(distance, [-100, 0, 100], [1, 1.3, 1]);
   const scale = useSpring(scaleRaw, { stiffness: 170, damping: 22, mass: 0.4 });
 
-  const yRaw = useTransform(distance, [-120, 0, 120], [0, -10, 0]);
+  const yRaw = useTransform(distance, [-100, 0, 100], [0, -6, 0]);
   const y = useSpring(yRaw, { stiffness: 170, damping: 22, mass: 0.4 });
 
   return (
