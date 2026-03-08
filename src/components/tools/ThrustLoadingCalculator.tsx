@@ -1017,7 +1017,7 @@ const ThrustLoadingCalculator = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+              <SelectTrigger className="w-32 bg-input border-border text-primary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
