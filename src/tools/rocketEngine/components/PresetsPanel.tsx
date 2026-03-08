@@ -37,37 +37,28 @@ export function PresetsPanel({
         <div className="space-y-4">
           <AeroFormField label="Select Propellant">
             <Select value={selectedPropellantId} onValueChange={onPropellantChange}>
-              <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {Object.values(PROPELLANT_PRESETS).map((preset) => (
-                  <SelectItem key={preset.id} value={preset.id}>
-                    {preset.name} ({preset.category})
-                  </SelectItem>
+                  <SelectItem key={preset.id} value={preset.id}>{preset.name} ({preset.category})</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </AeroFormField>
 
           {selectedPropellant && (
-            <div className="p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
-              <p className="text-sm text-gray-300 mb-2">{selectedPropellant.description}</p>
-              <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 mb-3">
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <p className="text-sm text-muted-foreground mb-2">{selectedPropellant.description}</p>
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mb-3">
                 <div>γ: {selectedPropellant.gamma.toFixed(3)}</div>
                 <div>M: {selectedPropellant.M_molar.toFixed(1)} kg/kmol</div>
                 <div>Pc: {(selectedPropellant.Pc_typical / 1e5).toFixed(0)} bar</div>
                 <div>Tc: {selectedPropellant.Tc_typical.toFixed(0)} K</div>
               </div>
               {selectedPropellant.notes && (
-                <p className="text-xs text-cyan-400 mb-3">{selectedPropellant.notes}</p>
+                <p className="text-xs text-primary mb-3">{selectedPropellant.notes}</p>
               )}
-              <Button
-                onClick={() => onLoadPropellant(selectedPropellant)}
-                className="w-full"
-                variant="outline"
-                size="sm"
-              >
+              <Button onClick={() => onLoadPropellant(selectedPropellant)} className="w-full" variant="outline" size="sm">
                 Load Propellant
               </Button>
             </div>
@@ -79,37 +70,28 @@ export function PresetsPanel({
         <div className="space-y-4">
           <AeroFormField label="Select Engine">
             <Select value={selectedEngineId} onValueChange={onEngineChange}>
-              <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {Object.values(ENGINE_PRESETS).map((preset) => (
-                  <SelectItem key={preset.id} value={preset.id}>
-                    {preset.name}
-                  </SelectItem>
+                  <SelectItem key={preset.id} value={preset.id}>{preset.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </AeroFormField>
 
           {selectedEngine && (
-            <div className="p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
-              <p className="text-sm text-gray-300 mb-2">{selectedEngine.description}</p>
-              <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 mb-3">
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <p className="text-sm text-muted-foreground mb-2">{selectedEngine.description}</p>
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mb-3">
                 <div>Pc: {(selectedEngine.Pc / 1e5).toFixed(1)} bar</div>
                 <div>Tc: {selectedEngine.Tc.toFixed(0)} K</div>
                 <div>At: {(selectedEngine.At * 1e4).toFixed(1)} cm²</div>
                 <div>ε: {selectedEngine.epsilon.toFixed(1)}</div>
               </div>
               {selectedEngine.notes && (
-                <p className="text-xs text-cyan-400 mb-3">{selectedEngine.notes}</p>
+                <p className="text-xs text-primary mb-3">{selectedEngine.notes}</p>
               )}
-              <Button
-                onClick={() => onLoadEngine(selectedEngine)}
-                className="w-full"
-                variant="outline"
-                size="sm"
-              >
+              <Button onClick={() => onLoadEngine(selectedEngine)} className="w-full" variant="outline" size="sm">
                 Load Engine
               </Button>
             </div>
@@ -119,4 +101,3 @@ export function PresetsPanel({
     </div>
   );
 }
-

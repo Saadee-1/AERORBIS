@@ -312,9 +312,9 @@ export default function RocketEngineCalculator() {
       {results && (
         <ToolSection>
           <div className="grid md:grid-cols-3 gap-4">
-            <div className="p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
-              <h3 className="text-sm font-semibold text-cyan-400 mb-2">Altitude Sweep</h3>
-              <p className="text-xs text-gray-400 mb-3">Sweep ambient pressure (altitude)</p>
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <h3 className="text-sm font-semibold text-primary mb-2">Altitude Sweep</h3>
+              <p className="text-xs text-muted-foreground mb-3">Sweep ambient pressure (altitude)</p>
               <AeroButton
                 onClick={() => handleSweepAltitude(0, 50000, 50)}
                 variant="outline"
@@ -324,9 +324,9 @@ export default function RocketEngineCalculator() {
                 Sweep 0-50 km
               </AeroButton>
             </div>
-            <div className="p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
-              <h3 className="text-sm font-semibold text-cyan-400 mb-2">Expansion Ratio Sweep</h3>
-              <p className="text-xs text-gray-400 mb-3">Sweep nozzle expansion ratio</p>
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <h3 className="text-sm font-semibold text-primary mb-2">Expansion Ratio Sweep</h3>
+              <p className="text-xs text-muted-foreground mb-3">Sweep nozzle expansion ratio</p>
               <AeroButton
                 onClick={() => handleSweepExpansion(5, 100, 50)}
                 variant="outline"
@@ -336,9 +336,9 @@ export default function RocketEngineCalculator() {
                 Sweep ε: 5-100
               </AeroButton>
             </div>
-            <div className="p-4 bg-slate-700/30 rounded-lg border border-cyan-400/20">
-              <h3 className="text-sm font-semibold text-cyan-400 mb-2">Chamber Pressure Sweep</h3>
-              <p className="text-xs text-gray-400 mb-3">Sweep chamber pressure</p>
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <h3 className="text-sm font-semibold text-primary mb-2">Chamber Pressure Sweep</h3>
+              <p className="text-xs text-muted-foreground mb-3">Sweep chamber pressure</p>
               <AeroButton
                 onClick={() => handleSweepPressure(1e6, 30e6, 50)}
                 variant="outline"

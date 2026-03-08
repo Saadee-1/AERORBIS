@@ -22,42 +22,36 @@ export function PlanetSelector({ selectedPlanet, onPlanetChange }: PlanetSelecto
             value={selectedPlanet.id}
             onValueChange={(value) => {
               const planet = PLANETS[value];
-              if (planet) {
-                onPlanetChange(planet);
-              }
+              if (planet) onPlanetChange(planet);
             }}
           >
-            <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {Object.values(PLANETS).map(planet => (
-                <SelectItem key={planet.id} value={planet.id}>
-                  {planet.name}
-                </SelectItem>
+                <SelectItem key={planet.id} value={planet.id}>{planet.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </AeroFormField>
 
-        <div className="p-3 bg-slate-800/30 rounded border border-cyan-400/20">
+        <div className="p-3 bg-muted/30 rounded border border-border">
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-400">Surface Gravity:</span>
-              <span className="text-cyan-400">{selectedPlanet.surfaceGravity.toFixed(2)} m/s²</span>
+              <span className="text-muted-foreground">Surface Gravity:</span>
+              <span className="text-primary">{selectedPlanet.surfaceGravity.toFixed(2)} m/s²</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Radius:</span>
-              <span className="text-cyan-400">{(selectedPlanet.radius / 1000).toFixed(0)} km</span>
+              <span className="text-muted-foreground">Radius:</span>
+              <span className="text-primary">{(selectedPlanet.radius / 1000).toFixed(0)} km</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Atmosphere:</span>
-              <span className="text-cyan-400">{selectedPlanet.hasAtmosphere ? 'Yes' : 'No'}</span>
+              <span className="text-muted-foreground">Atmosphere:</span>
+              <span className="text-primary">{selectedPlanet.hasAtmosphere ? 'Yes' : 'No'}</span>
             </div>
             {selectedPlanet.hasAtmosphere && selectedPlanet.atmosphere && (
               <div className="flex justify-between">
-                <span className="text-gray-400">Surface Density:</span>
-                <span className="text-cyan-400">
+                <span className="text-muted-foreground">Surface Density:</span>
+                <span className="text-primary">
                   {selectedPlanet.atmosphere.rho0?.toFixed(3) || 'N/A'} kg/m³
                 </span>
               </div>

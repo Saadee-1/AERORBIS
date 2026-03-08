@@ -483,8 +483,8 @@ export default function TrajectorySimulator() {
           <ToolSection>
             <StageEditor stages={stages} onStagesChange={setStages} />
             
-            <div className="mt-6 p-4 bg-slate-800/30 rounded-lg border border-cyan-400/20">
-              <h3 className="text-lg font-semibold text-cyan-400 mb-4">Quick Presets</h3>
+            <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
+              <h3 className="text-lg font-semibold text-primary mb-4">Quick Presets</h3>
               <div className="flex flex-wrap gap-2">
                 {Object.values(STAGE_PRESETS).map(preset => (
                   <AeroButton
