@@ -78,7 +78,7 @@ export function MissionFuelPanel({ profile, onProfileChange }: MissionFuelPanelP
             type="number"
             value={(profile.reserve || 0) * 100}
             onChange={(e) => handleNumberChange('reserve', e.target.value)}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
+            className="bg-muted/50 border-primary/30 text-foreground"
             min="0"
             max="20"
             step="1"
