@@ -9,6 +9,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TrendingUp, Info, AlertTriangle, CheckCircle, Calculator, Link2, Plane } from "lucide-react";
@@ -101,6 +103,7 @@ const DENSITY_PRESETS: Record<AirDensityPreset, number> = {
 
 export default function ClimbPerformanceCalculator() {
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const { sendCalculationEvent, updateToolContext } = useToolContext();
   const { data: designSession, updateDesignSession } = useDesignSession();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -436,6 +439,8 @@ export default function ClimbPerformanceCalculator() {
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Climb Performance" />
     <ToolWrapper>
       <ToolHeader
         title="Climb Performance Calculator"
@@ -843,7 +848,7 @@ export default function ClimbPerformanceCalculator() {
 
       {/* Actions */}
       <ToolActions>
-        <AeroButton onClick={handleCalculate} icon={Calculator}>
+        <AeroButton onClick={() => runCalculation(handleCalculate)} icon={Calculator}>
           Calculate Climb Performance
         </AeroButton>
         {result && lastRequestId && (
@@ -1127,6 +1132,7 @@ export default function ClimbPerformanceCalculator() {
         </>
       )}
     </ToolWrapper>
+    </>
   );
 }
 

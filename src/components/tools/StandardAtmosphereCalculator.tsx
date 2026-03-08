@@ -18,6 +18,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Cloud, Calculator } from "lucide-react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { useToast } from "@/hooks/use-toast";
 import { useToolContext } from "@/hooks/useToolContext";
 import { useDesignSession } from "@/contexts/designSession";
@@ -66,6 +68,7 @@ type ToolPayload = {
 
 export default function StandardAtmosphereCalculator() {
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { updateDesignSession } = useDesignSession();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
@@ -394,6 +397,8 @@ export default function StandardAtmosphereCalculator() {
   }, [result, unitSystem]);
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Atmosphere" />
     <ToolWrapper>
       <ToolHeader
         title="Standard Atmosphere (1976) Calculator"
@@ -404,7 +409,7 @@ export default function StandardAtmosphereCalculator() {
             <AeroButton
               variant="primary"
               icon={Calculator}
-              onClick={calculate}
+              onClick={() => runCalculation(calculate)}
               disabled={!altitude.trim()}
             >
               Calculate
@@ -810,6 +815,7 @@ export default function StandardAtmosphereCalculator() {
         </div>
       </ToolSection>
     </ToolWrapper>
+    </>
   );
 }
 

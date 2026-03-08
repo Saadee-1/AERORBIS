@@ -21,6 +21,8 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Gauge, Plane, Info, TrendingUp, AlertTriangle, CheckCircle, Anchor, Settings2, Zap, Link2 } from "lucide-react";
@@ -470,6 +472,7 @@ function generateInterpretation(
 
 const ThrustLoadingCalculator = () => {
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { data: designSession, updateDesignSession } = useDesignSession();
   const navigate = useNavigate();
@@ -1004,6 +1007,8 @@ const ThrustLoadingCalculator = () => {
 
   
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Thrust Loading" />
     <ToolWrapper>
       <ToolHeader
         title="Thrust Loading Calculator"
@@ -1593,7 +1598,7 @@ const ThrustLoadingCalculator = () => {
             {/* Calculate Button */}
             <AeroButton
               type="button"
-              onClick={handleCalculate}
+              onClick={() => runCalculation(handleCalculate)}
               variant="primary"
               icon={Gauge}
               className="w-full"
@@ -2178,6 +2183,7 @@ const ThrustLoadingCalculator = () => {
         );
       })()}
     </ToolWrapper>
+    </>
   );
 };
 

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { 
   Card, 
   CardContent, 
@@ -154,6 +156,7 @@ const reynoldsSchema = z.object({
 // --- Main Component ---
 const ReynoldsNumberCalculator = () => {
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
@@ -607,6 +610,8 @@ const ReynoldsNumberCalculator = () => {
 
   // --- Render ---
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Analyzing Flow Regime" />
     <ToolWrapper>
       <ToolHeader
         title="Advanced Reynolds Number Calculator"
@@ -732,7 +737,7 @@ const ReynoldsNumberCalculator = () => {
               </AeroFormField>
               <AeroButton 
                 type="button" 
-                onClick={calculateReynolds} 
+                onClick={() => runCalculation(calculateReynolds)} 
                 variant="primary"
                 icon={Calculator}
                 className="w-full"
@@ -1027,6 +1032,7 @@ const ReynoldsNumberCalculator = () => {
         </DialogContent>
       </Dialog>
     </ToolWrapper>
+    </>
   );
 };
 

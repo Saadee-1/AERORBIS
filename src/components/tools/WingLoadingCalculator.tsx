@@ -18,6 +18,8 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
+import { useCalculationAnimation } from "@/hooks/useCalculationAnimation";
+import { CalculationOverlay } from "@/components/common/CalculationOverlay";
 import { 
   Card, 
   CardContent, 
@@ -523,6 +525,7 @@ function generateBestUseCase(
 
 const WingLoadingCalculator = () => {
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { data: designSession, updateDesignSession } = useDesignSession();
   const navigate = useNavigate();
@@ -959,6 +962,8 @@ const WingLoadingCalculator = () => {
   };
   
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Wing Loading" />
     <ToolWrapper>
       <ToolHeader
         title="Wing Loading Calculator"
@@ -1454,7 +1459,7 @@ const WingLoadingCalculator = () => {
             {/* Calculate Button */}
             <AeroButton
               type="button"
-              onClick={handleCalculate}
+              onClick={() => runCalculation(handleCalculate)}
               variant="primary"
               icon={Gauge}
               className="w-full"
@@ -1769,6 +1774,7 @@ const WingLoadingCalculator = () => {
         </div>
       )}
     </ToolWrapper>
+    </>
   );
 };
 
