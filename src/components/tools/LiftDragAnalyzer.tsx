@@ -1748,7 +1748,7 @@ const point: Record<string, unknown> = { alpha };
   style={{ color: getCLValidity(result.CL, CL_max).color === 'green' ? '#22c55e' : getCLValidity(result.CL, CL_max).color === 'amber' ? '#eab308' : '#ef4444' }}>
   {getCLValidity(result.CL, CL_max).label}
 </span>
-                        <p className="text-xs text-gray-500 mt-1">Dimensionless; normalized by dynamic pressure and wing area</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless; normalized by dynamic pressure and wing area</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">Invalid or unrealistic CL value</p>
