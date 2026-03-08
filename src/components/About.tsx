@@ -8,9 +8,9 @@ const About = () => {
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   const pillars = [
-    { icon: Target, title: "Precision Tools", desc: "Engineering-grade calculators validated against industry standards" },
-    { icon: Shield, title: "Trusted Data", desc: "Peer-reviewed resources and real-world aerospace datasets" },
-    { icon: Atom, title: "Deep Learning", desc: "From fundamentals to cutting-edge research methodologies" },
+    { icon: Target, title: "Precision Tools", desc: "Engineering-grade calculators validated against industry standards", href: "/tools" },
+    { icon: Shield, title: "Trusted Data", desc: "Peer-reviewed resources and real-world aerospace datasets", href: "/research" },
+    { icon: Atom, title: "Deep Learning", desc: "From fundamentals to cutting-edge research methodologies", href: "/learn" },
   ];
 
   const containerVariants = {
