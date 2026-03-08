@@ -1071,6 +1071,11 @@ const OrbitalVisualizer = () => {
         t.orbitPoints = orbitPoints;
         
         // Store orbital parameters for propagation
+        // Convert initial true anomaly to mean anomaly for Kepler propagation
+        const trueAnomalyDeg = parseFloat(currentInputs.trueAnomaly || "0");
+        const trueAnomalyRad = (trueAnomalyDeg * Math.PI) / 180;
+        const initialMeanAnomaly = trueAnomalyToMean(trueAnomalyRad, eccentricity);
+
         t.orbitalParams = {
           semiMajorAxis,
           eccentricity,
@@ -1079,7 +1084,7 @@ const OrbitalVisualizer = () => {
           argOfPeriapsis: argPeriRad,
           GM,
           periapsisRadius,
-          meanAnomaly0: 0
+          meanAnomaly0: initialMeanAnomaly
         };
 
         // Reset trail
