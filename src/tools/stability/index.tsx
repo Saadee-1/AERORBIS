@@ -762,7 +762,7 @@ export default function StabilityCalculator() {
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Aileron Factor</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.nonlinear.aileron_factor != null ? extendedResults.nonlinear.aileron_factor.toFixed(3) : 'N/A'}
                         </p>
                       </div>
