@@ -976,7 +976,7 @@ const AntennaPatternAnalyzer = () => {
               {/* Dynamic Parameters */}
               {selectedAntenna &&
                 Object.keys(selectedAntenna.defaultParams).length > 0 && (
-                  <div className={`${spacingVertical.M} pt-2 border-t border-cyan-400/10`}>
+                  <div className={`${spacingVertical.M} pt-2 border-t border-primary/10`}>
                     <Label className="text-gray-300">Antenna Parameters</Label>
                     {Object.entries(selectedAntenna.defaultParams).map(([key, defaultValue]) => (
                       <AeroFormField 
