@@ -292,7 +292,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
           <img
             src={aerorbisLogo}
             alt="Aerorbis Logo"
-            className="intro-logo w-14 h-14 md:w-18 md:h-18 object-contain mx-auto mb-4 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]"
+            className="intro-logo w-14 h-14 md:w-18 md:h-18 object-contain mx-auto mb-4 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)] dark:mix-blend-screen"
           />
         </FlickerText>
 

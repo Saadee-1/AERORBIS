@@ -40,7 +40,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16 sm:h-18">
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-            <img src={aerorbisLogo} alt="AERORBIS" className="w-7 h-7 sm:w-8 sm:h-8 group-hover:drop-shadow-[0_0_8px_hsl(185_85%_50%/0.5)] transition-all" />
+            <img src={aerorbisLogo} alt="AERORBIS" className="w-7 h-7 sm:w-8 sm:h-8 group-hover:drop-shadow-[0_0_8px_hsl(185_85%_50%/0.5)] transition-all dark:mix-blend-screen" />
             <span className="hidden sm:inline text-sm font-bold text-foreground tracking-[0.2em] font-[Orbitron] uppercase">AERORBIS</span>
           </Link>
 
