@@ -1208,7 +1208,7 @@ const OrbitalVisualizer = () => {
           </DialogHeader>
           <div className="space-y-2 py-4 max-h-[400px] overflow-y-auto">
             {customOrbits.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No custom orbits saved yet</p>
+              <p className="text-muted-foreground text-center py-8">No custom orbits saved yet</p>
             ) : (
               customOrbits.map((orbit, index) => (
                 <div
