@@ -1576,7 +1576,7 @@ const point: Record<string, unknown> = { alpha };
                         placeholder="SI Factor"
                         value={customFactors[field.id as keyof typeof customFactors]}
                         onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-input border-border text-foreground"
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-1.5">
