@@ -312,6 +312,8 @@ const DeltaVPlanner = () => {
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Delta-V Budget" />
     <ToolWrapper>
       <ToolHeader
         title="Delta-V Budget Planner"
