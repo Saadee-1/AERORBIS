@@ -264,7 +264,7 @@ const ToolsLauncher = () => {
                         </button>
                         
                         {/* Divider */}
-                        <div className="h-px bg-slate-700/50 my-1" />
+                        <div className="h-px bg-border my-1" />
                         
                         {/* Tools list */}
                         {allTools.map((tool, index) => {
