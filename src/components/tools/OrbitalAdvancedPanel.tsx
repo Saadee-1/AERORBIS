@@ -33,6 +33,7 @@ import { AdvancedPDFExportButton } from './OrbitalAdvancedPDFExport';
 import { GravityAssistCalculator } from './GravityAssistCalculator';
 import { LaunchVehicleC3Overlay } from './LaunchVehicleC3Overlay';
 import { LowThrustOptimizer } from './LowThrustOptimizer';
+import { GaussOrbitDetermination } from './GaussOrbitDetermination';
 
 interface OrbitalAdvancedPanelProps {
   semiMajorAxis?: number;
@@ -130,6 +131,9 @@ export function OrbitalAdvancedPanel({
   // ── Low-thrust results ──
   const [lowThrustResults, setLowThrustResults] = useState<AdvancedResult[]>([]);
 
+  // ── Gauss OD results ──
+  const [gaussResults, setGaussResults] = useState<AdvancedResult[]>([]);
+
   // ── Results ──
   const [maneuverResults, setManeuverResults] = useState<AdvancedResult[]>([]);
   const [lambertResult, setLambertResult] = useState<AdvancedResult | null>(null);
@@ -205,6 +209,7 @@ export function OrbitalAdvancedPanel({
           interplanetaryResults={interplanetaryResults}
           gravityAssistResults={gravityAssistResults}
           lowThrustResults={lowThrustResults}
+          gaussResults={gaussResults}
           porkChopData={porkChopData}
           orbitParams={semiMajorAxis && eccentricity !== undefined && inclination_deg !== undefined ? {
             semiMajorAxis,
@@ -405,6 +410,9 @@ export function OrbitalAdvancedPanel({
 
       {/* ═══ LOW-THRUST OPTIMIZER ═══ */}
       <LowThrustOptimizer onResults={setLowThrustResults} />
+
+      {/* ═══ GAUSS ORBIT DETERMINATION ═══ */}
+      <GaussOrbitDetermination onResults={setGaussResults} />
     </div>
   );
 }

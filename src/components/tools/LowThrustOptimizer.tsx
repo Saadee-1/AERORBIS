@@ -1,6 +1,7 @@
 /**
  * Low-Thrust (Electric Propulsion) Spiral Transfer Calculator
  * Continuous thrust orbit raising/lowering with step-by-step equations
+ * Supports Edelbaum's general formula for combined altitude + plane change
  */
 
 import { useState } from 'react';
@@ -29,34 +30,50 @@ function computeLowThrust(
   thrust_mN: number,
   isp_s: number,
   massKg: number,
+  inclChange_deg: number = 0,
   mu: number = GM_EARTH
 ): AdvancedResult[] {
   const r1 = r1_alt_km + R_EARTH;
   const r2 = r2_alt_km + R_EARTH;
-  const T_N = thrust_mN / 1000; // convert mN to N, but we work in km so T in km units
-  const T_km = T_N / 1e6; // N -> kN -> force in km·kg/s² (1 N = 1e-3 kN = 1e-6 km·kg/s²... no)
-  // Actually: F in Newtons, m in kg, a in m/s² -> convert to km/s²
-  const accel_km_s2 = (T_N / massKg) / 1000; // m/s² -> km/s²
+  const T_N = thrust_mN / 1000;
+  const accel_avg = T_N / massKg / 1000; // km/s²
 
-  // Edelbaum's approximation for low-thrust coplanar transfer
-  // ΔV = |v1 - v2| for circular-to-circular spiral
   const v1 = Math.sqrt(mu / r1);
   const v2 = Math.sqrt(mu / r2);
-  const deltaV = Math.abs(v1 - v2);
+
+  // Edelbaum's general formula for combined altitude + plane change
+  // ΔV = √(v1² + v2² - 2·v1·v2·cos(Δi·π/2))
+  // Note: Edelbaum uses π/2 × Δi (in radians) as the effective plane change angle
+  const di_rad = (inclChange_deg * Math.PI) / 180;
+  const edelbaum_angle = (Math.PI / 2) * di_rad; // Edelbaum's effective angle
+
+  let deltaV: number;
+  let isCoplanar = inclChange_deg === 0 || Math.abs(inclChange_deg) < 0.001;
+
+  if (isCoplanar) {
+    deltaV = Math.abs(v1 - v2);
+  } else {
+    deltaV = Math.sqrt(v1 * v1 + v2 * v2 - 2 * v1 * v2 * Math.cos(edelbaum_angle));
+  }
+
+  // Coplanar-only ΔV for comparison
+  const deltaV_coplanar = Math.abs(v1 - v2);
+
+  // Pure plane change ΔV (low-thrust)
+  const deltaV_planeOnly = isCoplanar ? 0 : Math.sqrt(v1 * v1 + v1 * v1 - 2 * v1 * v1 * Math.cos(edelbaum_angle));
 
   // Exhaust velocity
-  const ve = isp_s * G0; // km/s
+  const ve = isp_s * G0;
 
   // Propellant mass (Tsiolkovsky)
   const massRatio = Math.exp(deltaV / ve);
   const m_propellant = massKg * (1 - 1 / massRatio);
 
-  // Transfer time estimate: t ≈ ΔV / acceleration (simplified for constant thrust)
-  const accel_avg = (T_N / 1000) / massKg; // km/s² from N to km: F(N)/m(kg) = m/s², /1000 = km/s²
+  // Transfer time
   const t_seconds = deltaV / accel_avg;
   const t_days = t_seconds / 86400;
 
-  // Number of revolutions (approximate)
+  // Revolutions
   const T_orbit_avg = 2 * Math.PI * Math.sqrt(Math.pow((r1 + r2) / 2, 3) / mu);
   const n_revs = t_seconds / T_orbit_avg;
 
@@ -66,144 +83,87 @@ function computeLowThrust(
   const v2h = Math.sqrt(mu * (2 / r2 - 1 / a_h));
   const dv_hohmann = Math.abs(v1h - v1) + Math.abs(v2 - v2h);
   const T_hohmann = Math.PI * Math.sqrt(Math.pow(a_h, 3) / mu);
-
-  // Efficiency comparison
   const dv_ratio = deltaV / dv_hohmann;
 
-  // Power and specific thrust
-  const jetPower = 0.5 * (T_N / 1000) * ve; // kW (F*ve/2) — in km units
-  const jetPower_kW = 0.5 * T_N * (isp_s * 9.80665) / 1000; // proper kW
+  // Jet power
+  const jetPower_kW = 0.5 * T_N * (isp_s * 9.80665) / 1000;
 
-  return [
-    {
-      title: 'Low-Thrust ΔV (Edelbaum Approximation)',
+  const results: AdvancedResult[] = [];
+
+  // ── Result 1: ΔV ──
+  if (isCoplanar) {
+    results.push({
+      title: 'Low-Thrust ΔV (Edelbaum — Coplanar)',
       value: deltaV,
       unit: 'km/s',
       steps: [
-        {
-          label: 'Initial circular velocity',
-          equation: 'v₁ = √(μ/r₁)',
-          substitution: `v₁ = √(${mu}/${r1.toFixed(1)})`,
-          result: `${v1.toFixed(4)} km/s`,
-        },
-        {
-          label: 'Final circular velocity',
-          equation: 'v₂ = √(μ/r₂)',
-          substitution: `v₂ = √(${mu}/${r2.toFixed(1)})`,
-          result: `${v2.toFixed(4)} km/s`,
-        },
-        {
-          label: 'Low-thrust ΔV (coplanar spiral)',
-          equation: 'ΔV_LT = |v₁ - v₂|',
-          substitution: `ΔV = |${v1.toFixed(4)} - ${v2.toFixed(4)}|`,
-          result: `${deltaV.toFixed(4)} km/s`,
-        },
-        {
-          label: 'Hohmann ΔV (comparison)',
-          equation: 'ΔV_H = |v₁ₜ - v₁| + |v₂ - v₂ₜ|',
-          substitution: `ΔV_H = ${dv_hohmann.toFixed(4)} km/s`,
-          result: `ΔV_LT/ΔV_H = ${dv_ratio.toFixed(4)} (${(dv_ratio * 100).toFixed(1)}%)`,
-        },
+        { label: 'Initial circular velocity', equation: 'v₁ = √(μ/r₁)', substitution: `v₁ = √(${mu}/${r1.toFixed(1)})`, result: `${v1.toFixed(4)} km/s` },
+        { label: 'Final circular velocity', equation: 'v₂ = √(μ/r₂)', substitution: `v₂ = √(${mu}/${r2.toFixed(1)})`, result: `${v2.toFixed(4)} km/s` },
+        { label: 'Low-thrust ΔV (coplanar spiral)', equation: 'ΔV_LT = |v₁ - v₂|', substitution: `ΔV = |${v1.toFixed(4)} - ${v2.toFixed(4)}|`, result: `${deltaV.toFixed(4)} km/s` },
+        { label: 'Hohmann ΔV (comparison)', equation: 'ΔV_H = |v₁ₜ - v₁| + |v₂ - v₂ₜ|', substitution: `ΔV_H = ${dv_hohmann.toFixed(4)} km/s`, result: `ΔV_LT/ΔV_H = ${dv_ratio.toFixed(4)} (${(dv_ratio * 100).toFixed(1)}%)` },
       ],
-      interpretation: `The low-thrust spiral requires ΔV = ${deltaV.toFixed(3)} km/s, which is ${dv_ratio < 1 ? 'less' : 'more'} than the Hohmann ΔV of ${dv_hohmann.toFixed(3)} km/s. For coplanar circular-to-circular transfers, the low-thrust ΔV equals the difference of circular velocities (Edelbaum's result). ${r2 > r1 ? 'The spiral continuously raises the orbit by thrusting along the velocity vector.' : 'The spiral continuously lowers the orbit by thrusting retrograde.'} This is fundamentally different from impulsive transfers.`,
-    },
-    {
-      title: 'Propellant Mass & Mass Ratio',
-      value: m_propellant,
-      unit: 'kg',
+      interpretation: `The coplanar low-thrust spiral requires ΔV = ${deltaV.toFixed(3)} km/s (${dv_ratio < 1 ? 'less' : 'more'} than Hohmann's ${dv_hohmann.toFixed(3)} km/s). ${r2 > r1 ? 'Orbit is raised by thrusting prograde.' : 'Orbit is lowered by thrusting retrograde.'}`,
+    });
+  } else {
+    results.push({
+      title: 'Low-Thrust ΔV (Edelbaum General — Altitude + Plane Change)',
+      value: deltaV,
+      unit: 'km/s',
       steps: [
-        {
-          label: 'Exhaust velocity',
-          equation: 'vₑ = Isp × g₀',
-          substitution: `vₑ = ${isp_s} × ${G0.toFixed(5)}`,
-          result: `${ve.toFixed(4)} km/s`,
-        },
-        {
-          label: 'Mass ratio (Tsiolkovsky)',
-          equation: 'MR = exp(ΔV/vₑ)',
-          substitution: `MR = exp(${deltaV.toFixed(4)}/${ve.toFixed(4)})`,
-          result: `${massRatio.toFixed(6)}`,
-        },
-        {
-          label: 'Propellant mass',
-          equation: 'mₚ = m₀(1 - 1/MR)',
-          substitution: `mₚ = ${massKg} × (1 - 1/${massRatio.toFixed(6)})`,
-          result: `${m_propellant.toFixed(2)} kg`,
-        },
-        {
-          label: 'Propellant fraction',
-          equation: 'f = mₚ/m₀',
-          substitution: `f = ${m_propellant.toFixed(2)}/${massKg}`,
-          result: `${((m_propellant / massKg) * 100).toFixed(2)}%`,
-        },
+        { label: 'Initial circular velocity', equation: 'v₁ = √(μ/r₁)', substitution: `v₁ = √(${mu}/${r1.toFixed(1)})`, result: `${v1.toFixed(4)} km/s` },
+        { label: 'Final circular velocity', equation: 'v₂ = √(μ/r₂)', substitution: `v₂ = √(${mu}/${r2.toFixed(1)})`, result: `${v2.toFixed(4)} km/s` },
+        { label: 'Inclination change', equation: 'Δi = input', substitution: `Δi = ${inclChange_deg.toFixed(2)}° = ${di_rad.toFixed(6)} rad`, result: `Edelbaum angle = π/2 × Δi = ${edelbaum_angle.toFixed(6)} rad` },
+        { label: 'Edelbaum general ΔV', equation: 'ΔV = √(v₁² + v₂² - 2v₁v₂cos(πΔi/2))', substitution: `ΔV = √(${v1.toFixed(4)}² + ${v2.toFixed(4)}² - 2×${v1.toFixed(4)}×${v2.toFixed(4)}×cos(${edelbaum_angle.toFixed(4)}))`, result: `${deltaV.toFixed(4)} km/s` },
+        { label: 'Coplanar-only ΔV', equation: 'ΔV_cop = |v₁ - v₂|', substitution: `ΔV_cop = ${deltaV_coplanar.toFixed(4)} km/s`, result: `Combined saves vs separate: ΔV_cop + ΔV_plane = ${(deltaV_coplanar + deltaV_planeOnly).toFixed(4)} km/s → combined = ${deltaV.toFixed(4)} km/s (${((1 - deltaV / (deltaV_coplanar + deltaV_planeOnly)) * 100).toFixed(1)}% saving)` },
+        { label: 'Hohmann ΔV (comparison)', equation: 'ΔV_H = |v₁ₜ - v₁| + |v₂ - v₂ₜ|', substitution: `ΔV_H = ${dv_hohmann.toFixed(4)} km/s (coplanar only)`, result: `ΔV_LT/ΔV_H = ${dv_ratio.toFixed(4)}` },
       ],
-      interpretation: `With Isp = ${isp_s} s (vₑ = ${ve.toFixed(2)} km/s), only ${m_propellant.toFixed(1)} kg of propellant is needed (${((m_propellant / massKg) * 100).toFixed(1)}% of spacecraft mass). High-Isp electric propulsion is extremely propellant-efficient — a chemical thruster (Isp ~320s) would need ${(massKg * (1 - 1 / Math.exp(deltaV / (0.320 * G0)))).toFixed(0)} kg for the same ΔV. The tradeoff is transfer time.`,
-    },
-    {
-      title: 'Transfer Duration & Revolutions',
-      value: t_days,
-      unit: 'days',
-      steps: [
-        {
-          label: 'Spacecraft acceleration',
-          equation: 'a = F/m₀',
-          substitution: `a = ${T_N.toFixed(4)} N / ${massKg} kg`,
-          result: `${(accel_avg * 1000).toExponential(3)} m/s² (${(accel_avg * 1e6).toFixed(2)} mm/s²)`,
-        },
-        {
-          label: 'Approximate transfer time',
-          equation: 't ≈ ΔV / a',
-          substitution: `t = ${deltaV.toFixed(4)} / ${accel_avg.toExponential(4)}`,
-          result: `${t_seconds.toFixed(0)} s = ${t_days.toFixed(1)} days`,
-        },
-        {
-          label: 'Average orbital period',
-          equation: 'T_avg = 2π√(r_avg³/μ)',
-          substitution: `T_avg = 2π√(${((r1 + r2) / 2).toFixed(0)}³/${mu})`,
-          result: `${T_orbit_avg.toFixed(0)} s (${(T_orbit_avg / 3600).toFixed(1)} hr)`,
-        },
-        {
-          label: 'Number of spiral revolutions',
-          equation: 'N ≈ t / T_avg',
-          substitution: `N = ${t_seconds.toFixed(0)} / ${T_orbit_avg.toFixed(0)}`,
-          result: `≈ ${n_revs.toFixed(0)} revolutions`,
-        },
-      ],
-      interpretation: `The low-thrust transfer takes approximately ${t_days.toFixed(0)} days (${(t_days / 30.44).toFixed(1)} months), spiraling through ~${n_revs.toFixed(0)} revolutions. Compare to a Hohmann transfer: ${(T_hohmann / 3600).toFixed(1)} hours. This ${(t_days * 86400 / T_hohmann).toFixed(0)}× time increase is the fundamental cost of electric propulsion. However, the propellant savings enable either smaller launch vehicles or more payload mass — making EP ideal for cargo, station-keeping, and deep-space missions.`,
-    },
-    {
-      title: 'Thruster Performance Summary',
-      value: jetPower_kW,
-      unit: 'kW (jet)',
-      steps: [
-        {
-          label: 'Jet power',
-          equation: 'P_jet = ½ × F × vₑ',
-          substitution: `P_jet = 0.5 × ${T_N.toFixed(4)} × ${(isp_s * 9.80665).toFixed(1)}`,
-          result: `${jetPower_kW.toFixed(2)} kW`,
-        },
-        {
-          label: 'Thrust-to-weight ratio',
-          equation: 'T/W = F / (m₀ × g₀)',
-          substitution: `T/W = ${T_N.toFixed(4)} / (${massKg} × 9.80665)`,
-          result: `${(T_N / (massKg * 9.80665)).toExponential(3)}`,
-        },
-        {
-          label: 'Total impulse',
-          equation: 'I_total = F × t',
-          substitution: `I = ${T_N.toFixed(4)} × ${t_seconds.toFixed(0)}`,
-          result: `${(T_N * t_seconds).toFixed(0)} N·s (${(T_N * t_seconds / 1000).toFixed(1)} kN·s)`,
-        },
-        {
-          label: 'Characteristic acceleration',
-          equation: 'a_c = F/m₀',
-          substitution: `a_c = ${(T_N * 1000).toFixed(1)} mN / ${massKg} kg`,
-          result: `${((T_N / massKg) * 1e6).toFixed(2)} μm/s² = ${((T_N / massKg) * 1000).toFixed(4)} mm/s²`,
-        },
-      ],
-      interpretation: `The thruster produces ${(T_N * 1000).toFixed(0)} mN at Isp ${isp_s} s, requiring ${jetPower_kW.toFixed(1)} kW jet power. The thrust-to-weight ratio is ~${(T_N / (massKg * 9.80665)).toExponential(2)} — orders of magnitude less than chemical propulsion. EP cannot launch from a surface; it's designed for in-space maneuvers where continuous micro-thrust accumulates over weeks/months. SMART-1, Dawn, BepiColombo, and Starlink all use electric propulsion.`,
-    },
-  ];
+      interpretation: `Edelbaum's general formula combines altitude change (${r1_alt_km}→${r2_alt_km} km) with a ${inclChange_deg.toFixed(1)}° inclination change into a single continuous-thrust maneuver requiring ΔV = ${deltaV.toFixed(3)} km/s. This is ${((1 - deltaV / (deltaV_coplanar + deltaV_planeOnly)) * 100).toFixed(1)}% more efficient than performing separate altitude and plane-change maneuvers. The key insight: low-thrust spreads the plane change across the entire spiral, changing inclination gradually at every revolution — unlike impulsive maneuvers that must do it all at once. This is why electric propulsion is ideal for GEO insertion from inclined LEO (e.g., 28.5° Cape Canaveral → 0° GEO).`,
+    });
+  }
+
+  // ── Result 2: Propellant ──
+  results.push({
+    title: 'Propellant Mass & Mass Ratio',
+    value: m_propellant,
+    unit: 'kg',
+    steps: [
+      { label: 'Exhaust velocity', equation: 'vₑ = Isp × g₀', substitution: `vₑ = ${isp_s} × ${G0.toFixed(5)}`, result: `${ve.toFixed(4)} km/s` },
+      { label: 'Mass ratio (Tsiolkovsky)', equation: 'MR = exp(ΔV/vₑ)', substitution: `MR = exp(${deltaV.toFixed(4)}/${ve.toFixed(4)})`, result: `${massRatio.toFixed(6)}` },
+      { label: 'Propellant mass', equation: 'mₚ = m₀(1 - 1/MR)', substitution: `mₚ = ${massKg} × (1 - 1/${massRatio.toFixed(6)})`, result: `${m_propellant.toFixed(2)} kg` },
+      { label: 'Propellant fraction', equation: 'f = mₚ/m₀', substitution: `f = ${m_propellant.toFixed(2)}/${massKg}`, result: `${((m_propellant / massKg) * 100).toFixed(2)}%` },
+    ],
+    interpretation: `With Isp = ${isp_s} s (vₑ = ${ve.toFixed(2)} km/s), only ${m_propellant.toFixed(1)} kg of propellant is needed (${((m_propellant / massKg) * 100).toFixed(1)}% of spacecraft mass). A chemical thruster (Isp ~320s) would need ${(massKg * (1 - 1 / Math.exp(deltaV / (0.320 * G0)))).toFixed(0)} kg for the same ΔV.`,
+  });
+
+  // ── Result 3: Transfer time ──
+  results.push({
+    title: 'Transfer Duration & Revolutions',
+    value: t_days,
+    unit: 'days',
+    steps: [
+      { label: 'Spacecraft acceleration', equation: 'a = F/m₀', substitution: `a = ${T_N.toFixed(4)} N / ${massKg} kg`, result: `${(accel_avg * 1000).toExponential(3)} m/s² (${(accel_avg * 1e6).toFixed(2)} mm/s²)` },
+      { label: 'Approximate transfer time', equation: 't ≈ ΔV / a', substitution: `t = ${deltaV.toFixed(4)} / ${accel_avg.toExponential(4)}`, result: `${t_seconds.toFixed(0)} s = ${t_days.toFixed(1)} days` },
+      { label: 'Average orbital period', equation: 'T_avg = 2π√(r_avg³/μ)', substitution: `T_avg = 2π√(${((r1 + r2) / 2).toFixed(0)}³/${mu})`, result: `${T_orbit_avg.toFixed(0)} s (${(T_orbit_avg / 3600).toFixed(1)} hr)` },
+      { label: 'Number of spiral revolutions', equation: 'N ≈ t / T_avg', substitution: `N = ${t_seconds.toFixed(0)} / ${T_orbit_avg.toFixed(0)}`, result: `≈ ${n_revs.toFixed(0)} revolutions` },
+    ],
+    interpretation: `The transfer takes ~${t_days.toFixed(0)} days (${(t_days / 30.44).toFixed(1)} months), spiraling through ~${n_revs.toFixed(0)} revolutions. Hohmann comparison: ${(T_hohmann / 3600).toFixed(1)} hours (${(t_days * 86400 / T_hohmann).toFixed(0)}× slower).${!isCoplanar ? ` The inclination change of ${inclChange_deg.toFixed(1)}° is distributed across all revolutions, changing ~${(inclChange_deg / n_revs).toFixed(3)}° per revolution.` : ''}`,
+  });
+
+  // ── Result 4: Thruster performance ──
+  results.push({
+    title: 'Thruster Performance Summary',
+    value: jetPower_kW,
+    unit: 'kW (jet)',
+    steps: [
+      { label: 'Jet power', equation: 'P_jet = ½ × F × vₑ', substitution: `P_jet = 0.5 × ${T_N.toFixed(4)} × ${(isp_s * 9.80665).toFixed(1)}`, result: `${jetPower_kW.toFixed(2)} kW` },
+      { label: 'Thrust-to-weight ratio', equation: 'T/W = F / (m₀ × g₀)', substitution: `T/W = ${T_N.toFixed(4)} / (${massKg} × 9.80665)`, result: `${(T_N / (massKg * 9.80665)).toExponential(3)}` },
+      { label: 'Total impulse', equation: 'I_total = F × t', substitution: `I = ${T_N.toFixed(4)} × ${t_seconds.toFixed(0)}`, result: `${(T_N * t_seconds).toFixed(0)} N·s (${(T_N * t_seconds / 1000).toFixed(1)} kN·s)` },
+      { label: 'Characteristic acceleration', equation: 'a_c = F/m₀', substitution: `a_c = ${(T_N * 1000).toFixed(1)} mN / ${massKg} kg`, result: `${((T_N / massKg) * 1e6).toFixed(2)} μm/s² = ${((T_N / massKg) * 1000).toFixed(4)} mm/s²` },
+    ],
+    interpretation: `The thruster produces ${(T_N * 1000).toFixed(0)} mN at Isp ${isp_s} s, requiring ${jetPower_kW.toFixed(1)} kW jet power. T/W ≈ ${(T_N / (massKg * 9.80665)).toExponential(2)} — EP is designed for continuous in-space thrust over weeks/months.`,
+  });
+
+  return results;
 }
 
 interface LowThrustOptimizerProps {
@@ -217,6 +177,7 @@ export function LowThrustOptimizer({ onResults }: LowThrustOptimizerProps) {
   const [mass, setMass] = useState('1500');
   const [r1Alt, setR1Alt] = useState('400');
   const [r2Alt, setR2Alt] = useState('35786');
+  const [inclChange, setInclChange] = useState('0');
   const [results, setResults] = useState<AdvancedResult[]>([]);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
@@ -236,8 +197,9 @@ export function LowThrustOptimizer({ onResults }: LowThrustOptimizerProps) {
     const m = parseFloat(mass);
     const alt1 = parseFloat(r1Alt);
     const alt2 = parseFloat(r2Alt);
+    const di = parseFloat(inclChange) || 0;
     if ([T, I, m, alt1, alt2].some(isNaN)) return;
-    const res = computeLowThrust(alt1, alt2, T, I, m);
+    const res = computeLowThrust(alt1, alt2, T, I, m, di);
     setResults(res);
     onResults?.(res);
   };
@@ -245,8 +207,8 @@ export function LowThrustOptimizer({ onResults }: LowThrustOptimizerProps) {
   return (
     <AeroCard title="Low-Thrust Spiral Transfer (Electric Propulsion)" icon={Zap}>
       <p className="text-xs text-muted-foreground mb-3">
-        Compute continuous low-thrust orbit transfers using Edelbaum's approximation.
-        Includes propellant mass, transfer time, and comparison with impulsive Hohmann transfer.
+        Compute continuous low-thrust orbit transfers using Edelbaum's general formula.
+        Supports combined altitude + inclination change with step-by-step derivations.
       </p>
 
       <div className="grid grid-cols-2 gap-3 mb-3">
@@ -275,6 +237,11 @@ export function LowThrustOptimizer({ onResults }: LowThrustOptimizerProps) {
         <AeroFormField label="Target Altitude (km)">
           <Input type="number" value={r2Alt} onChange={e => setR2Alt(e.target.value)} placeholder="35786" className="bg-muted/50" />
         </AeroFormField>
+        <div className="col-span-2">
+          <AeroFormField label="Inclination Change Δi (°) — 0 for coplanar">
+            <Input type="number" value={inclChange} onChange={e => setInclChange(e.target.value)} placeholder="0 (coplanar)" className="bg-muted/50" />
+          </AeroFormField>
+        </div>
       </div>
 
       <AeroButton onClick={compute} variant="primary" icon={Zap} className="w-full">
