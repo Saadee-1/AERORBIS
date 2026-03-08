@@ -412,6 +412,7 @@ const OrbitalVisualizer = () => {
       eccentricity: "0.05",
       raan: "0",
       argOfPeriapsis: "0",
+      trueAnomaly: "0",
       centralBodyRadius: "6371",
       gm: GM_EARTH.toString(),
       targetAltitude: "800",
