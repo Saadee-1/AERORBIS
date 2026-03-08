@@ -150,6 +150,18 @@ export function OrbitalGroundTrack({
 }: GroundTrackProps) {
   const [showCoords, setShowCoords] = useState(true);
 
+  // Orbit color palette (HSL strings)
+  const ORBIT_COLORS = useMemo(() => [
+    'hsl(210 90% 60%)',  // Blue
+    'hsl(145 70% 50%)',  // Green
+    'hsl(35 95% 55%)',   // Orange
+    'hsl(280 70% 60%)',  // Purple
+    'hsl(0 80% 60%)',    // Red
+    'hsl(180 70% 50%)',  // Cyan
+    'hsl(60 80% 50%)',   // Yellow
+    'hsl(320 70% 55%)',  // Pink
+  ], []);
+
   const { tracks, currentPos } = useMemo(() => {
     if (!semiMajorAxis || semiMajorAxis <= 0 || !gm || gm <= 0) {
       return { tracks: [], currentPos: null };
@@ -158,14 +170,16 @@ export function OrbitalGroundTrack({
     const n = Math.sqrt(gm / Math.pow(semiMajorAxis, 3));
     const period = (2 * Math.PI) / n;
     const totalTime = period * numOrbits;
-    const steps = 600;
+    const stepsPerOrbit = 200;
+    const steps = stepsPerOrbit * numOrbits;
     const dt = totalTime / steps;
 
-    const tracks: Array<{ lat: number; lon: number }> = [];
+    const tracks: Array<{ lat: number; lon: number; orbitIdx: number }> = [];
     let currentPos: { lat: number; lon: number } | null = null;
 
     for (let s = 0; s <= steps; s++) {
       const t = s * dt;
+      const orbitIdx = Math.min(Math.floor(t / period), numOrbits - 1);
       const M = (n * t) % (2 * Math.PI);
       const E = solveKepler(M, eccentricity);
 
@@ -185,7 +199,7 @@ export function OrbitalGroundTrack({
       let lon = (Math.atan2(y, x) - theta_g) * (180 / Math.PI);
       lon = ((lon + 540) % 360) - 180;
 
-      tracks.push({ lat, lon });
+      tracks.push({ lat, lon, orbitIdx });
       if (s === 0) currentPos = { lat, lon };
     }
 
@@ -201,26 +215,36 @@ export function OrbitalGroundTrack({
     return [x, y];
   };
 
-  const pathSegments = useMemo(() => {
+  // Build path segments per orbit (with color index)
+  const orbitSegments = useMemo(() => {
     if (tracks.length === 0) return [];
-    const segments: string[] = [];
+    const result: Array<{ d: string; orbitIdx: number }> = [];
     let currentPath = '';
+    let currentOrbit = tracks[0].orbitIdx;
+
     for (let i = 0; i < tracks.length; i++) {
       const [x, y] = toSVG(tracks[i].lat, tracks[i].lon);
+      const orbitIdx = tracks[i].orbitIdx;
+
       if (i === 0) {
         currentPath = `M${x.toFixed(1)},${y.toFixed(1)}`;
+        currentOrbit = orbitIdx;
       } else {
         const lonDiff = Math.abs(tracks[i].lon - tracks[i - 1].lon);
-        if (lonDiff > 180) {
-          segments.push(currentPath);
+        const orbitChanged = orbitIdx !== currentOrbit;
+
+        if (lonDiff > 180 || orbitChanged) {
+          // Save current segment
+          result.push({ d: currentPath, orbitIdx: currentOrbit });
           currentPath = `M${x.toFixed(1)},${y.toFixed(1)}`;
+          currentOrbit = orbitIdx;
         } else {
           currentPath += ` L${x.toFixed(1)},${y.toFixed(1)}`;
         }
       }
     }
-    if (currentPath) segments.push(currentPath);
-    return segments;
+    if (currentPath) result.push({ d: currentPath, orbitIdx: currentOrbit });
+    return result;
   }, [tracks]);
 
   // Day/night terminator
@@ -329,13 +353,35 @@ export function OrbitalGroundTrack({
           </>
         )}
 
-        {/* Ground track paths */}
-        {pathSegments.map((d, i) => (
-          <g key={`track-${i}`}>
-            <path d={d} fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" opacity="0.15" />
-            <path d={d} fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.8" />
+        {/* Ground track paths - color-coded per orbit */}
+        {orbitSegments.map((seg, i) => {
+          const color = ORBIT_COLORS[seg.orbitIdx % ORBIT_COLORS.length];
+          return (
+            <g key={`track-${i}`}>
+              <path d={seg.d} fill="none" stroke={color} strokeWidth="2.5" opacity="0.15" />
+              <path d={seg.d} fill="none" stroke={color} strokeWidth="1.2" opacity="0.85" />
+            </g>
+          );
+        })}
+
+        {/* Orbit legend */}
+        {numOrbits > 1 && (
+          <g>
+            {Array.from({ length: numOrbits }, (_, i) => {
+              const color = ORBIT_COLORS[i % ORBIT_COLORS.length];
+              const lx = 8;
+              const ly = 26 + i * 14;
+              return (
+                <g key={`legend-${i}`}>
+                  <line x1={lx} y1={ly} x2={lx + 14} y2={ly} stroke={color} strokeWidth="2" opacity="0.9" />
+                  <text x={lx + 18} y={ly + 3} fill={color} fontSize="8" fontWeight="600" opacity="0.8">
+                    Orbit {i + 1}
+                  </text>
+                </g>
+              );
+            })}
           </g>
-        ))}
+        )}
 
         {/* Starting position marker */}
         {currentSVG && (
