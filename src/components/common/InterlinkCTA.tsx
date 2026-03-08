@@ -359,7 +359,7 @@ export function InlineInterlinkHint({
       <button
         onClick={() => navigate(toolPath)}
         className={cn(
-          "text-[11px] text-slate-400 hover:text-cyan-400 mt-1 flex items-center gap-1",
+          "text-[11px] text-slate-400 hover:text-primary mt-1 flex items-center gap-1",
           className
         )}
       >
