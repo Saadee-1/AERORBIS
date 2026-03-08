@@ -139,7 +139,7 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
                 {isActive && (
                   <motion.div
                     layoutId="activeIndicator"
-                    className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r ${!isLight ? 'shadow-[0_0_8px_hsl(185_85%_50%/0.6)]' : ''}`}
+                    className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r ${!isLight ? 'shadow-[0_0_8px_hsl(160_84%_39%/0.6)]' : ''}`}
                   />
                 )}
                 <Icon className={`w-4 h-4 flex-shrink-0 ${
