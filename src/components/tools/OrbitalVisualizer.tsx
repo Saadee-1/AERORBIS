@@ -862,6 +862,7 @@ const OrbitalVisualizer = () => {
           const meanAnomaly = (params.meanAnomaly0 + meanMotion * deltaTime) % (2 * Math.PI);
           const eccentricAnomaly = solveKeplersEquation(meanAnomaly, params.eccentricity);
           const trueAnomaly = eccentricToTrueAnomaly(eccentricAnomaly, params.eccentricity);
+          setCurrentTrueAnomaly(trueAnomaly);
           const position = getPositionFromTrueAnomaly(trueAnomaly, params);
           
           satellite.position.copy(position);
