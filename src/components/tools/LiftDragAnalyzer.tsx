@@ -1444,7 +1444,7 @@ const point: Record<string, unknown> = { alpha };
                 helperText="Select how the induced drag factor k is determined. Legacy mode uses a user-defined k value. Geometric mode computes k from wing geometry: k = 1/(π × AR × e)."
               >
                 <Select value={inducedDragModel} onValueChange={(v) => setInducedDragModel(v as InducedDragModel)}>
-                  <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-input border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
