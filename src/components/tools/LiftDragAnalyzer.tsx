@@ -1345,7 +1345,7 @@ const point: Record<string, unknown> = { alpha };
         icon={TrendingUp}
         actions={
           <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-            <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30 text-white">
+            <SelectTrigger className="w-32 bg-input border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
