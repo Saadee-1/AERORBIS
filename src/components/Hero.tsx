@@ -200,7 +200,7 @@ const Hero = () => {
             <img 
               src={aerorbisLogo} 
               alt="AERORBIS" 
-              className="w-20 h-20 md:w-24 md:h-24 relative z-10"
+              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative z-10"
             />
           </motion.div>
 
