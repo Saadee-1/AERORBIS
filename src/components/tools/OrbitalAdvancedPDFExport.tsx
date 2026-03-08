@@ -17,6 +17,7 @@ interface AdvancedPDFExportProps {
   lambertResult?: AdvancedResult | null;
   interplanetaryResults?: AdvancedResult[];
   gravityAssistResults?: AdvancedResult[];
+  lowThrustResults?: AdvancedResult[];
   porkChopData?: PorkChopData | null;
   orbitParams?: {
     semiMajorAxis: number;
@@ -164,6 +165,7 @@ export function generateAdvancedOrbitalPDF(props: AdvancedPDFExportProps): strin
   ${props.lambertResult ? renderSectionHTML('Lambert Problem Solution', [props.lambertResult]) : ''}
   ${renderSectionHTML('Interplanetary Transfer', props.interplanetaryResults || [])}
   ${renderSectionHTML('Gravity Assist Analysis', props.gravityAssistResults || [])}
+  ${renderSectionHTML('Low-Thrust Spiral Transfer', props.lowThrustResults || [])}
   ${props.porkChopData ? renderPorkChopHTML(props.porkChopData) : ''}
 
   <div class="footer">
@@ -184,6 +186,7 @@ export function AdvancedPDFExportButton(props: AdvancedPDFExportProps) {
     || props.lambertResult
     || (props.interplanetaryResults?.length || 0) > 0
     || (props.gravityAssistResults?.length || 0) > 0
+    || (props.lowThrustResults?.length || 0) > 0
     || props.porkChopData;
 
   const handleExport = async () => {
