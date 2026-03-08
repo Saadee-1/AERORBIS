@@ -533,6 +533,27 @@ export function OrbitalGroundTrack({
             <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="6" fill="hsl(var(--destructive))" opacity="0.15" />
             {/* Main dot */}
             <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="3.5" fill="hsl(var(--destructive))" stroke="hsl(var(--background))" strokeWidth="1" />
+            {/* Velocity vector arrow */}
+            {(() => {
+              const arrowLen = 22;
+              const sx = satelliteData.svgPos[0];
+              const sy = satelliteData.svgPos[1];
+              const ex = sx + satelliteData.velDir.dx * arrowLen;
+              const ey = sy + satelliteData.velDir.dy * arrowLen;
+              // Arrowhead
+              const headLen = 5;
+              const angle = Math.atan2(satelliteData.velDir.dy, satelliteData.velDir.dx);
+              const h1x = ex - headLen * Math.cos(angle - 0.45);
+              const h1y = ey - headLen * Math.sin(angle - 0.45);
+              const h2x = ex - headLen * Math.cos(angle + 0.45);
+              const h2y = ey - headLen * Math.sin(angle + 0.45);
+              return (
+                <g>
+                  <line x1={sx} y1={sy} x2={ex} y2={ey} stroke="hsl(var(--destructive))" strokeWidth="1.5" opacity="0.8" />
+                  <polygon points={`${ex},${ey} ${h1x},${h1y} ${h2x},${h2y}`} fill="hsl(var(--destructive))" opacity="0.8" />
+                </g>
+              );
+            })()}
             {/* Label */}
             <text x={satelliteData.svgPos[0] + 10} y={satelliteData.svgPos[1] - 6} fill="hsl(var(--destructive))" fontSize="8" fontWeight="700">
               SAT
