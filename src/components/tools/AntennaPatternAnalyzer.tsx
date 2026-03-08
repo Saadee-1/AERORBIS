@@ -1397,8 +1397,8 @@ const AntennaPatternAnalyzer = () => {
                         where Pt is transmit power, Gt is transmit antenna gain (linear)
                       </p>
                     </div>
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <p className="text-cyan-400 font-semibold mb-2">Array Factor (Linear)</p>
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10">
+                      <p className="text-primary font-semibold mb-2">Array Factor (Linear)</p>
                       <code className="text-sm block mb-2">
                         AF(θ) = (1/N) * sin(N*ψ/2) / sin(ψ/2)
                       </code>
