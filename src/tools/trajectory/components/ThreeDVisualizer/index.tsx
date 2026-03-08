@@ -242,7 +242,7 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
         <div className="absolute inset-0">{renderCanvas()}</div>
 
         {!sceneReady && !lastSceneError && (
-          <div className="absolute inset-0 flex items-center justify-center text-cyan-200 text-sm bg-slate-900/40 backdrop-blur-sm pointer-events-none z-40">
+          <div className="absolute inset-0 flex items-center justify-center text-primary/80 text-sm bg-slate-900/40 backdrop-blur-sm pointer-events-none z-40">
             Initializing 3D scene...
           </div>
         )}
