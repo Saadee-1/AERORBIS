@@ -6,6 +6,7 @@
 "use client";
 
 import { Suspense, useMemo, memo, useState, useEffect } from 'react';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { TrajectoryData } from '../../utils/three/threeUtils';
 import { convertSimulationToTrajectoryData } from '../../utils/convertSimulationToTrajectoryData';
