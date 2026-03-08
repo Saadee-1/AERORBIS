@@ -1865,7 +1865,7 @@ const point: Record<string, unknown> = { alpha };
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="flex flex-col text-left">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold text-cyan-300">
+                      <span className="text-sm font-semibold text-primary">
                         Polar Data (Re = 1,000,000)
                       </span>
                       {(() => {
