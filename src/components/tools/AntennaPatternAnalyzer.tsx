@@ -917,6 +917,8 @@ const AntennaPatternAnalyzer = () => {
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Analyzing Radiation Pattern" />
     <ToolWrapper>
       <ToolHeader
         title="Antenna Pattern Analyzer"
