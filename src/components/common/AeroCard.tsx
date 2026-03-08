@@ -43,7 +43,7 @@ export function AeroCard({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {Icon && <Icon className="w-5 h-5 text-cyan-400" />}
+              {Icon && <Icon className="w-5 h-5 text-primary" />}
               {title && <CardTitle className={typography.cardTitle}>{title}</CardTitle>}
               {titleBadge}
             </div>
