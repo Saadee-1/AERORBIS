@@ -248,7 +248,7 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
                 id: 'fuel',
                 name: 'Cumulative Fuel Used',
                 role: '%',
-                color: '#06b6d4',
+                color: '#059669',
               }]}
             />
           </div>
