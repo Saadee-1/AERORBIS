@@ -853,21 +853,20 @@ const AntennaPatternAnalyzer = () => {
 
   // Handle antenna selection with registry support
   const handleAntennaChange = (id: string) => {
-    setSelectedAntennaId(id);
-    
-    // Try registry first, then fallback to old system
-    const registryEntry = getAntennaRegistryEntry(id);
-    if (registryEntry) {
-      setAntennaParams({ ...registryEntry.defaultParams });
-    } else {
-      const antenna = getAntennaById(id);
-      if (antenna) {
-        setAntennaParams({ ...antenna.defaultParams });
+    runCalculation(() => {
+      setSelectedAntennaId(id);
+      const registryEntry = getAntennaRegistryEntry(id);
+      if (registryEntry) {
+        setAntennaParams({ ...registryEntry.defaultParams });
       } else {
-        // Fallback to empty params
-        setAntennaParams({});
+        const antenna = getAntennaById(id);
+        if (antenna) {
+          setAntennaParams({ ...antenna.defaultParams });
+        } else {
+          setAntennaParams({});
+        }
       }
-    }
+    });
   };
 
   const handleSaveCustomPreset = () => {
