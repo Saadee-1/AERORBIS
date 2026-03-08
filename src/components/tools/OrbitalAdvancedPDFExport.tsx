@@ -16,6 +16,7 @@ interface AdvancedPDFExportProps {
   maneuverResults?: AdvancedResult[];
   lambertResult?: AdvancedResult | null;
   interplanetaryResults?: AdvancedResult[];
+  gravityAssistResults?: AdvancedResult[];
   porkChopData?: PorkChopData | null;
   orbitParams?: {
     semiMajorAxis: number;
