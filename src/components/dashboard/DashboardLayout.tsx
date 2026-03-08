@@ -61,7 +61,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <motion.div
           className="absolute left-0 right-0 h-px z-[1] pointer-events-none"
           style={{
-            background: 'linear-gradient(90deg, transparent, hsl(185 85% 50% / 0.15), transparent)',
+            background: 'linear-gradient(90deg, transparent, hsl(160 84% 39% / 0.15), transparent)',
           }}
           animate={{ top: ['0%', '100%'] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}

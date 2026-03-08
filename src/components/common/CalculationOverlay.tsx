@@ -60,9 +60,9 @@ export function CalculationOverlay({ isActive, label = "Computing", progress }: 
                 className="absolute inset-10 rounded-full bg-primary/5 border border-primary/20 flex items-center justify-center"
                 animate={{
                   boxShadow: [
-                    '0 0 0px hsl(185 85% 50% / 0)',
-                    '0 0 30px hsl(185 85% 50% / 0.3)',
-                    '0 0 0px hsl(185 85% 50% / 0)',
+                    '0 0 0px hsl(160 84% 39% / 0)',
+                    '0 0 30px hsl(160 84% 39% / 0.3)',
+                    '0 0 0px hsl(160 84% 39% / 0)',
                   ],
                 }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
