@@ -1383,8 +1383,8 @@ const AntennaPatternAnalyzer = () => {
                         where U_max is peak radiation intensity, P_rad is total radiated power
                       </p>
                     </div>
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <p className="text-cyan-400 font-semibold mb-2">Parabolic Dish Gain</p>
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10">
+                      <p className="text-primary font-semibold mb-2">Parabolic Dish Gain</p>
                       <code className="text-sm block mb-2">G = η * (4πA / λ²)</code>
                       <p className="text-xs text-gray-400">
                         where η is efficiency, A = πD²/4 is aperture area, D is diameter
