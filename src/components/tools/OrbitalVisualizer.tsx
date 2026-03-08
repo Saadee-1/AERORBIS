@@ -1448,6 +1448,9 @@ const OrbitalVisualizer = () => {
                 <AeroFormField label={`Arg. of Periapsis ω (${getUnit("incl")})`}>
                   <Input id="argOfPeriapsis" type="number" step="0.1" value={inputs.argOfPeriapsis} onChange={(e) => setInputs({ ...inputs, argOfPeriapsis: e.target.value })} className="bg-muted/50" placeholder="0-360" />
                 </AeroFormField>
+                <AeroFormField label={`True Anomaly ν (${getUnit("incl")})`}>
+                  <Input id="trueAnomaly" type="number" step="1" value={inputs.trueAnomaly} onChange={(e) => setInputs({ ...inputs, trueAnomaly: e.target.value })} className="bg-muted/50" placeholder="0-360" />
+                </AeroFormField>
                 <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
                   <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
