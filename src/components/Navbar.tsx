@@ -64,8 +64,8 @@ function DockItem({
         )}
 
         {/* Icon with bounce on hover */}
-        <span className="relative z-10 p-1.5 rounded-lg bg-card/60 backdrop-blur-sm border border-border/30 shadow-sm group-hover:shadow-[0_0_12px_hsl(160_84%_39%/0.2)] transition-shadow duration-300">
-          <Icon size={18} strokeWidth={1.8} />
+        <span className="relative z-10 p-1 rounded-md bg-card/50 backdrop-blur-sm border border-border/20 shadow-sm group-hover:shadow-[0_0_8px_hsl(160_84%_39%/0.15)] transition-shadow duration-300">
+          <Icon size={14} strokeWidth={1.8} />
         </span>
 
         {/* Label */}
