@@ -660,7 +660,7 @@ const DeltaVPlanner = () => {
 
       {/* Save Preset Dialog */}
       <Dialog open={isPresetDialogOpen} onOpenChange={setIsPresetDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-slate-800 border-primary/20 text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Preset</DialogTitle>
             <DialogDescription className="text-gray-400">
