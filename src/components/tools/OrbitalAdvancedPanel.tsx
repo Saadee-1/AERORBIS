@@ -401,6 +401,9 @@ export function OrbitalAdvancedPanel({
         missionC3={porkChopData?.minC3 || (interplanetaryResults.length > 0 ? interplanetaryResults[0]?.value * interplanetaryResults[0]?.value : undefined)}
         missionName={porkChopData ? `${porkChopData.departPlanet}→${porkChopData.arrivePlanet}` : undefined}
       />
+
+      {/* ═══ LOW-THRUST OPTIMIZER ═══ */}
+      <LowThrustOptimizer onResults={setLowThrustResults} />
     </div>
   );
 }
