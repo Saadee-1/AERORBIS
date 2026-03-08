@@ -126,6 +126,7 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="pt-3 border-t border-border/20 flex items-center justify-between">
+              <ThemeToggle />
               <AudioToggle />
               <ProfileMenu />
             </div>

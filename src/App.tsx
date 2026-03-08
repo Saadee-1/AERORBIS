@@ -108,6 +108,7 @@ const App = () => {
         </AIAssistantProvider>
       </TooltipProvider>
     </QueryClientProvider>
+    </ThemeProvider>
   );
 };
 
