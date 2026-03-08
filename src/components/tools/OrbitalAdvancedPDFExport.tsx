@@ -163,6 +163,7 @@ export function generateAdvancedOrbitalPDF(props: AdvancedPDFExportProps): strin
   ${renderSectionHTML('Orbital Maneuver Analysis', props.maneuverResults || [])}
   ${props.lambertResult ? renderSectionHTML('Lambert Problem Solution', [props.lambertResult]) : ''}
   ${renderSectionHTML('Interplanetary Transfer', props.interplanetaryResults || [])}
+  ${renderSectionHTML('Gravity Assist Analysis', props.gravityAssistResults || [])}
   ${props.porkChopData ? renderPorkChopHTML(props.porkChopData) : ''}
 
   <div class="footer">
