@@ -1831,8 +1831,8 @@ const point: Record<string, unknown> = { alpha };
                 )}
 
                 <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="steps" className="border-cyan-400/20">
-                    <AccordionTrigger className="text-cyan-400 hover:text-cyan-300">
+                  <AccordionItem value="steps" className="border-primary/20">
+                    <AccordionTrigger className="text-primary hover:text-primary/80">
                       <div className="flex items-center gap-2">
                         <Info className="w-4 h-4" />
                         View Calculation Steps
