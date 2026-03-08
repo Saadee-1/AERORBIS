@@ -29,7 +29,7 @@ const Navbar = () => {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
         scrolled
-          ? "bg-popover/95 backdrop-blur-2xl border-b border-primary/20 shadow-[0_4px_30px_hsl(185_85%_50%/0.08)]"
+          ? "bg-popover/95 backdrop-blur-2xl border-b border-primary/20 shadow-[0_4px_30px_hsl(160_84%_39%/0.08)]"
           : "bg-transparent backdrop-blur-md border-b border-border/10"
       }`}
     >
