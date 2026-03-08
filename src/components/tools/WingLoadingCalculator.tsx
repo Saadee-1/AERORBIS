@@ -1459,7 +1459,7 @@ const WingLoadingCalculator = () => {
             {/* Calculate Button */}
             <AeroButton
               type="button"
-              onClick={handleCalculate}
+              onClick={() => runCalculation(handleCalculate)}
               variant="primary"
               icon={Gauge}
               className="w-full"
