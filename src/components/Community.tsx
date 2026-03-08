@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, BookOpen, Users, FileCode, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Community = () => {
   const ref = useRef(null);
