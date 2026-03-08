@@ -216,17 +216,17 @@ const MaterialsDatabase = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
-          <Database className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Aerospace Materials Density Database
+          <Database className="w-12 h-12 text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.6)]" />
+          <h2 className="text-4xl font-bold text-primary">
+            Aerospace Materials Database
           </h2>
         </div>
-        <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-          Comprehensive database of aerospace materials with density properties. Search, filter, and compare materials.
+        <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+          {materials.length}+ aerospace materials with density properties. Search, filter, and compare.
         </p>
         <div className="flex justify-center gap-2 mt-4">
           <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-            <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+            <SelectTrigger className="w-32 bg-card border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -238,126 +238,118 @@ const MaterialsDatabase = () => {
         </div>
       </motion.div>
 
-      {/* Controls */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid md:grid-cols-3 gap-4"
-      >
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl md:col-span-2">
+      {/* Search + Add */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <Card className="bg-card/50 backdrop-blur-lg border border-border rounded-2xl">
           <CardContent className="pt-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400" />
-              <Input
-                type="search"
-                placeholder="Search materials by name or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-900/50 border-cyan-400/30 text-white"
-              />
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
+                <Input
+                  type="search"
+                  placeholder="Search materials by name or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-background border-border text-foreground"
+                />
+              </div>
+              <Button
+                onClick={() => setIsAddDialogOpen(true)}
+                className="bg-primary text-primary-foreground font-semibold shrink-0"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Custom
+              </Button>
             </div>
           </CardContent>
         </Card>
-
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-cyan-400" />
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.filter((cat) => cat === "All" || availableCategories.includes(cat)).map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Custom Units Card */}
-        {unitSystem === "Custom" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Settings2 className="w-5 h-5 text-cyan-400" />
-                  Custom Unit Definitions
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Define conversion factor to SI (kg/m³)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                  <Label className="text-white font-semibold">Density (ρ)</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <Input 
-                      placeholder="Unit Name" 
-                      value={customUnitName}
-                      onChange={(e) => setCustomUnitName(e.target.value)}
-                      className="bg-slate-800 border-cyan-400/30 text-white"
-                    />
-                    <Input 
-                      type="number"
-                      step="0.0001"
-                      placeholder="SI Factor"
-                      value={customFactor}
-                      onChange={(e) => setCustomFactor(e.target.value)}
-                      className="bg-slate-800 border-cyan-400/30 text-white"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1.5">
-                    1 {customUnitName || "Unit"} = {customFactor || "..."} kg/m³
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
       </motion.div>
 
-      {/* Add Material Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="flex justify-end"
-      >
-        <Button
-          onClick={() => setIsAddDialogOpen(true)}
-          className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Custom Material
-        </Button>
-      </motion.div>
-
-      {/* Stats Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      {/* Category Chips */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
         transition={{ delay: 0.15 }}
+        className="flex flex-wrap gap-2"
       >
-        <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+        {MATERIAL_CATEGORIES
+          .filter((cat) => cat.id === "All" || availableCategories.includes(cat.id))
+          .map((cat) => {
+            const isActive = selectedCategory === cat.id;
+            const count = cat.id === "All" ? materials.length : materials.filter(m => m.category === cat.id).length;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${
+                  isActive 
+                    ? "bg-primary/20 border-primary/50 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.2)]" 
+                    : "bg-card/50 border-border text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                }`}
+              >
+                {cat.label} <span className="opacity-60">({count})</span>
+              </button>
+            );
+          })}
+      </motion.div>
+
+      {/* Custom Units Card */}
+      {unitSystem === "Custom" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Card className="bg-card/50 backdrop-blur-lg border border-border rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Settings2 className="w-5 h-5 text-primary" />
+                Custom Unit Definitions
+              </CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Define conversion factor to SI (kg/m³)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                <Label className="text-foreground font-semibold">Density (ρ)</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <Input 
+                    placeholder="Unit Name" 
+                    value={customUnitName}
+                    onChange={(e) => setCustomUnitName(e.target.value)}
+                    className="bg-background border-border text-foreground"
+                  />
+                  <Input 
+                    type="number"
+                    step="0.0001"
+                    placeholder="SI Factor"
+                    value={customFactor}
+                    onChange={(e) => setCustomFactor(e.target.value)}
+                    className="bg-background border-border text-foreground"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  1 {customUnitName || "Unit"} = {customFactor || "..."} kg/m³
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Stats Row */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <Card className="bg-card/50 backdrop-blur-lg border border-border rounded-2xl">
           <CardContent className="pt-6">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <p className="text-3xl font-bold text-cyan-400 mb-2">{materials.length}</p>
-                <p className="text-gray-400 text-sm">Total Materials</p>
+                <p className="text-3xl font-bold text-primary mb-1">{materials.length}</p>
+                <p className="text-muted-foreground text-sm">Total Materials</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-blue-400 mb-2">{filteredMaterials.length}</p>
-                <p className="text-gray-400 text-sm">Filtered Results</p>
+                <p className="text-3xl font-bold text-primary mb-1">{filteredMaterials.length}</p>
+                <p className="text-muted-foreground text-sm">Filtered Results</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-cyan-400 mb-2">{availableCategories.length}</p>
-                <p className="text-gray-400 text-sm">Categories</p>
+                <p className="text-3xl font-bold text-primary mb-1">{availableCategories.length}</p>
+                <p className="text-muted-foreground text-sm">Categories</p>
               </div>
             </div>
           </CardContent>
@@ -366,21 +358,15 @@ const MaterialsDatabase = () => {
 
       {/* Table and Chart Grid */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Materials Table */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="space-y-4"
-        >
-          <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="space-y-4">
+          <Card className="bg-card/50 backdrop-blur-lg border border-border rounded-2xl">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Database className="w-5 h-5 text-cyan-400" />
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Database className="w-5 h-5 text-primary" />
                 Materials Database
               </CardTitle>
-              <CardDescription className="text-gray-400">
-                Click on any material to view detailed information
+              <CardDescription className="text-muted-foreground">
+                Click any material for details · Sortable columns · 25 per page
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -395,25 +381,20 @@ const MaterialsDatabase = () => {
           </Card>
         </motion.div>
 
-        {/* Density Chart */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
           <DensityChart materials={filteredMaterials} unitSystem={unitSystem} />
         </motion.div>
       </div>
 
       {/* Material Details Drawer */}
-        <MaterialDetailsDrawer
-          material={selectedMaterial}
-          unitSystem={unitSystem}
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-          requestId={lastRequestId}
-          payload={lastPayload}
-        />
+      <MaterialDetailsDrawer
+        material={selectedMaterial}
+        unitSystem={unitSystem}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        requestId={lastRequestId}
+        payload={lastPayload}
+      />
 
       {/* Add Material Dialog */}
       <AddMaterialDialog
