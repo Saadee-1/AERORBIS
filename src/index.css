@@ -409,8 +409,8 @@
 .hero-intro-logo {
   font-size: 3rem;
   font-weight: 700;
-  color: hsl(185 85% 50%);
-  text-shadow: 0 0 40px hsl(185 85% 50% / 0.5);
+  color: hsl(160 84% 39%);
+  text-shadow: 0 0 40px hsl(160 84% 39% / 0.5);
 }
 
 .fade-out {
