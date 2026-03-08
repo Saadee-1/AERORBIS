@@ -1356,7 +1356,7 @@ const ThrustLoadingCalculator = () => {
                         min="1"
                         value={numEngines}
                         onChange={(e) => setNumEngines(e.target.value)}
-                        className="bg-slate-900/50 border-cyan-400/30"
+                        className="bg-input border-border"
                         placeholder="e.g., 2"
                       />
                     </AeroFormField>
