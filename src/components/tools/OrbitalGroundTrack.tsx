@@ -263,6 +263,24 @@ export function OrbitalGroundTrack({
           </g>
         )}
 
+        {/* Real-time satellite position */}
+        {satelliteSVG && (
+          <g>
+            {/* Pulse ring */}
+            <circle cx={satelliteSVG[0]} cy={satelliteSVG[1]} r="8" fill="none" stroke="hsl(var(--destructive))" strokeWidth="1" opacity="0.4">
+              <animate attributeName="r" values="5;10;5" dur="2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite" />
+            </circle>
+            {/* Glow */}
+            <circle cx={satelliteSVG[0]} cy={satelliteSVG[1]} r="5" fill="hsl(var(--destructive))" opacity="0.2" />
+            {/* Dot */}
+            <circle cx={satelliteSVG[0]} cy={satelliteSVG[1]} r="3.5" fill="hsl(var(--destructive))" stroke="hsl(var(--background))" strokeWidth="1" />
+            <text x={satelliteSVG[0] + 10} y={satelliteSVG[1] - 6} fill="hsl(var(--destructive))" fontSize="8" fontWeight="700">
+              SAT
+            </text>
+          </g>
+        )}
+
         {/* Labels */}
         <text x={W / 2} y={14} textAnchor="middle" fill="hsl(var(--foreground))" fontSize="11" fontWeight="600" opacity="0.7">
           Ground Track — {numOrbits} Orbit{numOrbits > 1 ? 's' : ''}
