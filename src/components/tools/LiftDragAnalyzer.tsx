@@ -1061,7 +1061,7 @@ const point: Record<string, unknown> = { alpha };
     });
 
     return (
-      <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
+      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
         <p className="text-cyan-400 font-semibold mb-2">
           {graphMode === "dragPolar" ? `CL = ${label}` : `α = ${label}°`}
         </p>
