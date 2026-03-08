@@ -440,7 +440,7 @@ const AIAssistant: React.FC = () => {
                               {session.messages.length} messages
                             </p>
                             {session.id === currentSessionId && (
-                              <span className="text-[10px] text-cyan-400 font-semibold">Current</span>
+                              <span className="text-[10px] text-emerald-500 font-semibold">Current</span>
                             )}
                           </div>
                         </button>
