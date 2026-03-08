@@ -1530,10 +1530,10 @@ const WingLoadingCalculator = () => {
                         </div>
                     
                     {result.mtowWingLoadingKgm2 !== undefined && (
-                      <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                      <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/20">
                         <p className="text-sm text-gray-400 mb-1">Wing Loading at Takeoff</p>
                         <p className="text-xs text-gray-500 mb-1">(W/S at MTOW condition)</p>
-                        <p className="text-xl font-bold text-cyan-300">
+                        <p className="text-xl font-bold text-primary">
                           {convertWingLoadingKgm2FromSI(result.mtowWingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
