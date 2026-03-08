@@ -142,8 +142,9 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
 
       return (
         <Canvas
-          camera={{ position: [0, 0, 10], fov: 50 }}
-          gl={{ preserveDrawingBuffer: true }}
+          camera={{ position: [0, 2, 12], fov: 45 }}
+          gl={{ preserveDrawingBuffer: true, antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
+          shadows={!settings.simpleMode}
           onCreated={({ gl, scene, camera }) => {
             try {
               // Check WebGL context availability
