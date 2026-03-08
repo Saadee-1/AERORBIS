@@ -874,7 +874,7 @@ export default function ClimbPerformanceCalculator() {
                 {/* CL_max configuration info */}
                 {lastCalculationValues && (() => {
                   if (lastCalculationValues.useClMaxOverride) {
-                    return <p className="text-xs text-cyan-400 mt-2">User-specified CLₘₐₓ in use: {lastCalculationValues.clMaxUsed.toFixed(2)}</p>;
+                    return <p className="text-xs text-primary mt-2">User-specified CLₘₐₓ in use: {lastCalculationValues.clMaxUsed.toFixed(2)}</p>;
                   } else {
                     const configClMax = CLMAX_CONFIG_MAP[lastCalculationValues.flightConfigUsed];
                     const configLabels: Record<FlightConfiguration, string> = {
