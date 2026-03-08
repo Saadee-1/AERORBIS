@@ -1074,7 +1074,7 @@ const WingLoadingCalculator = () => {
                   </div>
                 )}
                 {missionType === 'None' && (
-                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-primary/20">
                     <p className="text-sm text-gray-300">
                       Mission-specific parameters will not auto-change. Use manual CL,max override if needed.
                     </p>
