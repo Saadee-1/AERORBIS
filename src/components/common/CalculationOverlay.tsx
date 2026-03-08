@@ -34,7 +34,7 @@ export function CalculationOverlay({ isActive, label = "Computing", progress }: 
               {/* Outer ring */}
               <motion.div
                 className="absolute inset-0 rounded-full border-2 border-primary/30"
-                style={{ borderTopColor: 'hsl(185 85% 50% / 0.8)', borderRightColor: 'hsl(185 85% 50% / 0.4)' }}
+                style={{ borderTopColor: 'hsl(160 84% 39% / 0.8)', borderRightColor: 'hsl(160 84% 39% / 0.4)' }}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
               />
