@@ -73,6 +73,9 @@ const DashboardTopbar = ({ toggleSidebar }: DashboardTopbarProps) => {
 
         {/* Right side */}
         <div className="flex items-center space-x-3">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {/* Notifications */}
           <div className="relative">
             <Button
