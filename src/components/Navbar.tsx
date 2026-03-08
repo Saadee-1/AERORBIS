@@ -69,6 +69,7 @@ const Navbar = () => {
 
           {/* Right controls */}
           <div className="hidden lg:flex items-center gap-2">
+            <ThemeToggle />
             <AudioToggle />
             <ProfileMenu />
           </div>
