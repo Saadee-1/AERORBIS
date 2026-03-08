@@ -1318,7 +1318,7 @@ const AntennaPatternAnalyzer = () => {
                     type="monotone"
                     data={chartData.hPlane}
                     dataKey="gain"
-                    stroke="#3b82f6"
+                    stroke="#059669"
                     strokeWidth={2}
                     name="H-plane"
                     dot={false}
