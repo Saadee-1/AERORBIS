@@ -1556,7 +1556,7 @@ const ThrustLoadingCalculator = () => {
                         setRunwayLengthInput(e.target.value);
                         if (!hasTouchedRunway) setHasTouchedRunway(true);
                       }}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g. 800"
                       min="0"
                     />
