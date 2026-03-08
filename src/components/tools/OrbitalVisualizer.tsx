@@ -672,22 +672,12 @@ const OrbitalVisualizer = () => {
         powerPreference: 'high-performance',
       });
       renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(1); // Fixed pixel ratio for performance
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.2;
 
-      // ── Post-processing: Bloom ──
-      const composer = new EffectComposer(renderer);
-      const renderPass = new RenderPass(scene, camera);
-      composer.addPass(renderPass);
-
-      const bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(canvas.clientWidth, canvas.clientHeight),
-        0.25,  // strength - reduced to remove blurriness
-        0.15,  // radius - tighter for sharper look
-        0.92   // threshold - higher = less bloom on Earth surface
-      );
-      composer.addPass(bloomPass);
+      // ── No post-processing — direct render for performance ──
+      const composer = { render: () => renderer.render(scene, camera), setSize: (w: number, h: number) => {}, dispose: () => {} } as unknown as EffectComposer;
 
       // ── Controls ──
       const controls = new OrbitControls(camera, renderer.domElement);
@@ -709,7 +699,7 @@ const OrbitalVisualizer = () => {
       const starLayers = buildStarfield(scene);
 
       // ── Procedural Earth ──
-      const earthGeo = new THREE.SphereGeometry(1, 128, 64);
+      const earthGeo = new THREE.SphereGeometry(1, 64, 32);
       disposableGeometries.push(earthGeo);
       const earthMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -736,38 +726,18 @@ const OrbitalVisualizer = () => {
       const cloudLayer = new THREE.Mesh(cloudGeo, cloudMat);
       scene.add(cloudLayer);
 
-      // ── Outer atmosphere glow ──
-      const atmoGeo = new THREE.SphereGeometry(1.06, 64, 32);
+      // ── Atmosphere layers removed for clean look ──
+      const atmoGeo = new THREE.SphereGeometry(1.06, 8, 8);
       disposableGeometries.push(atmoGeo);
-      const atmoMat = new THREE.ShaderMaterial({
-        uniforms: {
-          sunDirection: { value: sunDirection },
-        },
-        vertexShader: ATMO_VERTEX,
-        fragmentShader: ATMO_FRAGMENT,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false,
-      });
+      const atmoMat = new THREE.MeshBasicMaterial({ visible: false });
       disposables.push(atmoMat);
       const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
-      scene.add(atmosphere);
 
-      // ── Inner atmosphere rim ──
-      const innerAtmoGeo = new THREE.SphereGeometry(1.015, 64, 32);
+      const innerAtmoGeo = new THREE.SphereGeometry(1.015, 8, 8);
       disposableGeometries.push(innerAtmoGeo);
-      const innerAtmoMat = new THREE.MeshBasicMaterial({
-        color: 0x4488ff,
-        transparent: true,
-        opacity: 0.04,
-        side: THREE.FrontSide,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
+      const innerAtmoMat = new THREE.MeshBasicMaterial({ visible: false });
       disposables.push(innerAtmoMat);
       const innerAtmosphere = new THREE.Mesh(innerAtmoGeo, innerAtmoMat);
-      scene.add(innerAtmosphere);
 
       // ── Cinematic Lighting ──
       // Key light (Sun)
@@ -843,6 +813,7 @@ const OrbitalVisualizer = () => {
       // ── Animation Loop ──
       let lastTime = performance.now();
       let trailIndex = 0;
+      let frameCounter = 0;
 
       const animate = () => {
         const animationId = requestAnimationFrame(animate);
@@ -866,7 +837,9 @@ const OrbitalVisualizer = () => {
           const meanAnomaly = (params.meanAnomaly0 + meanMotion * deltaTime) % (2 * Math.PI);
           const eccentricAnomaly = solveKeplersEquation(meanAnomaly, params.eccentricity);
           const trueAnomaly = eccentricToTrueAnomaly(eccentricAnomaly, params.eccentricity);
-          setCurrentTrueAnomaly(trueAnomaly);
+          // Throttle React state update to every 10th frame
+          frameCounter++;
+          if (frameCounter % 10 === 0) setCurrentTrueAnomaly(trueAnomaly);
           const position = getPositionFromTrueAnomaly(trueAnomaly, params);
           
           satellite.position.copy(position);
@@ -1050,14 +1023,10 @@ const OrbitalVisualizer = () => {
         
         // Main orbit tube - brighter and thicker
         const tubeGeo = new THREE.TubeGeometry(curve, segments, tubeRadius, 12, true);
-        const tubeMat = new THREE.MeshStandardMaterial({
+        const tubeMat = new THREE.MeshBasicMaterial({
           color: 0x44eeff,
-          emissive: 0x22ccdd,
-          emissiveIntensity: 1.5,
-          metalness: 0.2,
-          roughness: 0.3,
           transparent: true,
-          opacity: 1.0,
+          opacity: 0.9,
         });
         t.orbitTube.geometry = tubeGeo;
         t.orbitTube.material = tubeMat;
