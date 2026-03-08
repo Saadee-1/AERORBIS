@@ -1032,6 +1032,7 @@ const ReynoldsNumberCalculator = () => {
         </DialogContent>
       </Dialog>
     </ToolWrapper>
+    </>
   );
 };
 

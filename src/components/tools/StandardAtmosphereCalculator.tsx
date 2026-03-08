@@ -815,6 +815,7 @@ export default function StandardAtmosphereCalculator() {
         </div>
       </ToolSection>
     </ToolWrapper>
+    </>
   );
 }
 
