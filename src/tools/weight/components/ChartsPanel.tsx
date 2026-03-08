@@ -125,7 +125,7 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               id: 'weight',
               name: 'Weight',
               role: 'kg',
-              color: '#22d3ee',
+              color: '#10b981',
             }]}
           />
         </div>
