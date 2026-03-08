@@ -1046,28 +1046,28 @@ const OrbitalVisualizer = () => {
         if (t.orbitGlow.material instanceof THREE.Material) t.orbitGlow.material.dispose();
 
         const curve = new THREE.CatmullRomCurve3(orbitPoints, true, 'centripetal');
-        const tubeRadius = radius_SI * 0.003;
+        const tubeRadius = radius_SI * 0.006;
         
-        // Main orbit tube
-        const tubeGeo = new THREE.TubeGeometry(curve, segments, tubeRadius, 8, true);
+        // Main orbit tube - brighter and thicker
+        const tubeGeo = new THREE.TubeGeometry(curve, segments, tubeRadius, 12, true);
         const tubeMat = new THREE.MeshStandardMaterial({
-          color: 0x22d3ee,
-          emissive: 0x0088aa,
-          emissiveIntensity: 0.8,
-          metalness: 0.3,
-          roughness: 0.4,
+          color: 0x44eeff,
+          emissive: 0x22ccdd,
+          emissiveIntensity: 1.5,
+          metalness: 0.2,
+          roughness: 0.3,
           transparent: true,
-          opacity: 0.9,
+          opacity: 1.0,
         });
         t.orbitTube.geometry = tubeGeo;
         t.orbitTube.material = tubeMat;
 
-        // Outer glow tube
-        const glowGeo = new THREE.TubeGeometry(curve, segments, tubeRadius * 3, 8, true);
+        // Outer glow tube - more visible
+        const glowGeo = new THREE.TubeGeometry(curve, segments, tubeRadius * 4, 8, true);
         const glowMat = new THREE.MeshBasicMaterial({
-          color: 0x22d3ee,
+          color: 0x44eeff,
           transparent: true,
-          opacity: 0.08,
+          opacity: 0.15,
           side: THREE.DoubleSide,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
