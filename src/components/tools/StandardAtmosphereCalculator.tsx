@@ -68,6 +68,7 @@ type ToolPayload = {
 
 export default function StandardAtmosphereCalculator() {
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { updateDesignSession } = useDesignSession();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);

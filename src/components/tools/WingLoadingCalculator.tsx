@@ -525,6 +525,7 @@ function generateBestUseCase(
 
 const WingLoadingCalculator = () => {
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { data: designSession, updateDesignSession } = useDesignSession();
   const navigate = useNavigate();

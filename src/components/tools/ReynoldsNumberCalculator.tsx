@@ -156,6 +156,7 @@ const reynoldsSchema = z.object({
 // --- Main Component ---
 const ReynoldsNumberCalculator = () => {
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
