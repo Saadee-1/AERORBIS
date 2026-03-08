@@ -1,3 +1,8 @@
+/**
+ * Visualizer Scene - Cinematic Edition
+ * Enhanced lighting and composition
+ */
+
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
@@ -66,7 +71,6 @@ export const VisualizerScene = memo(function VisualizerScene({
   }, [gl, onSceneError]);
 
   useEffect(() => {
-    // Frame validation and logging
     if (IS_DEV) {
       console.debug('TrajectoryConvert: frames=', frames.length, {
         mode: trajectoryData?.metadata?.coordFrame,
@@ -85,7 +89,6 @@ export const VisualizerScene = memo(function VisualizerScene({
       return;
     }
 
-    // Validate frame data
     const invalidFrame = frames.find(
       (frame) =>
         !Number.isFinite(frame.t) ||
@@ -104,7 +107,6 @@ export const VisualizerScene = memo(function VisualizerScene({
           frames: frames.length,
           duration: frames[frames.length - 1]?.t ?? 0,
         });
-        console.debug('3D Visualizer: No WebGL errors detected');
       }
       onSceneReady?.();
     }
@@ -118,7 +120,7 @@ export const VisualizerScene = memo(function VisualizerScene({
   const markers = useMemo(() => extractEventMarkers(frames), [frames]);
 
   const downsampledFrames = useMemo(() => {
-    const maxFrames = settings.simpleMode || settings.lowPowerMode ? 500 : 1000;
+    const maxFrames = settings.simpleMode || settings.lowPowerMode ? 500 : 1500;
     return downsampleFrames(frames, maxFrames);
   }, [frames, settings.simpleMode, settings.lowPowerMode]);
 
@@ -134,7 +136,6 @@ export const VisualizerScene = memo(function VisualizerScene({
     [onMarkerClick, onSceneError],
   );
 
-  // Early return if no frames (after error reporting)
   if (!frames || frames.length === 0) {
     return <group />;
   }
@@ -142,9 +143,38 @@ export const VisualizerScene = memo(function VisualizerScene({
   try {
     return (
       <>
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <pointLight position={[-10, -10, -5]} intensity={0.5} />
+        {/* Cinematic lighting setup */}
+        {/* Key light - warm sun */}
+        <directionalLight
+          position={[15, 8, 10]}
+          intensity={1.5}
+          color={0xfff8e7}
+          castShadow={!settings.simpleMode}
+        />
+        
+        {/* Fill light - cool blue */}
+        <directionalLight
+          position={[-8, -4, -6]}
+          intensity={0.3}
+          color={0x4488cc}
+        />
+        
+        {/* Rim light - subtle highlight */}
+        <directionalLight
+          position={[0, 10, -8]}
+          intensity={0.4}
+          color={0xaaccff}
+        />
+        
+        {/* Ambient - very subtle to keep shadows dramatic */}
+        <ambientLight intensity={0.08} color={0x334455} />
+
+        {/* Hemisphere light for natural sky/ground bounce */}
+        <hemisphereLight
+          color={0x6688cc}
+          groundColor={0x222244}
+          intensity={0.15}
+        />
 
         {settings.showEarth && (
           <EarthScene

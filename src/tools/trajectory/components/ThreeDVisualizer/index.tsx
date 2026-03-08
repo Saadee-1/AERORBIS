@@ -6,6 +6,7 @@
 "use client";
 
 import { Suspense, useMemo, memo, useState, useEffect } from 'react';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { TrajectoryData } from '../../utils/three/threeUtils';
 import { convertSimulationToTrajectoryData } from '../../utils/convertSimulationToTrajectoryData';
@@ -142,8 +143,9 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
 
       return (
         <Canvas
-          camera={{ position: [0, 0, 10], fov: 50 }}
-          gl={{ preserveDrawingBuffer: true }}
+          camera={{ position: [0, 2, 12], fov: 45 }}
+          gl={{ preserveDrawingBuffer: true, antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
+          shadows={!settings.simpleMode}
           onCreated={({ gl, scene, camera }) => {
             try {
               // Check WebGL context availability
@@ -238,7 +240,7 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
 
   return (
     <ErrorBoundary toolName="3D Trajectory Visualizer">
-      <div className="relative w-full min-h-[600px] bg-slate-900 rounded-lg overflow-hidden border border-slate-800">
+      <div className="relative w-full min-h-[650px] bg-[#050a12] rounded-xl overflow-hidden border border-primary/20 shadow-[0_0_40px_rgba(16,185,129,0.08)]">
         <div className="absolute inset-0">{renderCanvas()}</div>
 
         {!sceneReady && !lastSceneError && (
