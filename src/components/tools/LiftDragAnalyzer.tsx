@@ -1652,9 +1652,9 @@ const point: Record<string, unknown> = { alpha };
               )}
 
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
-                    <p className="text-sm text-slate-400 mb-1">Lift-to-Drag Ratio (L/D)</p>
-                    <p className="text-xs text-gray-500 mb-2">At operating point (α = {inputs.angleOfAttack}°)</p>
+                  <div className="p-3 rounded bg-muted/50 border border-border text-center">
+                    <p className="text-sm text-muted-foreground mb-1">Lift-to-Drag Ratio (L/D)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">At operating point (α = {inputs.angleOfAttack}°)</p>
                     {displayCheck.display.LD !== "—" ? (
                       <>
                     <span className={(() => {
