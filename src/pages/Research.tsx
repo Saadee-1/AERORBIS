@@ -90,13 +90,13 @@ const Research = () => {
             transition={{ duration: 0.6 }}
             className="flex justify-center mb-12"
           >
-            <div className="flex items-center gap-4 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl p-4 shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-              <Filter className="w-5 h-5 text-cyan-400" />
+            <div className="flex items-center gap-4 bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl p-4 shadow-[0_0_30px_hsl(160_84%_39%/0.2)]">
+              <Filter className="w-5 h-5 text-primary" />
               <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger className="w-[200px] bg-transparent border-cyan-400/30 text-white">
+                <SelectTrigger className="w-[200px] bg-transparent border-primary/30 text-foreground">
                   <SelectValue placeholder="Filter by source" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-cyan-400/30">
+                <SelectContent className="bg-popover border-primary/30">
                   <SelectItem value="all">All Sources</SelectItem>
                   <SelectItem value="nasa">NASA</SelectItem>
                   <SelectItem value="esa">ESA</SelectItem>
