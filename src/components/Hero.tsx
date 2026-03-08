@@ -166,11 +166,11 @@ const Hero = () => {
               />
             ))}
             {/* Logo with glassmorphic panel */}
-            <div className="relative z-10 w-28 h-28 md:w-36 md:h-36 rounded-2xl bg-card/40 backdrop-blur-xl border border-primary/20 flex items-center justify-center shadow-[0_0_30px_hsl(var(--primary)/0.15)]">
+            <div className="relative z-10 w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-card/30 backdrop-blur-2xl border border-primary/30 flex items-center justify-center shadow-[0_0_40px_hsl(var(--primary)/0.2),inset_0_0_20px_hsl(var(--primary)/0.05)] hover:border-primary/50 hover:shadow-[0_0_50px_hsl(var(--primary)/0.3),inset_0_0_25px_hsl(var(--primary)/0.08)] transition-all duration-500">
               <img 
                 src={aerorbisLogo} 
                 alt="AERORBIS" 
-                className="w-20 h-20 md:w-26 md:h-26 drop-shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
+                className="w-22 h-22 md:w-28 md:h-28 drop-shadow-[0_0_25px_hsl(var(--primary)/0.5)]"
               />
             </div>
           </motion.div>
