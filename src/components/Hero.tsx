@@ -233,7 +233,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.2 }}
-            className="text-lg md:text-2xl text-primary font-rajdhani tracking-[0.3em] uppercase mb-8"
+            className="text-sm sm:text-lg md:text-2xl text-primary font-rajdhani tracking-[0.2em] sm:tracking-[0.3em] uppercase mb-6 sm:mb-8"
           >
             Where Aerospace Minds Connect
           </motion.p>
