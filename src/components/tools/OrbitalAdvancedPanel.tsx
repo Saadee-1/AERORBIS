@@ -30,6 +30,8 @@ import {
 import { Rocket, Globe, Zap, Navigation, Atom, Orbit } from 'lucide-react';
 import { PorkChopPlot, type PorkChopData } from './PorkChopPlot';
 import { AdvancedPDFExportButton } from './OrbitalAdvancedPDFExport';
+import { GravityAssistCalculator } from './GravityAssistCalculator';
+import { LaunchVehicleC3Overlay } from './LaunchVehicleC3Overlay';
 
 interface OrbitalAdvancedPanelProps {
   semiMajorAxis?: number;
