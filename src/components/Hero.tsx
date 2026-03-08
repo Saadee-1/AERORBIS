@@ -243,7 +243,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.5 }}
-            className="text-base md:text-lg text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto"
+            className="text-sm sm:text-base md:text-lg text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto px-2"
           >
             Professional-grade engineering tools, interactive simulators, and deep learning resources 
             for the next generation of aerospace engineers.
