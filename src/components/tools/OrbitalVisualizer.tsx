@@ -1052,9 +1052,9 @@ const OrbitalVisualizer = () => {
               </AeroButton>
               {maneuverResult && (
                 <div className="space-y-2 pt-2">
-                  <div className="p-3 rounded-lg bg-slate-700/50">
-                    <div className="text-sm text-cyan-300">First Burn (Δv₁)</div>
-                    <div className="text-xl font-bold text-white">{format("vel", maneuverResult.delta_v1)}</div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <div className="text-sm text-primary">First Burn (Δv₁)</div>
+                    <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v1)}</div>
                   </div>
                   <div className="p-3 rounded-lg bg-slate-700/50">
                     <div className="text-sm text-cyan-300">Second Burn (Δv₂)</div>
