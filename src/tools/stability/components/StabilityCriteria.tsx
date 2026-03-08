@@ -75,7 +75,7 @@ export function StabilityCriteriaPanel({
 
           <AeroFormField label="Flight Phase">
             <Select value={phase} onValueChange={(value: string) => onPhaseChange(value as 'approach' | 'cruise' | 'landing' | 'takeoff')}>
-              <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+              <SelectTrigger className="bg-muted/50 border-primary/30 text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
