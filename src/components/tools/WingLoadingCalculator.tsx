@@ -1417,7 +1417,7 @@ const WingLoadingCalculator = () => {
                           step="0.01"
                           value={mtow}
                           onChange={(e) => setMtow(e.target.value)}
-                          className="bg-slate-900/50 border-cyan-400/30"
+                          className="bg-slate-900/50 border-primary/30"
                           placeholder="Leave empty to skip"
                         />
                       </AeroFormField>
