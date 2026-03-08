@@ -1745,7 +1745,7 @@ const WingLoadingCalculator = () => {
             ) : (
               <AeroCard title="Results" icon={Gauge}>
                 <div className="text-center py-12">
-                  <Gauge className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
+                  <Gauge className="w-16 h-16 mx-auto mb-4 text-primary/30" />
                   <p className="text-gray-400">Enter values and click Calculate to see results</p>
                 </div>
               </AeroCard>
