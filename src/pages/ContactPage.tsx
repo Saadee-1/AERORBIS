@@ -50,8 +50,8 @@ const ContactPage = () => {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <Mail className="w-16 h-16 mx-auto mb-6 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <Mail className="w-16 h-16 mx-auto mb-6 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
               Contact AeroVerse
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
