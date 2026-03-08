@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FileText, Users, Lightbulb, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Research = () => {
   const ref = useRef(null);
@@ -69,8 +70,10 @@ const Research = () => {
           transition={{ delay: 0.8 }}
           className="text-center mt-10"
         >
-          <Button size="lg" className="gap-2 glow-cyan">
-            Contribute Research <ArrowRight className="w-4 h-4" />
+          <Button asChild size="lg" className="gap-2 glow-cyan">
+            <Link to="/research">
+              Contribute Research <ArrowRight className="w-4 h-4" />
+            </Link>
           </Button>
         </motion.div>
       </div>

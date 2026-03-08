@@ -10,24 +10,28 @@ const tools = [
     title: "Rocket Thrust Calculator",
     description: "Calculate thrust, specific impulse, and performance metrics",
     status: "ONLINE",
+    toolId: "thrust",
   },
   {
     icon: TrendingUp,
     title: "Lift-to-Drag Analyzer",
     description: "Analyze aerodynamic efficiency with interactive charts",
     status: "ONLINE",
+    toolId: "ld-ratio",
   },
   {
     icon: Orbit,
     title: "Orbital Path Simulator",
     description: "Simulate and visualize satellite trajectories in 3D",
     status: "ONLINE",
+    toolId: "orbital",
   },
   {
     icon: Database,
     title: "Material Density Database",
     description: "Access comprehensive aerospace materials data",
     status: "ONLINE",
+    toolId: "material",
   },
 ];
 
@@ -73,18 +77,19 @@ const Tools = () => {
               variants={itemVariants}
               className="group cursor-pointer"
             >
-              <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-lg p-6 h-full transition-all duration-300 hover:border-primary/50 hover:bg-card/60 text-center relative overflow-hidden hud-corners">
-                {/* Status indicator */}
-                <div className="flex items-center justify-center gap-1.5 mb-4">
-                  <Activity className="w-3 h-3 text-[hsl(var(--success))]" />
-                  <span className="text-[10px] text-[hsl(var(--success))] uppercase tracking-widest font-mono">{tool.status}</span>
+              <Link to={`/tools/launch?tool=${tool.toolId}`} className="block h-full">
+                <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-lg p-6 h-full transition-all duration-300 hover:border-primary/50 hover:bg-card/60 text-center relative overflow-hidden hud-corners">
+                  <div className="flex items-center justify-center gap-1.5 mb-4">
+                    <Activity className="w-3 h-3 text-[hsl(var(--success))]" />
+                    <span className="text-[10px] text-[hsl(var(--success))] uppercase tracking-widest font-mono">{tool.status}</span>
+                  </div>
+                  <div className="w-16 h-16 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5 group-hover:border-primary/50 group-hover:shadow-[0_0_25px_hsl(160_84%_39%/0.2)] transition-all duration-300 group-hover:scale-110">
+                    <tool.icon className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground mb-2 font-[Rajdhani] tracking-wide">{tool.title}</h3>
+                  <p className="text-sm text-muted-foreground">{tool.description}</p>
                 </div>
-                <div className="w-16 h-16 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5 group-hover:border-primary/50 group-hover:shadow-[0_0_25px_hsl(160_84%_39%/0.2)] transition-all duration-300 group-hover:scale-110">
-                  <tool.icon className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-base font-semibold text-foreground mb-2 font-[Rajdhani] tracking-wide">{tool.title}</h3>
-                <p className="text-sm text-muted-foreground">{tool.description}</p>
-              </div>
+              </Link>
             </motion.div>
           ))}
         </motion.div>

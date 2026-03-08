@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, BookOpen, Users, FileCode, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Community = () => {
   const ref = useRef(null);
@@ -69,8 +70,10 @@ const Community = () => {
           transition={{ delay: 0.6 }}
           className="text-center"
         >
-          <Button size="lg" className="gap-2 glow-cyan">
-            Join the Network <ArrowRight className="w-4 h-4" />
+          <Button asChild size="lg" className="gap-2 glow-cyan">
+            <Link to="/community">
+              Join the Network <ArrowRight className="w-4 h-4" />
+            </Link>
           </Button>
         </motion.div>
       </div>
