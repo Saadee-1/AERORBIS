@@ -386,6 +386,7 @@ const OrbitalVisualizer = () => {
     return (localStorage.getItem("orbitalUnitSystem") as UnitSystem) || "SI";
   });
   const [customOrbits, setCustomOrbits] = useState<SavedOrbit[]>([]);
+  const [currentTrueAnomaly, setCurrentTrueAnomaly] = useState<number>(0);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
   const [saveOrbitName, setSaveOrbitName] = useState("");
