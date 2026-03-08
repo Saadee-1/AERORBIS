@@ -23,7 +23,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2 } from "lucide-react";
+import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe } from "lucide-react";
+import { OrbitalGroundTrack } from "@/components/tools/OrbitalGroundTrack";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
