@@ -129,7 +129,7 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
                   isActive
                     ? isLight
                       ? "bg-primary/10 text-primary border border-primary/30"
-                      : "bg-primary/15 text-primary border border-primary/40 shadow-[0_0_20px_hsl(185_85%_50%/0.15)]"
+                      : "bg-primary/15 text-primary border border-primary/40 shadow-[0_0_20px_hsl(160_84%_39%/0.15)]"
                     : isLight
                       ? "text-muted-foreground hover:bg-muted hover:text-foreground"
                       : "text-muted-foreground hover:bg-primary/5 hover:text-foreground hover:border hover:border-primary/10"
