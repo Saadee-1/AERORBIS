@@ -194,7 +194,7 @@ const Hero = () => {
             initial={{ opacity: 0, scale: 0.5, filter: "blur(20px)" }}
             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-8 relative inline-flex items-center justify-center"
+            className="mb-6 sm:mb-8 relative inline-flex items-center justify-center"
           >
             {/* Clean logo (no glow/panel) */}
             <img 
