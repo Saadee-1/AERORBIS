@@ -1374,7 +1374,7 @@ const point: Record<string, unknown> = { alpha };
                 helperText="Select the airfoil section used for the wing. Each airfoil provides lift curve slope (CL_α), zero-lift coefficient (CL₀), and zero-lift drag coefficient (CD₀) used in the drag polar analysis. Select 'Custom' to define your own coefficients."
               >
                 <Select value={inputs.airfoil} onValueChange={(v) => setInputs({ ...inputs, airfoil: v as AirfoilKey })}>
-                  <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-input border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="max-h-[400px]">
