@@ -1477,7 +1477,7 @@ const point: Record<string, unknown> = { alpha };
                   label={`True Airspeed (${getUnit("speed")})`}
                   helperText="True airspeed (TAS): actual velocity relative to the air mass. Assumes steady flight (no acceleration). Used to compute dynamic pressure q = 0.5 × ρ × V², which determines lift and drag forces."
                 >
-                  <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" step="0.1" />
+                  <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} min="0.001" step="0.1" />
                 </AeroFormField>
                 <AeroFormField 
                   label={`Air Density (${getUnit("density")})`}
