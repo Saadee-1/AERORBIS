@@ -1251,6 +1251,7 @@ const OrbitalVisualizer = () => {
       eccentricity: preset.eccentricity,
       raan: preset.raan,
       argOfPeriapsis: preset.argOfPeriapsis,
+      trueAnomaly: preset.trueAnomaly,
       centralBodyRadius: preset.centralBodyRadius,
       gm: preset.gm,
       targetAltitude: preset.targetAltitude,
