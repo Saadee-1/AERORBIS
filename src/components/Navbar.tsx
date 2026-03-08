@@ -58,7 +58,7 @@ function DockItem({
         {isActive && (
           <motion.span
             layoutId="dock-active"
-            className="absolute inset-0 rounded-xl bg-primary/10 shadow-[0_0_20px_hsl(160_84%_39%/0.15)]"
+            className="absolute inset-0 rounded-lg bg-primary/10 shadow-[0_0_12px_hsl(160_84%_39%/0.12)]"
             transition={{ type: "spring", stiffness: 200, damping: 28, mass: 0.8 }}
           />
         )}
