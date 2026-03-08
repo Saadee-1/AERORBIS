@@ -1104,9 +1104,9 @@ const ThrustLoadingCalculator = () => {
                   </Select>
                 </AeroFormField>
                 {missionType !== 'None' && (
-                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                    <p className="text-sm text-gray-300">
-                      <span className="text-cyan-400 font-semibold">Typical T/W:</span> {getMissionThrustData(missionType).twMin.toFixed(2)}–{getMissionThrustData(missionType).twMax.toFixed(2)}
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="text-primary font-semibold">Typical T/W:</span> {getMissionThrustData(missionType).twMin.toFixed(2)}–{getMissionThrustData(missionType).twMax.toFixed(2)}
                     </p>
                   </div>
                 )}
