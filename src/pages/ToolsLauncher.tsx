@@ -203,6 +203,7 @@ const ToolsLauncher = () => {
               animate={{ opacity: 1, y: 0 }}
               className="mb-4 flex justify-end items-center gap-3 relative"
             >
+              <ThemeToggle />
               <Button
                 variant="outline"
                 onClick={showAllTools}
