@@ -357,6 +357,20 @@ export default function TrajectorySimulator() {
     }
   }, [toast]);
 
+  // Load a full rocket preset (multi-stage + guidance + mode)
+  const loadRocketPreset = useCallback((rocketPreset: RocketPreset) => {
+    setStages(rocketPreset.stages);
+    setMode(rocketPreset.recommendedMode);
+    setGuidance2D(rocketPreset.guidance);
+    setTimeStep(rocketPreset.timeStep);
+    setMaxTime(rocketPreset.maxTime);
+    setMaxAltitude(rocketPreset.maxAltitude * 1000); // km → m
+    toast({
+      title: `${rocketPreset.icon} ${rocketPreset.name} Loaded`,
+      description: `${rocketPreset.stages.length}-stage configuration ready. Mode set to ${rocketPreset.recommendedMode}.`,
+    });
+  }, [toast]);
+
   // Get current result for visualization
   const currentResult = useMemo(() => {
     return mode === '1D' ? result1D : mode === '2D' ? result2D : result3D;
