@@ -1543,7 +1543,7 @@ const WingLoadingCalculator = () => {
                           <>
                             <p className="text-sm text-gray-400 mb-1 mt-3">Wing Loading at Landing</p>
                             <p className="text-xs text-gray-500 mb-1">(W/S at landing weight condition)</p>
-                            <p className="text-xl font-bold text-cyan-300">
+                            <p className="text-xl font-bold text-primary">
                               {convertWingLoadingKgm2FromSI(result.landingWingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
