@@ -659,7 +659,7 @@ const ReynoldsNumberCalculator = () => {
                   </SelectContent>
                 </Select>
                 {selectedPreset && PRESETS[selectedPreset] && (
-                  <p className="text-sm text-gray-400 mt-2">
+                  <p className="text-sm text-muted-foreground mt-2">
                     {PRESETS[selectedPreset].description}
                   </p>
                 )}
