@@ -1465,7 +1465,7 @@ const point: Record<string, unknown> = { alpha };
                     step="0.0001" 
                     value={inputs.k || ''} 
                     onChange={(e) => setInputs({ ...inputs, k: e.target.value })} 
-                    className="bg-slate-700/50 border-cyan-400/30 text-white" 
+                    
                     min="0.0001" 
                     placeholder="Auto-compute from geometry"
                   />
