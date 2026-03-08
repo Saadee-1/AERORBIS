@@ -1060,10 +1060,10 @@ const OrbitalVisualizer = () => {
                     <div className="text-sm text-primary">Second Burn (Δv₂)</div>
                     <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v2)}</div>
                   </div>
-                  <div className="p-3 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Total Maneuver Δv</div>
-                    <div className="text-2xl font-bold text-cyan-400">{format("vel", maneuverResult.total_dv)}</div>
-                    <div className="text-sm text-slate-400 mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Total Maneuver Δv</div>
+                    <div className="text-2xl font-bold text-primary">{format("vel", maneuverResult.total_dv)}</div>
+                    <div className="text-sm text-muted-foreground mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
                   </div>
                 </div>
               )}
