@@ -756,7 +756,7 @@ export default function StabilityCalculator() {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-gray-400">Elevator Factor</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.nonlinear.elevator_factor != null ? extendedResults.nonlinear.elevator_factor.toFixed(3) : 'N/A'}
                         </p>
                       </div>
