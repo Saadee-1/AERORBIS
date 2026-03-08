@@ -48,7 +48,7 @@ function DockItem({
       <Link
         ref={ref}
         to={item.href}
-        className={`relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors duration-200 group ${
+        className={`relative flex flex-col items-center gap-0 px-2 py-1 rounded-lg transition-colors duration-200 group ${
           isActive
             ? "text-primary"
             : "text-muted-foreground hover:text-foreground"
