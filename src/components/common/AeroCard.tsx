@@ -50,7 +50,7 @@ export function AeroCard({
             {headerActions}
           </div>
           {description && (
-            <CardDescription className="text-gray-400">{description}</CardDescription>
+            <CardDescription className="text-muted-foreground">{description}</CardDescription>
           )}
         </CardHeader>
       )}
