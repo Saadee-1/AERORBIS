@@ -3,16 +3,17 @@
  * Enhanced lighting and composition
  */
 
-import { memo, useCallback, useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { TrajectoryData, extractEventMarkers, downsampleFrames } from '../../utils/three/threeUtils';
+import { TrajectoryData, extractEventMarkers, downsampleFrames, TrajectoryFrame } from '../../utils/three/threeUtils';
 import { VisualizerSettings } from './useVisualizerState';
 import { Planet } from '../../data/planets';
 import { EarthScene } from './EarthScene';
 import { RocketModel } from './RocketModel';
 import { TrajectoryPath } from './TrajectoryPath';
 import { Markers } from './Markers';
+import { StageSeparation } from './StageSeparation';
 import { CameraController } from './CameraController';
 import { EffectsStack } from './EffectsStack';
 import { isDevEnv } from '@/lib/env';
