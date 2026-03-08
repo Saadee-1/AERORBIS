@@ -1516,7 +1516,7 @@ const point: Record<string, unknown> = { alpha };
                 >
                   <AeroCard title="Custom Airfoil Coefficients" icon={Pencil}>
                     <AeroFormField label="Airfoil Name">
-                      <Input id="customName" type="text" value={customAirfoil.name} onChange={(e) => handleCustomAirfoilChange("name", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                      <Input id="customName" type="text" value={customAirfoil.name} onChange={(e) => handleCustomAirfoilChange("name", e.target.value)} />
                     </AeroFormField>
                     <div className="grid grid-cols-2 gap-4">
                       <AeroFormField 
