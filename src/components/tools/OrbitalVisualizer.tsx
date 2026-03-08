@@ -903,7 +903,7 @@ const OrbitalVisualizer = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30 text-white">
+              <SelectTrigger className="w-32 bg-muted/50 border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
