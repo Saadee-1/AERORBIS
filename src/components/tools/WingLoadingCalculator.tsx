@@ -1171,7 +1171,7 @@ const WingLoadingCalculator = () => {
                     step="0.01"
                     value={weightN}
                     onChange={(e) => setWeightN(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-slate-900/50 border-primary/30"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
                     min="0"
                   />
