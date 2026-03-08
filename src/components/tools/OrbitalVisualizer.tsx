@@ -1458,7 +1458,16 @@ const OrbitalVisualizer = () => {
         </AeroCard>
       )}
 
-      <ToolSection gridCols={2}>
+      {/* Advanced Orbital Analysis */}
+      {orbitResult && (
+        <OrbitalAdvancedPanel
+          semiMajorAxis={orbitResult.semiMajorAxis}
+          eccentricity={orbitResult.eccentricity}
+          inclination_deg={parseFloat(inputs.inclination)}
+          gm={parseFloat(inputs.gm)}
+        />
+      )}
+
         {/* Left Column - Inputs */}
         <div>
           <div className={spacingVertical.L}>
