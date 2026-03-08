@@ -285,25 +285,38 @@ export function OrbitalGroundTrack({
     return { terminatorPath, nightPolygon };
   }, []);
 
-  // Real-time satellite position with lat/lon
+  // Real-time satellite position with lat/lon + velocity direction
   const satelliteData = useMemo(() => {
     if (currentTrueAnomaly === undefined || !semiMajorAxis || semiMajorAxis <= 0) return null;
 
-    const nu = currentTrueAnomaly;
-    const r = semiMajorAxis * (1 - eccentricity * eccentricity) / (1 + eccentricity * Math.cos(nu));
-    const x_p = r * Math.cos(nu);
-    const y_p = r * Math.sin(nu);
-    const [x, y, z] = perifocalToECI(x_p, y_p, inclination, raan, argOfPeriapsis);
+    const computeLatLon = (nu: number) => {
+      const r = semiMajorAxis * (1 - eccentricity * eccentricity) / (1 + eccentricity * Math.cos(nu));
+      const x_p = r * Math.cos(nu);
+      const y_p = r * Math.sin(nu);
+      const [x, y, z] = perifocalToECI(x_p, y_p, inclination, raan, argOfPeriapsis);
+      const rMag = Math.sqrt(x * x + y * y + z * z);
+      const lat = Math.asin(z / rMag) * (180 / Math.PI);
+      let lon = Math.atan2(y, x) * (180 / Math.PI);
+      lon = ((lon + 540) % 360) - 180;
+      return { lat, lon, rMag };
+    };
 
-    const rMag = Math.sqrt(x * x + y * y + z * z);
-    const lat = Math.asin(z / rMag) * (180 / Math.PI);
-    let lon = Math.atan2(y, x) * (180 / Math.PI);
-    lon = ((lon + 540) % 360) - 180;
+    const current = computeLatLon(currentTrueAnomaly);
+    // Small step ahead for velocity vector direction
+    const ahead = computeLatLon(currentTrueAnomaly + 0.02);
 
-    const altitude = rMag - 6371; // km above Earth surface
-    const svgPos = toSVG(lat, lon);
+    const svgPos = toSVG(current.lat, current.lon);
+    const svgAhead = toSVG(ahead.lat, ahead.lon);
 
-    return { lat, lon, altitude, svgPos };
+    // Velocity direction in SVG space (normalized)
+    let dx = svgAhead[0] - svgPos[0];
+    let dy = svgAhead[1] - svgPos[1];
+    // Handle antimeridian wrap
+    if (Math.abs(dx) > W / 2) dx = dx > 0 ? dx - W : dx + W;
+    const mag = Math.sqrt(dx * dx + dy * dy);
+    const velDir = mag > 0.01 ? { dx: dx / mag, dy: dy / mag } : { dx: 1, dy: 0 };
+
+    return { lat: current.lat, lon: current.lon, altitude: current.rMag - 6371, svgPos, velDir };
   }, [currentTrueAnomaly, semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis]);
 
   if (tracks.length === 0) {
@@ -520,6 +533,27 @@ export function OrbitalGroundTrack({
             <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="6" fill="hsl(var(--destructive))" opacity="0.15" />
             {/* Main dot */}
             <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="3.5" fill="hsl(var(--destructive))" stroke="hsl(var(--background))" strokeWidth="1" />
+            {/* Velocity vector arrow */}
+            {(() => {
+              const arrowLen = 22;
+              const sx = satelliteData.svgPos[0];
+              const sy = satelliteData.svgPos[1];
+              const ex = sx + satelliteData.velDir.dx * arrowLen;
+              const ey = sy + satelliteData.velDir.dy * arrowLen;
+              // Arrowhead
+              const headLen = 5;
+              const angle = Math.atan2(satelliteData.velDir.dy, satelliteData.velDir.dx);
+              const h1x = ex - headLen * Math.cos(angle - 0.45);
+              const h1y = ey - headLen * Math.sin(angle - 0.45);
+              const h2x = ex - headLen * Math.cos(angle + 0.45);
+              const h2y = ey - headLen * Math.sin(angle + 0.45);
+              return (
+                <g>
+                  <line x1={sx} y1={sy} x2={ex} y2={ey} stroke="hsl(var(--destructive))" strokeWidth="1.5" opacity="0.8" />
+                  <polygon points={`${ex},${ey} ${h1x},${h1y} ${h2x},${h2y}`} fill="hsl(var(--destructive))" opacity="0.8" />
+                </g>
+              );
+            })()}
             {/* Label */}
             <text x={satelliteData.svgPos[0] + 10} y={satelliteData.svgPos[1] - 6} fill="hsl(var(--destructive))" fontSize="8" fontWeight="700">
               SAT
