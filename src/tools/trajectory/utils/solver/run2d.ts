@@ -98,8 +98,21 @@ function getPitchAngle(
     }
     return (guidance.pitchTable[guidance.pitchTable.length - 1].pitch) * Math.PI / 180;
   } else if (guidance.type === 'gravity_turn') {
-    // Gravity turn: pitch follows flight path angle
-    return flightPathAngle;
+    // Gravity turn: vertical until kick altitude, then small perturbation, then follow flight path
+    const kickAltitude = 500; // meters - pitch kick altitude
+    const kickAngleDeg = 1.5; // degrees - small perturbation to initiate turn
+    const kickAngleRad = (kickAngleDeg * Math.PI) / 180;
+    
+    if (altitude < kickAltitude) {
+      // Vertical ascent phase
+      return Math.PI / 2;
+    } else if (altitude < kickAltitude + 200) {
+      // Pitch kick phase - apply small perturbation
+      return Math.PI / 2 - kickAngleRad;
+    } else {
+      // Gravity turn phase - pitch follows flight path angle
+      return flightPathAngle;
+    }
   } else if (guidance.type === 'constant_pitch_rate' && guidance.initialPitch && guidance.pitchRate) {
     // Constant pitch rate
     const initialPitchRad = (guidance.initialPitch * Math.PI) / 180;
