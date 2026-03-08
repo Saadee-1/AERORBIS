@@ -934,7 +934,7 @@ const OrbitalVisualizer = () => {
       />
 
       {error && (
-        <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-300 mb-4">
+        <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
