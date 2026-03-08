@@ -1091,7 +1091,7 @@ const WingLoadingCalculator = () => {
             >
               <AeroFormField label="Aircraft Preset">
                 <Select value={aircraftPreset} onValueChange={(v) => handleAircraftPresetChange(v as AircraftPreset)}>
-                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                  <SelectTrigger className="w-full bg-slate-900/50 border-primary/30 text-primary">
                     <SelectValue placeholder="Select aircraft preset (optional)" />
                   </SelectTrigger>
                   <SelectContent>
