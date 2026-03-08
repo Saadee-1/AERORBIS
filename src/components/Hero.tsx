@@ -212,7 +212,7 @@ const Hero = () => {
             className="mb-3 sm:mb-4 relative"
           >
             <motion.h1
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground font-[Orbitron] tracking-tight leading-none"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground font-[Orbitron] tracking-tight leading-none"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
