@@ -151,6 +151,25 @@ export function OrbitalGroundTrack({
     return segments;
   }, [tracks]);
 
+  // Compute real-time satellite position on ground track from current true anomaly
+  const satelliteSVG = useMemo(() => {
+    if (currentTrueAnomaly === undefined || !semiMajorAxis || semiMajorAxis <= 0) return null;
+
+    const nu = currentTrueAnomaly;
+    const r = semiMajorAxis * (1 - eccentricity * eccentricity) / (1 + eccentricity * Math.cos(nu));
+    const x_p = r * Math.cos(nu);
+    const y_p = r * Math.sin(nu);
+    const [x, y, z] = perifocalToECI(x_p, y_p, inclination, raan, argOfPeriapsis);
+
+    const rMag = Math.sqrt(x * x + y * y + z * z);
+    const lat = Math.asin(z / rMag) * (180 / Math.PI);
+    // Note: For real-time dot we skip Earth rotation (t=0 snapshot) to match the static ground track
+    let lon = Math.atan2(y, x) * (180 / Math.PI);
+    lon = ((lon + 540) % 360) - 180;
+
+    return toSVG(lat, lon);
+  }, [currentTrueAnomaly, semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis]);
+
   if (tracks.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground text-sm">
