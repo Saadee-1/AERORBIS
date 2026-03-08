@@ -896,7 +896,35 @@ export function OrbitalGroundTrack({
           );
         })}
 
-        {/* Orbit legend */}
+        {/* Constellation overlay tracks */}
+        {showConstellation && constellationData.paths.map((p, i) => (
+          <path key={`const-path-${i}`} d={p.d} fill="none" stroke={p.color} strokeWidth="0.8" opacity="0.4" />
+        ))}
+        {/* Constellation satellite markers */}
+        {showConstellation && constellationData.satellites.map((sat, i) => {
+          const [sx, sy] = toSVG(sat.lat, sat.lon);
+          return (
+            <g key={`const-sat-${i}`}>
+              <circle cx={sx} cy={sy} r="2.5" fill={sat.color} opacity="0.85" stroke="hsl(220 60% 8%)" strokeWidth="0.4" />
+              <circle cx={sx} cy={sy} r="2.5" fill="none" stroke={sat.color} strokeWidth="0.5" opacity="0.5">
+                <animate attributeName="r" values="2.5;5;2.5" dur="2.5s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.5;0;0.5" dur="2.5s" repeatCount="indefinite" />
+              </circle>
+            </g>
+          );
+        })}
+
+        {/* Constellation legend */}
+        {showConstellation && (
+          <g>
+            <rect x={W - 130} y={H - 28} width={122} height={20} rx="3" fill="hsl(220 60% 8%)" fillOpacity="0.85" stroke="hsl(var(--border))" strokeWidth="0.5" />
+            <Satellite className="w-3 h-3" />
+            <text x={W - 120} y={H - 14} fill="hsl(var(--foreground))" fontSize="7.5" fontWeight="600" opacity="0.8">
+              ⚡ {showConstellation} ({constellationData.satellites.length} sats)
+            </text>
+          </g>
+        )}
+
         {numOrbits > 1 && (
           <g>
             {Array.from({ length: numOrbits }, (_, i) => {
