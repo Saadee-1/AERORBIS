@@ -1259,6 +1259,7 @@ const OrbitalVisualizer = () => {
         </DialogContent>
       </Dialog>
     </ToolWrapper>
+    </>
   );
 };
 

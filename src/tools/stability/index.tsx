@@ -514,7 +514,7 @@ export default function StabilityCalculator() {
       </ToolSection>
 
       <ToolActions>
-          <AeroButton onClick={handleUserCalculate} icon={Calculator}>
+          <AeroButton onClick={() => runCalculation(handleUserCalculate)} icon={Calculator}>
           Calculate Stability
         </AeroButton>
           {results && lastPayload && (
