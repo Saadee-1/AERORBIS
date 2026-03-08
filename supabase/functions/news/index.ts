@@ -4,7 +4,7 @@ import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Input validation schema
@@ -109,17 +109,7 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate user
-    const auth = await authenticateUser(req);
-    if (!auth) {
-      console.log('Unauthorized access attempt to news');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Authenticated user:', auth.user.id);
+    // News is a public endpoint - no auth required
 
     const url = new URL(req.url);
     const filterParam = url.searchParams.get('filter') || 'all';
