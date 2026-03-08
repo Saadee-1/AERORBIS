@@ -7,7 +7,7 @@
  */
 
 import { useMemo, useState, useRef, useCallback } from 'react';
-import { Download, Radio } from 'lucide-react';
+import { Download, Radio, Satellite } from 'lucide-react';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
@@ -16,6 +16,23 @@ interface LaunchSiteOrbit {
   raan: string;
   argOfPeriapsis: string;
   trueAnomaly: string;
+}
+
+interface ConstellationSatellite {
+  raan: number; // rad
+  argOfPeriapsis: number; // rad
+  trueAnomaly: number; // rad - phase offset
+  label?: string;
+}
+
+interface ConstellationPreset {
+  name: string;
+  description: string;
+  semiMajorAxis: number; // km
+  eccentricity: number;
+  inclination: number; // rad
+  gm: number;
+  satellites: ConstellationSatellite[];
 }
 
 interface GroundTrackProps {
@@ -211,6 +228,61 @@ const CONTINENT_PATHS = [
   'M50,340 L150,345 L250,342 L350,345 L450,342 L550,345 L650,340 L680,350 L680,360 L0,360 L0,350 Z',
 ];
 
+// Constellation presets
+const GM_EARTH = 398600.4418;
+const CONSTELLATION_PRESETS: ConstellationPreset[] = [
+  {
+    name: 'Starlink Shell-1',
+    description: '72 planes × 22 sats, 550km, 53°',
+    semiMajorAxis: 6371 + 550,
+    eccentricity: 0.0001,
+    inclination: 53 * Math.PI / 180,
+    gm: GM_EARTH,
+    satellites: Array.from({ length: 18 }, (_, i) => ({
+      raan: (i * 20) * Math.PI / 180,
+      argOfPeriapsis: 0,
+      trueAnomaly: (i * 50) * Math.PI / 180,
+      label: `SL-${i + 1}`,
+    })),
+  },
+  {
+    name: 'GPS',
+    description: '6 planes × 4 sats, 20200km, 55°',
+    semiMajorAxis: 6371 + 20200,
+    eccentricity: 0.01,
+    inclination: 55 * Math.PI / 180,
+    gm: GM_EARTH,
+    satellites: Array.from({ length: 24 }, (_, i) => {
+      const plane = Math.floor(i / 4);
+      const slot = i % 4;
+      return {
+        raan: (plane * 60) * Math.PI / 180,
+        argOfPeriapsis: 0,
+        trueAnomaly: (slot * 90 + plane * 15) * Math.PI / 180,
+        label: `G${plane + 1}-${slot + 1}`,
+      };
+    }),
+  },
+  {
+    name: 'Iridium NEXT',
+    description: '6 planes × 11 sats, 780km, 86.4°',
+    semiMajorAxis: 6371 + 780,
+    eccentricity: 0.0002,
+    inclination: 86.4 * Math.PI / 180,
+    gm: GM_EARTH,
+    satellites: Array.from({ length: 12 }, (_, i) => {
+      const plane = Math.floor(i / 2);
+      const slot = i % 2;
+      return {
+        raan: (plane * 31.6) * Math.PI / 180,
+        argOfPeriapsis: 0,
+        trueAnomaly: (slot * 180 + plane * 20) * Math.PI / 180,
+        label: `IR-${i + 1}`,
+      };
+    }),
+  },
+];
+
 export function OrbitalGroundTrack({
   semiMajorAxis,
   eccentricity,
@@ -224,6 +296,7 @@ export function OrbitalGroundTrack({
 }: GroundTrackProps) {
   const [showCoords, setShowCoords] = useState(true);
   const [showStations, setShowStations] = useState(true);
+  const [showConstellation, setShowConstellation] = useState<string | null>(null);
   const [hoveredSite, setHoveredSite] = useState<typeof LAUNCH_SITES[number] | null>(null);
   const [hoveredStation, setHoveredStation] = useState<typeof GROUND_STATIONS[number] | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -340,6 +413,68 @@ export function OrbitalGroundTrack({
     if (currentPath) result.push({ d: currentPath, orbitIdx: currentOrbit });
     return result;
   }, [tracks]);
+
+  // Constellation satellite tracks computation
+  const constellationData = useMemo(() => {
+    if (!showConstellation) return { paths: [], satellites: [] };
+    const preset = CONSTELLATION_PRESETS.find(c => c.name === showConstellation);
+    if (!preset) return { paths: [], satellites: [] };
+
+    const n = Math.sqrt(preset.gm / Math.pow(preset.semiMajorAxis, 3));
+    const period = (2 * Math.PI) / n;
+    const stepsPerSat = 120;
+    const dt = period / stepsPerSat;
+    const CONST_COLORS = [
+      'hsl(190 80% 55%)', 'hsl(160 70% 50%)', 'hsl(220 80% 60%)',
+      'hsl(50 80% 55%)', 'hsl(290 60% 55%)', 'hsl(340 70% 55%)',
+    ];
+
+    const paths: Array<{ d: string; color: string }> = [];
+    const satellites: Array<{ lat: number; lon: number; label: string; color: string }> = [];
+
+    preset.satellites.forEach((sat, si) => {
+      const planeIdx = Math.floor(si / Math.max(1, Math.ceil(preset.satellites.length / 6)));
+      const color = CONST_COLORS[planeIdx % CONST_COLORS.length];
+      let pathStr = '';
+      let prevLon = 0;
+
+      for (let s = 0; s <= stepsPerSat; s++) {
+        const t = s * dt;
+        const M = ((n * t) + sat.trueAnomaly) % (2 * Math.PI);
+        const E = solveKepler(M, preset.eccentricity);
+        const nu = 2 * Math.atan2(
+          Math.sqrt((1 + preset.eccentricity) / (1 - preset.eccentricity)) * Math.sin(E / 2),
+          Math.cos(E / 2)
+        );
+        const r = preset.semiMajorAxis * (1 - preset.eccentricity * Math.cos(E));
+        const x_p = r * Math.cos(nu);
+        const y_p = r * Math.sin(nu);
+        const [x, y, z] = perifocalToECI(x_p, y_p, preset.inclination, sat.raan, sat.argOfPeriapsis);
+        const rMag = Math.sqrt(x * x + y * y + z * z);
+        const lat = Math.asin(z / rMag) * (180 / Math.PI);
+        const theta_g = EARTH_OMEGA * t;
+        let lon = (Math.atan2(y, x) - theta_g) * (180 / Math.PI);
+        lon = ((lon + 540) % 360) - 180;
+
+        const [sx, sy] = toSVG(lat, lon);
+        if (s === 0) {
+          pathStr = `M${sx.toFixed(1)},${sy.toFixed(1)}`;
+          satellites.push({ lat, lon, label: sat.label || `S${si + 1}`, color });
+        } else {
+          if (Math.abs(lon - prevLon) > 180) {
+            paths.push({ d: pathStr, color });
+            pathStr = `M${sx.toFixed(1)},${sy.toFixed(1)}`;
+          } else {
+            pathStr += ` L${sx.toFixed(1)},${sy.toFixed(1)}`;
+          }
+        }
+        prevLon = lon;
+      }
+      if (pathStr) paths.push({ d: pathStr, color });
+    });
+
+    return { paths, satellites };
+  }, [showConstellation]);
 
   // Day/night terminator
   const { terminatorPath, nightPolygon } = useMemo(() => {
@@ -477,8 +612,45 @@ export function OrbitalGroundTrack({
 
   return (
     <div className="relative w-full">
-      {/* Export + Station toggle buttons */}
-      <div className="absolute top-2 right-2 z-10 flex gap-1.5">
+      {/* Export + Station + Constellation toggle buttons */}
+      <div className="absolute top-2 right-2 z-10 flex gap-1.5 flex-wrap justify-end">
+        {/* Constellation dropdown */}
+        <div className="relative group">
+          <button
+            className={`flex items-center gap-1 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-[10px] transition-colors shadow-sm ${
+              showConstellation
+                ? 'bg-accent/20 text-accent-foreground border-accent/30'
+                : 'bg-background/80 text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+            title="Constellation overlay"
+          >
+            <Satellite className="w-3 h-3" /> {showConstellation || 'Constellations'}
+          </button>
+          <div className="absolute right-0 top-full mt-1 hidden group-hover:block bg-background/95 backdrop-blur-sm border border-border rounded-md shadow-xl p-1 min-w-[140px]">
+            {showConstellation && (
+              <button
+                onClick={() => setShowConstellation(null)}
+                className="w-full text-left px-2 py-1 text-[10px] text-destructive hover:bg-muted/50 rounded"
+              >
+                ✕ Clear
+              </button>
+            )}
+            {CONSTELLATION_PRESETS.map(c => (
+              <button
+                key={c.name}
+                onClick={() => setShowConstellation(showConstellation === c.name ? null : c.name)}
+                className={`w-full text-left px-2 py-1 text-[10px] rounded transition-colors ${
+                  showConstellation === c.name
+                    ? 'bg-primary/20 text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <div className="font-semibold">{c.name}</div>
+                <div className="text-[8px] opacity-70">{c.description}</div>
+              </button>
+            ))}
+          </div>
+        </div>
         <button
           onClick={() => setShowStations(s => !s)}
           className={`flex items-center gap-1 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-[10px] transition-colors shadow-sm ${
@@ -724,7 +896,35 @@ export function OrbitalGroundTrack({
           );
         })}
 
-        {/* Orbit legend */}
+        {/* Constellation overlay tracks */}
+        {showConstellation && constellationData.paths.map((p, i) => (
+          <path key={`const-path-${i}`} d={p.d} fill="none" stroke={p.color} strokeWidth="0.8" opacity="0.4" />
+        ))}
+        {/* Constellation satellite markers */}
+        {showConstellation && constellationData.satellites.map((sat, i) => {
+          const [sx, sy] = toSVG(sat.lat, sat.lon);
+          return (
+            <g key={`const-sat-${i}`}>
+              <circle cx={sx} cy={sy} r="2.5" fill={sat.color} opacity="0.85" stroke="hsl(220 60% 8%)" strokeWidth="0.4" />
+              <circle cx={sx} cy={sy} r="2.5" fill="none" stroke={sat.color} strokeWidth="0.5" opacity="0.5">
+                <animate attributeName="r" values="2.5;5;2.5" dur="2.5s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.5;0;0.5" dur="2.5s" repeatCount="indefinite" />
+              </circle>
+            </g>
+          );
+        })}
+
+        {/* Constellation legend */}
+        {showConstellation && (
+          <g>
+            <rect x={W - 130} y={H - 28} width={122} height={20} rx="3" fill="hsl(220 60% 8%)" fillOpacity="0.85" stroke="hsl(var(--border))" strokeWidth="0.5" />
+            <Satellite className="w-3 h-3" />
+            <text x={W - 120} y={H - 14} fill="hsl(var(--foreground))" fontSize="7.5" fontWeight="600" opacity="0.8">
+              ⚡ {showConstellation} ({constellationData.satellites.length} sats)
+            </text>
+          </g>
+        )}
+
         {numOrbits > 1 && (
           <g>
             {Array.from({ length: numOrbits }, (_, i) => {
