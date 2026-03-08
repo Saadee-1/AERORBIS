@@ -510,7 +510,7 @@ export default function StructuralWeightEstimator() {
                     {results.iteration.history.map((h, i) => (
                       <div key={i} className="p-2 bg-slate-700/30 rounded text-sm">
                         <span className="text-gray-400">Iteration {h.iteration}:</span>{' '}
-                        <span className="text-cyan-400">W_TO = {(h.W_to / 9.81).toFixed(1)} kg</span>
+                        <span className="text-primary">W_TO = {(h.W_to / 9.81).toFixed(1)} kg</span>
                         {' '}(error: {(h.error * 100).toFixed(4)}%)
                       </div>
                     ))}
