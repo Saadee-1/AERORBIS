@@ -893,6 +893,8 @@ const OrbitalVisualizer = () => {
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Orbital Parameters" />
     <ToolWrapper>
       <ToolHeader
         title="Advanced Orbital Visualizer"
