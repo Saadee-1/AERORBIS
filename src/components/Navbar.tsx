@@ -114,7 +114,7 @@ const Navbar = () => {
       />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[72px]">
+        <div className="flex items-center justify-between h-12">
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
             <img
