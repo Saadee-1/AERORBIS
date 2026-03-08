@@ -989,14 +989,14 @@ const ReynoldsNumberCalculator = () => {
               customPresets.map((preset, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border hover:border-primary/40 transition-colors"
                 >
                   <div className="flex-1">
-                    <p className="text-white font-semibold">{preset.name}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-foreground font-semibold">{preset.name}</p>
+                    <p className="text-xs text-muted-foreground">
                       ρ: {preset.inputs.density} | V: {preset.inputs.velocity} | L: {preset.inputs.length} | μ: {preset.inputs.viscosity}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground/70">
                       Unit System: {preset.unitSystem} | Saved: {new Date(preset.timestamp).toLocaleDateString()}
                     </p>
                   </div>
