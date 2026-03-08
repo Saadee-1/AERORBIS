@@ -73,16 +73,25 @@ const FloatingIcon = ({ Icon, x, y, delay }: { Icon: any; x: string; y: string; 
 
 const Hero = () => {
   const [rocketLaunched, setRocketLaunched] = useState(false);
+  const [zapLaunched, setZapLaunched] = useState(false);
   const navigate = useNavigate();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleLaunchTools = () => {
     if (rocketLaunched) return;
     setRocketLaunched(true);
-    // Navigate after animation
     setTimeout(() => {
       navigate("/tools");
       setRocketLaunched(false);
+    }, 900);
+  };
+
+  const handleExploreModules = () => {
+    if (zapLaunched) return;
+    setZapLaunched(true);
+    setTimeout(() => {
+      navigate("/learn");
+      setZapLaunched(false);
     }, 900);
   };
 
