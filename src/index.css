@@ -266,7 +266,7 @@
   .text-hud {
     font-family: 'Rajdhani', sans-serif;
     @apply text-sm font-medium uppercase tracking-[0.2em];
-    color: hsl(185 85% 50%);
+    color: hsl(160 84% 39%);
   }
 
   .body-text {
