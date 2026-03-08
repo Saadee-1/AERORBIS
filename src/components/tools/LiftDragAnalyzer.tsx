@@ -1999,7 +1999,7 @@ const point: Record<string, unknown> = { alpha };
                 }}
                 disabled={comparedAirfoilIds.length >= MAX_COMPARED_AIRFOILS}
               >
-                <SelectTrigger className="w-48 bg-slate-700/50 border-cyan-400/30 text-white">
+                <SelectTrigger className="w-48 bg-muted/50 border-primary/30 text-foreground">
                   <Plus className="w-4 h-4 mr-2" />
                   <span>Add airfoil</span>
                 </SelectTrigger>
