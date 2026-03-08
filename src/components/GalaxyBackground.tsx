@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParallax } from '@/hooks/useParallax';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Star {
   id: number;
