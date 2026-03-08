@@ -1030,7 +1030,7 @@ const WingLoadingCalculator = () => {
                     </SelectContent>
                   </Select>
                 </AeroFormField>
-                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
+                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-primary/20">
                   <p className="text-xs text-gray-300">
                     {calculatorMode === 'Beginner' && 'Simplified interface with essential features only.'}
                     {calculatorMode === 'University' && 'Standard features with full functionality.'}
