@@ -165,12 +165,14 @@ const Hero = () => {
                 transition={{ duration: 2, repeat: Infinity, delay: deg / 360 }}
               />
             ))}
-            {/* Logo */}
-            <img 
-              src={aerorbisLogo} 
-              alt="AERORBIS" 
-              className="w-24 h-24 md:w-32 md:h-32 relative z-10 drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)] dark:mix-blend-screen"
-            />
+            {/* Logo with glassmorphic panel */}
+            <div className="relative z-10 w-28 h-28 md:w-36 md:h-36 rounded-2xl bg-card/40 backdrop-blur-xl border border-primary/20 flex items-center justify-center shadow-[0_0_30px_hsl(var(--primary)/0.15)]">
+              <img 
+                src={aerorbisLogo} 
+                alt="AERORBIS" 
+                className="w-20 h-20 md:w-26 md:h-26 drop-shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
+              />
+            </div>
           </motion.div>
 
           {/* Main title with glitch effect */}
