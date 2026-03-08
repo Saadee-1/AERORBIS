@@ -66,10 +66,10 @@ const Research = () => {
               transition={{ duration: 0.5, type: "spring" }}
               className="inline-block mb-6"
             >
-              <Microscope className="w-20 h-20 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+              <Microscope className="w-20 h-20 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
             </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
               Aerospace Research & Innovation Hub
             </h1>
             
