@@ -90,12 +90,12 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
       line-height: 1.6;
     }
     .header {
-      border-bottom: 3px solid #22d3ee;
+      border-bottom: 3px solid #10b981;
       padding-bottom: 20px;
       margin-bottom: 30px;
     }
     h1 { 
-      color: #22d3ee; 
+      color: #10b981; 
       font-size: 2.5em;
       margin-bottom: 10px;
     }
