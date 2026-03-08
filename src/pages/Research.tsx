@@ -146,7 +146,7 @@ const Research = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   whileHover={{ scale: 1.03, y: -5 }}
                 >
-                  <Card className="h-full bg-slate-800/50 backdrop-blur-lg border-cyan-400/20 rounded-2xl overflow-hidden hover:border-cyan-400/60 hover:shadow-[0_0_40px_rgba(34,211,238,0.3)] transition-all duration-300">
+                  <Card className="h-full bg-card/50 backdrop-blur-lg border-primary/20 rounded-2xl overflow-hidden hover:border-primary/60 hover:shadow-[0_0_40px_hsl(160_84%_39%/0.3)] transition-all duration-300">
                     <CardContent className="p-0">
                       {article.image_url && (
                         <div className="relative h-48 overflow-hidden">
