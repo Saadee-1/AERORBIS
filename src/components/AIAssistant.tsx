@@ -494,22 +494,22 @@ const AIAssistant: React.FC = () => {
                     )}
                   >
                     {message.role === 'assistant' && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20 
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
                                     flex items-center justify-center flex-shrink-0 mt-1">
-                        <AstronautIcon className="w-5 h-5 text-cyan-400" />
+                        <AstronautIcon className="w-5 h-5 text-emerald-500" />
                       </div>
                     )}
                     <div
                       className={cn(
                         'max-w-[75%] p-3 rounded-2xl',
                         message.role === 'user'
-                          ? 'bg-gradient-to-r from-cyan-400/20 to-blue-400/20 border border-cyan-400/30 text-gray-200'
-                          : 'bg-slate-800/60 backdrop-blur-sm border border-cyan-400/20 text-gray-300'
+                          ? 'bg-gradient-to-r from-emerald-500/20 to-teal-400/20 border border-emerald-500/30 text-gray-200'
+                          : 'bg-slate-800/60 backdrop-blur-sm border border-emerald-500/20 text-gray-300'
                       )}
                     >
                       <p className="text-sm whitespace-pre-wrap leading-relaxed">{displayContent}</p>
                       {isLastAssistant && isTyping && (
-                        <span className="inline-block w-1 h-4 ml-1 bg-cyan-400 animate-pulse" />
+                        <span className="inline-block w-1 h-4 ml-1 bg-emerald-500 animate-pulse" />
                       )}
                     </div>
                     {message.role === 'user' && (
