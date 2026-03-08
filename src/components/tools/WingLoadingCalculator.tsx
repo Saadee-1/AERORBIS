@@ -1480,7 +1480,7 @@ const WingLoadingCalculator = () => {
                   icon={CheckCircle}
                 >
                   <div className="space-y-4">
-                    <div className="p-4 bg-gradient-to-r from-primary/10 to-blue-400/10 rounded-lg border border-primary/30">
+                    <div className="p-4 bg-gradient-to-r from-primary/10 to-emerald-400/10 rounded-lg border border-primary/30">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading (Weight)</p>
                       <p className="text-xs text-gray-500 mb-1">(W/S in N/m², weight per unit area)</p>
                       <p className="text-3xl font-bold text-primary">
