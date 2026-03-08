@@ -528,15 +528,15 @@ const AIAssistant: React.FC = () => {
                   animate={{ opacity: 1 }}
                   className="flex justify-start gap-3"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20 
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
                                 flex items-center justify-center flex-shrink-0">
-                    <AstronautIcon className="w-5 h-5 text-cyan-400" />
+                    <AstronautIcon className="w-5 h-5 text-emerald-500" />
                   </div>
-                  <div className="bg-slate-800/60 backdrop-blur-sm border border-cyan-400/20 p-4 rounded-2xl">
+                  <div className="bg-slate-800/60 backdrop-blur-sm border border-emerald-500/20 p-4 rounded-2xl">
                     <div className="flex gap-1.5">
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   </div>
                 </motion.div>
