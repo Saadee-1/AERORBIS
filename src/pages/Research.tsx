@@ -183,7 +183,7 @@ const Research = () => {
                             href={article.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-400 hover:text-cyan-300 text-sm font-semibold transition-colors duration-200"
+                            className="text-primary hover:text-primary/80 text-sm font-semibold transition-colors duration-200"
                           >
                             Read full article →
                           </a>
