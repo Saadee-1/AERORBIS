@@ -48,9 +48,9 @@ export default function SpaceNewsFeed() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }}
         >
-          <Card className="bg-neutral-900 border-neutral-700 hover:border-blue-500 transition">
+          <Card className="bg-card border-border hover:border-primary transition">
             <CardContent className="p-4">
-              <p className="text-xs text-blue-400 mb-2">{news.agency}</p>
+              <p className="text-xs text-primary mb-2">{news.agency}</p>
               <a
                 href={news.link}
                 target="_blank"

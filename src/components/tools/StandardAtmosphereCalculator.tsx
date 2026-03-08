@@ -656,10 +656,10 @@ export default function StandardAtmosphereCalculator() {
                   </div>
 
                   {/* Gravity */}
-                  <div className="p-4 bg-gradient-to-br from-cyan-400/10 to-teal-400/10 rounded-lg border border-cyan-400/20">
+                  <div className="p-4 bg-gradient-to-br from-primary/10 to-teal-400/10 rounded-lg border border-primary/20">
                     <p className="text-xs text-gray-400 mb-1">Local Gravity</p>
                     <p className="text-xs text-gray-500 mb-1">(g, acceleration due to gravity)</p>
-                    <p className="text-cyan-400 font-bold text-xl">
+                    <p className="text-primary font-bold text-xl">
                       {unitSystem === "Imperial"
                         ? `${(result.gravity / 0.3048).toFixed(4)} ft/s²`
                         : `${result.gravity.toFixed(4)} m/s²`}

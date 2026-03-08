@@ -117,9 +117,9 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
       {/* Performance Metrics */}
       <AeroCard title="Performance Metrics">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-lg border border-cyan-400/20">
+          <div className="p-4 bg-gradient-to-br from-primary/10 to-emerald-400/10 rounded-lg border border-primary/20">
             <p className="text-xs text-gray-400 mb-1">Exit Velocity (Ve)</p>
-            <p className="text-cyan-400 font-bold text-xl">
+            <p className="text-primary font-bold text-xl">
               {results.Ve.toFixed(1)} m/s
             </p>
             <p className="text-xs text-gray-500 mt-1">

@@ -102,7 +102,7 @@ export function MissionFuelPanel({ profile, onProfileChange }: MissionFuelPanelP
             {profile.phases.map((phase, i) => (
               <div key={i} className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
                 <span className="text-sm text-gray-300">{phase.name}</span>
-                <span className="text-sm text-cyan-400">
+                <span className="text-sm text-primary">
                   {(1 - phase.weightFraction) * 100}% fuel used
                 </span>
               </div>

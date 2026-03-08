@@ -90,9 +90,9 @@ const MaterialDetailsDrawer = ({
           </div>
 
           {/* Comparison Info */}
-          <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
-            <p className="text-sm text-gray-300">
-              <span className="text-cyan-400 font-semibold">Note:</span> Density values are stored
+          <div className="p-4 bg-gradient-to-r from-primary/10 to-emerald-400/10 rounded-lg border border-primary/30">
+            <p className="text-sm text-muted-foreground">
+              <span className="text-primary font-semibold">Note:</span> Density values are stored
               internally in SI units (kg/m³). All conversions are calculated dynamically.
             </p>
           </div>

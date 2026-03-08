@@ -32,7 +32,7 @@ export function ResultsPanel({ result }: ResultsPanelProps) {
         <AeroCard>
           <div className="p-4">
             <div className="flex items-center mb-2">
-              <Battery className="w-5 h-5 text-cyan-400 mr-2" />
+              <Battery className="w-5 h-5 text-primary mr-2" />
               <span className="text-xs text-gray-400">Endurance</span>
             </div>
             <div className="text-2xl font-bold text-white">

@@ -226,9 +226,9 @@ const ContactPage = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">
               Global Community, Local Impact
             </h2>
-            <div className="relative h-96 bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl flex items-center justify-center overflow-hidden">
+            <div className="relative h-96 bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl flex items-center justify-center overflow-hidden">
               <div className="relative z-10 text-center">
-                <MapPin className="w-24 h-24 mx-auto mb-4 text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+                <MapPin className="w-24 h-24 mx-auto mb-4 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
                 <p className="text-xl text-gray-300 max-w-md mx-auto">
                   Connecting aerospace enthusiasts from every corner of the globe
                 </p>

@@ -76,7 +76,7 @@ const AudioToggle = () => {
           <div className="space-y-1">
             <p className="text-xs text-foreground/60">Active Track</p>
             <Select value={track.id} onValueChange={(value) => setTrack(value)}>
-              <SelectTrigger className="bg-slate-900/60 border-cyan-400/20 text-foreground">
+              <SelectTrigger className="bg-background/60 border-primary/20 text-foreground">
                 <SelectValue placeholder="Select track" />
               </SelectTrigger>
               <SelectContent>

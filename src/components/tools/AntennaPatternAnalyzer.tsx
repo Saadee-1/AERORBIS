@@ -1455,7 +1455,7 @@ const AntennaPatternAnalyzer = () => {
             </Button>
             <Button
               onClick={handleSaveCustomPreset}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold"
             >
               <Save className="w-4 h-4 mr-2" />
               Save

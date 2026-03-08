@@ -89,7 +89,7 @@ export function StabilityCriteriaPanel({
         </div>
 
         {/* Overall Rating */}
-        <div className="p-4 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-lg border border-cyan-400/20">
+        <div className="p-4 bg-gradient-to-br from-primary/10 to-emerald-400/10 rounded-lg border border-primary/20">
           <div className="flex items-center gap-2 mb-2">
             {getLevelIcon(criteria.overall_level)}
             <p className={`text-lg font-bold ${getLevelColor(criteria.overall_level)}`}>

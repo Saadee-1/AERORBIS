@@ -48,7 +48,7 @@ const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({ audioLevel, dur
       })}
       </div>
       <div className="text-center">
-        <span className="text-sm font-mono text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+        <span className="text-sm font-mono text-primary drop-shadow-[0_0_10px_hsl(160_84%_39%/0.8)]">
           {formatDuration(duration)}
         </span>
       </div>
