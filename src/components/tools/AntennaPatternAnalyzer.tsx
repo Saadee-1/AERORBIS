@@ -1220,12 +1220,12 @@ const AntennaPatternAnalyzer = () => {
 
                     {/* Notes */}
                     {result.metadata.notes && result.metadata.notes.length > 0 && (
-                      <div className="p-3 bg-cyan-400/10 rounded-lg border border-cyan-400/20">
-                        <p className="text-cyan-400 font-semibold text-sm mb-2">Formulas & Notes</p>
+                      <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                        <p className="text-primary font-semibold text-sm mb-2">Formulas & Notes</p>
                         <ul className="space-y-1 text-xs text-gray-300">
                           {result.metadata.notes.map((note, i) => (
                             <li key={i} className="flex items-start gap-2">
-                              <span className="text-cyan-400 mt-1">•</span>
+                              <span className="text-primary mt-1">•</span>
                               <span>{note}</span>
                             </li>
                           ))}
