@@ -1034,7 +1034,7 @@ const AntennaPatternAnalyzer = () => {
 
                 {/* Custom Frequency Unit Card */}
                 {frequencyUnit === "Custom" && (
-                  <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10 mt-4">
+                  <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10 mt-4">
                     <Label className="text-white font-semibold">Custom Frequency Unit</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <Input 
