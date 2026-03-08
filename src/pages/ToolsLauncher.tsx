@@ -188,7 +188,7 @@ const ToolsLauncher = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
+    <div className="min-h-screen flex flex-col relative">
       {/* Globe loader for tool transitions */}
       <GlobeLoader isLoading={isToolTransitioning} />
       
