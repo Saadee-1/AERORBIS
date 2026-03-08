@@ -120,9 +120,9 @@ const Navbar = () => {
             <img
               src={aerorbisLogo}
               alt="AERORBIS"
-              className="w-7 h-7 sm:w-8 sm:h-8"
+              className="w-6 h-6"
             />
-            <span className="hidden sm:inline text-sm font-bold text-foreground tracking-[0.2em] font-[Orbitron] uppercase">
+            <span className="hidden sm:inline text-xs font-bold text-foreground tracking-[0.2em] font-[Orbitron] uppercase">
               AERORBIS
             </span>
           </Link>
