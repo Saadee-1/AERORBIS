@@ -89,6 +89,7 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
+            <ThemeToggle />
             <AudioToggle />
             <ProfileMenu />
           </div>
