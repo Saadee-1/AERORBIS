@@ -50,7 +50,7 @@ export function CalculationOverlay({ isActive, label = "Computing", progress }: 
               {/* Inner ring */}
               <motion.div
                 className="absolute inset-6 rounded-full border border-primary/20"
-                style={{ borderTopColor: 'hsl(185 85% 50% / 0.6)' }}
+                style={{ borderTopColor: 'hsl(160 84% 39% / 0.6)' }}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
               />
