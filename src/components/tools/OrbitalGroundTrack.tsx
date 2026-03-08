@@ -338,18 +338,6 @@ export function OrbitalGroundTrack({
     return { lat: current.lat, lon: current.lon, altitude: current.rMag - 6371, svgPos, velDir };
   }, [currentTrueAnomaly, semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis]);
 
-  if (tracks.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground text-sm">
-        Calculate an orbit to see the ground track
-      </div>
-    );
-  }
-
-  const latLines = [-60, -30, 0, 30, 60];
-  const lonLines = [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150];
-  const currentSVG = currentPos ? toSVG(currentPos.lat, currentPos.lon) : null;
-
   // Export as SVG
   const exportSVG = useCallback(() => {
     if (!svgRef.current) return;
@@ -368,7 +356,7 @@ export function OrbitalGroundTrack({
     if (!svgRef.current) return;
     const svgData = new XMLSerializer().serializeToString(svgRef.current);
     const canvas = document.createElement('canvas');
-    const scale = 2; // 2x for retina
+    const scale = 2;
     canvas.width = W * scale;
     canvas.height = H * scale;
     const ctx = canvas.getContext('2d');
@@ -387,7 +375,38 @@ export function OrbitalGroundTrack({
     };
     img.src = url;
   }, []);
+
+  if (tracks.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground text-sm">
+        Calculate an orbit to see the ground track
+      </div>
+    );
+  }
+
+  const latLines = [-60, -30, 0, 30, 60];
+  const lonLines = [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150];
+  const currentSVG = currentPos ? toSVG(currentPos.lat, currentPos.lon) : null;
+
+  return (
     <div className="relative w-full">
+      {/* Export buttons */}
+      <div className="absolute top-2 right-2 z-10 flex gap-1.5">
+        <button
+          onClick={exportSVG}
+          className="flex items-center gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-sm"
+          title="Download as SVG"
+        >
+          <Download className="w-3 h-3" /> SVG
+        </button>
+        <button
+          onClick={exportPNG}
+          className="flex items-center gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-sm"
+          title="Download as PNG"
+        >
+          <Download className="w-3 h-3" /> PNG
+        </button>
+      </div>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
