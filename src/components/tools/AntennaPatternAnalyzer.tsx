@@ -957,7 +957,7 @@ const AntennaPatternAnalyzer = () => {
             >
               <AeroFormField label="Antenna Type">
                 <Select value={selectedAntennaId} onValueChange={handleAntennaChange}>
-                  <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-slate-900/50 border-primary/30 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
