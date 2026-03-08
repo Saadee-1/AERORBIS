@@ -285,25 +285,38 @@ export function OrbitalGroundTrack({
     return { terminatorPath, nightPolygon };
   }, []);
 
-  // Real-time satellite position with lat/lon
+  // Real-time satellite position with lat/lon + velocity direction
   const satelliteData = useMemo(() => {
     if (currentTrueAnomaly === undefined || !semiMajorAxis || semiMajorAxis <= 0) return null;
 
-    const nu = currentTrueAnomaly;
-    const r = semiMajorAxis * (1 - eccentricity * eccentricity) / (1 + eccentricity * Math.cos(nu));
-    const x_p = r * Math.cos(nu);
-    const y_p = r * Math.sin(nu);
-    const [x, y, z] = perifocalToECI(x_p, y_p, inclination, raan, argOfPeriapsis);
+    const computeLatLon = (nu: number) => {
+      const r = semiMajorAxis * (1 - eccentricity * eccentricity) / (1 + eccentricity * Math.cos(nu));
+      const x_p = r * Math.cos(nu);
+      const y_p = r * Math.sin(nu);
+      const [x, y, z] = perifocalToECI(x_p, y_p, inclination, raan, argOfPeriapsis);
+      const rMag = Math.sqrt(x * x + y * y + z * z);
+      const lat = Math.asin(z / rMag) * (180 / Math.PI);
+      let lon = Math.atan2(y, x) * (180 / Math.PI);
+      lon = ((lon + 540) % 360) - 180;
+      return { lat, lon, rMag };
+    };
 
-    const rMag = Math.sqrt(x * x + y * y + z * z);
-    const lat = Math.asin(z / rMag) * (180 / Math.PI);
-    let lon = Math.atan2(y, x) * (180 / Math.PI);
-    lon = ((lon + 540) % 360) - 180;
+    const current = computeLatLon(currentTrueAnomaly);
+    // Small step ahead for velocity vector direction
+    const ahead = computeLatLon(currentTrueAnomaly + 0.02);
 
-    const altitude = rMag - 6371; // km above Earth surface
-    const svgPos = toSVG(lat, lon);
+    const svgPos = toSVG(current.lat, current.lon);
+    const svgAhead = toSVG(ahead.lat, ahead.lon);
 
-    return { lat, lon, altitude, svgPos };
+    // Velocity direction in SVG space (normalized)
+    let dx = svgAhead[0] - svgPos[0];
+    let dy = svgAhead[1] - svgPos[1];
+    // Handle antimeridian wrap
+    if (Math.abs(dx) > W / 2) dx = dx > 0 ? dx - W : dx + W;
+    const mag = Math.sqrt(dx * dx + dy * dy);
+    const velDir = mag > 0.01 ? { dx: dx / mag, dy: dy / mag } : { dx: 1, dy: 0 };
+
+    return { lat: current.lat, lon: current.lon, altitude: current.rMag - 6371, svgPos, velDir };
   }, [currentTrueAnomaly, semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis]);
 
   if (tracks.length === 0) {
