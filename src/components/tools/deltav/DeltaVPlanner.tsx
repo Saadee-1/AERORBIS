@@ -676,7 +676,7 @@ const DeltaVPlanner = () => {
                 id="preset-name"
                 value={presetName}
                 onChange={(e) => setPresetName(e.target.value)}
-                className="bg-slate-900/50 border-cyan-400/30 text-white"
+                className="bg-slate-900/50 border-primary/30 text-foreground"
                 placeholder="My Custom Mission"
               />
             </div>

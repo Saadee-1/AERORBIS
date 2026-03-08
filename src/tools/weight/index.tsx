@@ -526,7 +526,7 @@ export default function StructuralWeightEstimator() {
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm text-gray-400 mb-1">Class</p>
-                      <p className="text-2xl font-bold text-cyan-400">{results.classification.aircraftClass}</p>
+                      <p className="text-2xl font-bold text-primary">{results.classification.aircraftClass}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-400 mb-1">Reason</p>

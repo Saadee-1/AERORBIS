@@ -403,17 +403,17 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     <div className="space-y-4">
       {/* Mode Selector */}
       <Tabs value={chartMode} onValueChange={(value) => setChartMode(value as ChartMode)}>
-        <TabsList className="bg-slate-700/50 border border-cyan-400/30">
-          <TabsTrigger value="cl" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+        <TabsList className="bg-slate-700/50 border border-primary/30">
+          <TabsTrigger value="cl" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             CL vs α
           </TabsTrigger>
-          <TabsTrigger value="cd" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+          <TabsTrigger value="cd" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             CD vs α
           </TabsTrigger>
-          <TabsTrigger value="cm" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+          <TabsTrigger value="cm" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             CM vs α
           </TabsTrigger>
-          <TabsTrigger value="dragPolar" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+          <TabsTrigger value="dragPolar" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             Drag Polar (CD vs CL)
           </TabsTrigger>
         </TabsList>
