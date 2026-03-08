@@ -5,7 +5,8 @@
  * Features: Day/night terminator, real-time satellite dot, sub-satellite point coordinates
  */
 
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useCallback } from 'react';
+import { Download } from 'lucide-react';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
@@ -188,9 +189,9 @@ export function OrbitalGroundTrack({
     'hsl(320 70% 55%)',  // Pink
   ], []);
 
-  const { tracks, currentPos } = useMemo(() => {
+  const { tracks, currentPos, nodes } = useMemo(() => {
     if (!semiMajorAxis || semiMajorAxis <= 0 || !gm || gm <= 0) {
-      return { tracks: [], currentPos: null };
+      return { tracks: [], currentPos: null, nodes: [] };
     }
 
     const n = Math.sqrt(gm / Math.pow(semiMajorAxis, 3));
@@ -201,7 +202,9 @@ export function OrbitalGroundTrack({
     const dt = totalTime / steps;
 
     const tracks: Array<{ lat: number; lon: number; orbitIdx: number }> = [];
+    const nodes: Array<{ lat: number; lon: number; type: 'ascending' | 'descending'; orbitIdx: number }> = [];
     let currentPos: { lat: number; lon: number } | null = null;
+    let prevLat = 0;
 
     for (let s = 0; s <= steps; s++) {
       const t = s * dt;
@@ -225,11 +228,27 @@ export function OrbitalGroundTrack({
       let lon = (Math.atan2(y, x) - theta_g) * (180 / Math.PI);
       lon = ((lon + 540) % 360) - 180;
 
+      // Detect equator crossings (lat sign change)
+      if (s > 0 && prevLat * lat < 0 && Math.abs(prevLat - lat) < 30) {
+        // Interpolate longitude at equator crossing
+        const frac = Math.abs(prevLat) / (Math.abs(prevLat) + Math.abs(lat));
+        const prevTrack = tracks[tracks.length - 1];
+        let interpLon = prevTrack.lon + frac * (lon - prevTrack.lon);
+        // Handle antimeridian
+        if (Math.abs(lon - prevTrack.lon) > 180) {
+          interpLon = lon; // skip interpolation at wrap
+        }
+        interpLon = ((interpLon + 540) % 360) - 180;
+        const type = lat > prevLat ? 'ascending' : 'descending';
+        nodes.push({ lat: 0, lon: interpLon, type, orbitIdx });
+      }
+      prevLat = lat;
+
       tracks.push({ lat, lon, orbitIdx });
       if (s === 0) currentPos = { lat, lon };
     }
 
-    return { tracks, currentPos };
+    return { tracks, currentPos, nodes };
   }, [semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis, gm, numOrbits]);
 
   const W = 720;
@@ -319,6 +338,44 @@ export function OrbitalGroundTrack({
     return { lat: current.lat, lon: current.lon, altitude: current.rMag - 6371, svgPos, velDir };
   }, [currentTrueAnomaly, semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis]);
 
+  // Export as SVG
+  const exportSVG = useCallback(() => {
+    if (!svgRef.current) return;
+    const svgData = new XMLSerializer().serializeToString(svgRef.current);
+    const blob = new Blob([svgData], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ground-track.svg';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  // Export as PNG
+  const exportPNG = useCallback(() => {
+    if (!svgRef.current) return;
+    const svgData = new XMLSerializer().serializeToString(svgRef.current);
+    const canvas = document.createElement('canvas');
+    const scale = 2;
+    canvas.width = W * scale;
+    canvas.height = H * scale;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const img = new Image();
+    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, W * scale, H * scale);
+      URL.revokeObjectURL(url);
+      const pngUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = pngUrl;
+      a.download = 'ground-track.png';
+      a.click();
+    };
+    img.src = url;
+  }, []);
+
   if (tracks.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground text-sm">
@@ -333,6 +390,23 @@ export function OrbitalGroundTrack({
 
   return (
     <div className="relative w-full">
+      {/* Export buttons */}
+      <div className="absolute top-2 right-2 z-10 flex gap-1.5">
+        <button
+          onClick={exportSVG}
+          className="flex items-center gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-sm"
+          title="Download as SVG"
+        >
+          <Download className="w-3 h-3" /> SVG
+        </button>
+        <button
+          onClick={exportPNG}
+          className="flex items-center gap-1 bg-background/80 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shadow-sm"
+          title="Download as PNG"
+        >
+          <Download className="w-3 h-3" /> PNG
+        </button>
+      </div>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
@@ -435,6 +509,35 @@ export function OrbitalGroundTrack({
           </>
         )}
 
+        {/* Ascending/Descending node markers */}
+        {nodes.map((node, i) => {
+          const [nx, ny] = toSVG(node.lat, node.lon);
+          const isAsc = node.type === 'ascending';
+          const color = ORBIT_COLORS[node.orbitIdx % ORBIT_COLORS.length];
+          return (
+            <g key={`node-${i}`} opacity="0.75">
+              {/* Triangle: up for ascending, down for descending */}
+              {isAsc ? (
+                <polygon
+                  points={`${nx},${ny - 5} ${nx + 4},${ny + 3} ${nx - 4},${ny + 3}`}
+                  fill={color}
+                  stroke="hsl(220 60% 8%)"
+                  strokeWidth="0.5"
+                />
+              ) : (
+                <polygon
+                  points={`${nx},${ny + 5} ${nx + 4},${ny - 3} ${nx - 4},${ny - 3}`}
+                  fill={color}
+                  stroke="hsl(220 60% 8%)"
+                  strokeWidth="0.5"
+                />
+              )}
+              <text x={nx + 6} y={ny + 3} fill={color} fontSize="5.5" fontWeight="600" opacity="0.7">
+                {isAsc ? 'AN' : 'DN'}
+              </text>
+            </g>
+          );
+        })}
         {/* Ground track paths - color-coded per orbit */}
         {orbitSegments.map((seg, i) => {
           const color = ORBIT_COLORS[seg.orbitIdx % ORBIT_COLORS.length];
