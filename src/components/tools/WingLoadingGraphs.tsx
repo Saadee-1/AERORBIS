@@ -445,7 +445,7 @@ export function WingLoadingGraphs({
                     label={{
                       value: `${currentVsMs.toFixed(1)} m/s`,
                       position: "insideRight",
-                      fill: "#22d3ee",
+                      fill: "#10b981",
                       fontWeight: 600,
                       fontSize: 10,
                     }}
