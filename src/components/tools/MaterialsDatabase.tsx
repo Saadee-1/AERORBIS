@@ -26,59 +26,11 @@ import type { AeroverseAIPayload } from "@/ai/schema/AerorbisPayload";
 import { buildCalculationEvent } from "@/lib/events/payloadBuilder";
 import { buildMaterialsPayload } from "./materials/payloadBuilder";
 
-// Full Aerospace Materials Database
-const MATERIALS: Material[] = [
-  { "name": "Aluminum 2024-T3", "category": "Metal", "density": 2780, "description": "High strength aircraft aluminum alloy used in fuselage skins" },
-  { "name": "Aluminum 6061-T6", "category": "Metal", "density": 2700, "description": "General-purpose alloy used in spacecraft structures and machining" },
-  { "name": "Aluminum 7075-T6", "category": "Metal", "density": 2810, "description": "Very high strength alloy for wing spars and landing gear" },
-  { "name": "Titanium Ti-6Al-4V", "category": "Metal", "density": 4430, "description": "Primary aerospace titanium alloy used in jet engines and spacecraft" },
-  { "name": "Titanium CP Grade 2", "category": "Metal", "density": 4500, "description": "Commercially pure titanium, corrosion resistant" },
-  { "name": "Stainless Steel 304", "category": "Metal", "density": 8000, "description": "Common stainless steel, corrosion resistant" },
-  { "name": "Stainless Steel 316", "category": "Metal", "density": 8000, "description": "Marine-grade aerospace structural steel" },
-  { "name": "Maraging Steel 250", "category": "Metal", "density": 8100, "description": "Ultra-high strength steel for rocket motor casings" },
-  { "name": "Inconel 718", "category": "Superalloy", "density": 8190, "description": "High-temperature nickel alloy used in jet engines and turbines" },
-  { "name": "Inconel 625", "category": "Superalloy", "density": 8440, "description": "Heat-resistant alloy for exhaust systems" },
-  { "name": "Hastelloy X", "category": "Superalloy", "density": 8800, "description": "Used in aerospace combustion chambers" },
-  { "name": "Carbon Fiber (CFRP - Unidirectional)", "category": "Composite", "density": 1550, "description": "Primary composite for aircraft wings and fuselage" },
-  { "name": "Carbon Fiber (Woven Fabric)", "category": "Composite", "density": 1650, "description": "High stiffness fabric used in aircraft control surfaces" },
-  { "name": "Carbon Fiber (High Modulus)", "category": "Composite", "density": 1800, "description": "Used in satellites and high-performance UAVs" },
-  { "name": "Fiberglass (GFRP)", "category": "Composite", "density": 1850, "description": "Used in fairings, radomes, UAV bodies" },
-  { "name": "Kevlar (Aramid Fiber)", "category": "Composite", "density": 1440, "description": "Impact-resistant composite used in radomes and armor" },
-  { "name": "Aluminum Honeycomb Core", "category": "Composite", "density": 50, "description": "Aircraft floor panels, fairings" },
-  { "name": "Nomex Honeycomb Core", "category": "Composite", "density": 48, "description": "Fireproof lightweight core for aerospace panels" },
-  { "name": "ABS Plastic", "category": "Polymer", "density": 1050, "description": "Common polymer used in housings and interior components" },
-  { "name": "Polycarbonate", "category": "Polymer", "density": 1200, "description": "Impact-resistant transparent polymer" },
-  { "name": "Nylon (PA6)", "category": "Polymer", "density": 1150, "description": "Engineering plastic for gears and bushings" },
-  { "name": "PEEK (Aerospace Grade)", "category": "Polymer", "density": 1320, "description": "High-strength polymer for high-temperature components" },
-  { "name": "Polyurethane Foam", "category": "Foam", "density": 40, "description": "Used in UAV wings, insulation" },
-  { "name": "EPS Foam", "category": "Foam", "density": 20, "description": "Lightweight insulation foam" },
-  { "name": "Rohacell Foam", "category": "Foam", "density": 52, "description": "Aerospace-grade core material for CFRP sandwich structures" },
-  { "name": "Silica Tile (Space Shuttle)", "category": "Ceramic", "density": 144, "description": "Thermal Protection System for re-entry vehicles" },
-  { "name": "Zirconia Ceramic", "category": "Ceramic", "density": 5600, "description": "Used in high-temperature insulation" },
-  { "name": "Water", "category": "Fluid", "density": 1000, "description": "Standard fluid reference" },
-  { "name": "Jet A Fuel", "category": "Fluid", "density": 804, "description": "Standard aviation fuel" },
-  { "name": "RP-1 (Rocket Kerosene)", "category": "Fluid", "density": 810, "description": "Fuel used in Falcon 9, Soyuz, Saturn I" },
-  { "name": "Liquid Oxygen (LOX)", "category": "Fluid", "density": 1141, "description": "Rocket oxidizer" },
-  { "name": "Liquid Hydrogen (LH2)", "category": "Fluid", "density": 70, "description": "Cryogenic rocket fuel" },
-  { "name": "Balsa Wood", "category": "Wood", "density": 160, "description": "Very lightweight material used in RC aircraft" },
-  { "name": "Spruce Wood", "category": "Wood", "density": 400, "description": "Used in vintage wooden aircraft frames" },
-  { "name": "Magnesium Alloy", "category": "Metal", "density": 1800, "description": "Extremely lightweight alloy for aerospace usage" },
-  { "name": "Copper", "category": "Metal", "density": 8960, "description": "Used in electrical systems and cooling channels" },
-  { "name": "Brass", "category": "Metal", "density": 8500, "description": "Common engineering metal" }
-];
+import { ALL_MATERIALS, MATERIAL_CATEGORIES } from "./materials/materialsData";
 
-const CATEGORIES = [
-  "All",
-  "Metal",
-  "Superalloy",
-  "Composite",
-  "Polymer",
-  "Foam",
-  "Ceramic",
-  "Fluid",
-  "Wood",
-  "Other",
-];
+const MATERIALS = ALL_MATERIALS;
+
+const CATEGORIES = MATERIAL_CATEGORIES.map(c => c.id);
 
 const MaterialsDatabase = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
