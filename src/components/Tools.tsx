@@ -85,6 +85,7 @@ const Tools = () => {
                 <h3 className="text-base font-semibold text-foreground mb-2 font-[Rajdhani] tracking-wide">{tool.title}</h3>
                 <p className="text-sm text-muted-foreground">{tool.description}</p>
               </div>
+              </Link>
             </motion.div>
           ))}
         </motion.div>
