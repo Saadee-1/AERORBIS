@@ -1045,7 +1045,7 @@ const OrbitalVisualizer = () => {
             {/* --- Part 2: Maneuver Calculator --- */}
             <AeroCard title="Part 2: Hohmann Transfer" icon={Move}>
               <AeroFormField label={`Target Circular Altitude (${getUnit("dist")})`}>
-                <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-slate-700/50" placeholder="e.g., 800" />
+                <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-muted/50" placeholder="e.g., 800" />
               </AeroFormField>
               <AeroButton type="button" onClick={() => runCalculation(calculateManeuver)} variant="primary" icon={Move} className="w-full" disabled={!orbitResult}>
                 Calculate Maneuver
