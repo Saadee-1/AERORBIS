@@ -1686,9 +1686,9 @@ const point: Record<string, unknown> = { alpha };
                       <p className="text-sm text-yellow-400">Invalid aspect ratio</p>
                     )}
                   </div>
-                   <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
-                    <p className="text-sm text-slate-400 mb-1">Performance Rating</p>
-                    <p className="text-xs text-gray-500 mb-2">Based on L/D at operating point</p>
+                   <div className="p-3 rounded bg-muted/50 border border-border text-center">
+                    <p className="text-sm text-muted-foreground mb-1">Performance Rating</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">Based on L/D at operating point</p>
                     {Number.isFinite(result.L_D_ratio) && result.L_D_ratio > 0 ? (
                       <>
                     <p className="text-2xl font-bold text-green-400 pt-1">
