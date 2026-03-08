@@ -463,6 +463,51 @@ export function OrbitalGroundTrack({
           </g>
         )}
 
+        {/* Satellite footprint / coverage area */}
+        {satelliteData && satelliteData.altitude > 0 && (() => {
+          // Half-angle of Earth horizon from satellite: ρ = arccos(R_e / (R_e + h))
+          const R_E = 6371; // km
+          const rho = Math.acos(R_E / (R_E + satelliteData.altitude)) * (180 / Math.PI); // degrees
+          // Draw footprint as ellipse on equirectangular projection
+          // At sub-satellite lat, longitude degrees shrink by cos(lat)
+          const latRad = satelliteData.lat * Math.PI / 180;
+          const lonStretch = Math.abs(Math.cos(latRad)) > 0.01 ? 1 / Math.cos(latRad) : 50;
+          // SVG radii in pixels
+          const ryPx = (rho / 180) * H;
+          const rxPx = Math.min((rho * lonStretch / 360) * W, W * 0.4);
+          // Build a proper spherical footprint polygon for better accuracy
+          const footprintPoints: string[] = [];
+          for (let a = 0; a <= 360; a += 5) {
+            const aRad = a * Math.PI / 180;
+            const rhoRad = rho * Math.PI / 180;
+            // Great circle point at angular distance rho, bearing a from sub-satellite point
+            const lat1 = latRad;
+            const lon1 = satelliteData.lon * Math.PI / 180;
+            const lat2 = Math.asin(Math.sin(lat1) * Math.cos(rhoRad) + Math.cos(lat1) * Math.sin(rhoRad) * Math.cos(aRad));
+            const lon2 = lon1 + Math.atan2(
+              Math.sin(aRad) * Math.sin(rhoRad) * Math.cos(lat1),
+              Math.cos(rhoRad) - Math.sin(lat1) * Math.sin(lat2)
+            );
+            const latDeg = lat2 * 180 / Math.PI;
+            const lonDeg = ((lon2 * 180 / Math.PI) + 540) % 360 - 180;
+            const [px, py] = toSVG(latDeg, lonDeg);
+            footprintPoints.push(`${px.toFixed(1)},${py.toFixed(1)}`);
+          }
+          return (
+            <g>
+              <polygon
+                points={footprintPoints.join(' ')}
+                fill="hsl(var(--primary))"
+                opacity="0.07"
+                stroke="hsl(var(--primary))"
+                strokeWidth="0.7"
+                strokeOpacity="0.3"
+                strokeDasharray="3 2"
+              />
+            </g>
+          );
+        })()}
+
         {/* Real-time satellite position */}
         {satelliteData && (
           <g>
