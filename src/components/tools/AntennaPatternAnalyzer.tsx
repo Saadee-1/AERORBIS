@@ -1390,8 +1390,8 @@ const AntennaPatternAnalyzer = () => {
                         where η is efficiency, A = πD²/4 is aperture area, D is diameter
                       </p>
                     </div>
-                    <div className="p-4 bg-slate-900/50 rounded-lg border border-cyan-400/10">
-                      <p className="text-cyan-400 font-semibold mb-2">EIRP</p>
+                    <div className="p-4 bg-slate-900/50 rounded-lg border border-primary/10">
+                      <p className="text-primary font-semibold mb-2">EIRP</p>
                       <code className="text-sm block mb-2">EIRP = Pt * Gt</code>
                       <p className="text-xs text-gray-400">
                         where Pt is transmit power, Gt is transmit antenna gain (linear)
