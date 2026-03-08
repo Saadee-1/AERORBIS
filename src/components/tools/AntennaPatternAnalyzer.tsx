@@ -1300,7 +1300,7 @@ const AntennaPatternAnalyzer = () => {
                   <RechartsTooltip
                     contentStyle={{
                       backgroundColor: "#1e293b",
-                      border: "1px solid #22d3ee40",
+                      border: "1px solid hsl(160 84% 39% / 0.25)",
                       borderRadius: "8px",
                     }}
                     formatter={(value: number) => [`${value.toFixed(2)} dBi`, "Gain"]}
