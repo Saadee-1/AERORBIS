@@ -66,7 +66,7 @@ const DashboardSidebar = ({ isOpen }: DashboardSidebarProps) => {
               className="absolute -inset-1 rounded-full border border-primary/20"
             />
           )}
-          <Rocket className={`w-8 h-8 text-primary transition-transform group-hover:rotate-12 flex-shrink-0 ${!isLight ? 'drop-shadow-[0_0_15px_hsl(185_85%_50%/0.8)]' : ''}`} />
+          <Rocket className={`w-8 h-8 text-primary transition-transform group-hover:rotate-12 flex-shrink-0 ${!isLight ? 'drop-shadow-[0_0_15px_hsl(160_84%_39%/0.8)]' : ''}`} />
         </div>
         {isOpen && (
           <motion.div
