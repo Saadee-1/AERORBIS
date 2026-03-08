@@ -1462,7 +1462,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.1"
                       value={gammaReqPercent}
                       onChange={(e) => setGammaReqPercent(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g., 3.0"
                       min="0"
                     />
