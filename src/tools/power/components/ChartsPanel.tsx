@@ -99,7 +99,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981' }}
               formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'SOC']}
             />
             <Area
