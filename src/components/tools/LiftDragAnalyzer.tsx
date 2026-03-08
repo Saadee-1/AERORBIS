@@ -1667,8 +1667,8 @@ const point: Record<string, unknown> = { alpha };
   style={{ color: getLDValidity(result.L_D_ratio).color === 'green' ? '#22c55e' : getLDValidity(result.L_D_ratio).color === 'amber' ? '#eab308' : '#ef4444' }}>
   {getLDValidity(result.L_D_ratio).label}
 </span>
-                        <p className="text-xs text-gray-500 mt-1">Dimensionless</p>
-                        <p className="text-xs text-gray-500 mt-1 italic">Note: This is L/D at the specified α, not maximum L/D</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1 italic">Note: This is L/D at the specified α, not maximum L/D</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: L/D not displayable" : "Invalid or unrealistic L/D value"}</p>
