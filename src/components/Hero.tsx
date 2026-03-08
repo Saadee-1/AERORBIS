@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Rocket, ChevronDown, Zap, Target, Shield, Cpu } from "lucide-react";
-import aerorbisLogo from "@/assets/aerorbis-logo-futuristic.png";
+import aerorbisLogo from "@/assets/aerorbis-logo.png";
 
 // Holographic scan line component
 const ScanLine = () => (
@@ -140,28 +140,54 @@ const Hero = () => {
       <div className="container mx-auto px-6 lg:px-8 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
           
-          {/* Logo with holographic glow */}
+          {/* Logo with futuristic holographic treatment */}
           <motion.div
             initial={{ opacity: 0, scale: 0.5, filter: "blur(20px)" }}
             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-8 relative inline-block"
+            className="mb-8 relative inline-flex items-center justify-center"
           >
-            {/* Glow rings */}
-            <motion.div 
-              className="absolute inset-0 rounded-full"
-              style={{
-                background: 'radial-gradient(circle, hsl(var(--primary) / 0.2) 0%, transparent 70%)',
-                filter: 'blur(30px)',
-                transform: 'scale(2.5)',
-              }}
-              animate={{ opacity: [0.5, 0.8, 0.5] }}
-              transition={{ duration: 3, repeat: Infinity }}
+            {/* Outer pulsing ring */}
+            <motion.div
+              className="absolute w-40 h-40 md:w-52 md:h-52 rounded-full border border-primary/20"
+              animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             />
+            {/* Inner rotating ring */}
+            <motion.div
+              className="absolute w-32 h-32 md:w-44 md:h-44 rounded-full border border-dashed border-primary/15"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+            />
+            {/* Radial glow behind logo */}
+            <motion.div 
+              className="absolute rounded-full"
+              style={{
+                width: '200%',
+                height: '200%',
+                background: 'radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.05) 40%, transparent 70%)',
+                filter: 'blur(20px)',
+              }}
+              animate={{ opacity: [0.5, 0.9, 0.5], scale: [0.95, 1.05, 0.95] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            {/* Hexagonal frame accent dots */}
+            {[0, 60, 120, 180, 240, 300].map((deg) => (
+              <motion.div
+                key={deg}
+                className="absolute w-1.5 h-1.5 rounded-full bg-primary/60"
+                style={{
+                  transform: `rotate(${deg}deg) translateY(-70px)`,
+                }}
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 2, repeat: Infinity, delay: deg / 360 }}
+              />
+            ))}
+            {/* Logo */}
             <img 
               src={aerorbisLogo} 
               alt="AERORBIS" 
-              className="w-24 h-24 md:w-32 md:h-32 mx-auto relative z-10 drop-shadow-[0_0_60px_hsl(var(--primary)/0.5)]"
+              className="w-24 h-24 md:w-32 md:h-32 relative z-10 drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)]"
             />
           </motion.div>
 
