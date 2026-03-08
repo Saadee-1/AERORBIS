@@ -180,7 +180,7 @@ const ContactPage = () => {
                         href={social.href}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className={`flex items-center gap-3 p-4 rounded-lg bg-slate-900/50 hover:bg-cyan-400/10 border border-cyan-400/20 hover:border-cyan-400/40 transition-all ${social.color}`}
+                        className={`flex items-center gap-3 p-4 rounded-lg bg-background/50 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all ${social.color}`}
                       >
                         <social.icon className="w-6 h-6" />
                         <span className="font-medium text-white">{social.label}</span>
