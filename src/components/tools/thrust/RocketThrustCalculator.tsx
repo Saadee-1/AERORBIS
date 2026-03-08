@@ -800,8 +800,8 @@ const AdvancedThrustCalculator = () => {
                 {/* Steps (if any result exists) */}
                 {(thrustResult || performanceResult) && (
                   <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="steps" className="border-cyan-400/20">
-                      <AccordionTrigger className="text-white hover:text-cyan-400"><div className="flex items-center gap-2"><Info className="w-4 h-4 text-cyan-400" />Step-by-Step Solution</div></AccordionTrigger>
+                    <AccordionItem value="steps" className="border-border">
+                      <AccordionTrigger className="text-foreground hover:text-primary"><div className="flex items-center gap-2"><Info className="w-4 h-4 text-primary" />Step-by-Step Solution</div></AccordionTrigger>
                       <AccordionContent className="pt-2">
                         <CalculationSteps steps={((thrustResult as { steps?: string[] })?.steps || (performanceResult as { steps?: string[] })?.steps) || []} />
                       </AccordionContent>
