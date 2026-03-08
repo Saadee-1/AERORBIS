@@ -1128,7 +1128,7 @@ const ThrustLoadingCalculator = () => {
             >
               <AeroFormField label="Aircraft Preset">
                 <Select value={aircraftPreset} onValueChange={(v) => handleAircraftPresetChange(v as AircraftPreset)}>
-                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                  <SelectTrigger className="w-full bg-input border-border text-foreground">
                     <SelectValue placeholder="Select aircraft preset (optional)" />
                   </SelectTrigger>
                   <SelectContent>
