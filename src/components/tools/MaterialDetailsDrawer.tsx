@@ -59,9 +59,9 @@ const MaterialDetailsDrawer = ({
           </div>
 
           {/* Density Information */}
-          <div className="p-4 bg-slate-800/50 rounded-lg border border-cyan-400/20">
+          <div className="p-4 bg-card/50 rounded-lg border border-primary/20">
             <div className="flex items-center gap-2 mb-4">
-              <Ruler className="w-5 h-5 text-cyan-400" />
+              <Ruler className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-semibold text-white">Density</h3>
             </div>
             <div className="space-y-3">
