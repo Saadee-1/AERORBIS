@@ -258,6 +258,8 @@ const MaterialsDatabase = () => {
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Scanning Materials Database" />
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
