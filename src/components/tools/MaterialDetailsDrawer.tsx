@@ -38,7 +38,7 @@ const MaterialDetailsDrawer = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="bg-slate-900 border-l border-cyan-400/20 text-white overflow-y-auto">
+      <SheetContent className="bg-background border-l border-primary/20 text-foreground overflow-y-auto">
         <SheetHeader>
           <div className="flex items-center gap-3 mb-2">
             <Database className="w-8 h-8 text-cyan-400" />
