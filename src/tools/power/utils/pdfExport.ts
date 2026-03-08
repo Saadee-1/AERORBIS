@@ -108,7 +108,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
       padding-bottom: 8px;
     }
     h3 {
-      color: #0891b2;
+      color: #047857;
       margin-top: 20px;
       margin-bottom: 10px;
       font-size: 1.2em;
