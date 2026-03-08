@@ -580,10 +580,10 @@ export default function StandardAtmosphereCalculator() {
               >
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {/* Temperature */}
-                  <div className="p-4 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-lg border border-cyan-400/20">
+                  <div className="p-4 bg-gradient-to-br from-primary/10 to-emerald-400/10 rounded-lg border border-primary/20">
                     <p className="text-xs text-gray-400 mb-1">Static Temperature</p>
                     <p className="text-xs text-gray-500 mb-1">(T, ambient air temperature)</p>
-                    <p className="text-cyan-400 font-bold text-xl">
+                    <p className="text-primary font-bold text-xl">
                       {unitSystem === "Imperial"
                         ? `${((result.temperature * 9) / 5 - 459.67).toFixed(2)} °F`
                         : `${(result.temperature - 273.15).toFixed(2)} °C`}
