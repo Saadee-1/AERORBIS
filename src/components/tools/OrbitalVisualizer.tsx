@@ -676,18 +676,8 @@ const OrbitalVisualizer = () => {
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.2;
 
-      // ── Post-processing: Bloom ──
-      const composer = new EffectComposer(renderer);
-      const renderPass = new RenderPass(scene, camera);
-      composer.addPass(renderPass);
-
-      const bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(canvas.clientWidth, canvas.clientHeight),
-        0.25,  // strength - reduced to remove blurriness
-        0.15,  // radius - tighter for sharper look
-        0.92   // threshold - higher = less bloom on Earth surface
-      );
-      composer.addPass(bloomPass);
+      // ── No post-processing — direct render for performance ──
+      const composer = { render: () => renderer.render(scene, camera), setSize: (w: number, h: number) => {}, dispose: () => {} } as unknown as EffectComposer;
 
       // ── Controls ──
       const controls = new OrbitControls(camera, renderer.domElement);
