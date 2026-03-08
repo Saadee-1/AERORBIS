@@ -15,28 +15,51 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black flex relative overflow-hidden">
       
+      {/* Grid overlay for command center feel */}
+      <div className="absolute inset-0 z-0 pointer-events-none grid-overlay" />
+
       {/* Animated Stars Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {[...Array(30)].map((_, i) => (
+        {[...Array(40)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-cyan-400/30 rounded-full"
+            className="absolute rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
+              width: `${Math.random() * 2 + 1}px`,
+              height: `${Math.random() * 2 + 1}px`,
+              background: i % 3 === 0
+                ? 'hsl(185 85% 50% / 0.4)'
+                : i % 3 === 1
+                  ? 'hsl(200 80% 55% / 0.3)'
+                  : 'hsl(210 30% 70% / 0.2)',
             }}
             animate={{
-              opacity: [0.2, 0.8, 0.2],
-              scale: [1, 1.5, 1],
+              opacity: [0.1, 0.8, 0.1],
+              scale: [1, 1.8, 1],
             }}
             transition={{
-              duration: Math.random() * 3 + 2,
+              duration: Math.random() * 4 + 3,
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: Math.random() * 3,
             }}
           />
         ))}
       </div>
+
+      {/* Scanline overlay */}
+      <div className="absolute inset-0 z-[1] pointer-events-none scanlines" />
+
+      {/* Ambient horizontal scan beam */}
+      <motion.div
+        className="absolute left-0 right-0 h-px z-[1] pointer-events-none"
+        style={{
+          background: 'linear-gradient(90deg, transparent, hsl(185 85% 50% / 0.15), transparent)',
+        }}
+        animate={{ top: ['0%', '100%'] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+      />
 
       <DashboardSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
