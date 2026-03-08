@@ -1280,7 +1280,7 @@ const WingLoadingCalculator = () => {
                       step="0.01"
                       value={airDensityAltitude}
                       onChange={(e) => setAirDensityAltitude(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-slate-900/50 border-primary/30"
                       placeholder={`e.g., ${unitSystem === 'SI' ? '0' : '0'}`}
                     />
               </AeroFormField>
