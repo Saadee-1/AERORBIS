@@ -41,13 +41,13 @@ const GRAPH_STYLES = {
   markerStroke: '#fff',
   markerStrokeWidth: 1.4,
   markerRadius: 5,
-  gridStroke: 'rgba(255,255,255,0.12)',
-  axisTickText: 'rgba(255,255,255,0.85)',
-  axisLabelText: '#fff',
+  gridStroke: 'hsl(var(--border))',
+  axisTickText: 'hsl(var(--muted-foreground))',
+  axisLabelText: 'hsl(var(--foreground))',
   referenceLineColor: '#fbbf24', // Yellow for V_x/V_y markers
   referenceLineDash: '6 6',
-  tooltipBg: 'rgba(20, 20, 20, 0.92)',
-  tooltipText: '#00eaff',
+  tooltipBg: 'hsl(var(--popover))',
+  tooltipText: 'hsl(var(--primary))',
 } as const;
 
 interface ClimbPlotsProps {
