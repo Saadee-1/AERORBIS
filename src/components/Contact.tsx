@@ -47,7 +47,7 @@ const Contact = () => {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="max-w-2xl mx-auto"
         >
-          <div className="bg-card/30 backdrop-blur-xl border border-border/40 rounded-lg p-8 hud-corners">
+          <div className="bg-card/30 backdrop-blur-xl border border-border/40 rounded-lg p-4 sm:p-8 hud-corners">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid md:grid-cols-2 gap-5">
                 <Input

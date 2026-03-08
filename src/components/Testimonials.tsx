@@ -54,7 +54,7 @@ const Testimonials = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto"
+          className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto"
         >
           {testimonials.map((t) => (
             <motion.div
