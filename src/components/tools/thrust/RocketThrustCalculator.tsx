@@ -834,7 +834,7 @@ const AdvancedThrustCalculator = () => {
                     items={[{
                       id: 'thrust',
                       name: 'Thrust',
-                      color: '#22d3ee',
+                      color: 'hsl(var(--primary))',
                     }]}
                   />
                 </div>
