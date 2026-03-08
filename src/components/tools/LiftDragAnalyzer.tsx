@@ -1789,7 +1789,7 @@ const point: Record<string, unknown> = { alpha };
   const env = getCDValidity(result.CD);
   return env.color === 'green' ? 'bg-green-700/20 px-2 rounded' : env.color === 'amber' ? 'bg-yellow-600/20 px-2 rounded' : 'bg-red-700/20 px-2 rounded';
 })()} title={(() => getCDValidity(result.CD).label)()}>
-  <p className="text-xl font-bold text-white inline">{result.CD.toFixed(4)}</p>
+  <p className="text-xl font-bold text-foreground inline">{result.CD.toFixed(4)}</p>
 </span>
 <span className={`ml-2 text-xs font-semibold`}
   style={{ color: getCDValidity(result.CD).color === 'green' ? '#22c55e' : getCDValidity(result.CD).color === 'amber' ? '#eab308' : '#ef4444' }}>
