@@ -1020,7 +1020,7 @@ const AntennaPatternAnalyzer = () => {
                 </AeroFormField>
                 <AeroFormField label="Unit">
                   <Select value={frequencyUnit} onValueChange={(v: "Hz" | "MHz" | "GHz" | "Custom") => setFrequencyUnit(v)}>
-                    <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                   <SelectTrigger className="bg-slate-900/50 border-primary/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
