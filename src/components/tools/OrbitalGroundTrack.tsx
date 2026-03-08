@@ -7,6 +7,15 @@
 
 import { useMemo, useState } from 'react';
 
+interface LaunchSiteOrbit {
+  periapsisAltitude: string;
+  inclination: string;
+  eccentricity: string;
+  raan: string;
+  argOfPeriapsis: string;
+  trueAnomaly: string;
+}
+
 interface GroundTrackProps {
   semiMajorAxis: number;
   eccentricity: number;
@@ -15,8 +24,9 @@ interface GroundTrackProps {
   argOfPeriapsis: number;
   gm: number;
   numOrbits?: number;
-  /** Current true anomaly in radians - for real-time satellite dot */
   currentTrueAnomaly?: number;
+  /** Called when user clicks a launch site — provides typical orbit params */
+  onLaunchSiteClick?: (params: LaunchSiteOrbit, siteName: string) => void;
 }
 
 // Physics: Solve Kepler's equation M = E - e·sin(E)
@@ -138,6 +148,18 @@ function buildNightPolygon(
   return path;
 }
 
+// Launch sites with typical orbit parameters from each site
+const LAUNCH_SITES = [
+  { name: 'Cape Canaveral', lat: 28.396, lon: -80.605, orbit: { periapsisAltitude: '400', inclination: '28.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Baikonur', lat: 45.965, lon: 63.305, orbit: { periapsisAltitude: '400', inclination: '51.6', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Kourou', lat: 5.236, lon: -52.768, orbit: { periapsisAltitude: '35786', inclination: '5.2', eccentricity: '0.0', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Vandenberg', lat: 34.632, lon: -120.611, orbit: { periapsisAltitude: '800', inclination: '98.2', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Tanegashima', lat: 30.400, lon: 131.000, orbit: { periapsisAltitude: '300', inclination: '30.4', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Sriharikota', lat: 13.720, lon: 80.230, orbit: { periapsisAltitude: '600', inclination: '13.7', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Jiuquan', lat: 40.958, lon: 100.291, orbit: { periapsisAltitude: '400', inclination: '42.8', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+  { name: 'Plesetsk', lat: 62.925, lon: 40.577, orbit: { periapsisAltitude: '800', inclination: '82.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
+];
+
 export function OrbitalGroundTrack({
   semiMajorAxis,
   eccentricity,
@@ -147,6 +169,7 @@ export function OrbitalGroundTrack({
   gm,
   numOrbits = 3,
   currentTrueAnomaly,
+  onLaunchSiteClick,
 }: GroundTrackProps) {
   const [showCoords, setShowCoords] = useState(true);
 
@@ -343,20 +366,21 @@ export function OrbitalGroundTrack({
         {/* Equator */}
         <line x1={0} y1={H / 2} x2={W} y2={H / 2} stroke="hsl(var(--primary))" strokeWidth="0.6" opacity="0.3" strokeDasharray="4 4" />
 
-        {/* Launch site markers */}
-        {[
-          { name: 'Cape Canaveral', lat: 28.396, lon: -80.605 },
-          { name: 'Baikonur', lat: 45.965, lon: 63.305 },
-          { name: 'Kourou', lat: 5.236, lon: -52.768 },
-          { name: 'Vandenberg', lat: 34.632, lon: -120.611 },
-          { name: 'Tanegashima', lat: 30.400, lon: 131.000 },
-          { name: 'Sriharikota', lat: 13.720, lon: 80.230 },
-          { name: 'Jiuquan', lat: 40.958, lon: 100.291 },
-          { name: 'Plesetsk', lat: 62.925, lon: 40.577 },
-        ].map(site => {
+        {/* Launch site markers (clickable) */}
+        {LAUNCH_SITES.map(site => {
           const [sx, sy] = toSVG(site.lat, site.lon);
+          const isClickable = !!onLaunchSiteClick;
           return (
-            <g key={site.name} opacity="0.7">
+            <g
+              key={site.name}
+              opacity="0.75"
+              className={isClickable ? 'cursor-pointer' : ''}
+              onClick={isClickable ? () => onLaunchSiteClick(site.orbit, site.name) : undefined}
+            >
+              {/* Hit area (invisible, larger) */}
+              {isClickable && (
+                <circle cx={sx} cy={sy} r="12" fill="transparent" />
+              )}
               {/* Diamond marker */}
               <polygon
                 points={`${sx},${sy - 4} ${sx + 3},${sy} ${sx},${sy + 4} ${sx - 3},${sy}`}
@@ -367,6 +391,11 @@ export function OrbitalGroundTrack({
               <text x={sx + 5} y={sy + 3} fill="hsl(45 80% 65%)" fontSize="6.5" fontWeight="500">
                 {site.name}
               </text>
+              {isClickable && (
+                <text x={sx + 5} y={sy + 11} fill="hsl(45 70% 50%)" fontSize="5" opacity="0.6">
+                  i={site.orbit.inclination}° h={site.orbit.periapsisAltitude}km
+                </text>
+              )}
             </g>
           );
         })}
