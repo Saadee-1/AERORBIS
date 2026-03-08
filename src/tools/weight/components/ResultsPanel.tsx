@@ -59,7 +59,7 @@ export function ResultsPanel({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
             <p className="text-xs text-gray-400 mb-1">Empty Weight</p>
-            <p className="text-cyan-400 font-bold text-xl">
+            <p className="text-primary font-bold text-xl">
               {formatWeight(W_empty)}
             </p>
             <p className="text-xs text-gray-500 mt-1">
@@ -104,43 +104,43 @@ export function ResultsPanel({
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Wing</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.wing)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.wing)}</p>
           </div>
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Fuselage</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.fuselage)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.fuselage)}</p>
           </div>
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Horizontal Tail</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.horizontalTail)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.horizontalTail)}</p>
           </div>
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Vertical Tail</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.verticalTail)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.verticalTail)}</p>
           </div>
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Landing Gear</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.landingGear.total)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.landingGear.total)}</p>
           </div>
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Engine</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.engine)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.engine)}</p>
           </div>
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Fuel System</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.fuelSystem)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.fuelSystem)}</p>
           </div>
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Controls</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.controls)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.controls)}</p>
           </div>
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Avionics</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.avionics)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.avionics)}</p>
           </div>
           <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
             <p className="text-xs text-gray-400">Fixed Equipment</p>
-            <p className="text-cyan-400 font-semibold">{formatWeight(components.fixedEquipment)}</p>
+            <p className="text-primary font-semibold">{formatWeight(components.fixedEquipment)}</p>
           </div>
         </div>
       </AeroCard>
@@ -166,7 +166,7 @@ export function ResultsPanel({
         <div className="space-y-3">
           <div>
             <p className="text-sm text-gray-400 mb-1">Aircraft Class</p>
-            <p className="text-cyan-400 font-semibold text-lg">{classification.aircraftClass}</p>
+            <p className="text-primary font-semibold text-lg">{classification.aircraftClass}</p>
           </div>
           <div>
             <p className="text-sm text-gray-400 mb-1">Classification Reason</p>
@@ -191,7 +191,7 @@ export function ResultsPanel({
               <div className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
                 <span className="text-sm text-gray-300">Wing</span>
                 <div className="text-right">
-                  <span className="text-cyan-400 font-semibold">{MATERIALS[inputs.materials.wing]?.name || inputs.materials.wing}</span>
+                  <span className="text-primary font-semibold">{MATERIALS[inputs.materials.wing]?.name || inputs.materials.wing}</span>
                   {MATERIALS[inputs.materials.wing] && (
                     <span className={`text-xs ml-2 ${MATERIALS[inputs.materials.wing].wingCoeff < 1 ? 'text-green-400' : MATERIALS[inputs.materials.wing].wingCoeff > 1 ? 'text-red-400' : 'text-gray-400'}`}>
                       ({((MATERIALS[inputs.materials.wing].wingCoeff - 1) * 100).toFixed(0)}%)
@@ -204,7 +204,7 @@ export function ResultsPanel({
               <div className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
                 <span className="text-sm text-gray-300">Fuselage</span>
                 <div className="text-right">
-                  <span className="text-cyan-400 font-semibold">{MATERIALS[inputs.materials.fuselage]?.name || inputs.materials.fuselage}</span>
+                  <span className="text-primary font-semibold">{MATERIALS[inputs.materials.fuselage]?.name || inputs.materials.fuselage}</span>
                   {MATERIALS[inputs.materials.fuselage] && (
                     <span className={`text-xs ml-2 ${MATERIALS[inputs.materials.fuselage].fuseCoeff < 1 ? 'text-green-400' : MATERIALS[inputs.materials.fuselage].fuseCoeff > 1 ? 'text-red-400' : 'text-gray-400'}`}>
                       ({((MATERIALS[inputs.materials.fuselage].fuseCoeff - 1) * 100).toFixed(0)}%)
@@ -217,7 +217,7 @@ export function ResultsPanel({
               <div className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
                 <span className="text-sm text-gray-300">Horizontal Tail</span>
                 <div className="text-right">
-                  <span className="text-cyan-400 font-semibold">{MATERIALS[inputs.materials.htail]?.name || inputs.materials.htail}</span>
+                  <span className="text-primary font-semibold">{MATERIALS[inputs.materials.htail]?.name || inputs.materials.htail}</span>
                   {MATERIALS[inputs.materials.htail] && (
                     <span className={`text-xs ml-2 ${MATERIALS[inputs.materials.htail].tailCoeff < 1 ? 'text-green-400' : MATERIALS[inputs.materials.htail].tailCoeff > 1 ? 'text-red-400' : 'text-gray-400'}`}>
                       ({((MATERIALS[inputs.materials.htail].tailCoeff - 1) * 100).toFixed(0)}%)
@@ -230,7 +230,7 @@ export function ResultsPanel({
               <div className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
                 <span className="text-sm text-gray-300">Vertical Tail</span>
                 <div className="text-right">
-                  <span className="text-cyan-400 font-semibold">{MATERIALS[inputs.materials.vtail]?.name || inputs.materials.vtail}</span>
+                  <span className="text-primary font-semibold">{MATERIALS[inputs.materials.vtail]?.name || inputs.materials.vtail}</span>
                   {MATERIALS[inputs.materials.vtail] && (
                     <span className={`text-xs ml-2 ${MATERIALS[inputs.materials.vtail].tailCoeff < 1 ? 'text-green-400' : MATERIALS[inputs.materials.vtail].tailCoeff > 1 ? 'text-red-400' : 'text-gray-400'}`}>
                       ({((MATERIALS[inputs.materials.vtail].tailCoeff - 1) * 100).toFixed(0)}%)
@@ -240,7 +240,7 @@ export function ResultsPanel({
               </div>
             )}
             {(inputs.materials.spars || inputs.materials.ribs || inputs.materials.gear || inputs.materials.nacelle) && (
-              <div className="border-t border-cyan-400/20 pt-3 mt-3">
+              <div className="border-t border-primary/20 pt-3 mt-3">
                 <p className="text-xs text-gray-400 mb-2">Additional Components:</p>
                 {inputs.materials.spars && (
                   <div className="text-xs text-gray-300">Spars: {MATERIALS[inputs.materials.spars]?.name || inputs.materials.spars}</div>
@@ -267,11 +267,11 @@ export function ResultsPanel({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-gray-400 mb-1">CG Position</p>
-                <p className="text-cyan-400 font-semibold">{cg.x_cg.toFixed(2)} m from nose</p>
+                <p className="text-primary font-semibold">{cg.x_cg.toFixed(2)} m from nose</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">CG on MAC</p>
-                <p className="text-cyan-400 font-semibold">{formatPercent(cg.x_cg_MAC)}</p>
+                <p className="text-primary font-semibold">{formatPercent(cg.x_cg_MAC)}</p>
               </div>
             </div>
             {cg.x_cg_MAC < 0.05 || cg.x_cg_MAC > 0.45 ? (
@@ -292,15 +292,15 @@ export function ResultsPanel({
           <div className="grid grid-cols-3 gap-4">
             <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
               <p className="text-xs text-gray-400 mb-1">Ixx (Roll)</p>
-              <p className="text-cyan-400 font-semibold">{inertia.Ixx.toFixed(1)} kg·m²</p>
+              <p className="text-primary font-semibold">{inertia.Ixx.toFixed(1)} kg·m²</p>
             </div>
             <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
               <p className="text-xs text-gray-400 mb-1">Iyy (Pitch)</p>
-              <p className="text-cyan-400 font-semibold">{inertia.Iyy.toFixed(1)} kg·m²</p>
+              <p className="text-primary font-semibold">{inertia.Iyy.toFixed(1)} kg·m²</p>
             </div>
             <div className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
               <p className="text-xs text-gray-400 mb-1">Izz (Yaw)</p>
-              <p className="text-cyan-400 font-semibold">{inertia.Izz.toFixed(1)} kg·m²</p>
+              <p className="text-primary font-semibold">{inertia.Izz.toFixed(1)} kg·m²</p>
             </div>
           </div>
         </AeroCard>
