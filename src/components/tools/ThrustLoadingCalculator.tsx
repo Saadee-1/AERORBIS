@@ -1074,8 +1074,8 @@ const ThrustLoadingCalculator = () => {
                     </SelectContent>
                   </Select>
                 </AeroFormField>
-                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
-                  <p className="text-xs text-gray-300">
+                <div className="mt-2 p-2 bg-muted/50 rounded border border-border">
+                  <p className="text-xs text-muted-foreground">
                     {calculatorMode === 'Beginner' && 'Simplified interface with essential features only.'}
                     {calculatorMode === 'University' && 'Standard features with full functionality.'}
                     {calculatorMode === 'Expert' && 'All features including climb performance and engine type.'}
