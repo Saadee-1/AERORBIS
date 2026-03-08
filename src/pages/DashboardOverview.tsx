@@ -105,7 +105,7 @@ const DashboardOverview = () => {
             animate={welcomeInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
-            Welcome back, <span className="text-primary drop-shadow-[0_0_15px_hsl(185_85%_50%/0.5)]">Saad</span>
+            Welcome back, <span className="text-primary drop-shadow-[0_0_15px_hsl(160_84%_39%/0.5)]">Saad</span>
           </motion.h1>
           <motion.p
             className="text-muted-foreground text-sm"
