@@ -1727,7 +1727,7 @@ const point: Record<string, unknown> = { alpha };
                     <p className="text-xl font-bold text-red-400">
                       {typeof displayCheck.display.Drag === "number" ? convertFromSI(displayCheck.display.Drag, "force").toFixed(2) : displayCheck.display.Drag} {getUnit("force")}
                     </p>
-                        <p className="text-xs text-gray-500 mt-1">Opposes motion; must be overcome by thrust</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Opposes motion; must be overcome by thrust</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: Drag not displayable" : "Invalid drag force"}</p>
