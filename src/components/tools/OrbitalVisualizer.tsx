@@ -1384,6 +1384,7 @@ const OrbitalVisualizer = () => {
         </AeroCard>
       )}
 
+      <ToolSection gridCols={2}>
         {/* Left Column - Inputs */}
         <div>
           <div className={spacingVertical.L}>
