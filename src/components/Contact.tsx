@@ -3,8 +3,9 @@ import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Linkedin, Youtube, Github, Instagram, Send } from "lucide-react";
+import { Linkedin, Youtube, Github, Instagram, Send, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const Contact = () => {
   const ref = useRef(null);
