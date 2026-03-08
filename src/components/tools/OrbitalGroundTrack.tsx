@@ -228,6 +228,61 @@ const CONTINENT_PATHS = [
   'M50,340 L150,345 L250,342 L350,345 L450,342 L550,345 L650,340 L680,350 L680,360 L0,360 L0,350 Z',
 ];
 
+// Constellation presets
+const GM_EARTH = 398600.4418;
+const CONSTELLATION_PRESETS: ConstellationPreset[] = [
+  {
+    name: 'Starlink Shell-1',
+    description: '72 planes × 22 sats, 550km, 53°',
+    semiMajorAxis: 6371 + 550,
+    eccentricity: 0.0001,
+    inclination: 53 * Math.PI / 180,
+    gm: GM_EARTH,
+    satellites: Array.from({ length: 18 }, (_, i) => ({
+      raan: (i * 20) * Math.PI / 180,
+      argOfPeriapsis: 0,
+      trueAnomaly: (i * 50) * Math.PI / 180,
+      label: `SL-${i + 1}`,
+    })),
+  },
+  {
+    name: 'GPS',
+    description: '6 planes × 4 sats, 20200km, 55°',
+    semiMajorAxis: 6371 + 20200,
+    eccentricity: 0.01,
+    inclination: 55 * Math.PI / 180,
+    gm: GM_EARTH,
+    satellites: Array.from({ length: 24 }, (_, i) => {
+      const plane = Math.floor(i / 4);
+      const slot = i % 4;
+      return {
+        raan: (plane * 60) * Math.PI / 180,
+        argOfPeriapsis: 0,
+        trueAnomaly: (slot * 90 + plane * 15) * Math.PI / 180,
+        label: `G${plane + 1}-${slot + 1}`,
+      };
+    }),
+  },
+  {
+    name: 'Iridium NEXT',
+    description: '6 planes × 11 sats, 780km, 86.4°',
+    semiMajorAxis: 6371 + 780,
+    eccentricity: 0.0002,
+    inclination: 86.4 * Math.PI / 180,
+    gm: GM_EARTH,
+    satellites: Array.from({ length: 12 }, (_, i) => {
+      const plane = Math.floor(i / 2);
+      const slot = i % 2;
+      return {
+        raan: (plane * 31.6) * Math.PI / 180,
+        argOfPeriapsis: 0,
+        trueAnomaly: (slot * 180 + plane * 20) * Math.PI / 180,
+        label: `IR-${i + 1}`,
+      };
+    }),
+  },
+];
+
 export function OrbitalGroundTrack({
   semiMajorAxis,
   eccentricity,
@@ -241,6 +296,7 @@ export function OrbitalGroundTrack({
 }: GroundTrackProps) {
   const [showCoords, setShowCoords] = useState(true);
   const [showStations, setShowStations] = useState(true);
+  const [showConstellation, setShowConstellation] = useState<string | null>(null);
   const [hoveredSite, setHoveredSite] = useState<typeof LAUNCH_SITES[number] | null>(null);
   const [hoveredStation, setHoveredStation] = useState<typeof GROUND_STATIONS[number] | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
