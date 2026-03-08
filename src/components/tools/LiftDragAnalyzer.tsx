@@ -2080,7 +2080,7 @@ const point: Record<string, unknown> = { alpha };
                       .map((setup) => (
                         <div
                           key={setup.id}
-                          className="flex items-center justify-between gap-2 bg-slate-700/30 border border-cyan-400/20 rounded px-2 py-1.5 text-xs"
+                          className="flex items-center justify-between gap-2 bg-slate-700/30 border border-primary/20 rounded px-2 py-1.5 text-xs"
                         >
                           <button
                             onClick={() => loadSetup(setup.id)}
