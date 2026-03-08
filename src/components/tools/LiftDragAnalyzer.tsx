@@ -1406,7 +1406,7 @@ const point: Record<string, unknown> = { alpha };
                   label={`Gross Wing Area (${getUnit("area")})`}
                   helperText="Total wing reference area (planform area). Used to compute lift and drag forces via L = CL × q × S and D = CD × q × S, where q is dynamic pressure. Can be imported from Wing Loading calculator."
                 >
-                  <Input id="wingArea" name="wingAreaM2" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" step="0.1" />
+                  <Input id="wingArea" name="wingAreaM2" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} min="0.001" step="0.1" />
                   <InlineInterlinkHint 
                     requiredFields={[FIELD_KEYS.wingAreaM2]} 
                     sourceTool="wingloading" 
