@@ -1588,7 +1588,7 @@ const WingLoadingCalculator = () => {
                         const rangePos = getRangeBarPosition();
                         return (
                           <div
-                            className="absolute h-full bg-cyan-400/30 border-l border-r border-cyan-400/50"
+                            className="absolute h-full bg-primary/30 border-l border-r border-primary/50"
                             style={{
                               left: `${rangePos.left}%`,
                               width: `${rangePos.width}%`
