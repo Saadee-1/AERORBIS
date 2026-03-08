@@ -1577,8 +1577,8 @@ const WingLoadingCalculator = () => {
                 >
                   <div className="space-y-3">
                     <p className="text-sm text-gray-300">
-                      Typical <span className="text-cyan-400 font-semibold">{missionType !== 'None' ? missionType : 'generic aircraft'}</span> wing loading:{" "}
-                      <span className="text-cyan-400">
+                      Typical <span className="text-primary font-semibold">{missionType !== 'None' ? missionType : 'generic aircraft'}</span> wing loading:{" "}
+                      <span className="text-primary">
                         {missionType !== 'None' ? `${getMissionData(missionType).wsMinKg}–${getMissionData(missionType).wsMaxKg} kg/m²` : 'N/A (Manual mode)'}
                       </span>
                     </p>
