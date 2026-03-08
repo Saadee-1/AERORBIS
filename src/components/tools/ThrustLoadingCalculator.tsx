@@ -1528,7 +1528,7 @@ const ThrustLoadingCalculator = () => {
                       placeholder="e.g., 90"
                       min="0"
                     />
-                    <p className="mt-1 text-[0.65rem] text-slate-400">
+                    <p className="mt-1 text-[0.65rem] text-muted-foreground">
                       Interpreted as knots (kt) for sizing diagram.
                     </p>
                   </AeroFormField>
