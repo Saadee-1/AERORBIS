@@ -207,7 +207,7 @@ export function PorkChopPlot({ onExportData }: PorkChopPlotProps) {
       }
     }
 
-    // Contour lines (simplified — draw iso-C3 boundaries)
+    // C3 Contour lines
     const contourLevels = [minC3 * 1.1, minC3 * 1.5, minC3 * 2, minC3 * 3, minC3 * 5];
     ctx.lineWidth = 1;
     for (const level of contourLevels) {
@@ -218,7 +218,6 @@ export function PorkChopPlot({ onExportData }: PorkChopPlotProps) {
           const v00 = c3Grid[i][j];
           const v10 = c3Grid[i + 1][j];
           const v01 = c3Grid[i][j + 1];
-          // Simple marching squares — check if contour crosses this cell
           if ((v00 < level) !== (v10 < level) || (v00 < level) !== (v01 < level)) {
             const cx = MARGIN.left + (j + 0.5) * cellW;
             const cy = MARGIN.top + (i + 0.5) * cellH;
@@ -228,6 +227,56 @@ export function PorkChopPlot({ onExportData }: PorkChopPlotProps) {
         }
       }
       ctx.stroke();
+    }
+
+    // ═══ TOF Contour Lines (100, 200, 300 days) ═══
+    const tofLevels = [100, 200, 300];
+    const tofColors = ['rgba(0,200,255,0.7)', 'rgba(255,200,0,0.7)', 'rgba(255,100,100,0.7)'];
+    const tofDashes = [[6, 3], [8, 4], [4, 4]];
+    for (let li = 0; li < tofLevels.length; li++) {
+      const tofTarget = tofLevels[li];
+      ctx.strokeStyle = tofColors[li];
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash(tofDashes[li]);
+      ctx.beginPath();
+      let started = false;
+      // TOF iso-line: find j for each row i where TOF = tofTarget
+      for (let i = 0; i < rows; i++) {
+        const dDate = new Date(departureDates[i]).getTime();
+        // tof = (arriveDate - departDate) / 86400000 = tofTarget
+        // arriveDate = departDate + tofTarget * 86400000
+        const targetArriveMs = dDate + tofTarget * 86400000;
+        const aStartMs = new Date(arrivalDates[0]).getTime();
+        const aEndMs = new Date(arrivalDates[cols - 1]).getTime();
+        if (targetArriveMs < aStartMs || targetArriveMs > aEndMs) {
+          started = false;
+          continue;
+        }
+        const frac = (targetArriveMs - aStartMs) / (aEndMs - aStartMs);
+        const px = MARGIN.left + frac * PLOT_SIZE;
+        const py = MARGIN.top + (i + 0.5) * cellH;
+        if (!started) { ctx.moveTo(px, py); started = true; }
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Label the TOF line
+      // Find midpoint of the line
+      const midI = Math.floor(rows / 2);
+      const dDateMid = new Date(departureDates[midI]).getTime();
+      const targetArriveMsMid = dDateMid + tofTarget * 86400000;
+      const aStartMs2 = new Date(arrivalDates[0]).getTime();
+      const aEndMs2 = new Date(arrivalDates[cols - 1]).getTime();
+      if (targetArriveMsMid >= aStartMs2 && targetArriveMsMid <= aEndMs2) {
+        const frac2 = (targetArriveMsMid - aStartMs2) / (aEndMs2 - aStartMs2);
+        const lx = MARGIN.left + frac2 * PLOT_SIZE;
+        const ly = MARGIN.top + (midI + 0.5) * cellH;
+        ctx.fillStyle = tofColors[li];
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${tofTarget}d`, lx + 3, ly - 4);
+      }
     }
 
     // Mark minimum
