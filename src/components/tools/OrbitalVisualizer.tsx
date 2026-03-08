@@ -56,9 +56,24 @@ interface OrbitalInputs {
   eccentricity: string;
   raan: string;           // Right Ascension of Ascending Node (Ω) in degrees
   argOfPeriapsis: string; // Argument of Periapsis (ω) in degrees
+  trueAnomaly: string;    // True Anomaly (ν) in degrees - initial satellite position
   centralBodyRadius: string;
   gm: string;
   targetAltitude: string;
+}
+
+// Physics: Convert true anomaly (ν) to mean anomaly (M) via eccentric anomaly (E)
+// E = 2·atan(sqrt((1-e)/(1+e))·tan(ν/2))
+// M = E - e·sin(E)
+function trueAnomalyToMean(nu: number, e: number): number {
+  if (e < 1e-8) return nu; // Circular: M ≈ ν
+  const E = 2 * Math.atan2(
+    Math.sqrt((1 - e) / (1 + e)) * Math.sin(nu / 2),
+    Math.cos(nu / 2)
+  );
+  let M = E - e * Math.sin(E);
+  if (M < 0) M += 2 * Math.PI;
+  return M;
 }
 
 interface OrbitalParams {
