@@ -1406,7 +1406,7 @@ const WingLoadingCalculator = () => {
                     )}
                     
                     {/* MTOW and Landing Weight */}
-                    <div className="pt-2 border-t border-cyan-400/20">
+                    <div className="pt-2 border-t border-primary/20">
                       <Label className="text-sm text-gray-300 mb-2 block">Weight Analysis (Optional)</Label>
                       <AeroFormField 
                         label={`MTOW (${weightMode === 'mass' ? inputUnits.mass : inputUnits.weight})`} 
