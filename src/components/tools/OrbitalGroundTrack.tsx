@@ -5,7 +5,7 @@
  * Features: Day/night terminator, real-time satellite dot, sub-satellite point coordinates
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
