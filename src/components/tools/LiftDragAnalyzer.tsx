@@ -1956,7 +1956,7 @@ const point: Record<string, unknown> = { alpha };
 
       {/* Comparison Chart */}
       {(comparisonData.length > 0 || comparisonPolars.length > 0) && (
-        <div className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-cyan-400/30 p-6 shadow-lg backdrop-blur-sm">
+        <div className="flex flex-col gap-4 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-primary/30 p-6 shadow-lg backdrop-blur-sm">
           {/* Graph Header */}
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
