@@ -87,6 +87,7 @@ type ToolPayload = {
 const OrbitalVisualizer = () => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { toast } = useToast();
+  const { isCalculating, runCalculation } = useCalculationAnimation();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<ToolPayload | null>(null);
   const [customUnitNames, setCustomUnitNames] = useState({
