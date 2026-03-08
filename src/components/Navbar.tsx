@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import ProfileMenu from "./ProfileMenu";
 import AudioToggle from "./AudioToggle";
 import ThemeToggle from "./ThemeToggle";
-import aerorbisLogo from "@/assets/aerorbis-logo.png";
+import aerorbisLogo from "@/assets/aerorbis-logo-refined.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
