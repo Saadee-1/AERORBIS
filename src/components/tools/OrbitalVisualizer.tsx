@@ -1031,7 +1031,7 @@ const OrbitalVisualizer = () => {
                   <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
                 <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
-                  <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-slate-700/50" />
+                  <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
               </div>
               <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
