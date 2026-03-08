@@ -1199,7 +1199,7 @@ const AntennaPatternAnalyzer = () => {
                         <span className="text-gray-400">Approximation:</span>
                         <span className={`font-semibold ${
                           result.metadata.approxLevel === "analytic" ? "text-green-400" :
-                          result.metadata.approxLevel === "array-analytic" ? "text-blue-400" :
+                          result.metadata.approxLevel === "array-analytic" ? "text-primary" :
                           result.metadata.approxLevel === "hybrid" ? "text-yellow-400" :
                           "text-orange-400"
                         }`}>
