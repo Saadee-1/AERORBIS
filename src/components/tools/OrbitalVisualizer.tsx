@@ -1118,12 +1118,12 @@ const OrbitalVisualizer = () => {
                   </div>
                 </div>
 
-                <Accordion type="single" collapsible className="bg-slate-800/50 rounded-lg border border-cyan-400/20">
+                <Accordion type="single" collapsible className="bg-muted/50 rounded-lg border border-border">
                   <AccordionItem value="explanation" className="border-none">
-                    <AccordionTrigger className="px-4 text-cyan-300 hover:text-cyan-400">
+                    <AccordionTrigger className="px-4 text-primary hover:text-primary/80">
                       <div className="flex items-center gap-2"><Info className="w-4 h-4" />Orbit Interpretation</div>
                     </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4 text-slate-300 space-y-4">
+                    <AccordionContent className="px-4 pb-4 text-foreground/80 space-y-4">
                       <p className="text-base">
                         This orbit has an eccentricity of {orbitResult.eccentricity.toFixed(4)}, making it {orbitResult.eccentricity < 0.01 ? 'nearly circular' : 'noticeably elliptical'}. 
                         It completes one orbit every {format("time", orbitResult.orbitalPeriod)}.
