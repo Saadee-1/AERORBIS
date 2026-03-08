@@ -227,7 +227,7 @@ const ToolsLauncher = () => {
                     initial={{ opacity: 0, scale: 0.95, y: -10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    className="absolute right-0 top-full mt-2 z-50 w-64 bg-slate-800/95 backdrop-blur-lg border border-cyan-400/30 rounded-lg shadow-xl overflow-hidden"
+                    className="absolute right-0 top-full mt-2 z-50 w-64 bg-popover backdrop-blur-lg border border-border rounded-lg shadow-xl overflow-hidden"
                     style={{ maxHeight: '11rem' }}
                     onMouseEnter={() => setIsHoveringTools(true)}
                     onMouseLeave={() => setIsHoveringTools(false)}
