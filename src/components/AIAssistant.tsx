@@ -265,7 +265,7 @@ const AIAssistant: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                      className="h-7 w-7 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
                       title="Menu"
                     >
                       <Menu className="w-4 h-4" />
