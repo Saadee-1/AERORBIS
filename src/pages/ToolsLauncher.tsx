@@ -201,7 +201,7 @@ const ToolsLauncher = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 flex justify-end relative"
+              className="mb-4 flex justify-end items-center gap-3 relative"
             >
               <Button
                 variant="outline"
