@@ -177,7 +177,7 @@ const Hero = () => {
       <FloatingIcon Icon={Cpu} x="12%" y="65%" delay={2.6} />
 
       {/* HUD Frame */}
-      <div className="absolute inset-8 md:inset-16 pointer-events-none">
+      <div className="absolute inset-4 sm:inset-8 md:inset-16 pointer-events-none">
         <HUDCorner position="tl" />
         <HUDCorner position="tr" />
         <HUDCorner position="bl" />
