@@ -982,7 +982,7 @@ export default function ClimbPerformanceCalculator() {
                   <>
                     <div className="space-y-3">
                     <div>
-                        <h4 className="text-sm font-semibold text-cyan-400 mb-1">V_y — Best Rate of Climb Speed</h4>
+                        <h4 className="text-sm font-semibold text-primary mb-1">V_y — Best Rate of Climb Speed</h4>
                         <p className="text-xs text-gray-500 mb-2">True airspeed that maximizes vertical velocity (rate of climb). Used for time-to-climb optimization.</p>
                       <p className="text-2xl font-bold text-white">{result.vY.toFixed(2)} m/s</p>
                         <p className="text-sm text-gray-400">{msToKts(result.vY).toFixed(2)} kts (TAS)</p>
