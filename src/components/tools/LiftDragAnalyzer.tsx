@@ -1062,7 +1062,7 @@ const point: Record<string, unknown> = { alpha };
 
     return (
       <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-        <p className="text-cyan-400 font-semibold mb-2">
+        <p className="text-primary font-semibold mb-2">
           {graphMode === "dragPolar" ? `CL = ${label}` : `α = ${label}°`}
         </p>
         {isPostStall && (
