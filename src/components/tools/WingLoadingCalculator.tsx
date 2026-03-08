@@ -1061,15 +1061,15 @@ const WingLoadingCalculator = () => {
                   </Select>
                 </AeroFormField>
                 {missionType !== 'None' && (
-                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
+                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-primary/20">
                     <p className="text-sm text-gray-300">
-                      <span className="text-cyan-400 font-semibold">CL,max:</span> {currentClMax.toFixed(2)}
+                      <span className="text-primary font-semibold">CL,max:</span> {currentClMax.toFixed(2)}
                     </p>
                     <p className="text-sm text-gray-300 mt-1">
-                      <span className="text-cyan-400 font-semibold">Typical W/S:</span> {getMissionData(missionType).wsMinKg}–{getMissionData(missionType).wsMaxKg} kg/m²
+                      <span className="text-primary font-semibold">Typical W/S:</span> {getMissionData(missionType).wsMinKg}–{getMissionData(missionType).wsMaxKg} kg/m²
                     </p>
                     <p className="text-sm text-gray-300 mt-1">
-                      <span className="text-cyan-400 font-semibold">Typical V_s:</span> {getMissionData(missionType).vsMin}–{getMissionData(missionType).vsMax} m/s
+                      <span className="text-primary font-semibold">Typical V_s:</span> {getMissionData(missionType).vsMin}–{getMissionData(missionType).vsMax} m/s
                     </p>
                   </div>
                 )}
