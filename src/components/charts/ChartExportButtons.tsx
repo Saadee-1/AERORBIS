@@ -26,7 +26,7 @@ export function ChartExportButtons({ exportAsPng, exportAsSvg }: ChartExportButt
         variant="outline"
         size="sm"
         onClick={exportAsSvg}
-        className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-600/20 text-white"
+        className="bg-slate-700/50 border-primary/30 hover:bg-primary/20 text-white"
       >
         <Download className="w-4 h-4 mr-1" />
         SVG

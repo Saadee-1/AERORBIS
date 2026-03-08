@@ -332,7 +332,7 @@ export default function PowerSystemCalculator() {
                   type="number"
                   value={dayOfYear}
                   onChange={(e) => setDayOfYear(Math.max(1, Math.min(365, parseInt(e.target.value) || 180)))}
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                   min="1"
                   max="365"
                   step="1"

@@ -26,22 +26,22 @@ export function SystemsPanel({ inputs, onInputChange }: SystemsPanelProps) {
     <AeroCard title="Systems & Avionics" icon={Settings}>
       <div className="space-y-6">
         <div>
-          <h3 className="text-sm font-semibold text-cyan-400 mb-3">Crew & Basic</h3>
+          <h3 className="text-sm font-semibold text-primary mb-3">Crew & Basic</h3>
           <AeroFormField label="Crew Weight" helperText="N" htmlFor="W_crew">
             <Input
               id="W_crew"
               type="number"
               value={inputs.systems.W_crew || ''}
               onChange={(e) => handleNumberChange(['systems', 'W_crew'], e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
+              className="bg-slate-700/50 border-primary/30 text-white"
               min="0"
               step="100"
             />
           </AeroFormField>
         </div>
 
-        <div className="border-t border-cyan-400/20 pt-4">
-          <h3 className="text-sm font-semibold text-cyan-400 mb-3">Avionics</h3>
+        <div className="border-t border-primary/20 pt-4">
+          <h3 className="text-sm font-semibold text-primary mb-3">Avionics</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="autopilot" className="text-gray-300">
@@ -111,8 +111,8 @@ export function SystemsPanel({ inputs, onInputChange }: SystemsPanelProps) {
           </div>
         </div>
 
-        <div className="border-t border-cyan-400/20 pt-4">
-          <h3 className="text-sm font-semibold text-cyan-400 mb-3">Flight Controls</h3>
+        <div className="border-t border-primary/20 pt-4">
+          <h3 className="text-sm font-semibold text-primary mb-3">Flight Controls</h3>
           <div className="flex items-center justify-between">
             <Label htmlFor="isFBW" className="text-gray-300">
               Fly-by-Wire (FBW) - adds 15-25% weight
@@ -125,8 +125,8 @@ export function SystemsPanel({ inputs, onInputChange }: SystemsPanelProps) {
           </div>
         </div>
 
-        <div className="border-t border-cyan-400/20 pt-4">
-          <h3 className="text-sm font-semibold text-cyan-400 mb-3">Fixed Equipment</h3>
+        <div className="border-t border-primary/20 pt-4">
+          <h3 className="text-sm font-semibold text-primary mb-3">Fixed Equipment</h3>
           <div className="space-y-4">
             <AeroFormField label="Number of Seats" helperText="" htmlFor="n_seats">
               <Input
@@ -134,7 +134,7 @@ export function SystemsPanel({ inputs, onInputChange }: SystemsPanelProps) {
                 type="number"
                 value={inputs.systems.fixedEquipment.n_seats || ''}
                 onChange={(e) => handleNumberChange(['systems', 'fixedEquipment', 'n_seats'], e.target.value)}
-                className="bg-slate-700/50 border-cyan-400/30 text-white"
+                className="bg-slate-700/50 border-primary/30 text-white"
                 min="0"
                 step="1"
               />
@@ -204,7 +204,7 @@ export function SystemsPanel({ inputs, onInputChange }: SystemsPanelProps) {
                   type="number"
                   value={inputs.systems.fixedEquipment.batteryCapacity || ''}
                   onChange={(e) => handleNumberChange(['systems', 'fixedEquipment', 'batteryCapacity'], e.target.value)}
-                  className="bg-slate-700/50 border-cyan-400/30 text-white"
+                  className="bg-slate-700/50 border-primary/30 text-white"
                   min="0"
                   step="10"
                 />

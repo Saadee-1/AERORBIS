@@ -63,7 +63,7 @@ export function PresetsPanel({
               <div>V_H: {((selectedPreset.S_t * selectedPreset.l_t) / (selectedPreset.S_w * selectedPreset.c_bar)).toFixed(2)}</div>
             </div>
             {selectedPreset.notes && (
-              <p className="text-xs text-cyan-400 mb-3">{selectedPreset.notes}</p>
+              <p className="text-xs text-primary mb-3">{selectedPreset.notes}</p>
             )}
             <Button
               onClick={() => onLoadPreset(selectedPreset)}

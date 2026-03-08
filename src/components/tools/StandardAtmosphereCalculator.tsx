@@ -520,7 +520,7 @@ export default function StandardAtmosphereCalculator() {
                       }
                     }}
                     placeholder="0"
-                    className="bg-slate-700/50 border-cyan-400/30 text-white"
+                    className="bg-slate-700/50 border-primary/30 text-white"
                     min="0"
                     step="0.1"
                   />
