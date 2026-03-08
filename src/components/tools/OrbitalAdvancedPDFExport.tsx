@@ -167,6 +167,7 @@ export function generateAdvancedOrbitalPDF(props: AdvancedPDFExportProps): strin
   ${renderSectionHTML('Interplanetary Transfer', props.interplanetaryResults || [])}
   ${renderSectionHTML('Gravity Assist Analysis', props.gravityAssistResults || [])}
   ${renderSectionHTML('Low-Thrust Spiral Transfer', props.lowThrustResults || [])}
+  ${renderSectionHTML('Orbit Determination (Gauss Method)', props.gaussResults || [])}
   ${props.porkChopData ? renderPorkChopHTML(props.porkChopData) : ''}
 
   <div class="footer">
