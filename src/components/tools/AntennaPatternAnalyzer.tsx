@@ -1169,7 +1169,7 @@ const AntennaPatternAnalyzer = () => {
                       {result.sideLobeLevel.toFixed(2)} dB
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                     <p className="text-xs text-gray-400 mb-1">F/B Ratio</p>
                     <p className="text-orange-400 font-bold text-lg">
                       {result.frontToBackRatio.toFixed(2)} dB
