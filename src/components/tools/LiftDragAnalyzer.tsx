@@ -1705,7 +1705,7 @@ const point: Record<string, unknown> = { alpha };
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="p-3 rounded bg-blue-500/10 border border-blue-400/30">
+                  <div className="p-3 rounded bg-primary/10 border border-primary/30">
                     <p className="text-sm text-muted-foreground mb-1">Lift Force (L)</p>
                     <p className="text-xs text-muted-foreground/70 mb-2">L = CL × q × S, where q = 0.5 × ρ × V²</p>
                     {displayCheck.display.Lift !== "—" ? (
