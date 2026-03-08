@@ -1823,7 +1823,7 @@ const point: Record<string, unknown> = { alpha };
                           });
                         }
                       }}
-                      className="border-cyan-400/40 text-cyan-400 hover:bg-cyan-400/10"
+                      className="border-primary/40 text-primary hover:bg-primary/10"
                     >
                       Use as climb L/D in Thrust Calculator
                     </Button>
