@@ -123,6 +123,9 @@ export function OrbitalAdvancedPanel({
   // ── Pork-chop data ──
   const [porkChopData, setPorkChopData] = useState<PorkChopData | null>(null);
 
+  // ── Gravity assist results ──
+  const [gravityAssistResults, setGravityAssistResults] = useState<AdvancedResult[]>([]);
+
   // ── Results ──
   const [maneuverResults, setManeuverResults] = useState<AdvancedResult[]>([]);
   const [lambertResult, setLambertResult] = useState<AdvancedResult | null>(null);
