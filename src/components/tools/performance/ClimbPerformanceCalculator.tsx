@@ -846,7 +846,7 @@ export default function ClimbPerformanceCalculator() {
 
       {/* Actions */}
       <ToolActions>
-        <AeroButton onClick={handleCalculate} icon={Calculator}>
+        <AeroButton onClick={() => runCalculation(handleCalculate)} icon={Calculator}>
           Calculate Climb Performance
         </AeroButton>
         {result && lastRequestId && (
