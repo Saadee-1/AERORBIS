@@ -113,10 +113,10 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
             <XAxis dataKey="name" {...globalAxisCommonProps} tick={globalAxisTickStyle} />
             <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
             />
-            <Bar dataKey="weight" fill="#22d3ee" name="Weight (kg)" />
+            <Bar dataKey="weight" fill="#10b981" name="Weight (kg)" />
           </BarChart>
         </ResponsiveContainer>
         <div className="mt-3 pt-3 border-t border-slate-700/50">
