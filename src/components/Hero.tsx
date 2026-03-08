@@ -228,7 +228,7 @@ const Hero = () => {
             <Button 
               asChild 
               size="lg" 
-              className="px-10 py-6 gap-3 text-base font-semibold tracking-wider group relative overflow-hidden bg-primary hover:bg-primary/90"
+              className="px-10 py-6 gap-3 text-base font-semibold tracking-wider group relative overflow-hidden bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)]"
             >
               <Link to="/tools">
                 <span className="relative z-10 flex items-center gap-2 uppercase font-rajdhani">
