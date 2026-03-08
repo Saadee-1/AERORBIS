@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import ProfileMenu from "./ProfileMenu";
 import AudioToggle from "./AudioToggle";
+import ThemeToggle from "./ThemeToggle";
 import aerorbisLogo from "@/assets/aerorbis-logo.png";
 
 const Navbar = () => {
@@ -68,6 +69,7 @@ const Navbar = () => {
 
           {/* Right controls */}
           <div className="hidden lg:flex items-center gap-2">
+            <ThemeToggle />
             <AudioToggle />
             <ProfileMenu />
           </div>
@@ -87,6 +89,7 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
+            <ThemeToggle />
             <AudioToggle />
             <ProfileMenu />
           </div>
@@ -123,6 +126,7 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="pt-3 border-t border-border/20 flex items-center justify-between">
+              <ThemeToggle />
               <AudioToggle />
               <ProfileMenu />
             </div>

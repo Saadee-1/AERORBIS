@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParallax } from '@/hooks/useParallax';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Star {
   id: number;
@@ -33,6 +34,7 @@ interface AuroraWave {
 }
 
 const GalaxyBackground = () => {
+  const { theme } = useTheme();
   const { mouseX, mouseY, scrollY } = useParallax();
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
@@ -123,6 +125,8 @@ const GalaxyBackground = () => {
 
   // Bright stars count - responsive
   const brightStarsCount = isMobile ? 8 : isTablet ? 12 : 18;
+
+  if (theme === 'light') return null;
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
