@@ -81,9 +81,9 @@ const MaterialDetailsDrawer = ({
           </div>
 
           {/* Description */}
-          <div className="p-4 bg-slate-800/50 rounded-lg border border-cyan-400/20">
+          <div className="p-4 bg-card/50 rounded-lg border border-primary/20">
             <div className="flex items-center gap-2 mb-3">
-              <Info className="w-5 h-5 text-cyan-400" />
+              <Info className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-semibold text-white">Description</h3>
             </div>
             <p className="text-gray-300 leading-relaxed">{material.description}</p>
