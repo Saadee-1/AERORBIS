@@ -1961,7 +1961,7 @@ const point: Record<string, unknown> = { alpha };
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-xl font-bold text-cyan-300">
+                <h3 className="text-xl font-bold text-primary">
                   {graphMode === "ld" && "Performance Comparison (L/D Ratio)"}
                   {graphMode === "cl" && "Lift Coefficient (CL) vs Angle of Attack"}
                   {graphMode === "cd" && "Drag Coefficient (CD) vs Angle of Attack"}
