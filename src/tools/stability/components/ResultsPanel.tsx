@@ -67,7 +67,7 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
       {/* Longitudinal Stability */}
       <AeroCard title="Longitudinal Stability">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-gradient-to-br from-blue-400/10 to-primary/10 rounded-lg border border-primary/20">
+          <div className="p-4 bg-gradient-to-br from-primary/10 to-emerald-400/10 rounded-lg border border-primary/20">
             <p className="text-xs text-muted-foreground mb-1">C_mα</p>
             <p className="text-primary font-bold text-xl">
               {safeToFixed(results.C_m_alpha, 4)}
