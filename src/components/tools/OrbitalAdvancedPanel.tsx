@@ -30,6 +30,8 @@ import {
 import { Rocket, Globe, Zap, Navigation, Atom, Orbit } from 'lucide-react';
 import { PorkChopPlot, type PorkChopData } from './PorkChopPlot';
 import { AdvancedPDFExportButton } from './OrbitalAdvancedPDFExport';
+import { GravityAssistCalculator } from './GravityAssistCalculator';
+import { LaunchVehicleC3Overlay } from './LaunchVehicleC3Overlay';
 
 interface OrbitalAdvancedPanelProps {
   semiMajorAxis?: number;
@@ -121,6 +123,9 @@ export function OrbitalAdvancedPanel({
   // ── Pork-chop data ──
   const [porkChopData, setPorkChopData] = useState<PorkChopData | null>(null);
 
+  // ── Gravity assist results ──
+  const [gravityAssistResults, setGravityAssistResults] = useState<AdvancedResult[]>([]);
+
   // ── Results ──
   const [maneuverResults, setManeuverResults] = useState<AdvancedResult[]>([]);
   const [lambertResult, setLambertResult] = useState<AdvancedResult | null>(null);
@@ -194,6 +199,7 @@ export function OrbitalAdvancedPanel({
           maneuverResults={maneuverResults}
           lambertResult={lambertResult}
           interplanetaryResults={interplanetaryResults}
+          gravityAssistResults={gravityAssistResults}
           porkChopData={porkChopData}
           orbitParams={semiMajorAxis && eccentricity !== undefined && inclination_deg !== undefined ? {
             semiMajorAxis,
@@ -382,6 +388,15 @@ export function OrbitalAdvancedPanel({
       </AeroCard>
       {/* ═══ PORK-CHOP PLOT ═══ */}
       <PorkChopPlot onExportData={setPorkChopData} />
+
+      {/* ═══ GRAVITY ASSIST ═══ */}
+      <GravityAssistCalculator onResults={setGravityAssistResults} />
+
+      {/* ═══ LAUNCH VEHICLE C3 OVERLAY ═══ */}
+      <LaunchVehicleC3Overlay 
+        missionC3={porkChopData?.minC3 || (interplanetaryResults.length > 0 ? interplanetaryResults[0]?.value * interplanetaryResults[0]?.value : undefined)}
+        missionName={porkChopData ? `${porkChopData.departPlanet}→${porkChopData.arrivePlanet}` : undefined}
+      />
     </div>
   );
 }
