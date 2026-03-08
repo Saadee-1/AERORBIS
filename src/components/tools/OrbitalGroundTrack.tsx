@@ -2,9 +2,10 @@
  * Orbital Ground Track - 2D Mercator Projection
  * Shows the satellite's ground track on Earth's surface
  * Physics: ECI position → latitude/longitude via Earth rotation
+ * Features: Day/night terminator, real-time satellite dot, sub-satellite point coordinates
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 interface GroundTrackProps {
   semiMajorAxis: number;
@@ -48,6 +49,94 @@ function perifocalToECI(
 
 // Earth rotation rate (rad/s)
 const EARTH_OMEGA = 7.2921159e-5;
+// Earth axial tilt (radians)
+const EARTH_OBLIQUITY = 23.4393 * Math.PI / 180;
+
+/**
+ * Compute day/night terminator line on equirectangular projection.
+ * The subsolar point longitude depends on current time of day;
+ * we use real wall-clock time for a live feel.
+ * Returns array of {lat, lon} points tracing the terminator.
+ */
+function computeTerminator(): Array<{ lat: number; lon: number }> {
+  const now = new Date();
+  // Day of year (approximate)
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / 86400000);
+
+  // Solar declination (approximate)
+  const declination = EARTH_OBLIQUITY * Math.sin((2 * Math.PI / 365) * (dayOfYear - 81));
+
+  // Subsolar longitude from UTC hour
+  const hours = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+  const subsolarLon = (12 - hours) * 15; // degrees, 15°/hour
+
+  const points: Array<{ lat: number; lon: number }> = [];
+  // Trace terminator: for each longitude, find the latitude where sun elevation = 0
+  for (let lonDeg = -180; lonDeg <= 180; lonDeg += 2) {
+    const lonRad = lonDeg * Math.PI / 180;
+    const subsolarLonRad = subsolarLon * Math.PI / 180;
+    const hourAngle = lonRad - subsolarLonRad;
+    // At terminator: sin(alt)=0 → sin(lat)·sin(dec) + cos(lat)·cos(dec)·cos(H) = 0
+    // → tan(lat) = -cos(H)·cos(dec)/sin(dec) = -cos(H)/tan(dec)
+    // Handle edge case where declination ≈ 0
+    let latRad: number;
+    if (Math.abs(declination) < 1e-6) {
+      // Equinox: terminator is a great circle through poles at ±90° from subsolar
+      latRad = Math.atan(-Math.cos(hourAngle) * 1e6); // approaches ±π/2
+    } else {
+      latRad = Math.atan(-Math.cos(hourAngle) / Math.tan(declination));
+    }
+    const latDeg = latRad * 180 / Math.PI;
+    points.push({ lat: latDeg, lon: lonDeg });
+  }
+  return points;
+}
+
+/**
+ * Build the dark-side polygon for SVG fill.
+ * The terminator splits Earth into day/night; we fill the night side.
+ */
+function buildNightPolygon(
+  terminatorPoints: Array<{ lat: number; lon: number }>,
+  toSVG: (lat: number, lon: number) => [number, number],
+  W: number,
+  H: number
+): string {
+  if (terminatorPoints.length === 0) return '';
+
+  // Determine which side is night by checking subsolar point
+  const now = new Date();
+  const hours = now.getUTCHours() + now.getUTCMinutes() / 60;
+  const subsolarLon = (12 - hours) * 15;
+  // Night is opposite side of subsolar longitude
+  const nightLon = ((subsolarLon + 360 + 180) % 360) - 180;
+
+  // Check if the night center is above or below the terminator at that longitude
+  const midTerminator = terminatorPoints[Math.floor(terminatorPoints.length / 2)];
+  const nightIsAbove = nightLon > -90 && nightLon < 90
+    ? midTerminator.lat < 0  // rough heuristic
+    : midTerminator.lat > 0;
+
+  // Build path: terminator line + close along top or bottom edge
+  let path = '';
+  terminatorPoints.forEach((p, idx) => {
+    const [x, y] = toSVG(p.lat, p.lon);
+    path += idx === 0 ? `M${x.toFixed(1)},${y.toFixed(1)}` : ` L${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+
+  // Close polygon along the night side edge
+  if (nightIsAbove) {
+    // Night is toward top (higher latitudes → smaller Y)
+    path += ` L${W},0 L0,0 Z`;
+  } else {
+    // Night is toward bottom
+    path += ` L${W},${H} L0,${H} Z`;
+  }
+
+  return path;
+}
 
 export function OrbitalGroundTrack({
   semiMajorAxis,
@@ -59,12 +148,14 @@ export function OrbitalGroundTrack({
   numOrbits = 3,
   currentTrueAnomaly,
 }: GroundTrackProps) {
+  const [showCoords, setShowCoords] = useState(true);
+
   const { tracks, currentPos } = useMemo(() => {
     if (!semiMajorAxis || semiMajorAxis <= 0 || !gm || gm <= 0) {
       return { tracks: [], currentPos: null };
     }
 
-    const n = Math.sqrt(gm / Math.pow(semiMajorAxis, 3)); // mean motion (rad/s)
+    const n = Math.sqrt(gm / Math.pow(semiMajorAxis, 3));
     const period = (2 * Math.PI) / n;
     const totalTime = period * numOrbits;
     const steps = 600;
@@ -78,30 +169,20 @@ export function OrbitalGroundTrack({
       const M = (n * t) % (2 * Math.PI);
       const E = solveKepler(M, eccentricity);
 
-      // True anomaly
       const nu = 2 * Math.atan2(
         Math.sqrt((1 + eccentricity) / (1 - eccentricity)) * Math.sin(E / 2),
         Math.cos(E / 2)
       );
 
-      // Distance
       const r = semiMajorAxis * (1 - eccentricity * Math.cos(E));
-
-      // Perifocal position
       const x_p = r * Math.cos(nu);
       const y_p = r * Math.sin(nu);
-
-      // ECI position
       const [x, y, z] = perifocalToECI(x_p, y_p, inclination, raan, argOfPeriapsis);
 
-      // Convert ECI → lat/lon (accounting for Earth rotation)
       const rMag = Math.sqrt(x * x + y * y + z * z);
       const lat = Math.asin(z / rMag) * (180 / Math.PI);
-
-      // Greenwich sidereal angle rotates with Earth
-      const theta_g = EARTH_OMEGA * t; // simplified
+      const theta_g = EARTH_OMEGA * t;
       let lon = (Math.atan2(y, x) - theta_g) * (180 / Math.PI);
-      // Normalize to [-180, 180]
       lon = ((lon + 540) % 360) - 180;
 
       tracks.push({ lat, lon });
@@ -111,35 +192,26 @@ export function OrbitalGroundTrack({
     return { tracks, currentPos };
   }, [semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis, gm, numOrbits]);
 
-  // SVG dimensions
   const W = 720;
   const H = 360;
-  const PAD = 0;
 
-  // Convert lat/lon to SVG coords (Mercator-like equirectangular)
   const toSVG = (lat: number, lon: number): [number, number] => {
-    const x = ((lon + 180) / 360) * W + PAD;
-    const y = ((90 - lat) / 180) * H + PAD;
+    const x = ((lon + 180) / 360) * W;
+    const y = ((90 - lat) / 180) * H;
     return [x, y];
   };
 
-  // Build path segments (break at antimeridian crossings)
   const pathSegments = useMemo(() => {
     if (tracks.length === 0) return [];
-
     const segments: string[] = [];
     let currentPath = '';
-
     for (let i = 0; i < tracks.length; i++) {
       const [x, y] = toSVG(tracks[i].lat, tracks[i].lon);
-
       if (i === 0) {
         currentPath = `M${x.toFixed(1)},${y.toFixed(1)}`;
       } else {
-        // Detect antimeridian crossing (large longitude jump)
         const lonDiff = Math.abs(tracks[i].lon - tracks[i - 1].lon);
         if (lonDiff > 180) {
-          // Break the path
           segments.push(currentPath);
           currentPath = `M${x.toFixed(1)},${y.toFixed(1)}`;
         } else {
@@ -151,8 +223,20 @@ export function OrbitalGroundTrack({
     return segments;
   }, [tracks]);
 
-  // Compute real-time satellite position on ground track from current true anomaly
-  const satelliteSVG = useMemo(() => {
+  // Day/night terminator
+  const { terminatorPath, nightPolygon } = useMemo(() => {
+    const points = computeTerminator();
+    let terminatorPath = '';
+    points.forEach((p, idx) => {
+      const [x, y] = toSVG(p.lat, p.lon);
+      terminatorPath += idx === 0 ? `M${x.toFixed(1)},${y.toFixed(1)}` : ` L${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const nightPolygon = buildNightPolygon(points, toSVG, W, H);
+    return { terminatorPath, nightPolygon };
+  }, []);
+
+  // Real-time satellite position with lat/lon
+  const satelliteData = useMemo(() => {
     if (currentTrueAnomaly === undefined || !semiMajorAxis || semiMajorAxis <= 0) return null;
 
     const nu = currentTrueAnomaly;
@@ -163,11 +247,13 @@ export function OrbitalGroundTrack({
 
     const rMag = Math.sqrt(x * x + y * y + z * z);
     const lat = Math.asin(z / rMag) * (180 / Math.PI);
-    // Note: For real-time dot we skip Earth rotation (t=0 snapshot) to match the static ground track
     let lon = Math.atan2(y, x) * (180 / Math.PI);
     lon = ((lon + 540) % 360) - 180;
 
-    return toSVG(lat, lon);
+    const altitude = rMag - 6371; // km above Earth surface
+    const svgPos = toSVG(lat, lon);
+
+    return { lat, lon, altitude, svgPos };
   }, [currentTrueAnomaly, semiMajorAxis, eccentricity, inclination, raan, argOfPeriapsis]);
 
   if (tracks.length === 0) {
@@ -178,10 +264,8 @@ export function OrbitalGroundTrack({
     );
   }
 
-  // Grid lines
   const latLines = [-60, -30, 0, 30, 60];
   const lonLines = [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150];
-
   const currentSVG = currentPos ? toSVG(currentPos.lat, currentPos.lon) : null;
 
   return (
@@ -194,19 +278,23 @@ export function OrbitalGroundTrack({
         {/* Ocean background */}
         <rect x={0} y={0} width={W} height={H} fill="hsl(220 60% 8%)" />
 
-        {/* Simplified continent outlines (rough boxes for major landmasses) */}
-        {/* North America */}
+        {/* Night side overlay */}
+        {nightPolygon && (
+          <path d={nightPolygon} fill="hsl(220 80% 3%)" opacity="0.55" />
+        )}
+
+        {/* Continent outlines */}
         <path d="M100,60 L160,55 L170,80 L155,120 L130,130 L100,110 Z" fill="hsl(140 30% 15%)" opacity="0.6" />
-        {/* South America */}
         <path d="M155,140 L175,130 L185,170 L170,220 L145,230 L140,190 Z" fill="hsl(140 30% 15%)" opacity="0.6" />
-        {/* Europe */}
         <path d="M340,55 L380,50 L395,65 L385,85 L350,80 Z" fill="hsl(140 30% 15%)" opacity="0.6" />
-        {/* Africa */}
         <path d="M340,100 L390,95 L400,140 L380,195 L345,200 L335,150 Z" fill="hsl(140 30% 15%)" opacity="0.6" />
-        {/* Asia */}
         <path d="M400,35 L540,30 L560,70 L530,100 L460,105 L400,90 Z" fill="hsl(140 30% 15%)" opacity="0.6" />
-        {/* Australia */}
         <path d="M530,170 L580,165 L590,195 L560,210 L530,200 Z" fill="hsl(140 30% 15%)" opacity="0.6" />
+
+        {/* Day/Night terminator line */}
+        {terminatorPath && (
+          <path d={terminatorPath} fill="none" stroke="hsl(45 90% 60%)" strokeWidth="1.2" opacity="0.5" strokeDasharray="4 3" />
+        )}
 
         {/* Grid lines */}
         {latLines.map(lat => {
@@ -234,7 +322,6 @@ export function OrbitalGroundTrack({
         {/* Inclination bands */}
         {inclination !== 0 && (
           <>
-            {/* Max latitude = inclination */}
             <line x1={0} y1={toSVG(inclination * 180 / Math.PI, 0)[1]} x2={W} y2={toSVG(inclination * 180 / Math.PI, 0)[1]}
               stroke="hsl(var(--destructive))" strokeWidth="0.4" opacity="0.3" strokeDasharray="2 4" />
             <line x1={0} y1={toSVG(-inclination * 180 / Math.PI, 0)[1]} x2={W} y2={toSVG(-inclination * 180 / Math.PI, 0)[1]}
@@ -245,9 +332,7 @@ export function OrbitalGroundTrack({
         {/* Ground track paths */}
         {pathSegments.map((d, i) => (
           <g key={`track-${i}`}>
-            {/* Glow */}
             <path d={d} fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" opacity="0.15" />
-            {/* Main line */}
             <path d={d} fill="none" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.8" />
           </g>
         ))}
@@ -264,28 +349,83 @@ export function OrbitalGroundTrack({
         )}
 
         {/* Real-time satellite position */}
-        {satelliteSVG && (
+        {satelliteData && (
           <g>
             {/* Pulse ring */}
-            <circle cx={satelliteSVG[0]} cy={satelliteSVG[1]} r="8" fill="none" stroke="hsl(var(--destructive))" strokeWidth="1" opacity="0.4">
-              <animate attributeName="r" values="5;10;5" dur="2s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite" />
+            <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="8" fill="none" stroke="hsl(var(--destructive))" strokeWidth="1" opacity="0.4">
+              <animate attributeName="r" values="5;12;5" dur="2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.6;0.05;0.6" dur="2s" repeatCount="indefinite" />
             </circle>
-            {/* Glow */}
-            <circle cx={satelliteSVG[0]} cy={satelliteSVG[1]} r="5" fill="hsl(var(--destructive))" opacity="0.2" />
-            {/* Dot */}
-            <circle cx={satelliteSVG[0]} cy={satelliteSVG[1]} r="3.5" fill="hsl(var(--destructive))" stroke="hsl(var(--background))" strokeWidth="1" />
-            <text x={satelliteSVG[0] + 10} y={satelliteSVG[1] - 6} fill="hsl(var(--destructive))" fontSize="8" fontWeight="700">
+            {/* Outer glow */}
+            <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="6" fill="hsl(var(--destructive))" opacity="0.15" />
+            {/* Main dot */}
+            <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="3.5" fill="hsl(var(--destructive))" stroke="hsl(var(--background))" strokeWidth="1" />
+            {/* Label */}
+            <text x={satelliteData.svgPos[0] + 10} y={satelliteData.svgPos[1] - 6} fill="hsl(var(--destructive))" fontSize="8" fontWeight="700">
               SAT
             </text>
           </g>
         )}
 
-        {/* Labels */}
+        {/* Day/Night label */}
+        <text x={W - 6} y={14} textAnchor="end" fill="hsl(45 90% 60%)" fontSize="8" opacity="0.5">
+          ☀ Day/Night
+        </text>
+
+        {/* Title */}
         <text x={W / 2} y={14} textAnchor="middle" fill="hsl(var(--foreground))" fontSize="11" fontWeight="600" opacity="0.7">
           Ground Track — {numOrbits} Orbit{numOrbits > 1 ? 's' : ''}
         </text>
       </svg>
+
+      {/* Sub-satellite point info box */}
+      {satelliteData && showCoords && (
+        <div
+          className="absolute bottom-2 left-2 bg-background/85 backdrop-blur-sm border border-border rounded-md px-3 py-2 text-xs font-mono shadow-lg"
+          style={{ minWidth: 180 }}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-destructive font-bold text-[11px] tracking-wide">● SUB-SATELLITE POINT</span>
+            <button
+              onClick={() => setShowCoords(false)}
+              className="text-muted-foreground hover:text-foreground text-[10px] ml-2"
+              aria-label="Hide coordinates"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-muted-foreground">
+            <span>Lat:</span>
+            <span className="text-foreground font-semibold">
+              {satelliteData.lat >= 0 ? '+' : ''}{satelliteData.lat.toFixed(2)}°
+              {satelliteData.lat >= 0 ? ' N' : ' S'}
+            </span>
+            <span>Lon:</span>
+            <span className="text-foreground font-semibold">
+              {satelliteData.lon >= 0 ? '+' : ''}{satelliteData.lon.toFixed(2)}°
+              {satelliteData.lon >= 0 ? ' E' : ' W'}
+            </span>
+            <span>Alt:</span>
+            <span className="text-foreground font-semibold">
+              {satelliteData.altitude.toFixed(1)} km
+            </span>
+            <span>ν:</span>
+            <span className="text-foreground font-semibold">
+              {((currentTrueAnomaly ?? 0) * 180 / Math.PI).toFixed(1)}°
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Show coords button when hidden */}
+      {satelliteData && !showCoords && (
+        <button
+          onClick={() => setShowCoords(true)}
+          className="absolute bottom-2 left-2 bg-background/80 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground shadow"
+        >
+          Show Coordinates
+        </button>
+      )}
     </div>
   );
 }
