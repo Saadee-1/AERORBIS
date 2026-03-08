@@ -261,7 +261,7 @@ const Hero = () => {
               variant="outline"
               size="lg" 
               onClick={handleLaunchTools}
-              className="px-10 py-6 gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-base tracking-wider uppercase font-rajdhani group transition-all duration-300 hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] relative overflow-visible"
+              className="px-6 sm:px-10 py-5 sm:py-6 gap-2 sm:gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-sm sm:text-base tracking-wider uppercase font-rajdhani group transition-all duration-300 hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] relative overflow-visible"
             >
               <span className="relative">
                 <AnimatePresence>
