@@ -699,7 +699,7 @@ const OrbitalVisualizer = () => {
       const starLayers = buildStarfield(scene);
 
       // ── Procedural Earth ──
-      const earthGeo = new THREE.SphereGeometry(1, 128, 64);
+      const earthGeo = new THREE.SphereGeometry(1, 64, 32);
       disposableGeometries.push(earthGeo);
       const earthMaterial = new THREE.ShaderMaterial({
         uniforms: {
