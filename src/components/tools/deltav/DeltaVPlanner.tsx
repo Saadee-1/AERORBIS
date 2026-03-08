@@ -602,7 +602,7 @@ const DeltaVPlanner = () => {
                 <ul className="space-y-2">
                   {recommendations.map((rec, i) => (
                     <li key={i} className="text-gray-300 text-sm flex items-start gap-2">
-                      <span className="text-cyan-400">•</span>
+                      <span className="text-primary">•</span>
                       <span>{rec}</span>
                     </li>
                   ))}
