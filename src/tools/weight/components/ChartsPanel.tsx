@@ -175,10 +175,10 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
             <XAxis dataKey="iteration" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Iteration', position: 'insideBottom', offset: -5 }} />
             <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'W_TO (kg)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
             />
-            <Line type="monotone" dataKey="W_to" stroke="#22d3ee" strokeWidth={2} name="Takeoff Weight (kg)" legendType="none" />
+            <Line type="monotone" dataKey="W_to" stroke="#10b981" strokeWidth={2} name="Takeoff Weight (kg)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
         <div className="mt-3 pt-3 border-t border-slate-700/50">
