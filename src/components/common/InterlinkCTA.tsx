@@ -323,11 +323,11 @@ export function InlineInterlinkHint({
   // State 2a: Data available (show import) - localValue empty AND sessionValue exists
   if (isLocalValueEmpty && hasData) {
     return (
-      <div className={cn("text-[11px] text-cyan-400/60 mt-1 flex items-center gap-2", className)}>
+      <div className={cn("text-[11px] text-primary/60 mt-1 flex items-center gap-2", className)}>
         <span>Available from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
         <button
           onClick={handleImport}
-          className="text-cyan-300 hover:text-cyan-200 underline"
+          className="text-primary hover:text-primary/80 underline"
         >
           Import
         </button>
