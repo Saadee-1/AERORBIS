@@ -853,8 +853,7 @@ const OrbitalVisualizer = () => {
         earth.rotation.y += 0.0003;
         cloudLayer.rotation.y += 0.00035;
 
-        // Update earth shader time
-        earthMaterial.uniforms.time.value = currentTime * 0.001;
+        // Earth material is now texture-based, no shader uniforms to update
 
         controls.update();
 
