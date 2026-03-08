@@ -1380,7 +1380,7 @@ const point: Record<string, unknown> = { alpha };
                   <SelectContent className="max-h-[400px]">
                     {AIRFOIL_GROUPS.map((group) => (
                       <SelectGroup key={group.label}>
-                        <SelectLabel className="text-cyan-400 font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
+                        <SelectLabel className="text-primary font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
                           {group.label}
                         </SelectLabel>
                         {group.airfoils.map((airfoil) => (
