@@ -414,6 +414,68 @@ export function OrbitalGroundTrack({
     return result;
   }, [tracks]);
 
+  // Constellation satellite tracks computation
+  const constellationData = useMemo(() => {
+    if (!showConstellation) return { paths: [], satellites: [] };
+    const preset = CONSTELLATION_PRESETS.find(c => c.name === showConstellation);
+    if (!preset) return { paths: [], satellites: [] };
+
+    const n = Math.sqrt(preset.gm / Math.pow(preset.semiMajorAxis, 3));
+    const period = (2 * Math.PI) / n;
+    const stepsPerSat = 120;
+    const dt = period / stepsPerSat;
+    const CONST_COLORS = [
+      'hsl(190 80% 55%)', 'hsl(160 70% 50%)', 'hsl(220 80% 60%)',
+      'hsl(50 80% 55%)', 'hsl(290 60% 55%)', 'hsl(340 70% 55%)',
+    ];
+
+    const paths: Array<{ d: string; color: string }> = [];
+    const satellites: Array<{ lat: number; lon: number; label: string; color: string }> = [];
+
+    preset.satellites.forEach((sat, si) => {
+      const planeIdx = Math.floor(si / Math.max(1, Math.ceil(preset.satellites.length / 6)));
+      const color = CONST_COLORS[planeIdx % CONST_COLORS.length];
+      let pathStr = '';
+      let prevLon = 0;
+
+      for (let s = 0; s <= stepsPerSat; s++) {
+        const t = s * dt;
+        const M = ((n * t) + sat.trueAnomaly) % (2 * Math.PI);
+        const E = solveKepler(M, preset.eccentricity);
+        const nu = 2 * Math.atan2(
+          Math.sqrt((1 + preset.eccentricity) / (1 - preset.eccentricity)) * Math.sin(E / 2),
+          Math.cos(E / 2)
+        );
+        const r = preset.semiMajorAxis * (1 - preset.eccentricity * Math.cos(E));
+        const x_p = r * Math.cos(nu);
+        const y_p = r * Math.sin(nu);
+        const [x, y, z] = perifocalToECI(x_p, y_p, preset.inclination, sat.raan, sat.argOfPeriapsis);
+        const rMag = Math.sqrt(x * x + y * y + z * z);
+        const lat = Math.asin(z / rMag) * (180 / Math.PI);
+        const theta_g = EARTH_OMEGA * t;
+        let lon = (Math.atan2(y, x) - theta_g) * (180 / Math.PI);
+        lon = ((lon + 540) % 360) - 180;
+
+        const [sx, sy] = toSVG(lat, lon);
+        if (s === 0) {
+          pathStr = `M${sx.toFixed(1)},${sy.toFixed(1)}`;
+          satellites.push({ lat, lon, label: sat.label || `S${si + 1}`, color });
+        } else {
+          if (Math.abs(lon - prevLon) > 180) {
+            paths.push({ d: pathStr, color });
+            pathStr = `M${sx.toFixed(1)},${sy.toFixed(1)}`;
+          } else {
+            pathStr += ` L${sx.toFixed(1)},${sy.toFixed(1)}`;
+          }
+        }
+        prevLon = lon;
+      }
+      if (pathStr) paths.push({ d: pathStr, color });
+    });
+
+    return { paths, satellites };
+  }, [showConstellation]);
+
   // Day/night terminator
   const { terminatorPath, nightPolygon } = useMemo(() => {
     const points = computeTerminator();
