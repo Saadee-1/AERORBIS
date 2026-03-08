@@ -2084,7 +2084,7 @@ const point: Record<string, unknown> = { alpha };
                         >
                           <button
                             onClick={() => loadSetup(setup.id)}
-                            className="flex-1 text-left text-cyan-300 hover:text-cyan-200 hover:underline truncate"
+                            className="flex-1 text-left text-primary hover:text-primary/80 hover:underline truncate"
                             title={`Load: ${setup.name}`}
                           >
                             {setup.name}
