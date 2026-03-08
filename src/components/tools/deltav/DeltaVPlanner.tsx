@@ -277,18 +277,20 @@ const DeltaVPlanner = () => {
   ]);
 
   const loadPreset = useCallback((preset: typeof MISSION_PRESETS[0]) => {
-    setMission(preset.mission);
-    setStages(
-      preset.stages.map((s, i) => ({
-        ...s,
-        id: `stage-${Date.now()}-${i}`,
-      }))
-    );
-    toast({
-      title: "Preset Loaded",
-      description: `${preset.name} configuration loaded`,
+    runCalculation(() => {
+      setMission(preset.mission);
+      setStages(
+        preset.stages.map((s, i) => ({
+          ...s,
+          id: `stage-${Date.now()}-${i}`,
+        }))
+      );
+      toast({
+        title: "Preset Loaded",
+        description: `${preset.name} configuration loaded`,
+      });
     });
-  }, [toast]);
+  }, [toast, runCalculation]);
 
 
   const handleSavePreset = () => {
