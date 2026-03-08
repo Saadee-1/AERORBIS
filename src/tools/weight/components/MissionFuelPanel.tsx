@@ -66,7 +66,7 @@ export function MissionFuelPanel({ profile, onProfileChange }: MissionFuelPanelP
             value={profile.phases.find(p => p.name === 'Loiter') ? 
               ((1 - profile.phases.find(p => p.name === 'Loiter')!.weightFraction) / 0.015).toFixed(1) : '0'}
             onChange={(e) => handleNumberChange('loiterTime', e.target.value)}
-            className="bg-slate-700/50 border-cyan-400/30 text-white"
+            className="bg-muted/50 border-primary/30 text-foreground"
             min="0"
             step="0.5"
           />
