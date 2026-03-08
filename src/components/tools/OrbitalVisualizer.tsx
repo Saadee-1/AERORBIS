@@ -553,6 +553,8 @@ const OrbitalVisualizer = () => {
     trailPoints: THREE.Points;
     trailPositions: Float32Array;
     trailIndex: number;
+    orbitParticles: THREE.Points | null;
+    orbitParticlePhases: Float32Array | null;
     animationId: number;
     lastTime: number;
     orbitalParams: OrbitalParams | null;
