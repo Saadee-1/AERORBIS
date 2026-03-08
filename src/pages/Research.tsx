@@ -52,29 +52,29 @@ const Research = () => {
       <PageBreadcrumb />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-16 relative">
+      <section className="pt-24 pb-8 relative">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto"
+            className="text-center max-w-3xl mx-auto"
           >
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5, type: "spring" }}
-              className="inline-block mb-6"
+              className="inline-block mb-4"
             >
-              <Microscope className="w-20 h-20 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
+              <Microscope className="w-12 h-12 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
             </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
               Aerospace Research & Innovation Hub
             </h1>
             
-            <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-              Explore the latest breakthroughs in aerospace engineering, space exploration, and cutting-edge research from leading agencies worldwide.
+            <p className="text-base text-muted-foreground mb-4 leading-relaxed max-w-2xl mx-auto">
+              Explore the latest breakthroughs in aerospace engineering, space exploration, and cutting-edge research.
             </p>
           </motion.div>
         </div>
