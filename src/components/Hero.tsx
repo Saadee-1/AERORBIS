@@ -272,7 +272,7 @@ const Hero = () => {
                       exit={{ y: -200, x: 80, scale: 2.5, opacity: 0, rotate: -45 }}
                       transition={{ duration: 0.8, ease: [0.32, 0, 0.67, 0] }}
                     >
-                      <Rocket className="w-5 h-5 group-hover:text-primary group-hover:-rotate-45 transition-all duration-500" />
+                      <Rocket className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-primary group-hover:-rotate-45 transition-all duration-500" />
                     </motion.span>
                   )}
                 </AnimatePresence>
