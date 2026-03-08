@@ -106,10 +106,10 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
 
   return (
     <div className="space-y-4">
-      <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+      <Card className="bg-card backdrop-blur-lg border border-primary/20 rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-cyan-400" />
+          <CardTitle className="text-foreground flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
             Δv Component Breakdown
           </CardTitle>
           <CardDescription className="text-gray-400">
