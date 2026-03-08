@@ -958,7 +958,7 @@ const ReynoldsNumberCalculator = () => {
             <Button
               variant="outline"
               onClick={() => setIsSaveDialogOpen(false)}
-              className="border-gray-600 text-gray-300"
+              className="border-border text-muted-foreground"
             >
               Cancel
             </Button>
