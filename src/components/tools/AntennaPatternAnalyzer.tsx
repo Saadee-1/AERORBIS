@@ -1329,7 +1329,7 @@ const AntennaPatternAnalyzer = () => {
               <div className="mt-3 pt-3 border-t border-slate-700/50">
                 <AeroverseLegend
                   items={[
-                    { id: 'e-plane', name: 'E-plane', color: '#22d3ee' },
+                    { id: 'e-plane', name: 'E-plane', color: '#10b981' },
                     { id: 'h-plane', name: 'H-plane', color: '#3b82f6' },
                   ]}
                 />
