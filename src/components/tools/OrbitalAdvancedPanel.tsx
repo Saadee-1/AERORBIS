@@ -380,6 +380,8 @@ export function OrbitalAdvancedPanel({
           </div>
         )}
       </AeroCard>
+      {/* ═══ PORK-CHOP PLOT ═══ */}
+      <PorkChopPlot onExportData={setPorkChopData} />
     </div>
   );
 }
