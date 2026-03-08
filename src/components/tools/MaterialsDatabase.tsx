@@ -471,6 +471,7 @@ const MaterialsDatabase = () => {
         existingMaterials={materials}
       />
     </div>
+    </>
   );
 };
 
