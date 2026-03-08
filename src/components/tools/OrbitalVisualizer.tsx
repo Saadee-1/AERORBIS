@@ -1369,7 +1369,21 @@ const OrbitalVisualizer = () => {
           </div>
       </AeroCard>
 
-      <ToolSection gridCols={2}>
+      {/* Ground Track */}
+      {orbitResult && (
+        <AeroCard title="Orbit Ground Track" icon={Globe} className="mb-6">
+          <OrbitalGroundTrack
+            semiMajorAxis={orbitResult.semiMajorAxis}
+            eccentricity={orbitResult.eccentricity}
+            inclination={parseFloat(inputs.inclination) * Math.PI / 180}
+            raan={parseFloat(inputs.raan || "0") * Math.PI / 180}
+            argOfPeriapsis={parseFloat(inputs.argOfPeriapsis || "0") * Math.PI / 180}
+            gm={parseFloat(inputs.gm)}
+            numOrbits={3}
+          />
+        </AeroCard>
+      )}
+
         {/* Left Column - Inputs */}
         <div>
           <div className={spacingVertical.L}>
