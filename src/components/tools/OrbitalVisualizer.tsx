@@ -25,6 +25,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe } from "lucide-react";
 import { OrbitalGroundTrack } from "@/components/tools/OrbitalGroundTrack";
+import { OrbitalAdvancedPanel } from "@/components/tools/OrbitalAdvancedPanel";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
