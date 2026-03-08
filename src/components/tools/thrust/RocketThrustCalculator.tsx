@@ -753,10 +753,10 @@ const AdvancedThrustCalculator = () => {
             >
               {/* Performance Result */}
               {performanceResult && typeof performanceResult === 'object' && 'solvedFor' in performanceResult && (
-                <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30 mb-4">
-                  <p className="text-sm font-semibold text-green-400 mb-2">Part 1 Result (Performance)</p>
-                  <p className="text-gray-400 text-sm mb-1">Solved: {(performanceResult as unknown as { solvedFor?: string }).solvedFor}</p>
-                  <p className="text-3xl font-bold text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
+                <div className="p-4 bg-gradient-to-r from-green-400/10 to-primary/10 rounded-lg border border-green-400/30 mb-4">
+                  <p className="text-sm font-semibold text-green-500 dark:text-green-400 mb-2">Part 1 Result (Performance)</p>
+                  <p className="text-muted-foreground text-sm mb-1">Solved: {(performanceResult as unknown as { solvedFor?: string }).solvedFor}</p>
+                  <p className="text-3xl font-bold text-green-500 dark:text-green-400">
                     {(performanceResult as unknown as { isp?: number }).isp ? `${((performanceResult as unknown as { isp: number }).isp).toFixed(1)} ${getUnit("isp")}`
                     : `${convertFromSI((performanceResult as unknown as { exhaustVelocity: number }).exhaustVelocity, "exhaustVelocity").toFixed(2)} ${getUnit("exhaustVelocity")}`
                     }
