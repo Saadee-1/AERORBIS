@@ -7,6 +7,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, memo } from 'react';
+import { Input } from '@/components/ui/input';
 import { Rocket, Play, Square } from 'lucide-react';
 import { ToolWrapper } from '@/components/layout/ToolWrapper';
 import { ToolHeader } from '@/components/layout/ToolHeader';
