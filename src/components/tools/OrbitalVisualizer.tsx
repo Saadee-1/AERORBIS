@@ -1100,21 +1100,21 @@ const OrbitalVisualizer = () => {
               }
               >
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Orbital Period</div>
-                    <div className="text-2xl font-bold text-white">{format("time", orbitResult.orbitalPeriod)}</div>
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Orbital Period</div>
+                    <div className="text-2xl font-bold text-foreground">{format("time", orbitResult.orbitalPeriod)}</div>
                   </div>
-                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Semi-Major Axis</div>
-                    <div className="text-2xl font-bold text-white">{format("dist", orbitResult.semiMajorAxis)}</div>
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Semi-Major Axis</div>
+                    <div className="text-2xl font-bold text-foreground">{format("dist", orbitResult.semiMajorAxis)}</div>
                   </div>
-                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Apoapsis Altitude</div>
-                    <div className="text-2xl font-bold text-white">{format("dist", orbitResult.apoapsisAltitude)}</div>
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Apoapsis Altitude</div>
+                    <div className="text-2xl font-bold text-foreground">{format("dist", orbitResult.apoapsisAltitude)}</div>
                   </div>
-                  <div className="p-4 rounded-lg bg-cyan-400/10 border border-cyan-400/30">
-                    <div className="text-sm text-cyan-300">Periapsis Velocity</div>
-                    <div className="text-2xl font-bold text-white">{format("vel", orbitResult.periapsisVelocity)}</div>
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <div className="text-sm text-primary">Periapsis Velocity</div>
+                    <div className="text-2xl font-bold text-foreground">{format("vel", orbitResult.periapsisVelocity)}</div>
                   </div>
                 </div>
 
