@@ -1132,6 +1132,7 @@ export default function ClimbPerformanceCalculator() {
         </>
       )}
     </ToolWrapper>
+    </>
   );
 }
 
