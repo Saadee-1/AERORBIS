@@ -1508,7 +1508,7 @@ const WingLoadingCalculator = () => {
                     </p>
                   </div>
                     
-                    <div className="p-4 bg-gradient-to-r from-green-400/10 to-cyan-400/10 rounded-lg border border-green-400/30">
+                    <div className="p-4 bg-gradient-to-r from-green-400/10 to-primary/10 rounded-lg border border-green-400/30">
                       <p className="text-sm text-gray-400 mb-1">Stall Speed</p>
                       <p className="text-xs text-gray-500 mb-1">(V_s, minimum steady flight speed at C_L,max)</p>
                       {(() => {
