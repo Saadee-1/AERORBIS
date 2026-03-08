@@ -648,10 +648,10 @@ const AdvancedThrustCalculator = () => {
               icon={Anchor}
             >
               <AeroFormField label={`Specific Impulse (I_sp) ${getUnit("isp")}`}>
-                <Input id="isp" type="number" step="0.1" value={inputs.isp} onChange={(e) => handleInputChange("isp", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 310" />
+                <Input id="isp" type="number" step="0.1" value={inputs.isp} onChange={(e) => handleInputChange("isp", e.target.value)} className="bg-muted/50" placeholder="e.g., 310" />
               </AeroFormField>
               <AeroFormField label={`Exhaust Velocity (V_e) ${getUnit("exhaustVelocity")}`}>
-                <Input id="exhaustVelocity" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-slate-900/50 border-cyan-400/30" placeholder="e.g., 3040" />
+                <Input id="exhaustVelocity" type="number" step="0.01" value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} className="bg-muted/50" placeholder="e.g., 3040" />
               </AeroFormField>
               <AeroButton type="button" onClick={calculatePerformance} variant="primary" icon={Anchor} className="w-full">
                 Calculate Part 1
