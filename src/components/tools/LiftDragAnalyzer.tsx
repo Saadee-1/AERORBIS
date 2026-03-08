@@ -2035,7 +2035,7 @@ const point: Record<string, unknown> = { alpha };
                       <span className="text-sm font-medium">{airfoilData?.name || airfoilId}</span>
                       <button
                         onClick={() => setComparedAirfoilIds(comparedAirfoilIds.filter(id => id !== airfoilId))}
-                        className="ml-1 hover:bg-cyan-500/30 rounded p-0.5 transition-colors"
+                        className="ml-1 hover:bg-primary/30 rounded p-0.5 transition-colors"
                         aria-label={`Remove ${airfoilData?.name || airfoilId}`}
                       >
                         <X className="w-3 h-3" />
