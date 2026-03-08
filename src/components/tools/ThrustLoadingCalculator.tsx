@@ -1828,6 +1828,15 @@ const ThrustLoadingCalculator = () => {
             ) : (
               <AeroCard title="Results" icon={Gauge}>
                 <div className="text-center py-12">
+                  <Gauge className="w-16 h-16 mx-auto mb-4 text-primary/30" />
+                  <p className="text-muted-foreground">Enter aircraft parameters and click Calculate to see results</p>
+                </div>
+              </AeroCard>
+            )}
+          </div>
+        </div>
+      </ToolSection>
+
       {/* Wing Area Hint - Required for Graphs */}
       {!designSession?.wingAreaM2 && (
         <ToolSection>
