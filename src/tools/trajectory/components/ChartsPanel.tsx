@@ -22,14 +22,12 @@ interface ChartsPanelProps {
 export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelProps) {
   const result = mode === '1D' ? result1D : mode === '2D' ? result2D : result3D;
   
-  // Refs for each chart card
   const altitudeRef = useRef<HTMLDivElement>(null);
   const velocityRef = useRef<HTMLDivElement>(null);
   const pressureRef = useRef<HTMLDivElement>(null);
   const trajectory2dRef = useRef<HTMLDivElement>(null);
   const massRef = useRef<HTMLDivElement>(null);
 
-  // Export hooks
   const altitudeExport = useChartExport(altitudeRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-altitude' });
   const velocityExport = useChartExport(velocityRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-velocity' });
   const pressureExport = useChartExport(pressureRef, { calculatorId: 'trajectory', getFileBaseName: () => 'aeroverse-trajectory-pressure' });
@@ -39,21 +37,20 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
   if (!result || !result.states || result.states.length === 0) {
     return (
       <AeroCard title="Charts">
-        <div className="text-center p-8 text-gray-400">
+        <div className="text-center p-8 text-muted-foreground">
           <p>Run a simulation to see charts</p>
         </div>
       </AeroCard>
     );
   }
 
-  // Prepare chart data from states
   const chartData = result.states.map((state: TrajectoryState) => ({
     time: state.t,
-    altitude: state.altitude / 1000, // Convert to km
-    velocity: getScalarVelocity(state.velocity) / 1000, // Convert to km/s
-    mass: (state.mass ?? 0) / 1000, // Convert to tonnes
-    dynamicPressure: state.dynamicPressure ? state.dynamicPressure / 1000 : 0, // Convert to kPa
-    downrange: state.downrange ? state.downrange / 1000 : 0, // Convert to km
+    altitude: state.altitude / 1000,
+    velocity: getScalarVelocity(state.velocity) / 1000,
+    mass: (state.mass ?? 0) / 1000,
+    dynamicPressure: state.dynamicPressure ? state.dynamicPressure / 1000 : 0,
+    downrange: state.downrange ? state.downrange / 1000 : 0,
   }));
 
   return (
@@ -66,23 +63,23 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
         >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="time" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Time (s)', position: 'insideBottom', offset: -5 }} />
             <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Altitude (km)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
               formatter={(value: number) => `${value.toFixed(2)} km`}
             />
-            <Line type="monotone" dataKey="altitude" stroke="#22d3ee" strokeWidth={2} name="Altitude (km)" legendType="none" />
+            <Line type="monotone" dataKey="altitude" stroke="hsl(var(--primary))" strokeWidth={2} name="Altitude (km)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
-        <div className="mt-3 pt-3 border-t border-slate-700/50">
+        <div className="mt-3 pt-3 border-t border-border">
           <AeroverseLegend
             items={[{
               id: 'altitude',
               name: 'Altitude',
               role: 'km',
-              color: '#22d3ee',
+              color: 'hsl(var(--primary))',
             }]}
           />
         </div>
@@ -97,17 +94,17 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
         >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="time" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Time (s)', position: 'insideBottom', offset: -5 }} />
             <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Velocity (km/s)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
               formatter={(value: number) => `${value.toFixed(2)} km/s`}
             />
             <Line type="monotone" dataKey="velocity" stroke="#06b6d4" strokeWidth={2} name="Velocity (km/s)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
-        <div className="mt-3 pt-3 border-t border-slate-700/50">
+        <div className="mt-3 pt-3 border-t border-border">
           <AeroverseLegend
             items={[{
               id: 'velocity',
@@ -128,17 +125,17 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
         >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="altitude" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Altitude (km)', position: 'insideBottom', offset: -5 }} />
             <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Dynamic Pressure (kPa)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
               formatter={(value: number) => `${value.toFixed(2)} kPa`}
             />
             <Line type="monotone" dataKey="dynamicPressure" stroke="#f59e0b" strokeWidth={2} name="Q (kPa)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
-        <div className="mt-3 pt-3 border-t border-slate-700/50">
+        <div className="mt-3 pt-3 border-t border-border">
           <AeroverseLegend
             items={[{
               id: 'q',
@@ -160,26 +157,26 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
           >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="downrange" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Downrange (km)', position: 'insideBottom', offset: -5 }} />
               <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Altitude (km)', angle: -90, position: 'insideLeft' }} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
                 formatter={(value: number, name: string) => {
                   if (name === 'altitude') return `${value.toFixed(2)} km`;
                   return `${value.toFixed(2)} km`;
                 }}
               />
-              <Line type="monotone" dataKey="altitude" stroke="#22d3ee" strokeWidth={2} name="Altitude (km)" legendType="none" />
+              <Line type="monotone" dataKey="altitude" stroke="hsl(var(--primary))" strokeWidth={2} name="Altitude (km)" legendType="none" />
             </LineChart>
           </ResponsiveContainer>
-          <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <div className="mt-3 pt-3 border-t border-border">
             <AeroverseLegend
               items={[{
                 id: 'altitude-2d',
                 name: 'Altitude',
                 role: 'km',
-                color: '#22d3ee',
+                color: 'hsl(var(--primary))',
               }]}
             />
           </div>
@@ -195,17 +192,17 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
         >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="time" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Time (s)', position: 'insideBottom', offset: -5 }} />
             <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Mass (t)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
               formatter={(value: number) => `${value.toFixed(2)} t`}
             />
             <Line type="monotone" dataKey="mass" stroke="#8b5cf6" strokeWidth={2} name="Mass (t)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
-        <div className="mt-3 pt-3 border-t border-slate-700/50">
+        <div className="mt-3 pt-3 border-t border-border">
           <AeroverseLegend
             items={[{
               id: 'mass',

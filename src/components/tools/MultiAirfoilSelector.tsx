@@ -54,15 +54,15 @@ export function MultiAirfoilSelector({
     <div className="space-y-4">
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <Label className="text-cyan-300 mb-2 block">Add Airfoil for Comparison</Label>
+          <Label className="text-primary mb-2 block">Add Airfoil for Comparison</Label>
           <Select value={pendingSelection} onValueChange={setPendingSelection}>
-            <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+            <SelectTrigger className="bg-input border-border text-foreground">
               <SelectValue placeholder="Select an airfoil..." />
             </SelectTrigger>
             <SelectContent className="max-h-[400px]">
               {AIRFOIL_GROUPS.filter(group => !group.airfoils.some(af => af.custom)).map((group) => (
                 <SelectGroup key={group.label}>
-                  <SelectLabel className="text-cyan-400 font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
+                  <SelectLabel className="text-primary font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
                     {group.label}
                   </SelectLabel>
                   {group.airfoils.filter(af => !af.custom && !selectedAirfoils.includes(af.id)).map((airfoil) => (
@@ -78,7 +78,7 @@ export function MultiAirfoilSelector({
         <Button
           onClick={handleAddAirfoil}
           disabled={!pendingSelection || selectedAirfoils.length >= maxSelections}
-          className="bg-cyan-600 hover:bg-cyan-700 text-white"
+          className="bg-primary hover:bg-primary/80 text-primary-foreground"
         >
           Add
         </Button>
@@ -87,7 +87,7 @@ export function MultiAirfoilSelector({
       {/* Selected airfoils list */}
       {selectedAirfoils.length > 0 && (
         <div className="space-y-2">
-          <Label className="text-cyan-300">
+          <Label className="text-primary">
             Selected Airfoils ({selectedAirfoils.length}/{maxSelections})
           </Label>
           <div className="space-y-2">
@@ -96,9 +96,9 @@ export function MultiAirfoilSelector({
               return (
                 <div
                   key={airfoilId}
-                  className="flex items-center justify-between bg-slate-700/30 border border-cyan-400/20 rounded-lg p-3"
+                  className="flex items-center justify-between bg-muted/30 border border-border rounded-lg p-3"
                 >
-                  <span className="text-white font-medium">{airfoilName}</span>
+                  <span className="text-foreground font-medium">{airfoilName}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -115,7 +115,7 @@ export function MultiAirfoilSelector({
       )}
 
       {selectedAirfoils.length === 0 && (
-        <p className="text-sm text-slate-400 text-center py-4">
+        <p className="text-sm text-muted-foreground text-center py-4">
           No airfoils selected. Add up to {maxSelections} airfoils to compare.
         </p>
       )}
@@ -128,4 +128,3 @@ export function MultiAirfoilSelector({
     </div>
   );
 }
-

@@ -21,7 +21,7 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
   if (!result) {
     return (
       <AeroCard title="Results">
-        <div className="text-center p-8 text-gray-400">
+        <div className="text-center p-8 text-muted-foreground">
           <p>Run a simulation to see results</p>
         </div>
       </AeroCard>
@@ -43,12 +43,12 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
       <AeroCard title="Trajectory Summary">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {result.maxQ && result.maxQ.value != null && (
-            <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
-              <p className="text-xs text-gray-400 mb-1">Max Q</p>
-              <p className="text-cyan-400 font-bold text-xl">
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <p className="text-xs text-muted-foreground mb-1">Max Q</p>
+              <p className="text-primary font-bold text-xl">
                 {formatNumber(result.maxQ.value / 1000)} kPa
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground/70 mt-1">
                 @ {result.maxQ.altitude != null ? (result.maxQ.altitude / 1000).toFixed(1) : 'N/A'} km
               </p>
             </div>
@@ -56,23 +56,23 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
 
           {result.burnout && result.burnout.altitude != null && (
             <>
-              <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
-                <p className="text-xs text-gray-400 mb-1">Burnout Altitude</p>
+              <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                <p className="text-xs text-muted-foreground mb-1">Burnout Altitude</p>
                 <p className="text-purple-400 font-bold text-xl">
                   {formatNumber(result.burnout.altitude != null ? result.burnout.altitude / 1000 : null)} km
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground/70 mt-1">
                   t = {result.burnout.time != null && typeof result.burnout.time === 'number' ? result.burnout.time.toFixed(1) : 'N/A'} s
                 </p>
               </div>
 
               {result.burnout.velocity != null && (
-                <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
-                  <p className="text-xs text-gray-400 mb-1">Burnout Velocity</p>
+                <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground mb-1">Burnout Velocity</p>
                   <p className="text-green-400 font-bold text-xl">
                     {formatNumber(getScalarVelocity(result.burnout.velocity))} m/s
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground/70 mt-1">
                     {formatNumber(getScalarVelocity(result.burnout.velocity) / 1000)} km/s
                   </p>
                 </div>
@@ -81,8 +81,8 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
           )}
 
           {mode === '2D' && result.burnout && result.burnout.downrange != null && (
-            <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
-              <p className="text-xs text-gray-400 mb-1">Downrange</p>
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <p className="text-xs text-muted-foreground mb-1">Downrange</p>
               <p className="text-yellow-400 font-bold text-xl">
                 {formatNumber(result.burnout.downrange / 1000)} km
               </p>
@@ -90,12 +90,12 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
           )}
 
           {result.states && result.states.length > 0 && result.states[result.states.length - 1].altitude != null && (
-            <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
-              <p className="text-xs text-gray-400 mb-1">Final Altitude</p>
-              <p className="text-cyan-400 font-bold text-xl">
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <p className="text-xs text-muted-foreground mb-1">Final Altitude</p>
+              <p className="text-primary font-bold text-xl">
                 {formatNumber(result.states[result.states.length - 1].altitude / 1000)} km
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground/70 mt-1">
                 t = {result.states[result.states.length - 1].t != null && typeof result.states[result.states.length - 1].t === 'number' ? result.states[result.states.length - 1].t.toFixed(1) : 'N/A'} s
               </p>
             </div>
@@ -108,16 +108,16 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
         <AeroCard title="Staging Events">
           <div className="space-y-2">
             {result.stagingEvents.map((event: StagingEvent, i: number) => (
-              <div key={i} className="p-3 bg-slate-700/30 rounded border border-slate-600/20">
+              <div key={i} className="p-3 bg-muted/30 rounded border border-border">
                 <div className="flex justify-between items-center">
-                  <span className="text-cyan-400 font-semibold">
+                  <span className="text-primary font-semibold">
                     Stage {event.stageIndex + 1} Separation
                   </span>
-                  <span className="text-gray-400 text-sm">
+                  <span className="text-muted-foreground text-sm">
                     t = {event.time != null && typeof event.time === 'number' ? event.time.toFixed(1) : 'N/A'} s
                   </span>
                 </div>
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   Altitude: {event.altitude != null && typeof event.altitude === 'number' ? (event.altitude / 1000).toFixed(1) : 'N/A'} km, 
                   Velocity: {formatNumber(getScalarVelocity(event.velocity))} m/s
                 </div>
@@ -132,20 +132,20 @@ export function ResultsPanel({ mode, result1D, result2D, result3D }: ResultsPane
         <AeroCard title="Velocity Losses">
           <div className="grid grid-cols-3 gap-4">
             {result.losses.gravity != null && (
-              <div className="p-3 bg-slate-700/30 rounded">
-                <p className="text-xs text-gray-400">Gravity Loss</p>
+              <div className="p-3 bg-muted/30 rounded">
+                <p className="text-xs text-muted-foreground">Gravity Loss</p>
                 <p className="text-red-400 font-semibold">{formatNumber(result.losses.gravity)} m/s</p>
               </div>
             )}
             {result.losses.drag != null && (
-              <div className="p-3 bg-slate-700/30 rounded">
-                <p className="text-xs text-gray-400">Drag Loss</p>
+              <div className="p-3 bg-muted/30 rounded">
+                <p className="text-xs text-muted-foreground">Drag Loss</p>
                 <p className="text-orange-400 font-semibold">{formatNumber(result.losses.drag)} m/s</p>
               </div>
             )}
             {result.losses.steering != null && (
-              <div className="p-3 bg-slate-700/30 rounded">
-                <p className="text-xs text-gray-400">Steering Loss</p>
+              <div className="p-3 bg-muted/30 rounded">
+                <p className="text-xs text-muted-foreground">Steering Loss</p>
                 <p className="text-yellow-400 font-semibold">{formatNumber(result.losses.steering)} m/s</p>
               </div>
             )}

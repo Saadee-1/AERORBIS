@@ -1061,8 +1061,8 @@ const point: Record<string, unknown> = { alpha };
     });
 
     return (
-      <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
-        <p className="text-cyan-400 font-semibold mb-2">
+      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+        <p className="text-primary font-semibold mb-2">
           {graphMode === "dragPolar" ? `CL = ${label}` : `α = ${label}°`}
         </p>
         {isPostStall && (
@@ -1097,8 +1097,8 @@ const point: Record<string, unknown> = { alpha };
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-slate-300">{entry.name}:</span>
-                <span className="text-white font-semibold">
+                <span className="text-muted-foreground">{entry.name}:</span>
+                <span className="text-foreground font-semibold">
                   {formattedValue}
                 </span>
               </div>
@@ -1345,7 +1345,7 @@ const point: Record<string, unknown> = { alpha };
         icon={TrendingUp}
         actions={
           <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-            <SelectTrigger className="w-32 bg-slate-700/50 border-cyan-400/30 text-white">
+            <SelectTrigger className="w-32 bg-input border-border text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -1374,20 +1374,20 @@ const point: Record<string, unknown> = { alpha };
                 helperText="Select the airfoil section used for the wing. Each airfoil provides lift curve slope (CL_α), zero-lift coefficient (CL₀), and zero-lift drag coefficient (CD₀) used in the drag polar analysis. Select 'Custom' to define your own coefficients."
               >
                 <Select value={inputs.airfoil} onValueChange={(v) => setInputs({ ...inputs, airfoil: v as AirfoilKey })}>
-                  <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-input border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="max-h-[400px]">
                     {AIRFOIL_GROUPS.map((group) => (
                       <SelectGroup key={group.label}>
-                        <SelectLabel className="text-cyan-400 font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
+                        <SelectLabel className="text-primary font-semibold px-2 py-1.5 text-xs uppercase tracking-wider">
                           {group.label}
                         </SelectLabel>
                         {group.airfoils.map((airfoil) => (
                           <SelectItem 
                             key={airfoil.id} 
                             value={airfoil.id}
-                            className={airfoil.custom ? "text-cyan-400" : ""}
+                            className={airfoil.custom ? "text-primary" : ""}
                           >
                             {airfoil.name}
                           </SelectItem>
@@ -1406,7 +1406,7 @@ const point: Record<string, unknown> = { alpha };
                   label={`Gross Wing Area (${getUnit("area")})`}
                   helperText="Total wing reference area (planform area). Used to compute lift and drag forces via L = CL × q × S and D = CD × q × S, where q is dynamic pressure. Can be imported from Wing Loading calculator."
                 >
-                  <Input id="wingArea" name="wingAreaM2" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" step="0.1" />
+                  <Input id="wingArea" name="wingAreaM2" type="number" value={inputs.wingArea} onChange={(e) => setInputs({ ...inputs, wingArea: e.target.value })} min="0.001" step="0.1" />
                   <InlineInterlinkHint 
                     requiredFields={[FIELD_KEYS.wingAreaM2]} 
                     sourceTool="wingloading" 
@@ -1420,7 +1420,7 @@ const point: Record<string, unknown> = { alpha };
                   label={`Wing Span (${getUnit("span")})`}
                   helperText="Total wing span (tip-to-tip distance). Used with wing area to compute aspect ratio: AR = b²/S. Aspect ratio affects induced drag factor k = 1/(π × AR × e), where e is Oswald efficiency."
                 >
-                  <Input id="wingSpan" type="number" value={inputs.wingSpan} onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0" step="0.1" />
+                  <Input id="wingSpan" type="number" value={inputs.wingSpan} onChange={(e) => setInputs({ ...inputs, wingSpan: e.target.value })} min="0" step="0.1" />
                 </AeroFormField>
               </div>
 
@@ -1429,13 +1429,13 @@ const point: Record<string, unknown> = { alpha };
                   label="Geometric Angle of Attack (°)"
                   helperText="Geometric angle of attack (α): angle between the wing chord line and the freestream velocity vector. Assumes steady, level flight (or steady climb). Used to compute lift coefficient: CL = CL₀ + CL_α × α. Results are invalid beyond stall angle."
                 >
-                  <Input id="angleOfAttack" type="number" value={inputs.angleOfAttack} onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.1" />
+                  <Input id="angleOfAttack" type="number" value={inputs.angleOfAttack} onChange={(e) => setInputs({ ...inputs, angleOfAttack: e.target.value })} step="0.1" />
                 </AeroFormField>
                 <AeroFormField 
                   label="Oswald Efficiency Factor (e)"
                   helperText="Oswald efficiency factor: accounts for non-elliptical lift distribution and planform effects. Related to induced drag factor: k = 1/(π × AR × e). Typical range: 0.70-0.90 for most aircraft. Higher values indicate more efficient lift generation (closer to elliptical distribution)."
                 >
-                  <Input id="oswaldEfficiency" type="number" step="0.01" value={inputs.oswaldEfficiency} onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" max="1" />
+                  <Input id="oswaldEfficiency" type="number" step="0.01" value={inputs.oswaldEfficiency} onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })} min="0.001" max="1" />
                 </AeroFormField>
               </div>
 
@@ -1444,7 +1444,7 @@ const point: Record<string, unknown> = { alpha };
                 helperText="Select how the induced drag factor k is determined. Legacy mode uses a user-defined k value. Geometric mode computes k from wing geometry: k = 1/(π × AR × e)."
               >
                 <Select value={inducedDragModel} onValueChange={(v) => setInducedDragModel(v as InducedDragModel)}>
-                  <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-input border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1465,7 +1465,7 @@ const point: Record<string, unknown> = { alpha };
                     step="0.0001" 
                     value={inputs.k || ''} 
                     onChange={(e) => setInputs({ ...inputs, k: e.target.value })} 
-                    className="bg-slate-700/50 border-cyan-400/30 text-white" 
+                    
                     min="0.0001" 
                     placeholder="Auto-compute from geometry"
                   />
@@ -1477,13 +1477,13 @@ const point: Record<string, unknown> = { alpha };
                   label={`True Airspeed (${getUnit("speed")})`}
                   helperText="True airspeed (TAS): actual velocity relative to the air mass. Assumes steady flight (no acceleration). Used to compute dynamic pressure q = 0.5 × ρ × V², which determines lift and drag forces."
                 >
-                  <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" step="0.1" />
+                  <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} min="0.001" step="0.1" />
                 </AeroFormField>
                 <AeroFormField 
                   label={`Air Density (${getUnit("density")})`}
                   helperText="Air density (ρ) at the flight condition. Assumes incompressible flow (valid for Mach < 0.3). Used in dynamic pressure and force calculations. Can be imported from Standard Atmosphere calculator or entered manually. ISA sea-level: 1.225 kg/m³."
                 >
-                  <Input id="airDensity" type="number" value={inputs.airDensity} onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" step="0.001" />
+                  <Input id="airDensity" type="number" value={inputs.airDensity} onChange={(e) => setInputs({ ...inputs, airDensity: e.target.value })} min="0.001" step="0.001" />
                   <InlineInterlinkHint 
                     fieldKey={FIELD_KEYS.densityKgM3} 
                     className="mt-1" 
@@ -1516,20 +1516,20 @@ const point: Record<string, unknown> = { alpha };
                 >
                   <AeroCard title="Custom Airfoil Coefficients" icon={Pencil}>
                     <AeroFormField label="Airfoil Name">
-                      <Input id="customName" type="text" value={customAirfoil.name} onChange={(e) => handleCustomAirfoilChange("name", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" />
+                      <Input id="customName" type="text" value={customAirfoil.name} onChange={(e) => handleCustomAirfoilChange("name", e.target.value)} />
                     </AeroFormField>
                     <div className="grid grid-cols-2 gap-4">
                       <AeroFormField 
                         label="Zero-Lift Coefficient (CL₀)"
                         helperText="Lift coefficient at zero geometric angle of attack (α = 0°). Accounts for camber effects. Typical range: -0.1 to 0.3 for cambered airfoils. Used in linear lift model: CL = CL₀ + CL_α × α."
                       >
-                        <Input id="cl0" type="number" value={customAirfoil.CL_0} onChange={(e) => handleCustomAirfoilChange("CL_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.001" />
+                        <Input id="cl0" type="number" value={customAirfoil.CL_0} onChange={(e) => handleCustomAirfoilChange("CL_0", e.target.value)} step="0.001" />
                       </AeroFormField>
                       <AeroFormField 
                         label="Lift Curve Slope (CL_α)"
                         helperText="Lift curve slope: change in lift coefficient per degree of angle of attack. Typical range: 0.08-0.12 per degree (≈ 2π per radian for thin airfoils). Used in linear lift model: CL = CL₀ + CL_α × α. Valid only in pre-stall region."
                       >
-                        <Input id="clAlpha" type="number" value={customAirfoil.CL_alpha} onChange={(e) => handleCustomAirfoilChange("CL_alpha", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.001" min="0" />
+                        <Input id="clAlpha" type="number" value={customAirfoil.CL_alpha} onChange={(e) => handleCustomAirfoilChange("CL_alpha", e.target.value)} step="0.001" min="0" />
                       </AeroFormField>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -1537,13 +1537,13 @@ const point: Record<string, unknown> = { alpha };
                         label="Zero-Lift Drag Coefficient (CD₀)"
                         helperText="Parasitic drag coefficient at zero lift: represents form drag, skin friction, and interference drag. This is NOT the total drag coefficient. Total drag: CD = CD₀ + k × CL², where k is the induced drag factor. Typical range: 0.005-0.040 for clean airfoils."
                       >
-                        <Input id="cd0" type="number" value={customAirfoil.CD_0} onChange={(e) => handleCustomAirfoilChange("CD_0", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.0001" min="0" />
+                        <Input id="cd0" type="number" value={customAirfoil.CD_0} onChange={(e) => handleCustomAirfoilChange("CD_0", e.target.value)} step="0.0001" min="0" />
                       </AeroFormField>
                       <AeroFormField 
                         label="Stall Angle of Attack (°)"
                         helperText="Angle of attack at which the airfoil stalls (maximum lift coefficient). Beyond this angle, the linear lift model is invalid. Typical range: 10-20° for most airfoils. Used to limit calculations to the pre-stall region."
                       >
-                        <Input id="alphaStall" type="number" value={customAirfoil.alpha_stall} onChange={(e) => handleCustomAirfoilChange("alpha_stall", e.target.value)} className="bg-slate-700/50 border-cyan-400/30 text-white" step="0.1" min="0" />
+                        <Input id="alphaStall" type="number" value={customAirfoil.alpha_stall} onChange={(e) => handleCustomAirfoilChange("alpha_stall", e.target.value)} step="0.1" min="0" />
                       </AeroFormField>
                     </div>
                   </AeroCard>
@@ -1561,14 +1561,14 @@ const point: Record<string, unknown> = { alpha };
                   {id: 'force', label: 'Force (L/D)', unit: 'N'},
                   {id: 'span', label: 'Wing Span (b)', unit: 'm'},
                 ].map(field => (
-                  <div key={field.id} className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10 mb-4">
-                    <Label className="text-white font-semibold">{field.label}</Label>
+                  <div key={field.id} className="p-3 bg-muted/50 rounded-lg border border-border mb-4">
+                    <Label className="text-foreground font-semibold">{field.label}</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <Input 
                         placeholder="Unit Name" 
                         value={customUnitNames[field.id as keyof typeof customUnitNames]}
                         onChange={(e) => setCustomUnitNames(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-input border-border text-foreground"
                       />
                       <Input 
                         type="number"
@@ -1576,10 +1576,10 @@ const point: Record<string, unknown> = { alpha };
                         placeholder="SI Factor"
                         value={customFactors[field.id as keyof typeof customFactors]}
                         onChange={(e) => setCustomFactors(p => ({...p, [field.id]: e.target.value}))}
-                        className="bg-slate-800 border-cyan-400/30 text-white"
+                        className="bg-input border-border text-foreground"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1.5">
+                    <p className="text-xs text-muted-foreground/70 mt-1.5">
                       1 {customUnitNames[field.id as keyof typeof customUnitNames] || "Unit"} = {customFactors[field.id as keyof typeof customFactors] || "..."} {field.unit}
                     </p>
                   </div>
@@ -1624,10 +1624,10 @@ const point: Record<string, unknown> = { alpha };
                   ) : null
                 }
             >
-              <div className="mb-4 text-sm text-gray-400">
+              <div className="mb-4 text-sm text-muted-foreground">
                 <p>Results computed for steady, level flight at the specified operating point (angle of attack, airspeed, density). Assumes incompressible flow (Mach &lt; 0.3).</p>
                 {result.kModelSource && (
-                  <p className="mt-2 text-xs text-cyan-400">
+                  <p className="mt-2 text-xs text-primary">
                     Induced drag: {result.kModelSource === 'user-defined' ? 'user-defined k' : 'geometry-derived'}
                   </p>
                 )}
@@ -1652,9 +1652,9 @@ const point: Record<string, unknown> = { alpha };
               )}
 
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
-                    <p className="text-sm text-slate-400 mb-1">Lift-to-Drag Ratio (L/D)</p>
-                    <p className="text-xs text-gray-500 mb-2">At operating point (α = {inputs.angleOfAttack}°)</p>
+                  <div className="p-3 rounded bg-muted/50 border border-border text-center">
+                    <p className="text-sm text-muted-foreground mb-1">Lift-to-Drag Ratio (L/D)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">At operating point (α = {inputs.angleOfAttack}°)</p>
                     {displayCheck.display.LD !== "—" ? (
                       <>
                     <span className={(() => {
@@ -1667,34 +1667,34 @@ const point: Record<string, unknown> = { alpha };
   style={{ color: getLDValidity(result.L_D_ratio).color === 'green' ? '#22c55e' : getLDValidity(result.L_D_ratio).color === 'amber' ? '#eab308' : '#ef4444' }}>
   {getLDValidity(result.L_D_ratio).label}
 </span>
-                        <p className="text-xs text-gray-500 mt-1">Dimensionless</p>
-                        <p className="text-xs text-gray-500 mt-1 italic">Note: This is L/D at the specified α, not maximum L/D</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1 italic">Note: This is L/D at the specified α, not maximum L/D</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: L/D not displayable" : "Invalid or unrealistic L/D value"}</p>
                     )}
                   </div>
-                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
-                    <p className="text-sm text-slate-400 mb-1">Aspect Ratio (AR)</p>
-                    <p className="text-xs text-gray-500 mb-2">AR = b²/S</p>
+                  <div className="p-3 rounded bg-muted/50 border border-border text-center">
+                    <p className="text-sm text-muted-foreground mb-1">Aspect Ratio (AR)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">AR = b²/S</p>
                     {Number.isFinite(result.aspectRatio) && result.aspectRatio > 0 ? (
                       <>
-                    <p className="text-3xl font-bold text-white">{result.aspectRatio.toFixed(1)}</p>
-                        <p className="text-xs text-gray-500 mt-1">Dimensionless</p>
+                    <p className="text-3xl font-bold text-foreground">{result.aspectRatio.toFixed(1)}</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">Invalid aspect ratio</p>
                     )}
                   </div>
-                   <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
-                    <p className="text-sm text-slate-400 mb-1">Performance Rating</p>
-                    <p className="text-xs text-gray-500 mb-2">Based on L/D at operating point</p>
+                   <div className="p-3 rounded bg-muted/50 border border-border text-center">
+                    <p className="text-sm text-muted-foreground mb-1">Performance Rating</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">Based on L/D at operating point</p>
                     {Number.isFinite(result.L_D_ratio) && result.L_D_ratio > 0 ? (
                       <>
                     <p className="text-2xl font-bold text-green-400 pt-1">
                       {result.L_D_ratio > 25 ? "Excellent" : result.L_D_ratio > 15 ? "Good" : result.L_D_ratio > 8 ? "Moderate" : "Poor"}
                     </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground/70 mt-1">
                           {result.L_D_ratio > 25 ? "(Glider-like)" : result.L_D_ratio > 15 ? "(Airliner)" : result.L_D_ratio > 8 ? "(Prop plane)" : "(High drag)"}
                         </p>
                       </>
@@ -1706,57 +1706,57 @@ const point: Record<string, unknown> = { alpha };
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="p-3 rounded bg-blue-500/10 border border-blue-400/30">
-                    <p className="text-sm text-slate-400 mb-1">Lift Force (L)</p>
-                    <p className="text-xs text-gray-500 mb-2">L = CL × q × S, where q = 0.5 × ρ × V²</p>
+                    <p className="text-sm text-muted-foreground mb-1">Lift Force (L)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">L = CL × q × S, where q = 0.5 × ρ × V²</p>
                     {displayCheck.display.Lift !== "—" ? (
                       <>
                     <p className="text-xl font-bold text-blue-400">
                       {typeof displayCheck.display.Lift === "number" ? convertFromSI(displayCheck.display.Lift, "force").toFixed(2) : displayCheck.display.Lift} {getUnit("force")}
                     </p>
-                        <p className="text-xs text-gray-500 mt-1">Vertical component balances weight in steady flight</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Vertical component balances weight in steady flight</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: Lift not displayable" : "Invalid lift force"}</p>
                     )}
                   </div>
                   <div className="p-3 rounded bg-red-500/10 border border-red-400/30">
-                    <p className="text-sm text-slate-400 mb-1">Drag Force (D)</p>
-                    <p className="text-xs text-gray-500 mb-2">D = CD × q × S, where CD = CD₀ + k × CL²</p>
+                    <p className="text-sm text-muted-foreground mb-1">Drag Force (D)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">D = CD × q × S, where CD = CD₀ + k × CL²</p>
                     {displayCheck.display.Drag !== "—" ? (
                       <>
                     <p className="text-xl font-bold text-red-400">
                       {typeof displayCheck.display.Drag === "number" ? convertFromSI(displayCheck.display.Drag, "force").toFixed(2) : displayCheck.display.Drag} {getUnit("force")}
                     </p>
-                        <p className="text-xs text-gray-500 mt-1">Opposes motion; must be overcome by thrust</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Opposes motion; must be overcome by thrust</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: Drag not displayable" : "Invalid drag force"}</p>
                     )}
                   </div>
-                  <div className="p-3 rounded bg-slate-700/50">
-                    <p className="text-sm text-slate-400 mb-1">Lift Coefficient (CL)</p>
-                    <p className="text-xs text-gray-500 mb-2">At α = {inputs.angleOfAttack}°: CL = CL₀ + CL_α × α</p>
+                  <div className="p-3 rounded bg-muted/50">
+                    <p className="text-sm text-muted-foreground mb-1">Lift Coefficient (CL)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">At α = {inputs.angleOfAttack}°: CL = CL₀ + CL_α × α</p>
                     {Number.isFinite(result.CL) && Math.abs(result.CL) <= 5 ? (
                       <>
                     <span className={(() => {
   const env = getCLValidity(result.CL, CL_max);
   return env.color === 'green' ? 'bg-green-700/20 px-2 rounded' : env.color === 'amber' ? 'bg-yellow-600/20 px-2 rounded' : 'bg-red-700/20 px-2 rounded';
 })()} title={(() => getCLValidity(result.CL, CL_max).label)()}>
-  <p className="text-xl font-bold text-white inline">{result.CL.toFixed(4)}</p>
+  <p className="text-xl font-bold text-foreground inline">{result.CL.toFixed(4)}</p>
 </span>
 <span className={`ml-2 text-xs font-semibold`}
   style={{ color: getCLValidity(result.CL, CL_max).color === 'green' ? '#22c55e' : getCLValidity(result.CL, CL_max).color === 'amber' ? '#eab308' : '#ef4444' }}>
   {getCLValidity(result.CL, CL_max).label}
 </span>
-                        <p className="text-xs text-gray-500 mt-1">Dimensionless; normalized by dynamic pressure and wing area</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless; normalized by dynamic pressure and wing area</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">Invalid or unrealistic CL value</p>
                     )}
                   </div>
-                  <div className="p-3 rounded bg-slate-700/50">
-                    <p className="text-sm text-slate-400 mb-1">Total Drag Coefficient (CD)</p>
-                    <p className="text-xs text-gray-500 mb-2">CD = CD₀ + k × CL² (parasitic + induced)</p>
+                  <div className="p-3 rounded bg-muted/50">
+                    <p className="text-sm text-muted-foreground mb-1">Total Drag Coefficient (CD)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">CD = CD₀ + k × CL² (parasitic + induced)</p>
                     {(() => {
                       const activeAirfoil = getActiveAirfoil();
                       if (!activeAirfoil) {
@@ -1768,13 +1768,13 @@ const point: Record<string, unknown> = { alpha };
   const env = getCDValidity(result.CD);
   return env.color === 'green' ? 'bg-green-700/20 px-2 rounded' : env.color === 'amber' ? 'bg-yellow-600/20 px-2 rounded' : 'bg-red-700/20 px-2 rounded';
 })()} title={(() => getCDValidity(result.CD).label)()}>
-  <p className="text-xl font-bold text-white inline">{result.CD.toFixed(4)}</p>
+  <p className="text-xl font-bold text-foreground inline">{result.CD.toFixed(4)}</p>
 </span>
 <span className={`ml-2 text-xs font-semibold`}
   style={{ color: getCDValidity(result.CD).color === 'green' ? '#22c55e' : getCDValidity(result.CD).color === 'amber' ? '#eab308' : '#ef4444' }}>
   {getCDValidity(result.CD).label}
 </span>
-                            <p className="text-xs text-gray-500 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
+                            <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
                           </>
                         ) : (
                           <p className="text-sm text-yellow-400">Invalid or unrealistic CD value</p>
@@ -1789,13 +1789,13 @@ const point: Record<string, unknown> = { alpha };
   const env = getCDValidity(result.CD);
   return env.color === 'green' ? 'bg-green-700/20 px-2 rounded' : env.color === 'amber' ? 'bg-yellow-600/20 px-2 rounded' : 'bg-red-700/20 px-2 rounded';
 })()} title={(() => getCDValidity(result.CD).label)()}>
-  <p className="text-xl font-bold text-white inline">{result.CD.toFixed(4)}</p>
+  <p className="text-xl font-bold text-foreground inline">{result.CD.toFixed(4)}</p>
 </span>
 <span className={`ml-2 text-xs font-semibold`}
   style={{ color: getCDValidity(result.CD).color === 'green' ? '#22c55e' : getCDValidity(result.CD).color === 'amber' ? '#eab308' : '#ef4444' }}>
   {getCDValidity(result.CD).label}
 </span>
-                          <p className="text-xs text-gray-500 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless; includes both CD₀ and induced drag</p>
                           {isPostStall && result.CD > 1 && (
                             <p className="text-xs text-yellow-400 mt-1">Note: CD &gt; 1 is expected in post-stall conditions</p>
                           )}

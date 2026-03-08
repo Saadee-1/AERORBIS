@@ -1017,7 +1017,7 @@ const ThrustLoadingCalculator = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-32 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+              <SelectTrigger className="w-32 bg-input border-border text-primary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1064,7 +1064,7 @@ const ThrustLoadingCalculator = () => {
               >
                 <AeroFormField label="Mode">
                   <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-input border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1074,8 +1074,8 @@ const ThrustLoadingCalculator = () => {
                     </SelectContent>
                   </Select>
                 </AeroFormField>
-                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
-                  <p className="text-xs text-gray-300">
+                <div className="mt-2 p-2 bg-muted/50 rounded border border-border">
+                  <p className="text-xs text-muted-foreground">
                     {calculatorMode === 'Beginner' && 'Simplified interface with essential features only.'}
                     {calculatorMode === 'University' && 'Standard features with full functionality.'}
                     {calculatorMode === 'Expert' && 'All features including climb performance and engine type.'}
@@ -1090,7 +1090,7 @@ const ThrustLoadingCalculator = () => {
               >
                 <AeroFormField label="Mission Type">
                   <Select value={missionType} onValueChange={(v) => setMissionType(v as MissionType)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-input border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1104,15 +1104,15 @@ const ThrustLoadingCalculator = () => {
                   </Select>
                 </AeroFormField>
                 {missionType !== 'None' && (
-                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                    <p className="text-sm text-gray-300">
-                      <span className="text-cyan-400 font-semibold">Typical T/W:</span> {getMissionThrustData(missionType).twMin.toFixed(2)}–{getMissionThrustData(missionType).twMax.toFixed(2)}
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="text-primary font-semibold">Typical T/W:</span> {getMissionThrustData(missionType).twMin.toFixed(2)}–{getMissionThrustData(missionType).twMax.toFixed(2)}
                     </p>
                   </div>
                 )}
                 {missionType === 'None' && (
-                  <div className="mt-4 p-3 bg-slate-900/50 rounded-lg border border-cyan-400/20">
-                    <p className="text-sm text-gray-300">
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border">
+                    <p className="text-sm text-muted-foreground">
                       Mission-specific parameters will not auto-change.
                     </p>
                   </div>
@@ -1128,7 +1128,7 @@ const ThrustLoadingCalculator = () => {
             >
               <AeroFormField label="Aircraft Preset">
                 <Select value={aircraftPreset} onValueChange={(v) => handleAircraftPresetChange(v as AircraftPreset)}>
-                  <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                  <SelectTrigger className="w-full bg-input border-border text-foreground">
                     <SelectValue placeholder="Select aircraft preset (optional)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1144,8 +1144,8 @@ const ThrustLoadingCalculator = () => {
                 </Select>
               </AeroFormField>
               {aircraftPreset !== 'none' && (
-                <div className="mt-2 p-2 bg-slate-900/50 rounded border border-cyan-400/20">
-                  <p className="text-xs text-gray-300">
+                <div className="mt-2 p-2 bg-muted/50 rounded border border-border">
+                  <p className="text-xs text-muted-foreground">
                     {AIRCRAFT_PRESETS[aircraftPreset].description}
                   </p>
                 </div>
@@ -1159,14 +1159,14 @@ const ThrustLoadingCalculator = () => {
               icon={Anchor}
             >
               <div className="flex items-center gap-3 mb-4">
-                <Label className="text-sm text-gray-300">Input Mode:</Label>
+                <Label className="text-sm text-muted-foreground">Input Mode:</Label>
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm ${weightMode === 'mass' ? 'text-cyan-400' : 'text-gray-500'}`}>Mass ({inputUnits.mass})</span>
+                  <span className={`text-sm ${weightMode === 'mass' ? 'text-primary' : 'text-muted-foreground/70'}`}>Mass ({inputUnits.mass})</span>
                   <Switch
                     checked={weightMode === 'weight'}
                     onCheckedChange={(checked) => setWeightMode(checked ? 'weight' : 'mass')}
                   />
-                  <span className={`text-sm ${weightMode === 'weight' ? 'text-cyan-400' : 'text-gray-500'}`}>Weight ({inputUnits.weight})</span>
+                  <span className={`text-sm ${weightMode === 'weight' ? 'text-primary' : 'text-muted-foreground/70'}`}>Weight ({inputUnits.weight})</span>
                 </div>
               </div>
               {weightMode === 'mass' ? (
@@ -1180,7 +1180,7 @@ const ThrustLoadingCalculator = () => {
                     step="0.01"
                     value={massKg}
                     onChange={(e) => setMassKg(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-input border-border"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '10000' : '22046'}`}
                     min="0"
                   />
@@ -1203,7 +1203,7 @@ const ThrustLoadingCalculator = () => {
                     step="0.01"
                     value={weightN}
                     onChange={(e) => setWeightN(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-input border-border"
                     placeholder={`e.g., ${unitSystem === 'SI' ? '98100' : '22046'}`}
                     min="0"
                   />
@@ -1240,14 +1240,14 @@ const ThrustLoadingCalculator = () => {
                 icon={Gauge}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <Label className="text-sm text-gray-300">Mode:</Label>
+                  <Label className="text-sm text-muted-foreground">Mode:</Label>
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm ${calculationMode === 'computeTW' ? 'text-cyan-400' : 'text-gray-500'}`}>Compute T/W</span>
+                    <span className={`text-sm ${calculationMode === 'computeTW' ? 'text-primary' : 'text-muted-foreground/70'}`}>Compute T/W</span>
                     <Switch
                       checked={calculationMode === 'computeThrust'}
                       onCheckedChange={(checked) => setCalculationMode(checked ? 'computeThrust' : 'computeTW')}
                     />
-                    <span className={`text-sm ${calculationMode === 'computeThrust' ? 'text-cyan-400' : 'text-gray-500'}`}>Required Thrust</span>
+                    <span className={`text-sm ${calculationMode === 'computeThrust' ? 'text-primary' : 'text-muted-foreground/70'}`}>Required Thrust</span>
                   </div>
                 </div>
                 {calculationMode === 'computeThrust' && (
@@ -1260,7 +1260,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.001"
                       value={targetTW}
                       onChange={(e) => setTargetTW(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g., 0.25"
                       min="0"
                     />
@@ -1277,20 +1277,20 @@ const ThrustLoadingCalculator = () => {
                 icon={Zap}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <Label className="text-sm text-gray-300">Input Mode:</Label>
+                  <Label className="text-sm text-muted-foreground">Input Mode:</Label>
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm ${thrustMode === 'total' ? 'text-cyan-400' : 'text-gray-500'}`}>Total Thrust</span>
+                    <span className={`text-sm ${thrustMode === 'total' ? 'text-primary' : 'text-muted-foreground/70'}`}>Total Thrust</span>
                     <Switch
                       checked={thrustMode === 'perEngine'}
                       onCheckedChange={(checked) => setThrustMode(checked ? 'perEngine' : 'total')}
                     />
-                    <span className={`text-sm ${thrustMode === 'perEngine' ? 'text-cyan-400' : 'text-gray-500'}`}>Per-Engine</span>
+                    <span className={`text-sm ${thrustMode === 'perEngine' ? 'text-primary' : 'text-muted-foreground/70'}`}>Per-Engine</span>
                   </div>
                 </div>
                 
                 <AeroFormField label="Thrust Unit">
                   <Select value={thrustUnit} onValueChange={(v) => setThrustUnit(v as ThrustUnit)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-input border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1311,7 +1311,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.01"
                       value={totalThrust}
                       onChange={(e) => setTotalThrust(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder={`e.g., ${thrustUnit === 'N' ? '16000' : thrustUnit === 'kgf' ? '1600' : '3600'}`}
                       min="0"
                     />
@@ -1341,7 +1341,7 @@ const ThrustLoadingCalculator = () => {
                         step="0.01"
                         value={perEngineThrust}
                         onChange={(e) => setPerEngineThrust(e.target.value)}
-                        className="bg-slate-900/50 border-cyan-400/30"
+                        className="bg-input border-border"
                         placeholder={`e.g., ${thrustUnit === 'N' ? '8000' : thrustUnit === 'kgf' ? '800' : '1800'}`}
                         min="0"
                       />
@@ -1356,7 +1356,7 @@ const ThrustLoadingCalculator = () => {
                         min="1"
                         value={numEngines}
                         onChange={(e) => setNumEngines(e.target.value)}
-                        className="bg-slate-900/50 border-cyan-400/30"
+                        className="bg-input border-border"
                         placeholder="e.g., 2"
                       />
                     </AeroFormField>
@@ -1377,7 +1377,7 @@ const ThrustLoadingCalculator = () => {
                   helperText={`Propulsion system type. Used for reference in performance analysis. Prop: propeller-driven (piston/turboprop). Turbofan: high-bypass turbofan. Turbojet: low-bypass or pure jet.`}
                 >
                   <Select value={engineType} onValueChange={(v) => setEngineType(v as EngineType)}>
-                    <SelectTrigger className="w-full bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+                    <SelectTrigger className="w-full bg-input border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1397,7 +1397,7 @@ const ThrustLoadingCalculator = () => {
                     step="0.1"
                     value={vClimb}
                     onChange={(e) => setVClimb(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-input border-border"
                     placeholder="e.g., 25.0"
                     min="0"
                   />
@@ -1426,7 +1426,7 @@ const ThrustLoadingCalculator = () => {
                     step="0.1"
                     value={ldClimb}
                     onChange={(e) => setLdClimb(e.target.value)}
-                    className="bg-slate-900/50 border-cyan-400/30"
+                    className="bg-input border-border"
                     placeholder="e.g., 12.0"
                     min="0"
                   />
@@ -1462,14 +1462,14 @@ const ThrustLoadingCalculator = () => {
                       step="0.1"
                       value={gammaReqPercent}
                       onChange={(e) => setGammaReqPercent(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g., 3.0"
                       min="0"
                     />
-                    <span className="text-sm text-gray-400 whitespace-nowrap">%</span>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">%</span>
                   </div>
                   {gammaReqPercent && !isNaN(parseFloat(gammaReqPercent)) && (
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       γ = {parseFloat(gammaReqPercent) / 100} ({parseFloat(gammaReqPercent)}%)
                     </p>
                   )}
@@ -1494,7 +1494,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.001"
                       value={cd0Input}
                       onChange={(e) => setCd0Input(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g., 0.025"
                       min="0"
                     />
@@ -1509,7 +1509,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.001"
                       value={kInput}
                       onChange={(e) => setKInput(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g., 0.045"
                       min="0"
                     />
@@ -1524,11 +1524,11 @@ const ThrustLoadingCalculator = () => {
                       step="1"
                       value={vCruiseInput}
                       onChange={(e) => setVCruiseInput(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g., 90"
                       min="0"
                     />
-                    <p className="mt-1 text-[0.65rem] text-slate-400">
+                    <p className="mt-1 text-[0.65rem] text-muted-foreground">
                       Interpreted as knots (kt) for sizing diagram.
                     </p>
                   </AeroFormField>
@@ -1556,7 +1556,7 @@ const ThrustLoadingCalculator = () => {
                         setRunwayLengthInput(e.target.value);
                         if (!hasTouchedRunway) setHasTouchedRunway(true);
                       }}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g. 800"
                       min="0"
                     />
@@ -1571,7 +1571,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.01"
                       value={clToInput}
                       onChange={(e) => setClToInput(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g. 1.6"
                       min="0"
                     />
@@ -1586,7 +1586,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.001"
                       value={muRollInput}
                       onChange={(e) => setMuRollInput(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="0.03"
                       min="0"
                     />
