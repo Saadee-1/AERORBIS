@@ -53,7 +53,7 @@ const MaterialDetailsDrawer = ({
           {/* Category Badge */}
           <div>
             <p className="text-sm text-gray-400 mb-2">Category</p>
-            <Badge className="bg-cyan-400/20 text-cyan-400 border-cyan-400/30 text-lg px-4 py-2">
+            <Badge className="bg-primary/20 text-primary border-primary/30 text-lg px-4 py-2">
               {material.category}
             </Badge>
           </div>
