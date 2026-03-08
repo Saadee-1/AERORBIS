@@ -145,7 +145,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
     .result { 
       font-size: 1.3em; 
       font-weight: bold; 
-      color: #06b6d4; 
+      color: #059669; 
     }
     .step { 
       margin: 12px 0; 
