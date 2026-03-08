@@ -294,7 +294,7 @@ const AIAssistant: React.FC = () => {
                       <Trash2 className="w-4 h-4 mr-2" />
                       Clear Chat
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-cyan-400/20" />
+                    <DropdownMenuSeparator className="bg-emerald-500/20" />
                     <div className="px-2 py-1.5">
                       <p className="text-xs text-gray-400 mb-1.5">Mode</p>
                       <div className="flex gap-1">
@@ -305,8 +305,8 @@ const AIAssistant: React.FC = () => {
                           className={cn(
                             'flex-1 text-xs h-7',
                             mode === 'chat' 
-                              ? 'bg-cyan-400/20 text-cyan-400 hover:bg-cyan-400/30' 
-                              : 'text-gray-400 hover:text-cyan-400'
+                              ? 'bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30' 
+                              : 'text-gray-400 hover:text-emerald-500'
                           )}
                         >
                           Chat
