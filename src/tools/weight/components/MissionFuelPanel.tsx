@@ -96,8 +96,8 @@ export function MissionFuelPanel({ profile, onProfileChange }: MissionFuelPanelP
           />
         </div>
 
-        <div className="border-t border-cyan-400/20 pt-4">
-          <h3 className="text-sm font-semibold text-cyan-400 mb-3">Mission Phases</h3>
+        <div className="border-t border-primary/20 pt-4">
+          <h3 className="text-sm font-semibold text-primary mb-3">Mission Phases</h3>
           <div className="space-y-2">
             {profile.phases.map((phase, i) => (
               <div key={i} className="flex items-center justify-between p-2 bg-slate-700/30 rounded">
