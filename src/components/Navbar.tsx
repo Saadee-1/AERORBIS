@@ -37,10 +37,10 @@ function DockItem({
 
   // magnification: items within ~80px get scaled
   // Buttery smooth spring: lower stiffness + higher damping = silky macOS feel
-  const scaleRaw = useTransform(distance, [-120, 0, 120], [1, 1.4, 1]);
+  const scaleRaw = useTransform(distance, [-100, 0, 100], [1, 1.3, 1]);
   const scale = useSpring(scaleRaw, { stiffness: 170, damping: 22, mass: 0.4 });
 
-  const yRaw = useTransform(distance, [-120, 0, 120], [0, -10, 0]);
+  const yRaw = useTransform(distance, [-100, 0, 100], [0, -6, 0]);
   const y = useSpring(yRaw, { stiffness: 170, damping: 22, mass: 0.4 });
 
   return (
@@ -48,7 +48,7 @@ function DockItem({
       <Link
         ref={ref}
         to={item.href}
-        className={`relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors duration-200 group ${
+        className={`relative flex flex-col items-center gap-0 px-2 py-1 rounded-lg transition-colors duration-200 group ${
           isActive
             ? "text-primary"
             : "text-muted-foreground hover:text-foreground"
@@ -58,18 +58,18 @@ function DockItem({
         {isActive && (
           <motion.span
             layoutId="dock-active"
-            className="absolute inset-0 rounded-xl bg-primary/10 shadow-[0_0_20px_hsl(160_84%_39%/0.15)]"
+            className="absolute inset-0 rounded-lg bg-primary/10 shadow-[0_0_12px_hsl(160_84%_39%/0.12)]"
             transition={{ type: "spring", stiffness: 200, damping: 28, mass: 0.8 }}
           />
         )}
 
         {/* Icon with bounce on hover */}
-        <span className="relative z-10 p-1.5 rounded-lg bg-card/60 backdrop-blur-sm border border-border/30 shadow-sm group-hover:shadow-[0_0_12px_hsl(160_84%_39%/0.2)] transition-shadow duration-300">
-          <Icon size={18} strokeWidth={1.8} />
+        <span className="relative z-10 p-1 rounded-md bg-card/50 backdrop-blur-sm border border-border/20 shadow-sm group-hover:shadow-[0_0_8px_hsl(160_84%_39%/0.15)] transition-shadow duration-300">
+          <Icon size={14} strokeWidth={1.8} />
         </span>
 
         {/* Label */}
-        <span className="relative z-10 text-[9px] font-semibold uppercase tracking-[0.18em] leading-none mt-0.5">
+        <span className="relative z-10 text-[8px] font-semibold uppercase tracking-[0.15em] leading-none">
           {item.name}
         </span>
       </Link>
@@ -114,22 +114,22 @@ const Navbar = () => {
       />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[72px]">
+        <div className="flex items-center justify-between h-12">
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
             <img
               src={aerorbisLogo}
               alt="AERORBIS"
-              className="w-7 h-7 sm:w-8 sm:h-8"
+              className="w-6 h-6"
             />
-            <span className="hidden sm:inline text-sm font-bold text-foreground tracking-[0.2em] font-[Orbitron] uppercase">
+            <span className="hidden sm:inline text-xs font-bold text-foreground tracking-[0.2em] font-[Orbitron] uppercase">
               AERORBIS
             </span>
           </Link>
 
           {/* ── Desktop Dock ── */}
           <div
-            className="hidden lg:flex items-end gap-0.5 px-3 py-1.5 rounded-2xl bg-card/40 backdrop-blur-xl border border-border/20 shadow-[0_2px_20px_hsl(0_0%_0%/0.15)]"
+            className="hidden lg:flex items-end gap-0 px-2 py-1 rounded-xl bg-card/30 backdrop-blur-xl border border-border/15 shadow-[0_1px_12px_hsl(0_0%_0%/0.12)]"
             onMouseMove={(e) => mouseX.set(e.clientX)}
             onMouseLeave={() => mouseX.set(-200)}
           >
