@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Shield, Target, Atom } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const About = () => {
   const ref = useRef<HTMLDivElement>(null);
