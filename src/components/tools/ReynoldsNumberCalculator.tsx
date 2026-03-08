@@ -975,10 +975,10 @@ const ReynoldsNumberCalculator = () => {
 
       {/* Load Custom Preset Dialog */}
       <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Load Custom Preset</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               Select a saved custom preset to load
             </DialogDescription>
           </DialogHeader>
