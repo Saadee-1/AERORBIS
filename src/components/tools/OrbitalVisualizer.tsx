@@ -1022,7 +1022,7 @@ const OrbitalVisualizer = () => {
             <AeroCard title="Part 1: Define Initial Orbit" icon={Orbit}>
               <div className="grid grid-cols-2 gap-4">
                 <AeroFormField label={`Periapsis Altitude (${getUnit("dist")})`}>
-                  <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-slate-700/50" />
+                  <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
                 <AeroFormField label="Eccentricity (0-1)">
                   <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-slate-700/50" />
