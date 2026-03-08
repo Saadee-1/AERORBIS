@@ -632,7 +632,7 @@ const DeltaVPlanner = () => {
                       placeholder="SI Factor"
                       value={customFactor}
                       onChange={(e) => setCustomFactor(e.target.value)}
-                      className="bg-slate-800 border-cyan-400/30 text-white"
+                      className="bg-slate-800 border-primary/30 text-foreground"
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1.5">
