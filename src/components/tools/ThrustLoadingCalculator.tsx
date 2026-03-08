@@ -1586,7 +1586,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.001"
                       value={muRollInput}
                       onChange={(e) => setMuRollInput(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="0.03"
                       min="0"
                     />
