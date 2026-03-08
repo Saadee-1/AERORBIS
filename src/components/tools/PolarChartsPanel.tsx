@@ -358,7 +358,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     }
 
     return (
-      <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
+      <div className="bg-slate-800 border border-primary/30 rounded-lg p-3 shadow-lg">
         {payload.map((entry: DragPolarTooltipEntry, index: number) => {
           const airfoilId = entry.dataKey;
           const polar = polars.find(p => p.id === airfoilId);
