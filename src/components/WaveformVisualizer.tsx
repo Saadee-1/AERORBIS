@@ -41,7 +41,7 @@ const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({ audioLevel, dur
               ease: 'easeOut',
             }}
             style={{
-              boxShadow: audioLevel > 0.3 ? '0 0 10px rgba(34, 211, 238, 0.6)' : 'none',
+              boxShadow: audioLevel > 0.3 ? '0 0 10px hsl(160 84% 39% / 0.6)' : 'none',
             }}
           />
         );
