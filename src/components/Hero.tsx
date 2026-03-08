@@ -71,6 +71,48 @@ const FloatingIcon = ({ Icon, x, y, delay }: { Icon: any; x: string; y: string; 
   </motion.div>
 );
 
+// Particle spark component for launch trail
+const LaunchParticles = ({ active }: { active: boolean }) => {
+  if (!active) return null;
+  const particles = Array.from({ length: 8 }, (_, i) => ({
+    id: i,
+    x: (Math.random() - 0.5) * 60,
+    y: Math.random() * 40 + 10,
+    size: Math.random() * 4 + 2,
+    delay: Math.random() * 0.3,
+  }));
+
+  return (
+    <>
+      {particles.map((p) => (
+        <motion.span
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            width: p.size,
+            height: p.size,
+            background: `hsl(var(--primary))`,
+            boxShadow: `0 0 6px hsl(var(--primary) / 0.8), 0 0 12px hsl(var(--primary) / 0.4)`,
+            left: '50%',
+            top: '50%',
+          }}
+          initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+          animate={{ opacity: 0, x: p.x, y: p.y, scale: 0 }}
+          transition={{ duration: 0.6 + Math.random() * 0.4, delay: p.delay, ease: 'easeOut' }}
+        />
+      ))}
+      {/* Main exhaust trail */}
+      <motion.span
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 w-1 rounded-full"
+        style={{ background: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--primary) / 0.3), transparent)' }}
+        initial={{ height: 0, opacity: 1 }}
+        animate={{ height: 80, opacity: 0, y: 20 }}
+        transition={{ duration: 0.7, ease: 'easeOut' }}
+      />
+    </>
+  );
+};
+
 const Hero = () => {
   const [rocketLaunched, setRocketLaunched] = useState(false);
   const [zapLaunched, setZapLaunched] = useState(false);
@@ -213,7 +255,7 @@ const Hero = () => {
             transition={{ delay: 1.8 }}
             className="flex flex-wrap gap-4 justify-center mb-16"
           >
-            <Button 
+             <Button 
               ref={buttonRef}
               variant="outline"
               size="lg" 
@@ -226,24 +268,26 @@ const Hero = () => {
                     <motion.span
                       key="static"
                       className="inline-block"
-                      exit={{ y: -200, x: 80, scale: 2, opacity: 0, rotate: -45 }}
+                      exit={{ y: -200, x: 80, scale: 2.5, opacity: 0, rotate: -45 }}
                       transition={{ duration: 0.8, ease: [0.32, 0, 0.67, 0] }}
                     >
                       <Rocket className="w-5 h-5 group-hover:text-primary group-hover:-rotate-45 transition-all duration-500" />
                     </motion.span>
                   )}
                 </AnimatePresence>
-                {rocketLaunched && (
-                  <motion.span
-                    className="absolute -top-1 left-0 w-2 h-6 rounded-full"
-                    style={{ background: 'linear-gradient(to top, hsl(var(--primary) / 0.8), transparent)' }}
-                    initial={{ opacity: 1, scaleY: 1 }}
-                    animate={{ opacity: 0, scaleY: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                  />
-                )}
+                <LaunchParticles active={rocketLaunched} />
               </span>
               Launch Tools
+              {/* Button glow burst on launch */}
+              {rocketLaunched && (
+                <motion.span
+                  className="absolute inset-0 rounded-md"
+                  style={{ boxShadow: '0 0 40px hsl(var(--primary) / 0.6), inset 0 0 20px hsl(var(--primary) / 0.2)' }}
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                />
+              )}
             </Button>
             <Button 
               variant="outline" 
@@ -257,24 +301,25 @@ const Hero = () => {
                     <motion.span
                       key="zap-static"
                       className="inline-block"
-                      exit={{ y: -200, x: 80, scale: 2, opacity: 0, rotate: -30 }}
+                      exit={{ y: -200, x: 80, scale: 2.5, opacity: 0, rotate: -30 }}
                       transition={{ duration: 0.8, ease: [0.32, 0, 0.67, 0] }}
                     >
                       <Zap className="w-5 h-5 group-hover:text-primary transition-colors duration-500" />
                     </motion.span>
                   )}
                 </AnimatePresence>
-                {zapLaunched && (
-                  <motion.span
-                    className="absolute -top-1 left-0 w-2 h-6 rounded-full"
-                    style={{ background: 'linear-gradient(to top, hsl(var(--primary) / 0.8), transparent)' }}
-                    initial={{ opacity: 1, scaleY: 1 }}
-                    animate={{ opacity: 0, scaleY: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                  />
-                )}
+                <LaunchParticles active={zapLaunched} />
               </span>
               Explore Modules
+              {zapLaunched && (
+                <motion.span
+                  className="absolute inset-0 rounded-md"
+                  style={{ boxShadow: '0 0 40px hsl(var(--primary) / 0.6), inset 0 0 20px hsl(var(--primary) / 0.2)' }}
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                />
+              )}
             </Button>
           </motion.div>
 
