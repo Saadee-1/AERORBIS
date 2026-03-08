@@ -1674,13 +1674,13 @@ const point: Record<string, unknown> = { alpha };
                       <p className="text-sm text-yellow-400">{displayCheck.postStall ? "Post-stall: L/D not displayable" : "Invalid or unrealistic L/D value"}</p>
                     )}
                   </div>
-                  <div className="p-3 rounded bg-slate-700/50 border border-cyan-400/20 text-center">
-                    <p className="text-sm text-slate-400 mb-1">Aspect Ratio (AR)</p>
-                    <p className="text-xs text-gray-500 mb-2">AR = b²/S</p>
+                  <div className="p-3 rounded bg-muted/50 border border-border text-center">
+                    <p className="text-sm text-muted-foreground mb-1">Aspect Ratio (AR)</p>
+                    <p className="text-xs text-muted-foreground/70 mb-2">AR = b²/S</p>
                     {Number.isFinite(result.aspectRatio) && result.aspectRatio > 0 ? (
                       <>
-                    <p className="text-3xl font-bold text-white">{result.aspectRatio.toFixed(1)}</p>
-                        <p className="text-xs text-gray-500 mt-1">Dimensionless</p>
+                    <p className="text-3xl font-bold text-foreground">{result.aspectRatio.toFixed(1)}</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Dimensionless</p>
                       </>
                     ) : (
                       <p className="text-sm text-yellow-400">Invalid aspect ratio</p>
