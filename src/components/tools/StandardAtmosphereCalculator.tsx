@@ -792,7 +792,7 @@ export default function StandardAtmosphereCalculator() {
                         id: 'temperature',
                         name: 'Temperature',
                         role: unitSystem === "Imperial" ? "°F" : "°C",
-                        color: '#3b82f6',
+                        color: '#10b981',
                       },
                       {
                         id: 'pressure',
