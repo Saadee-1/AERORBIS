@@ -46,7 +46,7 @@ export function PerformanceMonitor({
           variant="outline"
           size="sm"
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-slate-900/90 border-cyan-400/30 text-cyan-400"
+          className="bg-slate-900/90 border-primary/30 text-primary"
         >
           <Activity className="w-3 h-3 mr-1" />
           <span className={getFPSColor(metrics.fps)}>{metrics.fps} FPS</span>
