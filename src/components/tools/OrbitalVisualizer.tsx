@@ -941,7 +941,7 @@ const OrbitalVisualizer = () => {
 
       {/* 3D Visualization */}
         <AeroCard title="3D Orbital Visualization" icon={Orbit} className="mb-6">
-          <div className="relative rounded-xl overflow-hidden border border-cyan-400/30 bg-black h-[450px]">
+          <div className="relative rounded-xl overflow-hidden border border-border bg-black h-[450px]">
             {visualizerError && (
               <div className="absolute inset-0 flex items-center justify-center text-red-300 text-sm p-4 text-center z-10 bg-black/60">
                 Unable to initialize 3D visualizer: {visualizerError}
