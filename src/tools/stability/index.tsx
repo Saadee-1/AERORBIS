@@ -529,7 +529,7 @@ export default function StabilityCalculator() {
       {/* Advanced Features Toggles */}
       <ToolSection>
         <AeroCard title="Advanced Features">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-800/30 rounded-lg border border-cyan-400/20">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-800/30 rounded-lg border border-primary/20">
           <div className="flex items-center space-x-2">
             <Switch
               id="dynamic"
