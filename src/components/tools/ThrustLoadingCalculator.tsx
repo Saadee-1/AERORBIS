@@ -1260,7 +1260,7 @@ const ThrustLoadingCalculator = () => {
                       step="0.001"
                       value={targetTW}
                       onChange={(e) => setTargetTW(e.target.value)}
-                      className="bg-slate-900/50 border-cyan-400/30"
+                      className="bg-input border-border"
                       placeholder="e.g., 0.25"
                       min="0"
                     />
