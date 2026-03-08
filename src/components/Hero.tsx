@@ -294,7 +294,7 @@ const Hero = () => {
               variant="outline" 
               size="lg" 
               onClick={handleExploreModules}
-              className="px-10 py-6 gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-base tracking-wider uppercase font-rajdhani group relative overflow-visible"
+              className="px-6 sm:px-10 py-5 sm:py-6 gap-2 sm:gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-sm sm:text-base tracking-wider uppercase font-rajdhani group relative overflow-visible"
             >
               <span className="relative">
                 <AnimatePresence>
