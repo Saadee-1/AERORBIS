@@ -321,6 +321,7 @@ export function OrbitalGroundTrack({
   return (
     <div className="relative w-full">
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
         className="w-full rounded-lg border border-border"
         style={{ background: 'hsl(var(--background))' }}
