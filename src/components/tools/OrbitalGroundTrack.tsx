@@ -350,7 +350,43 @@ export function OrbitalGroundTrack({
   const lonLines = [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150];
   const currentSVG = currentPos ? toSVG(currentPos.lat, currentPos.lon) : null;
 
-  return (
+  // Export as SVG
+  const exportSVG = useCallback(() => {
+    if (!svgRef.current) return;
+    const svgData = new XMLSerializer().serializeToString(svgRef.current);
+    const blob = new Blob([svgData], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ground-track.svg';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  // Export as PNG
+  const exportPNG = useCallback(() => {
+    if (!svgRef.current) return;
+    const svgData = new XMLSerializer().serializeToString(svgRef.current);
+    const canvas = document.createElement('canvas');
+    const scale = 2; // 2x for retina
+    canvas.width = W * scale;
+    canvas.height = H * scale;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const img = new Image();
+    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, W * scale, H * scale);
+      URL.revokeObjectURL(url);
+      const pngUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = pngUrl;
+      a.download = 'ground-track.png';
+      a.click();
+    };
+    img.src = url;
+  }, []);
     <div className="relative w-full">
       <svg
         ref={svgRef}
