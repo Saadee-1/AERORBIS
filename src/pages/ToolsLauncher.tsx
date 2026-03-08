@@ -257,7 +257,7 @@ const ToolsLauncher = () => {
                         {/* Show All Tabs button */}
                         <button
                           onClick={showAllTabs}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all duration-200 bg-cyan-400/20 text-cyan-400 border border-cyan-400/40 hover:bg-cyan-400/30 mb-1"
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all duration-200 bg-primary/20 text-primary border border-primary/40 hover:bg-primary/30 mb-1"
                         >
                           <Grid3x3 className="w-4 h-4 flex-shrink-0" />
                           <span className="text-sm font-medium">Show All Tabs</span>
