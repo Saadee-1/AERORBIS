@@ -637,7 +637,7 @@ function generatePDFHTML(context: CalculationEvent, options: { includeAssistantE
   ${includeAssistantExplanation && explanation ? `
   <!-- AI Explanation -->
   <h2 id="explanation">4. AI Assistant Explanation</h2>
-  <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border-left: 4px solid #22d3ee;">
+  <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981;">
     <p style="white-space: pre-wrap;">${explanation}</p>
     <p style="margin-top: 15px; font-size: 0.9em; color: #64748b;">
       <strong>Explanation Level:</strong> ${explanationLevel}<br>
