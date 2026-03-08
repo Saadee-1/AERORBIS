@@ -215,12 +215,12 @@ void main() {
   float cities = step(0.72, fbm(uv * 12.0)) * landMask * nightSide;
   vec3 cityGlow = vec3(1.0, 0.85, 0.4) * cities * 0.8;
   
-  // Atmosphere scattering at edges
-  float fresnel = pow(1.0 - max(dot(normal, normalize(cameraPosition - vPosition)), 0.0), 3.0);
-  vec3 atmosScatter = vec3(0.3, 0.5, 1.0) * fresnel * 0.3;
+  // Atmosphere scattering at edges - subtle, not blurry
+  float fresnel = pow(1.0 - max(dot(normal, normalize(cameraPosition - vPosition)), 0.0), 5.0);
+  vec3 atmosScatter = vec3(0.3, 0.5, 1.0) * fresnel * 0.15;
   
-  // Final color
-  vec3 dayColor = surfaceColor * (0.08 + diffuse * 1.2);
+  // Final color - sharper lighting
+  vec3 dayColor = surfaceColor * (0.1 + diffuse * 1.4);
   vec3 finalColor = dayColor + cityGlow + atmosScatter;
   
   // Ocean specular
@@ -251,10 +251,10 @@ uniform vec3 sunDirection;
 void main() {
   vec3 normal = normalize(vNormal);
   vec3 viewDir = normalize(cameraPosition - vPosition);
-  float intensity = pow(0.65 - dot(normal, viewDir), 4.0);
-  float sunFacing = max(dot(normal, sunDirection) * 0.5 + 0.5, 0.15);
-  vec3 col = mix(vec3(0.1, 0.3, 0.8), vec3(0.3, 0.6, 1.0), intensity);
-  gl_FragColor = vec4(col * sunFacing, intensity * 0.7);
+  float intensity = pow(0.55 - dot(normal, viewDir), 5.0);
+  float sunFacing = max(dot(normal, sunDirection) * 0.5 + 0.5, 0.1);
+  vec3 col = mix(vec3(0.1, 0.3, 0.9), vec3(0.3, 0.6, 1.0), intensity);
+  gl_FragColor = vec4(col * sunFacing, intensity * 0.45);
 }`;
 
 // ─── Orbit Glow Shader ─────────────────────────────────────────────────────
@@ -683,9 +683,9 @@ const OrbitalVisualizer = () => {
 
       const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(canvas.clientWidth, canvas.clientHeight),
-        0.6,   // strength
-        0.4,   // radius
-        0.85   // threshold
+        0.25,  // strength - reduced to remove blurriness
+        0.15,  // radius - tighter for sharper look
+        0.92   // threshold - higher = less bloom on Earth surface
       );
       composer.addPass(bloomPass);
 
@@ -1046,28 +1046,28 @@ const OrbitalVisualizer = () => {
         if (t.orbitGlow.material instanceof THREE.Material) t.orbitGlow.material.dispose();
 
         const curve = new THREE.CatmullRomCurve3(orbitPoints, true, 'centripetal');
-        const tubeRadius = radius_SI * 0.003;
+        const tubeRadius = radius_SI * 0.006;
         
-        // Main orbit tube
-        const tubeGeo = new THREE.TubeGeometry(curve, segments, tubeRadius, 8, true);
+        // Main orbit tube - brighter and thicker
+        const tubeGeo = new THREE.TubeGeometry(curve, segments, tubeRadius, 12, true);
         const tubeMat = new THREE.MeshStandardMaterial({
-          color: 0x22d3ee,
-          emissive: 0x0088aa,
-          emissiveIntensity: 0.8,
-          metalness: 0.3,
-          roughness: 0.4,
+          color: 0x44eeff,
+          emissive: 0x22ccdd,
+          emissiveIntensity: 1.5,
+          metalness: 0.2,
+          roughness: 0.3,
           transparent: true,
-          opacity: 0.9,
+          opacity: 1.0,
         });
         t.orbitTube.geometry = tubeGeo;
         t.orbitTube.material = tubeMat;
 
-        // Outer glow tube
-        const glowGeo = new THREE.TubeGeometry(curve, segments, tubeRadius * 3, 8, true);
+        // Outer glow tube - more visible
+        const glowGeo = new THREE.TubeGeometry(curve, segments, tubeRadius * 4, 8, true);
         const glowMat = new THREE.MeshBasicMaterial({
-          color: 0x22d3ee,
+          color: 0x44eeff,
           transparent: true,
-          opacity: 0.08,
+          opacity: 0.15,
           side: THREE.DoubleSide,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
