@@ -1612,7 +1612,7 @@ const WingLoadingCalculator = () => {
                         
                         return (
                           <div
-                            className="absolute top-0 h-full bg-blue-400/20 border-l border-r border-blue-400/40"
+                            className="absolute top-0 h-full bg-primary/20 border-l border-r border-primary/40"
                             style={{
                               left: `${Math.max(0, left)}%`,
                               width: `${Math.max(0, Math.min(100, width))}%`
