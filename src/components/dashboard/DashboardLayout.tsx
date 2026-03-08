@@ -12,9 +12,11 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black flex relative overflow-hidden">
+    <div className={`min-h-screen flex relative overflow-hidden transition-colors duration-500 ${isLight ? 'bg-background' : 'bg-gradient-to-b from-black via-slate-900 to-black'}`}>
       
       {/* Grid overlay for command center feel */}
       <div className="absolute inset-0 z-0 pointer-events-none grid-overlay" />
