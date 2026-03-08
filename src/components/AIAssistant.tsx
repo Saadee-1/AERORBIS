@@ -347,7 +347,7 @@ const AIAssistant: React.FC = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <DropdownMenuSeparator className="bg-cyan-400/20" />
+                    <DropdownMenuSeparator className="bg-emerald-500/20" />
                       <DropdownMenuItem 
                         onClick={() => setIsOpen(false)} 
                         className="text-gray-400 focus:text-gray-300 focus:bg-slate-800"
