@@ -241,14 +241,14 @@ const AIAssistant: React.FC = () => {
                        rounded-[32px] shadow-[0_0_80px_hsl(160_84%_39%/0.5)] overflow-hidden"
           >
             {/* Minimal Header - Always Visible */}
-            <div className="flex items-center justify-between p-3 border-b border-cyan-400/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
+            <div className="flex items-center justify-between p-3 border-b border-emerald-500/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0">
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 
-                              flex items-center justify-center shadow-[0_0_25px_rgba(34,211,238,0.7)] flex-shrink-0">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-500/30 
+                              flex items-center justify-center shadow-[0_0_25px_hsl(160_84%_39%/0.7)] flex-shrink-0">
                   <AstronautIcon className="w-5 h-5 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 
+                  <h3 className="text-sm font-bold bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 
                                bg-clip-text text-transparent truncate">
                     Aerobot
                   </h3>
