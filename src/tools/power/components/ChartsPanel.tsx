@@ -105,8 +105,8 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             <Area
               type="monotone"
               dataKey="batteryState.soc"
-              stroke="#22d3ee"
-              fill="#22d3ee"
+              stroke="#10b981"
+              fill="#10b981"
               fillOpacity={0.3}
               name="State of Charge"
             />
