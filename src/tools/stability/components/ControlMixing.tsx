@@ -49,7 +49,7 @@ export function ControlMixingPanel({
       <div className="space-y-4">
         <AeroFormField label="Mixing Type">
           <Select value={mixingType} onValueChange={onMixingTypeChange}>
-            <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+            <SelectTrigger className="bg-slate-700/50 border-primary/30 text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -126,7 +126,7 @@ export function ControlMixingPanel({
           <div className="space-y-4">
             <AeroFormField label="Motor Mixing Preset">
               <Select value={motorMixingPreset || 'quadcopter-x'} onValueChange={onMotorMixingPresetChange}>
-                <SelectTrigger className="bg-slate-700/50 border-cyan-400/30 text-white">
+                <SelectTrigger className="bg-slate-700/50 border-primary/30 text-foreground">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

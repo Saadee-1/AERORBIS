@@ -49,14 +49,14 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
     {
       name: "Orbital",
       value: formatValue(breakdown.orbitalDeltaV),
-      color: "#22d3ee",
+      color: "#10b981",
     },
     ...(breakdown.hohmannDeltaV > 0
       ? [
           {
             name: "Hohmann",
             value: formatValue(breakdown.hohmannDeltaV),
-            color: "#3b82f6",
+            color: "#059669",
           },
         ]
       : []),
@@ -90,7 +90,7 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
     {
       name: "Required",
       value: formatValue(breakdown.totalRequired),
-      color: "#22d3ee",
+      color: "#10b981",
     },
     {
       name: "With Margin",
@@ -106,13 +106,13 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
 
   return (
     <div className="space-y-4">
-      <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+      <Card className="bg-card backdrop-blur-lg border border-primary/20 rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-cyan-400" />
+          <CardTitle className="text-foreground flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
             Δv Component Breakdown
           </CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardDescription className="text-muted-foreground">
             Breakdown of required Δv by component
           </CardDescription>
         </CardHeader>
@@ -141,12 +141,12 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
               <RechartsTooltip
                 contentStyle={{
                   backgroundColor: "#1e293b",
-                  border: "1px solid #22d3ee40",
+                  border: "1px solid #10b98140",
                   borderRadius: "8px",
                 }}
                 formatter={(value: number) => [`${value.toFixed(2)} ${unit}`, "Δv"]}
               />
-              <Bar dataKey="value" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-3 pt-3 border-t border-slate-700/50 px-6 pb-4">
@@ -161,10 +161,10 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
         </CardContent>
       </Card>
 
-      <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+      <Card className="bg-card backdrop-blur-lg border border-primary/20 rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-white">Total Δv Comparison</CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardTitle className="text-foreground">Total Δv Comparison</CardTitle>
+          <CardDescription className="text-muted-foreground">
             Required vs Achievable Δv
           </CardDescription>
         </CardHeader>
@@ -190,12 +190,12 @@ const DeltaVChart = ({ breakdown, unitSystem, customUnitName, customFactor }: De
               <RechartsTooltip
                 contentStyle={{
                   backgroundColor: "#1e293b",
-                  border: "1px solid #22d3ee40",
+                  border: "1px solid #10b98140",
                   borderRadius: "8px",
                 }}
                 formatter={(value: number) => [`${value.toFixed(2)} ${unit}`, "Δv"]}
               />
-              <Bar dataKey="value" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-3 pt-3 border-t border-slate-700/50 px-6 pb-4">

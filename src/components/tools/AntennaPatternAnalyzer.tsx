@@ -1318,7 +1318,7 @@ const AntennaPatternAnalyzer = () => {
                     type="monotone"
                     data={chartData.hPlane}
                     dataKey="gain"
-                    stroke="#3b82f6"
+                    stroke="#059669"
                     strokeWidth={2}
                     name="H-plane"
                     dot={false}
@@ -1330,7 +1330,7 @@ const AntennaPatternAnalyzer = () => {
                 <AeroverseLegend
                   items={[
                     { id: 'e-plane', name: 'E-plane', color: '#10b981' },
-                    { id: 'h-plane', name: 'H-plane', color: '#3b82f6' },
+                    { id: 'h-plane', name: 'H-plane', color: '#059669' },
                   ]}
                 />
               </div>

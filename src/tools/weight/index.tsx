@@ -504,13 +504,13 @@ export default function StructuralWeightEstimator() {
 
             <TabsContent value="iteration">
               <ToolSection>
-                <div className="p-4 bg-slate-800/50 rounded-lg border border-cyan-400/20">
-                  <h3 className="text-lg font-semibold text-cyan-400 mb-4">Iteration History</h3>
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-primary/20">
+                  <h3 className="text-lg font-semibold text-primary mb-4">Iteration History</h3>
                   <div className="space-y-2">
                     {results.iteration.history.map((h, i) => (
                       <div key={i} className="p-2 bg-slate-700/30 rounded text-sm">
                         <span className="text-gray-400">Iteration {h.iteration}:</span>{' '}
-                        <span className="text-cyan-400">W_TO = {(h.W_to / 9.81).toFixed(1)} kg</span>
+                        <span className="text-primary">W_TO = {(h.W_to / 9.81).toFixed(1)} kg</span>
                         {' '}(error: {(h.error * 100).toFixed(4)}%)
                       </div>
                     ))}
@@ -521,12 +521,12 @@ export default function StructuralWeightEstimator() {
 
             <TabsContent value="classification">
               <ToolSection>
-                <div className="p-4 bg-slate-800/50 rounded-lg border border-cyan-400/20">
-                  <h3 className="text-lg font-semibold text-cyan-400 mb-4">Aircraft Classification</h3>
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-primary/20">
+                  <h3 className="text-lg font-semibold text-primary mb-4">Aircraft Classification</h3>
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm text-gray-400 mb-1">Class</p>
-                      <p className="text-2xl font-bold text-cyan-400">{results.classification.aircraftClass}</p>
+                      <p className="text-2xl font-bold text-primary">{results.classification.aircraftClass}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-400 mb-1">Reason</p>

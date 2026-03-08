@@ -918,7 +918,7 @@ const WingLoadingCalculator = () => {
   // Get classification color
   const getClassificationColor = (wsClass: WingLoadingClass): string => {
     switch (wsClass) {
-      case 'Very Low': return 'text-blue-400';
+      case 'Very Low': return 'text-primary';
       case 'Low': return 'text-emerald-400';
       case 'Within': return 'text-green-400';
       case 'High': return 'text-yellow-400';
@@ -1480,7 +1480,7 @@ const WingLoadingCalculator = () => {
                   icon={CheckCircle}
                 >
                   <div className="space-y-4">
-                    <div className="p-4 bg-gradient-to-r from-primary/10 to-blue-400/10 rounded-lg border border-primary/30">
+                    <div className="p-4 bg-gradient-to-r from-primary/10 to-emerald-400/10 rounded-lg border border-primary/30">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading (Weight)</p>
                       <p className="text-xs text-gray-500 mb-1">(W/S in N/m², weight per unit area)</p>
                       <p className="text-3xl font-bold text-primary">
@@ -1494,7 +1494,7 @@ const WingLoadingCalculator = () => {
                       </p>
                     </div>
                     
-                    <div className="p-4 bg-gradient-to-r from-primary/10 to-blue-400/10 rounded-lg border border-primary/30">
+                    <div className="p-4 bg-gradient-to-r from-primary/10 to-emerald-400/10 rounded-lg border border-primary/30">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading (Mass)</p>
                       <p className="text-xs text-gray-500 mb-1">(W/S in kg/m², mass per unit area)</p>
                       <p className="text-3xl font-bold text-primary">
@@ -1612,7 +1612,7 @@ const WingLoadingCalculator = () => {
                         
                         return (
                           <div
-                            className="absolute top-0 h-full bg-blue-400/20 border-l border-r border-blue-400/40"
+                            className="absolute top-0 h-full bg-primary/20 border-l border-r border-primary/40"
                             style={{
                               left: `${Math.max(0, left)}%`,
                               width: `${Math.max(0, Math.min(100, width))}%`
@@ -1654,7 +1654,7 @@ const WingLoadingCalculator = () => {
                         
                         return (
                           <div
-                            className="absolute -bottom-5 text-xs text-blue-300/70"
+                            className="absolute -bottom-5 text-xs text-primary/70"
                             style={{ left: `${Math.max(5, Math.min(95, center))}%`, transform: 'translateX(-50%)' }}
                           >
                             {example.label}

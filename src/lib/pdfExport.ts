@@ -59,21 +59,21 @@ function generatePDFFromLocalStorage(requestId: string, options: PDFExportOption
       body { margin: 0; }
     }
     body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; color: #333; line-height: 1.6; }
-    h1 { color: #22d3ee; border-bottom: 3px solid #22d3ee; padding-bottom: 10px; margin-bottom: 20px; }
-    h2 { color: #06b6d4; margin-top: 30px; margin-bottom: 15px; border-bottom: 1px solid #06b6d4; padding-bottom: 5px; }
-    h3 { color: #0891b2; margin-top: 20px; margin-bottom: 10px; }
+    h1 { color: #10b981; border-bottom: 3px solid #10b981; padding-bottom: 10px; margin-bottom: 20px; }
+    h2 { color: #059669; margin-top: 30px; margin-bottom: 15px; border-bottom: 1px solid #059669; padding-bottom: 5px; }
+    h3 { color: #047857; margin-top: 20px; margin-bottom: 10px; }
     table { width: 100%; border-collapse: collapse; margin: 20px 0; page-break-inside: avoid; }
     th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
-    th { background-color: #0f172a; color: #22d3ee; font-weight: 600; }
+    th { background-color: #0f172a; color: #10b981; font-weight: 600; }
     tr:nth-child(even) { background-color: #f8f9fa; }
-    .step { margin: 10px 0; padding: 12px; background-color: #f8f9fa; border-left: 4px solid #22d3ee; page-break-inside: avoid; }
-    .result { font-size: 1.1em; font-weight: bold; color: #06b6d4; }
+    .step { margin: 10px 0; padding: 12px; background-color: #f8f9fa; border-left: 4px solid #10b981; page-break-inside: avoid; }
+    .result { font-size: 1.1em; font-weight: bold; color: #059669; }
     .metadata { color: #666; font-size: 0.9em; margin: 5px 0; }
     .warning { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 10px; margin: 10px 0; }
     .error { background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 10px; margin: 10px 0; }
     .chart-container { margin: 20px 0; text-align: center; page-break-inside: avoid; }
     .chart-container img { max-width: 100%; height: auto; border: 1px solid #ddd; }
-    .summary-box { background-color: #ecfeff; border: 2px solid #22d3ee; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    .summary-box { background-color: #ecfdf5; border: 2px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 5px; }
     .summary-box h3 { margin-top: 0; }
   </style>
 </head>
@@ -887,7 +887,7 @@ export async function generateChartImage(
   const yRange = yMax - yMin || 1;
 
   // Draw data points and line
-  ctx.strokeStyle = '#22d3ee';
+  ctx.strokeStyle = '#10b981';
   ctx.lineWidth = 2;
   ctx.beginPath();
 

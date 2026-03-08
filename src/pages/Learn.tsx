@@ -115,7 +115,7 @@ const Learn = () => {
                             <CardTitle className="text-xl text-foreground">{module.title}</CardTitle>
                             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
                               module.level === "Beginner" ? "bg-emerald-500/20 text-emerald-500" :
-                              module.level === "Intermediate" ? "bg-blue-400/20 text-blue-400" :
+                              module.level === "Intermediate" ? "bg-amber-400/20 text-amber-400" :
                               "bg-purple-400/20 text-purple-400"
                             }`}>
                               {module.level}

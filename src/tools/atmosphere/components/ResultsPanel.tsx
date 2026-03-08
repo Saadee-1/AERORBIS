@@ -97,7 +97,7 @@ export function ResultsPanel({ result, unitSystem, velocity }: ResultsPanelProps
       <AeroCard title="Atmospheric Properties">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {/* Temperature */}
-          <div className="p-4 bg-gradient-to-br from-blue-400/10 to-primary/10 rounded-lg border border-primary/20">
+          <div className="p-4 bg-gradient-to-br from-primary/10 to-emerald-400/10 rounded-lg border border-primary/20">
             <p className="text-xs text-muted-foreground mb-1">Temperature</p>
             <p className="text-primary font-bold text-xl">
               {formatTemperature(result.temperature)}
@@ -132,7 +132,7 @@ export function ResultsPanel({ result, unitSystem, velocity }: ResultsPanelProps
           </div>
 
           {/* Viscosity */}
-          <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-blue-400/10 rounded-lg border border-indigo-400/20">
+          <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-primary/10 rounded-lg border border-indigo-400/20">
             <p className="text-xs text-muted-foreground mb-1">Dynamic Viscosity</p>
             <p className="text-indigo-400 font-bold text-xl">
               {formatViscosity(result.viscosity)}

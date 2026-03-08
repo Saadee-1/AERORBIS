@@ -292,7 +292,7 @@ export function ThrustLoadingGraphs({
                     padding: "8px 12px",
                     boxShadow: "0 0 8px rgba(168, 85, 247, 0.4)"
                   }}
-                  labelStyle={{ color: "#22d3ee", fontWeight: 600 }}
+                  labelStyle={{ color: "#10b981", fontWeight: 600 }}
                   itemStyle={{ color: "#c084fc", fontWeight: 500 }}
                   formatter={(value: number, name: string, props: { payload?: { twMin: number; twMax: number } }) => {
                     if (name === 'twRange' && props.payload) {

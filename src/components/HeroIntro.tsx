@@ -52,21 +52,21 @@ const IntroGlobe = () => {
       </Sphere>
 
       <Sphere ref={wireframeRef} args={[1.03, 32, 32]}>
-        <meshBasicMaterial color="#22d3ee" wireframe transparent opacity={0.15} />
+        <meshBasicMaterial color="#10b981" wireframe transparent opacity={0.15} />
       </Sphere>
 
       {/* Orbital rings */}
       <mesh ref={ring1Ref} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[1.5, 0.012, 16, 100]} />
-        <meshBasicMaterial color="#22d3ee" transparent opacity={0.5} />
+        <meshBasicMaterial color="#10b981" transparent opacity={0.5} />
       </mesh>
       <mesh ref={ring2Ref} rotation={[Math.PI / 3, Math.PI / 4, 0]}>
         <torusGeometry args={[1.7, 0.008, 16, 100]} />
-        <meshBasicMaterial color="#22d3ee" transparent opacity={0.25} />
+        <meshBasicMaterial color="#10b981" transparent opacity={0.25} />
       </mesh>
 
       <Sphere args={[1.2, 32, 32]}>
-        <meshBasicMaterial color="#22d3ee" transparent opacity={0.03} side={THREE.BackSide} />
+        <meshBasicMaterial color="#10b981" transparent opacity={0.03} side={THREE.BackSide} />
       </Sphere>
     </group>
   );
@@ -276,7 +276,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
         <Suspense fallback={null}>
           <Canvas camera={{ position: [0, 0, 3.8], fov: 42 }}>
             <ambientLight intensity={0.3} />
-            <pointLight position={[10, 10, 10]} intensity={1.5} color="#22d3ee" />
+            <pointLight position={[10, 10, 10]} intensity={1.5} color="#10b981" />
             <pointLight position={[-10, -10, -10]} intensity={0.4} color="#6366f1" />
             <IntroGlobe />
           </Canvas>

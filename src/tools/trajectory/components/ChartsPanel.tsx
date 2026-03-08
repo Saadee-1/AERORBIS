@@ -101,7 +101,7 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
               contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
               formatter={(value: number) => `${value.toFixed(2)} km/s`}
             />
-            <Line type="monotone" dataKey="velocity" stroke="#06b6d4" strokeWidth={2} name="Velocity (km/s)" legendType="none" />
+            <Line type="monotone" dataKey="velocity" stroke="#10b981" strokeWidth={2} name="Velocity (km/s)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
         <div className="mt-3 pt-3 border-t border-border">
@@ -110,7 +110,7 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
               id: 'velocity',
               name: 'Velocity',
               role: 'km/s',
-              color: '#06b6d4',
+              color: '#10b981',
             }]}
           />
         </div>

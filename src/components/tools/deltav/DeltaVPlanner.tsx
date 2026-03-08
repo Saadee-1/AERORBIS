@@ -322,7 +322,7 @@ const DeltaVPlanner = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-40 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+              <SelectTrigger className="w-40 bg-slate-900/50 border-primary/30 text-primary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -360,7 +360,7 @@ const DeltaVPlanner = () => {
                       setMission({ ...mission, orbitType: value })
                     }
                   >
-                    <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                    <SelectTrigger className="bg-slate-900/50 border-primary/30 text-foreground">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -384,7 +384,7 @@ const DeltaVPlanner = () => {
                         targetOrbitAltitude: parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="bg-slate-900/50 border-cyan-400/30 text-white"
+                    className="bg-slate-900/50 border-primary/30 text-foreground"
                   />
                 </AeroFormField>
               </div>
@@ -401,7 +401,7 @@ const DeltaVPlanner = () => {
                         targetInclination: parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="bg-slate-900/50 border-cyan-400/30 text-white"
+                    className="bg-slate-900/50 border-primary/30 text-foreground"
                   />
                 </AeroFormField>
                 <AeroFormField label={`Payload Mass (kg)`}>
@@ -416,7 +416,7 @@ const DeltaVPlanner = () => {
                         payloadMass: parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="bg-slate-900/50 border-cyan-400/30 text-white"
+                    className="bg-slate-900/50 border-primary/30 text-foreground"
                   />
                 </AeroFormField>
               </div>
@@ -433,7 +433,7 @@ const DeltaVPlanner = () => {
                         gravityLoss: parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="bg-slate-900/50 border-cyan-400/30 text-white"
+                    className="bg-slate-900/50 border-primary/30 text-foreground"
                   />
                 </AeroFormField>
                 <AeroFormField label={`Drag Loss (${unitSystem === "SI" ? "m/s" : unitSystem === "Imperial" ? "ft/s" : customUnitName || "Unit"})`}>
@@ -448,7 +448,7 @@ const DeltaVPlanner = () => {
                         dragLoss: parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="bg-slate-900/50 border-cyan-400/30 text-white"
+                    className="bg-slate-900/50 border-primary/30 text-foreground"
                   />
                 </AeroFormField>
                 <AeroFormField label={`Steering Loss (${unitSystem === "SI" ? "m/s" : unitSystem === "Imperial" ? "ft/s" : customUnitName || "Unit"})`}>
@@ -463,7 +463,7 @@ const DeltaVPlanner = () => {
                         steeringLoss: parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="bg-slate-900/50 border-cyan-400/30 text-white"
+                    className="bg-slate-900/50 border-primary/30 text-foreground"
                   />
                 </AeroFormField>
               </div>
@@ -481,7 +481,7 @@ const DeltaVPlanner = () => {
                       reserveMargin: parseFloat(e.target.value) || 0,
                     })
                   }
-                  className="bg-slate-900/50 border-cyan-400/30 text-white"
+                  className="bg-slate-900/50 border-primary/30 text-foreground"
                 />
               </AeroFormField>
             </AeroCard>
@@ -538,15 +538,15 @@ const DeltaVPlanner = () => {
                     ) : null
                   }
                 >
-                <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30 mb-4">
-                  <p className="text-sm text-gray-400 mb-1">Total Liftoff Mass</p>
-                  <p className="text-3xl font-bold text-cyan-400">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-emerald-400/10 rounded-lg border border-primary/30 mb-4">
+                  <p className="text-sm text-muted-foreground mb-1">Total Liftoff Mass</p>
+                  <p className="text-3xl font-bold text-primary">
                     {(result.totalLiftoffMass / 1000).toFixed(1)} t
                   </p>
                 </div>
-                <div className="p-4 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-lg border border-blue-400/30 mb-4">
-                  <p className="text-sm text-gray-400 mb-1">Total Achievable Δv</p>
-                  <p className="text-3xl font-bold text-blue-400">
+                <div className="p-4 bg-gradient-to-r from-emerald-400/10 to-purple-400/10 rounded-lg border border-emerald-400/30 mb-4">
+                  <p className="text-sm text-muted-foreground mb-1">Total Achievable Δv</p>
+                  <p className="text-3xl font-bold text-emerald-400">
                     {formatDeltaV(breakdown.totalAchievable)}
                   </p>
                 </div>
@@ -602,7 +602,7 @@ const DeltaVPlanner = () => {
                 <ul className="space-y-2">
                   {recommendations.map((rec, i) => (
                     <li key={i} className="text-gray-300 text-sm flex items-start gap-2">
-                      <span className="text-cyan-400">•</span>
+                      <span className="text-primary">•</span>
                       <span>{rec}</span>
                     </li>
                   ))}
@@ -617,14 +617,14 @@ const DeltaVPlanner = () => {
                 description="Define conversion factor to SI (m/s)"
                 icon={Settings2}
               >
-                <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-400/10">
+                <div className="p-3 bg-slate-900/50 rounded-lg border border-primary/10">
                   <Label className="text-white font-semibold">Delta-V (Δv)</Label>
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     <Input 
                       placeholder="Unit Name" 
                       value={customUnitName}
                       onChange={(e) => setCustomUnitName(e.target.value)}
-                      className="bg-slate-800 border-cyan-400/30 text-white"
+                      className="bg-slate-800 border-primary/30 text-foreground"
                     />
                     <Input 
                       type="number"
@@ -632,7 +632,7 @@ const DeltaVPlanner = () => {
                       placeholder="SI Factor"
                       value={customFactor}
                       onChange={(e) => setCustomFactor(e.target.value)}
-                      className="bg-slate-800 border-cyan-400/30 text-white"
+                      className="bg-slate-800 border-primary/30 text-foreground"
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1.5">
@@ -660,7 +660,7 @@ const DeltaVPlanner = () => {
 
       {/* Save Preset Dialog */}
       <Dialog open={isPresetDialogOpen} onOpenChange={setIsPresetDialogOpen}>
-        <DialogContent className="bg-slate-800 border-cyan-400/20 text-white max-w-lg">
+        <DialogContent className="bg-slate-800 border-primary/20 text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Preset</DialogTitle>
             <DialogDescription className="text-gray-400">
@@ -676,7 +676,7 @@ const DeltaVPlanner = () => {
                 id="preset-name"
                 value={presetName}
                 onChange={(e) => setPresetName(e.target.value)}
-                className="bg-slate-900/50 border-cyan-400/30 text-white"
+                className="bg-slate-900/50 border-primary/30 text-foreground"
                 placeholder="My Custom Mission"
               />
             </div>

@@ -40,10 +40,10 @@ export function TrajectoryPath({
     if (colorByPhase) {
       // Boost phase: orange/red
       // Coast phase: blue
-      // Orbit phase: cyan
+      // Orbit phase: emerald
       material = new MeshStandardMaterial({
-        color: 0x00ffff, // Default cyan
-        emissive: 0x004444,
+        color: 0x10b981, // Default emerald
+        emissive: 0x044430,
         emissiveIntensity: 0.3,
       });
     } else {

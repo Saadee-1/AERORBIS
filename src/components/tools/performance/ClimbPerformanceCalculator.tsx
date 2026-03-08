@@ -678,7 +678,7 @@ export default function ClimbPerformanceCalculator() {
               {clMax && (() => {
                 const parsed = parseFloat(clMax);
                 if (Number.isFinite(parsed) && parsed > 0) {
-                  return <p className="text-xs text-cyan-400 mt-1">User-specified CL_max override active</p>;
+                  return <p className="text-xs text-primary mt-1">User-specified CL_max override active</p>;
                 }
                 return null;
               })()}
@@ -874,7 +874,7 @@ export default function ClimbPerformanceCalculator() {
                 {/* CL_max configuration info */}
                 {lastCalculationValues && (() => {
                   if (lastCalculationValues.useClMaxOverride) {
-                    return <p className="text-xs text-cyan-400 mt-2">User-specified CLₘₐₓ in use: {lastCalculationValues.clMaxUsed.toFixed(2)}</p>;
+                    return <p className="text-xs text-primary mt-2">User-specified CLₘₐₓ in use: {lastCalculationValues.clMaxUsed.toFixed(2)}</p>;
                   } else {
                     const configClMax = CLMAX_CONFIG_MAP[lastCalculationValues.flightConfigUsed];
                     const configLabels: Record<FlightConfiguration, string> = {
@@ -982,7 +982,7 @@ export default function ClimbPerformanceCalculator() {
                   <>
                     <div className="space-y-3">
                     <div>
-                        <h4 className="text-sm font-semibold text-cyan-400 mb-1">V_y — Best Rate of Climb Speed</h4>
+                        <h4 className="text-sm font-semibold text-primary mb-1">V_y — Best Rate of Climb Speed</h4>
                         <p className="text-xs text-gray-500 mb-2">True airspeed that maximizes vertical velocity (rate of climb). Used for time-to-climb optimization.</p>
                       <p className="text-2xl font-bold text-white">{result.vY.toFixed(2)} m/s</p>
                         <p className="text-sm text-gray-400">{msToKts(result.vY).toFixed(2)} kts (TAS)</p>
@@ -1019,7 +1019,7 @@ export default function ClimbPerformanceCalculator() {
                     </div>
                     <div className="space-y-3">
                     <div>
-                        <h4 className="text-sm font-semibold text-cyan-400 mb-1">V_x — Best Angle of Climb Speed</h4>
+                        <h4 className="text-sm font-semibold text-primary mb-1">V_x — Best Angle of Climb Speed</h4>
                         <p className="text-xs text-gray-500 mb-2">True airspeed that maximizes climb angle (steepest climb). Used for obstacle clearance and short-field takeoff performance.</p>
                       {result.vX !== undefined ? (
                         <>

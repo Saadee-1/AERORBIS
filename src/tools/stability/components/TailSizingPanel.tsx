@@ -40,7 +40,7 @@ export function TailSizingPanel({
       <div className="space-y-4">
         {/* Current Configuration */}
         <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
-          <h4 className="text-sm font-semibold text-cyan-400 mb-2">Current Configuration</h4>
+          <h4 className="text-sm font-semibold text-primary mb-2">Current Configuration</h4>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <span className="text-gray-400">Tail Area:</span>

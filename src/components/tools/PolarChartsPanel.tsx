@@ -145,8 +145,8 @@ const CustomTooltip = ({ active, payload, label, chartType }: CustomTooltipProps
   }
 
   return (
-    <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
-      <p className="text-cyan-400 font-semibold mb-2">α = {label}°</p>
+    <div className="bg-slate-800 border border-primary/30 rounded-lg p-3 shadow-lg">
+      <p className="text-primary font-semibold mb-2">α = {label}°</p>
       {payload.map((entry, index: number) => (
         <div key={index} className="flex items-center gap-2 text-sm">
           <div
@@ -358,7 +358,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     }
 
     return (
-      <div className="bg-slate-800 border border-cyan-400/30 rounded-lg p-3 shadow-lg">
+      <div className="bg-slate-800 border border-primary/30 rounded-lg p-3 shadow-lg">
         {payload.map((entry: DragPolarTooltipEntry, index: number) => {
           const airfoilId = entry.dataKey;
           const polar = polars.find(p => p.id === airfoilId);
@@ -369,7 +369,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
 
           return (
             <div key={index} className="mb-2 last:mb-0">
-              <p className="text-cyan-400 font-semibold mb-1">
+              <p className="text-primary font-semibold mb-1">
                 {polar?.name || airfoilId}
               </p>
               <div className="text-sm space-y-1">
@@ -403,17 +403,17 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
     <div className="space-y-4">
       {/* Mode Selector */}
       <Tabs value={chartMode} onValueChange={(value) => setChartMode(value as ChartMode)}>
-        <TabsList className="bg-slate-700/50 border border-cyan-400/30">
-          <TabsTrigger value="cl" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+        <TabsList className="bg-slate-700/50 border border-primary/30">
+          <TabsTrigger value="cl" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             CL vs α
           </TabsTrigger>
-          <TabsTrigger value="cd" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+          <TabsTrigger value="cd" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             CD vs α
           </TabsTrigger>
-          <TabsTrigger value="cm" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+          <TabsTrigger value="cm" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             CM vs α
           </TabsTrigger>
-          <TabsTrigger value="dragPolar" className="data-[state=active]:bg-cyan-600/20 data-[state=active]:text-cyan-300">
+          <TabsTrigger value="dragPolar" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             Drag Polar (CD vs CL)
           </TabsTrigger>
         </TabsList>

@@ -432,7 +432,7 @@ export function WingLoadingGraphs({
                     label={{
                       value: "Current",
                       position: "insideTop",
-                      fill: "#22d3ee",
+                      fill: "#10b981",
                       fontWeight: 600,
                       fontSize: 10,
                     }}
@@ -445,7 +445,7 @@ export function WingLoadingGraphs({
                     label={{
                       value: `${currentVsMs.toFixed(1)} m/s`,
                       position: "insideRight",
-                      fill: "#22d3ee",
+                      fill: "#10b981",
                       fontWeight: 600,
                       fontSize: 10,
                     }}
@@ -502,7 +502,7 @@ export function WingLoadingGraphs({
                 borderRadius: 10,
                 padding: "8px 12px",
               }}
-              labelStyle={{ color: "#22d3ee", fontWeight: 600 }}
+              labelStyle={{ color: "#10b981", fontWeight: 600 }}
               itemStyle={{ color: "#c084fc", fontWeight: 500 }}
               formatter={(value: number, name: string) => {
                 if (name === 'wsMinKg') return [value.toFixed(1), 'Min W/S (kg/m²)'];
@@ -615,7 +615,7 @@ export function WingLoadingGraphs({
                     label={{
                       value: `Current: ${currentAltitudeFt.toFixed(0)} ft`,
                       position: "insideTop",
-                      fill: "#22d3ee",
+                      fill: "#10b981",
                       fontWeight: 600,
                       fontSize: 10,
                     }}

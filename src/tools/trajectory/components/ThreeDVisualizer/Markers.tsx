@@ -31,10 +31,10 @@ const MARKER_ICONS: Record<string, string> = {
 const MARKER_COLORS: Record<string, string> = {
   maxQ: '#f59e0b',
   MECO: '#ef4444',
-  stageSep: '#3b82f6',
+  stageSep: '#059669',
   fairingSep: '#8b5cf6',
   apoapsis: '#10b981',
-  periapsis: '#06b6d4',
+  periapsis: '#34d399',
 };
 
 export function Markers({ markers, showMarkers = true, onMarkerClick }: MarkersProps) {
@@ -55,7 +55,7 @@ export function Markers({ markers, showMarkers = true, onMarkerClick }: MarkersP
             className="cursor-pointer transition-all hover:scale-110"
             onClick={() => onMarkerClick?.(marker)}
             style={{
-              backgroundColor: MARKER_COLORS[marker.name] || '#22d3ee',
+              backgroundColor: MARKER_COLORS[marker.name] || '#10b981',
               color: 'white',
               padding: '4px 8px',
               borderRadius: '4px',

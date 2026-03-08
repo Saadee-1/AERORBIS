@@ -41,12 +41,12 @@ export function InterlinkSourcesRow({
             <button
               key={source.id}
               onClick={() => onSelectSource?.(source.id)}
-              className="px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700 flex items-center gap-2 hover:scale-105 hover:border-cyan-400/50 transition-all duration-200 group"
+              className="px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700 flex items-center gap-2 hover:scale-105 hover:border-primary/50 transition-all duration-200 group"
               aria-label={`View data from ${source.name}`}
             >
               <span
                 className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ background: source.color || "#06b6d4" }}
+                style={{ background: source.color || "#10b981" }}
               />
               <span className="text-xs text-slate-100 font-medium">{source.name}</span>
               {!compact && source.fields.length > 0 && (

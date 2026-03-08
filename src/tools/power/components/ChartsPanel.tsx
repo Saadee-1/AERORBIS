@@ -99,14 +99,14 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981' }}
               formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'SOC']}
             />
             <Area
               type="monotone"
               dataKey="batteryState.soc"
-              stroke="#22d3ee"
-              fill="#22d3ee"
+              stroke="#10b981"
+              fill="#10b981"
               fillOpacity={0.3}
               name="State of Charge"
             />
@@ -136,7 +136,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               label={{ value: 'Power (W)', angle: -90, position: 'insideLeft' }}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981' }}
               formatter={(value: number) => [`${value.toFixed(1)} W`, '']}
             />
             <Line
@@ -158,7 +158,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             <Line
               type="monotone"
               dataKey="netPower_W"
-              stroke="#22d3ee"
+              stroke="#10b981"
               name="Net (Solar - Load)"
               dot={false}
               legendType="none"
@@ -170,7 +170,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
             items={[
               { id: 'load', name: 'Load', color: '#ef4444' },
               { id: 'solar', name: 'Solar', color: '#fbbf24' },
-              { id: 'net', name: 'Net', role: 'Solar - Load', color: '#22d3ee' },
+              { id: 'net', name: 'Net', role: 'Solar - Load', color: '#10b981' },
             ]}
           />
         </div>
@@ -198,7 +198,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               label={{ value: 'Voltage (V)', angle: -90, position: 'insideLeft' }}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981' }}
               formatter={(value: number) => [`${value.toFixed(2)} V`, 'Voltage']}
             />
             <Line
@@ -244,7 +244,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               label={{ value: 'Energy (Wh)', angle: -90, position: 'insideLeft' }}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981' }}
               formatter={(value: number) => [`${value.toFixed(2)} Wh`, 'Energy']}
             />
             <Area
@@ -282,7 +282,7 @@ export function ChartsPanel({ result }: ChartsPanelProps) {
               domain={[-10, 90]}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981' }}
               formatter={(value: number) => [`${value.toFixed(1)}°`, 'Elevation']}
             />
             <Line

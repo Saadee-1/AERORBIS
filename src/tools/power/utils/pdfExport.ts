@@ -90,17 +90,17 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
       line-height: 1.6;
     }
     .header {
-      border-bottom: 3px solid #22d3ee;
+      border-bottom: 3px solid #10b981;
       padding-bottom: 20px;
       margin-bottom: 30px;
     }
     h1 { 
-      color: #22d3ee; 
+      color: #10b981; 
       font-size: 2.5em;
       margin-bottom: 10px;
     }
     h2 { 
-      color: #06b6d4; 
+      color: #059669; 
       margin-top: 30px; 
       margin-bottom: 15px;
       font-size: 1.5em;
@@ -108,7 +108,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
       padding-bottom: 8px;
     }
     h3 {
-      color: #0891b2;
+      color: #047857;
       margin-top: 20px;
       margin-bottom: 10px;
       font-size: 1.2em;
@@ -133,7 +133,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
     }
     th { 
       background-color: #0f172a; 
-      color: #22d3ee; 
+      color: #10b981; 
       font-weight: 600;
     }
     tr:last-child td {
@@ -145,13 +145,13 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
     .result { 
       font-size: 1.3em; 
       font-weight: bold; 
-      color: #06b6d4; 
+      color: #059669; 
     }
     .step { 
       margin: 12px 0; 
       padding: 12px 16px; 
       background-color: #f1f5f9; 
-      border-left: 4px solid #22d3ee; 
+      border-left: 4px solid #10b981; 
       border-radius: 4px;
     }
     .warning {
@@ -164,7 +164,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
     }
     .recommendation {
       background-color: #dbeafe;
-      border-left: 4px solid #3b82f6;
+      border-left: 4px solid #059669;
       padding: 12px 16px;
       margin: 12px 0;
       border-radius: 4px;
@@ -196,7 +196,7 @@ export function generatePowerSystemPDF(data: PowerSystemPDFData): string {
     .metric-value {
       font-size: 1.8em;
       font-weight: bold;
-      color: #06b6d4;
+      color: #059669;
     }
     .footer {
       margin-top: 40px;

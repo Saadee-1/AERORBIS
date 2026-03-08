@@ -529,7 +529,7 @@ export default function StabilityCalculator() {
       {/* Advanced Features Toggles */}
       <ToolSection>
         <AeroCard title="Advanced Features">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-800/30 rounded-lg border border-cyan-400/20">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-800/30 rounded-lg border border-primary/20">
           <div className="flex items-center space-x-2">
             <Switch
               id="dynamic"
@@ -683,19 +683,19 @@ export default function StabilityCalculator() {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-gray-400">τ_e (Elevator)</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.control.tau_e != null ? extendedResults.control.tau_e.toFixed(3) : 'N/A'}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">τ_a (Aileron)</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.control.tau_a != null ? extendedResults.control.tau_a.toFixed(3) : 'N/A'}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">τ_r (Rudder)</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.control.tau_r != null ? extendedResults.control.tau_r.toFixed(3) : 'N/A'}
                         </p>
                       </div>
@@ -756,19 +756,19 @@ export default function StabilityCalculator() {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-gray-400">Elevator Factor</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.nonlinear.elevator_factor != null ? extendedResults.nonlinear.elevator_factor.toFixed(3) : 'N/A'}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Aileron Factor</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.nonlinear.aileron_factor != null ? extendedResults.nonlinear.aileron_factor.toFixed(3) : 'N/A'}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Rudder Factor</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.nonlinear.rudder_factor != null ? extendedResults.nonlinear.rudder_factor.toFixed(3) : 'N/A'}
                         </p>
                       </div>

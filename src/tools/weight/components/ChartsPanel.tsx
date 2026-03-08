@@ -27,7 +27,7 @@ interface ChartsPanelProps {
   };
 }
 
-const COLORS = ['#22d3ee', '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63', '#0891b2', '#06b6d4', '#22d3ee', '#67e8f9'];
+const COLORS = ['#10b981', '#059669', '#047857', '#065f46', '#064e3b', '#022c22', '#047857', '#059669', '#10b981', '#34d399'];
 
 export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inputs, missionProfile, cg }: ChartsPanelProps) {
   // Component weights bar chart data
@@ -113,10 +113,10 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
             <XAxis dataKey="name" {...globalAxisCommonProps} tick={globalAxisTickStyle} />
             <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
             />
-            <Bar dataKey="weight" fill="#22d3ee" name="Weight (kg)" />
+            <Bar dataKey="weight" fill="#10b981" name="Weight (kg)" />
           </BarChart>
         </ResponsiveContainer>
         <div className="mt-3 pt-3 border-t border-slate-700/50">
@@ -125,7 +125,7 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               id: 'weight',
               name: 'Weight',
               role: 'kg',
-              color: '#22d3ee',
+              color: '#10b981',
             }]}
           />
         </div>
@@ -155,7 +155,7 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               ))}
             </Pie>
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
             />
           </PieChart>
@@ -175,10 +175,10 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
             <XAxis dataKey="iteration" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Iteration', position: 'insideBottom', offset: -5 }} />
             <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'W_TO (kg)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
               formatter={(value: number) => `${value.toFixed(1)} kg`}
             />
-            <Line type="monotone" dataKey="W_to" stroke="#22d3ee" strokeWidth={2} name="Takeoff Weight (kg)" legendType="none" />
+            <Line type="monotone" dataKey="W_to" stroke="#10b981" strokeWidth={2} name="Takeoff Weight (kg)" legendType="none" />
           </LineChart>
         </ResponsiveContainer>
         <div className="mt-3 pt-3 border-t border-slate-700/50">
@@ -187,7 +187,7 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               id: 'w_to',
               name: 'Takeoff Weight',
               role: 'kg',
-              color: '#22d3ee',
+              color: '#10b981',
             }]}
           />
         </div>
@@ -236,10 +236,10 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               <XAxis dataKey="phase" {...globalAxisCommonProps} tick={globalAxisTickStyle} angle={-45} textAnchor="end" height={80} />
               <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Fuel Used (%)', angle: -90, position: 'insideLeft' }} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
                 formatter={(value: number) => `${value.toFixed(2)}%`}
               />
-              <Bar dataKey="fuelUsed" fill="#06b6d4" name="Cumulative Fuel Used (%)" />
+              <Bar dataKey="fuelUsed" fill="#059669" name="Cumulative Fuel Used (%)" />
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-3 pt-3 border-t border-slate-700/50">
@@ -248,7 +248,7 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
                 id: 'fuel',
                 name: 'Cumulative Fuel Used',
                 role: '%',
-                color: '#06b6d4',
+                color: '#059669',
               }]}
             />
           </div>
@@ -269,10 +269,10 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
               <XAxis dataKey="W_to" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Takeoff Weight (kg)', position: 'insideBottom', offset: -5 }} />
               <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Wing Loading (kg/m²)', angle: -90, position: 'insideLeft' }} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #22d3ee', borderRadius: '8px' }}
-                formatter={(value: number) => `${value.toFixed(1)} kg/m²`}
-              />
-              <Line type="monotone" dataKey="wingLoading" stroke="#22d3ee" strokeWidth={2} name="Wing Loading (kg/m²)" dot={{ fill: '#22d3ee', r: 3 }} legendType="none" />
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #10b981', borderRadius: '8px' }}
+              formatter={(value: number) => `${value.toFixed(1)} kg/m²`}
+            />
+            <Line type="monotone" dataKey="wingLoading" stroke="#10b981" strokeWidth={2} name="Wing Loading (kg/m²)" dot={{ fill: '#10b981', r: 3 }} legendType="none" />
             </LineChart>
           </ResponsiveContainer>
           <div className="mt-3 pt-3 border-t border-slate-700/50">
@@ -281,13 +281,13 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
                 id: 'wing-loading',
                 name: 'Wing Loading',
                 role: 'kg/m²',
-                color: '#22d3ee',
+                color: '#10b981',
               }]}
             />
           </div>
-          <div className="p-4 text-center border-t border-cyan-400/20">
-            <p className="text-sm text-gray-400">Current Wing Loading</p>
-            <p className="text-2xl font-bold text-cyan-400 mt-1">
+          <div className="p-4 text-center border-t border-primary/20">
+            <p className="text-sm text-muted-foreground">Current Wing Loading</p>
+            <p className="text-2xl font-bold text-primary mt-1">
               {wingLoading.toFixed(1)} kg/m²
             </p>
             <p className="text-xs text-gray-500 mt-1">

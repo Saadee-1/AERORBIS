@@ -24,11 +24,11 @@ interface DensityChartProps {
 const DensityChart = ({ materials, unitSystem }: DensityChartProps) => {
   if (materials.length === 0) {
     return (
-      <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+      <Card className="bg-card backdrop-blur-lg border border-primary/20 rounded-2xl">
         <CardContent className="pt-6">
           <div className="text-center py-12">
-            <TrendingUp className="w-16 h-16 mx-auto mb-4 text-cyan-400/30" />
-            <p className="text-gray-400">Select materials to compare densities</p>
+            <TrendingUp className="w-16 h-16 mx-auto mb-4 text-primary/30" />
+            <p className="text-muted-foreground">Select materials to compare densities</p>
           </div>
         </CardContent>
       </Card>
@@ -48,13 +48,13 @@ const DensityChart = ({ materials, unitSystem }: DensityChartProps) => {
   }));
 
   return (
-    <Card className="bg-slate-800/50 backdrop-blur-lg border border-cyan-400/20 rounded-2xl">
+    <Card className="bg-card backdrop-blur-lg border border-primary/20 rounded-2xl">
       <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-cyan-400" />
+        <CardTitle className="text-foreground flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" />
           Density Comparison
         </CardTitle>
-        <CardDescription className="text-gray-400">
+        <CardDescription className="text-muted-foreground">
           Comparing {displayMaterials.length} material{displayMaterials.length !== 1 ? "s" : ""}
           {materials.length > 10 && ` (showing top 10)`}
         </CardDescription>
@@ -84,7 +84,7 @@ const DensityChart = ({ materials, unitSystem }: DensityChartProps) => {
             <RechartsTooltip
               contentStyle={{
                 backgroundColor: "#1e293b",
-                border: "1px solid #22d3ee40",
+                border: "1px solid #10b98140",
                 borderRadius: "8px",
               }}
               formatter={(value: number) => [
@@ -100,7 +100,7 @@ const DensityChart = ({ materials, unitSystem }: DensityChartProps) => {
             />
             <Bar
               dataKey="density"
-              fill="#22d3ee"
+              fill="#10b981"
               radius={[4, 4, 0, 0]}
               name="Density"
             />
@@ -112,7 +112,7 @@ const DensityChart = ({ materials, unitSystem }: DensityChartProps) => {
               id: 'density',
               name: 'Density',
               role: unitSystem === "SI" ? "kg/m³" : "lb/ft³",
-              color: '#22d3ee',
+              color: '#10b981',
             }]}
           />
         </div>
@@ -122,4 +122,3 @@ const DensityChart = ({ materials, unitSystem }: DensityChartProps) => {
 };
 
 export default DensityChart;
-

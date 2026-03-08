@@ -1705,12 +1705,12 @@ const point: Record<string, unknown> = { alpha };
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="p-3 rounded bg-blue-500/10 border border-blue-400/30">
+                  <div className="p-3 rounded bg-primary/10 border border-primary/30">
                     <p className="text-sm text-muted-foreground mb-1">Lift Force (L)</p>
                     <p className="text-xs text-muted-foreground/70 mb-2">L = CL × q × S, where q = 0.5 × ρ × V²</p>
                     {displayCheck.display.Lift !== "—" ? (
                       <>
-                    <p className="text-xl font-bold text-blue-400">
+                    <p className="text-xl font-bold text-primary">
                       {typeof displayCheck.display.Lift === "number" ? convertFromSI(displayCheck.display.Lift, "force").toFixed(2) : displayCheck.display.Lift} {getUnit("force")}
                     </p>
                         <p className="text-xs text-muted-foreground/70 mt-1">Vertical component balances weight in steady flight</p>
@@ -1912,7 +1912,7 @@ const point: Record<string, unknown> = { alpha };
                           className="border-b border-slate-700/50 hover:bg-slate-700/30"
                         >
                           <td className="py-2 px-3 text-white">{point.alpha.toFixed(1)}</td>
-                          <td className="py-2 px-3 text-blue-400">{point.cl.toFixed(3)}</td>
+                          <td className="py-2 px-3 text-primary">{point.cl.toFixed(3)}</td>
                           <td className="py-2 px-3 text-red-400">{point.cd.toFixed(4)}</td>
                           <td className="py-2 px-3 text-green-400 font-semibold">
                             {Number.isFinite(point.ld) ? point.ld.toFixed(2) : "N/A"}
