@@ -989,21 +989,23 @@ const OrbitalVisualizer = () => {
         const satScale = radius_SI * 0.012;
         t.satellite.scale.set(satScale, satScale, satScale);
         
-        // Build orbit path points (physics frozen)
+        // Build orbit path points using full Ω, i, ω rotation
+        const raanRad = (parseFloat(currentInputs.raan || "0") * Math.PI) / 180;
+        const argPeriRad = (parseFloat(currentInputs.argOfPeriapsis || "0") * Math.PI) / 180;
+        
         const orbitPoints: THREE.Vector3[] = [];
         const segments = 256;
-        const focalDistance = semiMajorAxis * eccentricity;
         
         for (let i = 0; i <= segments; i++) {
           const theta = (i / segments) * 2 * Math.PI;
           const r = (semiMajorAxis * (1 - eccentricity * eccentricity)) / (1 + eccentricity * Math.cos(theta));
           
-          const x = (r * Math.cos(theta)) - focalDistance;
-          const y = r * Math.sin(theta);
+          // Position in perifocal frame
+          const x_peri = r * Math.cos(theta);
+          const y_peri = r * Math.sin(theta);
           
-          const x_final = x;
-          const y_final = y * Math.cos(inclinationRad);
-          const z_final = y * Math.sin(inclinationRad);
+          // Rotate to ECI
+          const [x, y, z] = rotateToECI(x_peri, y_peri, inclinationRad, raanRad, argPeriRad);
           
           orbitPoints.push(new THREE.Vector3(x_final, y_final, z_final));
         }
