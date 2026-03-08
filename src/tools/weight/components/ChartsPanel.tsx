@@ -27,7 +27,7 @@ interface ChartsPanelProps {
   };
 }
 
-const COLORS = ['#22d3ee', '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63', '#0891b2', '#06b6d4', '#22d3ee', '#67e8f9'];
+const COLORS = ['#10b981', '#059669', '#047857', '#065f46', '#064e3b', '#022c22', '#047857', '#059669', '#10b981', '#34d399'];
 
 export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inputs, missionProfile, cg }: ChartsPanelProps) {
   // Component weights bar chart data
