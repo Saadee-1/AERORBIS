@@ -1435,7 +1435,7 @@ const point: Record<string, unknown> = { alpha };
                   label="Oswald Efficiency Factor (e)"
                   helperText="Oswald efficiency factor: accounts for non-elliptical lift distribution and planform effects. Related to induced drag factor: k = 1/(π × AR × e). Typical range: 0.70-0.90 for most aircraft. Higher values indicate more efficient lift generation (closer to elliptical distribution)."
                 >
-                  <Input id="oswaldEfficiency" type="number" step="0.01" value={inputs.oswaldEfficiency} onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })} className="bg-slate-700/50 border-cyan-400/30 text-white" min="0.001" max="1" />
+                  <Input id="oswaldEfficiency" type="number" step="0.01" value={inputs.oswaldEfficiency} onChange={(e) => setInputs({ ...inputs, oswaldEfficiency: e.target.value })} min="0.001" max="1" />
                 </AeroFormField>
               </div>
 
