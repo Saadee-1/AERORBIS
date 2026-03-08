@@ -2065,7 +2065,7 @@ const point: Record<string, unknown> = { alpha };
                       if (!name) return;
                       saveCurrentSetup(name);
                     }}
-                    className="bg-slate-700/50 border-cyan-400/30 hover:bg-cyan-600/20 text-white text-xs"
+                    className="bg-slate-700/50 border-primary/30 hover:bg-primary/20 text-white text-xs"
                   >
                     <Download className="w-3 h-3 mr-1" />
                     Save Setup
