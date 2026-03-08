@@ -439,6 +439,8 @@ export default function ClimbPerformanceCalculator() {
   };
 
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Climb Performance" />
     <ToolWrapper>
       <ToolHeader
         title="Climb Performance Calculator"
