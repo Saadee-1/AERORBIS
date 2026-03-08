@@ -28,6 +28,8 @@ import {
   type DerivationStep,
 } from '@/lib/advancedOrbitalMechanics';
 import { Rocket, Globe, Zap, Navigation, Atom, Orbit } from 'lucide-react';
+import { PorkChopPlot, type PorkChopData } from './PorkChopPlot';
+import { AdvancedPDFExportButton } from './OrbitalAdvancedPDFExport';
 
 interface OrbitalAdvancedPanelProps {
   semiMajorAxis?: number;
@@ -116,6 +118,9 @@ export function OrbitalAdvancedPanel({
   const [departPlanet, setDepartPlanet] = useState('earth');
   const [arrivePlanet, setArrivePlanet] = useState('mars');
 
+  // ── Pork-chop data ──
+  const [porkChopData, setPorkChopData] = useState<PorkChopData | null>(null);
+
   // ── Results ──
   const [maneuverResults, setManeuverResults] = useState<AdvancedResult[]>([]);
   const [lambertResult, setLambertResult] = useState<AdvancedResult | null>(null);
@@ -181,7 +186,22 @@ export function OrbitalAdvancedPanel({
 
   return (
     <div className="space-y-4">
-      {/* ═══ ENERGY & MOMENTUM (Auto from current orbit) ═══ */}
+      {/* ═══ PDF EXPORT BUTTON ═══ */}
+      <div className="flex justify-end">
+        <AdvancedPDFExportButton
+          energyResults={energyResults}
+          j2Results={j2Results}
+          maneuverResults={maneuverResults}
+          lambertResult={lambertResult}
+          interplanetaryResults={interplanetaryResults}
+          porkChopData={porkChopData}
+          orbitParams={semiMajorAxis && eccentricity !== undefined && inclination_deg !== undefined ? {
+            semiMajorAxis,
+            eccentricity: eccentricity ?? 0,
+            inclination_deg: inclination_deg ?? 0,
+          } : undefined}
+        />
+      </div>
       {energyResults && (
         <AeroCard title="Energy & Momentum Analysis" icon={Atom}>
           <p className="text-xs text-muted-foreground mb-3">
@@ -360,6 +380,8 @@ export function OrbitalAdvancedPanel({
           </div>
         )}
       </AeroCard>
+      {/* ═══ PORK-CHOP PLOT ═══ */}
+      <PorkChopPlot onExportData={setPorkChopData} />
     </div>
   );
 }
