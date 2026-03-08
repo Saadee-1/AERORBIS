@@ -189,6 +189,7 @@ export function AdvancedPDFExportButton(props: AdvancedPDFExportProps) {
     || (props.interplanetaryResults?.length || 0) > 0
     || (props.gravityAssistResults?.length || 0) > 0
     || (props.lowThrustResults?.length || 0) > 0
+    || (props.gaussResults?.length || 0) > 0
     || props.porkChopData;
 
   const handleExport = async () => {
