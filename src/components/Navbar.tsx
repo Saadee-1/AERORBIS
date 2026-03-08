@@ -37,11 +37,12 @@ function DockItem({
 
   // magnification: items within ~80px get scaled
   // Buttery smooth spring: lower stiffness + higher damping = silky macOS feel
-  const scaleRaw = useTransform(distance, [-100, 0, 100], [1, 1.3, 1]);
-  const scale = useSpring(scaleRaw, { stiffness: 170, damping: 22, mass: 0.4 });
+  // Neighbors shrink, hovered item grows
+  const scaleRaw = useTransform(distance, [-150, -60, 0, 60, 150], [1, 0.9, 1.35, 0.9, 1]);
+  const scale = useSpring(scaleRaw, { stiffness: 200, damping: 24, mass: 0.3 });
 
-  const yRaw = useTransform(distance, [-100, 0, 100], [0, -6, 0]);
-  const y = useSpring(yRaw, { stiffness: 170, damping: 22, mass: 0.4 });
+  const yRaw = useTransform(distance, [-150, -60, 0, 60, 150], [0, 2, -8, 2, 0]);
+  const y = useSpring(yRaw, { stiffness: 200, damping: 24, mass: 0.3 });
 
   return (
     <motion.div style={{ scale, y }} className="relative flex flex-col items-center">
@@ -129,7 +130,7 @@ const Navbar = () => {
 
           {/* ── Desktop Dock ── */}
           <div
-            className="hidden lg:flex items-end gap-0 px-2 py-1 rounded-xl bg-card/30 backdrop-blur-xl border border-border/15 shadow-[0_1px_12px_hsl(0_0%_0%/0.12)]"
+            className="hidden lg:flex items-end gap-3 px-4 py-1.5 rounded-xl bg-card/30 backdrop-blur-xl border border-border/15 shadow-[0_1px_12px_hsl(0_0%_0%/0.12)]"
             onMouseMove={(e) => mouseX.set(e.clientX)}
             onMouseLeave={() => mouseX.set(-200)}
           >
