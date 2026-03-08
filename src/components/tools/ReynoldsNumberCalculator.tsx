@@ -830,7 +830,7 @@ const ReynoldsNumberCalculator = () => {
                     {/* Flow Regime */}
                     <div className={`p-4 bg-gradient-to-r ${getRegimeColor(result.flowRegime)} rounded-lg border`}>
                       <p className="text-sm font-semibold mb-2">Flow Regime</p>
-                      <p className="text-2xl font-bold drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                      <p className="text-2xl font-bold">
                         {result.flowRegime}
                       </p>
                       <p className="text-sm mt-2 opacity-90">
