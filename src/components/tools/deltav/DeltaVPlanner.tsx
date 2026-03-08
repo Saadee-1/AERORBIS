@@ -322,7 +322,7 @@ const DeltaVPlanner = () => {
         actions={
           <ToolActions>
             <Select value={unitSystem} onValueChange={(v) => setUnitSystem(v as UnitSystem)}>
-              <SelectTrigger className="w-40 bg-slate-900/50 border-cyan-400/30 text-cyan-400">
+              <SelectTrigger className="w-40 bg-slate-900/50 border-primary/30 text-primary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
