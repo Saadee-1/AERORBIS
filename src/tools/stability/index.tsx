@@ -683,7 +683,7 @@ export default function StabilityCalculator() {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-gray-400">τ_e (Elevator)</p>
-                        <p className="text-cyan-400 font-bold">
+                        <p className="text-primary font-bold">
                           {extendedResults.control.tau_e != null ? extendedResults.control.tau_e.toFixed(3) : 'N/A'}
                         </p>
                       </div>
