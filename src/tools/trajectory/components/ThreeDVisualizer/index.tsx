@@ -240,7 +240,7 @@ export const ThreeDVisualizer = memo(function ThreeDVisualizer({
 
   return (
     <ErrorBoundary toolName="3D Trajectory Visualizer">
-      <div className="relative w-full min-h-[600px] bg-slate-900 rounded-lg overflow-hidden border border-slate-800">
+      <div className="relative w-full min-h-[650px] bg-[#050a12] rounded-xl overflow-hidden border border-primary/20 shadow-[0_0_40px_rgba(16,185,129,0.08)]">
         <div className="absolute inset-0">{renderCanvas()}</div>
 
         {!sceneReady && !lastSceneError && (
