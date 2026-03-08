@@ -1007,6 +1007,8 @@ const ThrustLoadingCalculator = () => {
 
   
   return (
+    <>
+    <CalculationOverlay isActive={isCalculating} label="Computing Thrust Loading" />
     <ToolWrapper>
       <ToolHeader
         title="Thrust Loading Calculator"
