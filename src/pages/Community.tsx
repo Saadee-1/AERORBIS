@@ -48,7 +48,7 @@ const Community = () => {
       <PageBreadcrumb />
       
       {/* Hero Section */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-12 overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -56,11 +56,11 @@ const Community = () => {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <Users className="w-16 h-16 mx-auto mb-6 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
+            <Users className="w-12 h-12 mx-auto mb-4 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
               Join the AERORBIS Community
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
               Collaborate. Learn. Launch your ideas together.
             </p>
           </motion.div>
