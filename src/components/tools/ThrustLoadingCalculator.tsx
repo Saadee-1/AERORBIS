@@ -1240,14 +1240,14 @@ const ThrustLoadingCalculator = () => {
                 icon={Gauge}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <Label className="text-sm text-gray-300">Mode:</Label>
+                  <Label className="text-sm text-muted-foreground">Mode:</Label>
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm ${calculationMode === 'computeTW' ? 'text-cyan-400' : 'text-gray-500'}`}>Compute T/W</span>
+                    <span className={`text-sm ${calculationMode === 'computeTW' ? 'text-primary' : 'text-muted-foreground/70'}`}>Compute T/W</span>
                     <Switch
                       checked={calculationMode === 'computeThrust'}
                       onCheckedChange={(checked) => setCalculationMode(checked ? 'computeThrust' : 'computeTW')}
                     />
-                    <span className={`text-sm ${calculationMode === 'computeThrust' ? 'text-cyan-400' : 'text-gray-500'}`}>Required Thrust</span>
+                    <span className={`text-sm ${calculationMode === 'computeThrust' ? 'text-primary' : 'text-muted-foreground/70'}`}>Required Thrust</span>
                   </div>
                 </div>
                 {calculationMode === 'computeThrust' && (
