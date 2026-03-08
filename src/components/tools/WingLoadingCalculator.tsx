@@ -1582,7 +1582,7 @@ const WingLoadingCalculator = () => {
                         {missionType !== 'None' ? `${getMissionData(missionType).wsMinKg}–${getMissionData(missionType).wsMaxKg} kg/m²` : 'N/A (Manual mode)'}
                       </span>
                     </p>
-                    <div className="relative h-12 bg-slate-700/50 rounded border border-cyan-400/30">
+                    <div className="relative h-12 bg-slate-700/50 rounded border border-primary/30">
                       {/* Range indicator (typical range) */}
                       {(() => {
                         const rangePos = getRangeBarPosition();
