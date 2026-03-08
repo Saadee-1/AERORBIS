@@ -80,7 +80,7 @@ export function RecommendationCard({
       className={cn(
         "rec-card rounded-lg border bg-slate-900/50 p-4 transition-all cursor-pointer",
         selected 
-          ? "rec-card--selected border-cyan-400 bg-slate-800/70 shadow-lg shadow-cyan-500/20" 
+          ? "rec-card--selected border-primary bg-slate-800/70 shadow-lg shadow-primary/20" 
           : "border-slate-700 hover:border-slate-600 hover:bg-slate-800/40"
       )}
       onClick={handleCardClick}
