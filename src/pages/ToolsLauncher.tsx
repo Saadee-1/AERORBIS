@@ -302,113 +302,39 @@ const ToolsLauncher = () => {
             >
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               {!hideTabs && (
-                <TabsList className="flex flex-wrap w-full max-w-full mx-auto bg-muted/50 backdrop-blur-lg border border-border p-3 gap-2 sm:gap-3 rounded-xl mb-8 overflow-hidden">
-                <TabsTrigger 
-                  value="thrust"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Rocket className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Thrust Calculator</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="wing"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Plane className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Wing Loading</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="orbital"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Orbit className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Orbital Visualizer</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="liftdrag"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">L/D Analyzer</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="reynolds"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Wind className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Reynolds Number</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="materials"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Database className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Materials DB</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="deltav"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Zap className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Δv Planner</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="antenna"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Radio className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Antenna</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="atmosphere"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Cloud className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Atmosphere</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="rocketengine"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Rocket className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Rocket Engine</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="stability"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Plane className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Stability</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="power"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Battery className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Power System</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="weight"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Scale className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Weight Estimator</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="trajectory"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Trajectory</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="climb"
-                  className="data-[state=active]:bg-cyan-400/30 data-[state=active]:text-cyan-400 data-[state=active]:shadow-[0_0_30px_rgba(34,211,238,0.8)] data-[state=active]:border-2 data-[state=active]:border-cyan-400/70 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                >
-                  <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">Climb Performance</span>
-                </TabsTrigger>
+                <div className="flex items-start gap-3 mb-8">
+                <TabsList className="flex flex-wrap flex-1 max-w-full bg-muted/50 backdrop-blur-lg border border-border p-3 gap-2 sm:gap-3 rounded-xl overflow-hidden">
+                {[
+                  { value: "thrust", icon: Rocket, label: "Thrust Calculator" },
+                  { value: "wing", icon: Plane, label: "Wing Loading" },
+                  { value: "orbital", icon: Orbit, label: "Orbital Visualizer" },
+                  { value: "liftdrag", icon: TrendingUp, label: "L/D Analyzer" },
+                  { value: "reynolds", icon: Wind, label: "Reynolds Number" },
+                  { value: "materials", icon: Database, label: "Materials DB" },
+                  { value: "deltav", icon: Zap, label: "Δv Planner" },
+                  { value: "antenna", icon: Radio, label: "Antenna" },
+                  { value: "atmosphere", icon: Cloud, label: "Atmosphere" },
+                  { value: "rocketengine", icon: Rocket, label: "Rocket Engine" },
+                  { value: "stability", icon: Plane, label: "Stability" },
+                  { value: "power", icon: Battery, label: "Power System" },
+                  { value: "weight", icon: Scale, label: "Weight Estimator" },
+                  { value: "trajectory", icon: Target, label: "Trajectory" },
+                  { value: "climb", icon: ArrowUp, label: "Climb Performance" },
+                ].map(({ value, icon: Icon, label }) => (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-[0_0_20px_hsl(var(--primary)/0.4)] data-[state=active]:border-2 data-[state=active]:border-primary/60 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
+                  >
+                    <Icon className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm truncate">{label}</span>
+                  </TabsTrigger>
+                ))}
                 </TabsList>
+                <div className="pt-3 flex-shrink-0">
+                  <ThemeToggle />
+                </div>
+                </div>
               )}
 
               <motion.div
