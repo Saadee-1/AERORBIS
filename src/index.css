@@ -468,11 +468,11 @@
   background: hsl(220 60% 6%);
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(185 85% 50% / 0.3);
+  background: hsl(160 84% 39% / 0.3);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(185 85% 50% / 0.5);
+  background: hsl(160 84% 39% / 0.5);
 }
 
 .light ::-webkit-scrollbar-track,
