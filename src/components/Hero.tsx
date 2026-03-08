@@ -338,7 +338,7 @@ const Hero = () => {
             ].map((stat, index) => (
               <motion.div 
                 key={stat.label} 
-                className="relative p-4 md:p-6 rounded-lg border border-primary/20 bg-card/20 backdrop-blur-sm group hover:border-primary/50 transition-colors"
+                className="relative p-3 sm:p-4 md:p-6 rounded-lg border border-primary/20 bg-card/20 backdrop-blur-sm group hover:border-primary/50 transition-colors"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 2.2 + index * 0.15 }}
