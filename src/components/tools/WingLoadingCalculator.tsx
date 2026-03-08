@@ -1494,10 +1494,10 @@ const WingLoadingCalculator = () => {
                       </p>
                     </div>
                     
-                    <div className="p-4 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-lg border border-cyan-400/30">
+                    <div className="p-4 bg-gradient-to-r from-primary/10 to-blue-400/10 rounded-lg border border-primary/30">
                       <p className="text-sm text-gray-400 mb-1">Wing Loading (Mass)</p>
                       <p className="text-xs text-gray-500 mb-1">(W/S in kg/m², mass per unit area)</p>
-                      <p className="text-3xl font-bold text-cyan-400">
+                      <p className="text-3xl font-bold text-primary">
                         {convertWingLoadingKgm2FromSI(result.wingLoadingKgm2, unitSystem).toFixed(2)} {outputUnits.wingLoadingKgm2}
                     </p>
                       <p className="text-sm text-gray-400 mt-1">
