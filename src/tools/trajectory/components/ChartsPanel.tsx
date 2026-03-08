@@ -126,7 +126,7 @@ export function ChartsPanel({ mode, result1D, result2D, result3D }: ChartsPanelP
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="altitude" {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Altitude (km)', position: 'insideBottom', offset: -5 }} />
+            <XAxis dataKey="altitude" {...globalAxisCommonProps} tick={globalAxisTickStyle} tickFormatter={(value: number) => value.toFixed(1)} label={{ value: 'Altitude (km)', position: 'insideBottom', offset: -5 }} />
             <YAxis {...globalAxisCommonProps} tick={globalAxisTickStyle} label={{ value: 'Dynamic Pressure (kPa)', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
               contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
