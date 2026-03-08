@@ -1425,7 +1425,7 @@ const AntennaPatternAnalyzer = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="presetName" className="text-cyan-300">Preset Name</Label>
+              <Label htmlFor="presetName" className="text-primary">Preset Name</Label>
               <Input
                 id="presetName"
                 value={savePresetName}
