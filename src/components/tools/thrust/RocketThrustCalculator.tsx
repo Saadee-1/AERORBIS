@@ -956,7 +956,7 @@ const AdvancedThrustCalculator = () => {
                     <Button
                       size="sm"
                       onClick={() => handleLoadCustomPreset(preset)}
-                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-400/30"
+                      className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30"
                     >
                       <FolderOpen className="w-4 h-4" />
                     </Button>
