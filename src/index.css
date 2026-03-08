@@ -425,7 +425,7 @@
   height: 48px;
   border-radius: 4px;
   background: hsl(220 60% 8%);
-  border: 1px solid hsl(185 85% 50% / 0.2);
+  border: 1px solid hsl(160 84% 39% / 0.2);
   position: relative;
   display: flex;
   align-items: center;
@@ -436,8 +436,8 @@
 
 .aerobot-icon:hover {
   background: hsl(220 60% 12%);
-  border-color: hsl(185 85% 50% / 0.5);
-  box-shadow: 0 0 20px hsl(185 85% 50% / 0.2);
+  border-color: hsl(160 84% 39% / 0.5);
+  box-shadow: 0 0 20px hsl(160 84% 39% / 0.2);
 }
 
 .aerobot-icon:active {
