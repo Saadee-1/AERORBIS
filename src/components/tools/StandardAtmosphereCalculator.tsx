@@ -642,7 +642,7 @@ export default function StandardAtmosphereCalculator() {
                   </div>
 
                   {/* Viscosity */}
-                  <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-blue-400/10 rounded-lg border border-indigo-400/20">
+                  <div className="p-4 bg-gradient-to-br from-indigo-400/10 to-primary/10 rounded-lg border border-indigo-400/20">
                     <p className="text-xs text-gray-400 mb-1">Dynamic Viscosity</p>
                     <p className="text-xs text-gray-500 mb-1">(μ, for Reynolds number)</p>
                     <p className="text-indigo-400 font-bold text-xl">
