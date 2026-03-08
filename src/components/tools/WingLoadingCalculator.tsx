@@ -1662,7 +1662,7 @@ const WingLoadingCalculator = () => {
                         );
                       })()}
           </div>
-                    <p className="text-sm text-cyan-400 text-center">
+                    <p className="text-sm text-primary text-center">
                       Current: {result.wingLoadingKgm2.toFixed(2)} kg/m²
                     </p>
                     <p className="text-xs text-gray-500 text-center">
