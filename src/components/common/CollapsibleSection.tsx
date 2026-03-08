@@ -47,23 +47,23 @@ export function CollapsibleSection({
   const toggle = () => setIsOpen(!isOpen);
 
   return (
-    <div className={`border border-cyan-400/20 rounded-lg bg-slate-800/30 ${className}`}>
+    <div className={`border border-primary/20 rounded-lg bg-card/30 ${className}`}>
       <button
         onClick={toggle}
-        className={`w-full flex items-center justify-between p-${compact ? '2' : '3'} hover:bg-slate-700/30 transition-colors rounded-t-lg ${
+        className={`w-full flex items-center justify-between p-${compact ? '2' : '3'} hover:bg-muted/30 transition-colors rounded-t-lg ${
           isOpen ? 'rounded-b-none' : 'rounded-b-lg'
         }`}
       >
         <div className="flex items-center gap-2">
-          {icon && <span className="text-cyan-400">{icon}</span>}
-          <h3 className={`text-${compact ? 'sm' : 'base'} font-semibold text-white`}>
+          {icon && <span className="text-primary">{icon}</span>}
+          <h3 className={`text-${compact ? 'sm' : 'base'} font-semibold text-foreground`}>
             {title}
           </h3>
         </div>
         {isOpen ? (
-          <ChevronUp className="w-4 h-4 text-cyan-400" />
+          <ChevronUp className="w-4 h-4 text-primary" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-cyan-400" />
+          <ChevronDown className="w-4 h-4 text-primary" />
         )}
       </button>
       <AnimatePresence>
@@ -104,7 +104,6 @@ export function CollapsibleGroup({
   const expandAll = () => {
     setAllOpen(true);
     if (typeof window !== 'undefined') {
-      // Find all collapsible sections with this prefix and expand them
       const keys = Object.keys(localStorage);
       keys.forEach((key) => {
         if (key.startsWith(`collapsible-${storagePrefix}-`)) {
@@ -133,13 +132,13 @@ export function CollapsibleGroup({
       <div className="flex gap-2 justify-end mb-2">
         <button
           onClick={expandAll}
-          className="text-xs px-2 py-1 text-cyan-400 hover:bg-cyan-400/10 rounded border border-cyan-400/30"
+          className="text-xs px-2 py-1 text-primary hover:bg-primary/10 rounded border border-primary/30"
         >
           Expand All
         </button>
         <button
           onClick={collapseAll}
-          className="text-xs px-2 py-1 text-cyan-400 hover:bg-cyan-400/10 rounded border border-cyan-400/30"
+          className="text-xs px-2 py-1 text-primary hover:bg-primary/10 rounded border border-primary/30"
         >
           Collapse All
         </button>
