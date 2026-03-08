@@ -976,7 +976,7 @@ const AdvancedThrustCalculator = () => {
             <Button
               variant="outline"
               onClick={() => setIsLoadDialogOpen(false)}
-              className="border-gray-600 text-gray-300"
+              className="border-border text-muted-foreground"
             >
               Close
             </Button>
