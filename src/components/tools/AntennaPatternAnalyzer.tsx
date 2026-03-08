@@ -1094,7 +1094,7 @@ const AntennaPatternAnalyzer = () => {
               </AeroFormField>
               <AeroFormField label="Polarization">
                 <Select value={polarization} onValueChange={setPolarization}>
-                  <SelectTrigger className="bg-slate-900/50 border-cyan-400/30 text-white">
+                  <SelectTrigger className="bg-slate-900/50 border-primary/30 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
