@@ -30,7 +30,7 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
               type="number"
               value={inputs.geometry.S_w || ''}
               onChange={(e) => handleNumberChange(['geometry', 'S_w'], e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
+              className="bg-slate-700/50 border-primary/30 text-white"
               min="0"
               step="0.1"
             />
@@ -42,7 +42,7 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
               type="number"
               value={inputs.geometry.AR || ''}
               onChange={(e) => handleNumberChange(['geometry', 'AR'], e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
+              className="bg-slate-700/50 border-primary/30 text-white"
               min="0"
               step="0.1"
             />
@@ -54,7 +54,7 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
               type="number"
               value={inputs.geometry.lambda || ''}
               onChange={(e) => handleNumberChange(['geometry', 'lambda'], e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
+              className="bg-slate-700/50 border-primary/30 text-white"
               min="0"
               max="1"
               step="0.01"
@@ -67,7 +67,7 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
               type="number"
               value={inputs.geometry.t_c || ''}
               onChange={(e) => handleNumberChange(['geometry', 't_c'], e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
+              className="bg-slate-700/50 border-primary/30 text-white"
               min="0.01"
               max="0.5"
               step="0.01"
@@ -80,15 +80,15 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
               type="number"
               value={inputs.geometry.b || ''}
               onChange={(e) => handleNumberChange(['geometry', 'b'], e.target.value)}
-              className="bg-slate-700/50 border-cyan-400/30 text-white"
+              className="bg-slate-700/50 border-primary/30 text-white"
               min="0"
               step="0.1"
             />
           </AeroFormField>
         </div>
 
-        <div className="border-t border-cyan-400/20 pt-4">
-          <h3 className="text-sm font-semibold text-cyan-400 mb-3">Tail Geometry</h3>
+        <div className="border-t border-primary/20 pt-4">
+          <h3 className="text-sm font-semibold text-primary mb-3">Tail Geometry</h3>
           <div className="grid grid-cols-2 gap-4">
             <AeroFormField label="Horizontal Tail Area (S_ht)" helperText="m²" htmlFor="S_ht">
               <Input
@@ -96,7 +96,7 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
                 type="number"
                 value={inputs.geometry.S_ht || ''}
                 onChange={(e) => handleNumberChange(['geometry', 'S_ht'], e.target.value)}
-                className="bg-slate-700/50 border-cyan-400/30 text-white"
+                className="bg-slate-700/50 border-primary/30 text-white"
                 min="0"
                 step="0.1"
               />
@@ -108,7 +108,7 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
                 type="number"
                 value={inputs.geometry.AR_ht || ''}
                 onChange={(e) => handleNumberChange(['geometry', 'AR_ht'], e.target.value)}
-                className="bg-slate-700/50 border-cyan-400/30 text-white"
+                className="bg-slate-700/50 border-primary/30 text-white"
                 min="0"
                 step="0.1"
               />
@@ -120,7 +120,7 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
                 type="number"
                 value={inputs.geometry.S_vt || ''}
                 onChange={(e) => handleNumberChange(['geometry', 'S_vt'], e.target.value)}
-                className="bg-slate-700/50 border-cyan-400/30 text-white"
+                className="bg-slate-700/50 border-primary/30 text-white"
                 min="0"
                 step="0.1"
               />
@@ -128,8 +128,8 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
           </div>
         </div>
 
-        <div className="border-t border-cyan-400/20 pt-4">
-          <h3 className="text-sm font-semibold text-cyan-400 mb-3">Fuselage Geometry</h3>
+        <div className="border-t border-primary/20 pt-4">
+          <h3 className="text-sm font-semibold text-primary mb-3">Fuselage Geometry</h3>
           <div className="grid grid-cols-2 gap-4">
             <AeroFormField label="Wetted Area (S_fuse)" helperText="m²" htmlFor="S_fuse">
               <Input
@@ -137,7 +137,7 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
                 type="number"
                 value={inputs.geometry.S_fuse || ''}
                 onChange={(e) => handleNumberChange(['geometry', 'S_fuse'], e.target.value)}
-                className="bg-slate-700/50 border-cyan-400/30 text-white"
+                className="bg-slate-700/50 border-primary/30 text-white"
                 min="0"
                 step="0.1"
               />
@@ -149,7 +149,7 @@ export function GeometryPanel({ inputs, onInputChange }: GeometryPanelProps) {
                 type="number"
                 value={inputs.geometry.L_fuse || ''}
                 onChange={(e) => handleNumberChange(['geometry', 'L_fuse'], e.target.value)}
-                className="bg-slate-700/50 border-cyan-400/30 text-white"
+                className="bg-slate-700/50 border-primary/30 text-white"
                 min="0"
                 step="0.1"
               />

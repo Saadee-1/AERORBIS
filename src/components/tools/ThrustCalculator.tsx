@@ -106,10 +106,10 @@ const ThrustCalculator = ({ initialMode = 'rocket' }: ThrustCalculatorProps) => 
           </Tabs>
 
           {/* Mode Description */}
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-900/50 border border-cyan-400/10">
-            <currentModeInfo.icon className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-900/50 border border-primary/10">
+            <currentModeInfo.icon className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-cyan-400">{currentModeInfo.title}</p>
+              <p className="text-sm font-medium text-primary">{currentModeInfo.title}</p>
               <p className="text-xs text-gray-400 mt-1">{currentModeInfo.description}</p>
             </div>
           </div>

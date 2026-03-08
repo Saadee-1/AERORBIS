@@ -452,7 +452,7 @@ export default function InterlinkCTA(props: Props) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      className="ml-auto text-cyan-300"
+                      className="ml-auto text-primary"
                       onClick={() => navigator.clipboard.writeText(String(available[f] ?? ''))}
                       aria-label={`Copy ${labelForField(f)}`}
                     >

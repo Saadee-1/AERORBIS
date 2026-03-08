@@ -29,7 +29,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
         {/* Preset Selection */}
         <AeroFormField label="Load Preset">
           <Select onValueChange={handlePresetChange}>
-            <SelectTrigger className="bg-slate-700/50 border-cyan-400/30">
+            <SelectTrigger className="bg-slate-700/50 border-primary/30">
               <SelectValue placeholder="Select preset or configure manually" />
             </SelectTrigger>
             <SelectContent>
@@ -44,14 +44,14 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
         
         {/* Flight Loads */}
         <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
-          <h4 className="text-sm font-semibold text-cyan-400 mb-3">Flight Loads</h4>
+          <h4 className="text-sm font-semibold text-primary mb-3">Flight Loads</h4>
           <div className="grid grid-cols-2 gap-4">
             <AeroFormField label="Propulsion (W)">
               <input
                 type="number"
                 value={loads.propulsion || 0}
                 onChange={(e) => onLoadsChange({ ...loads, propulsion: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="10"
               />
@@ -62,7 +62,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
                 type="number"
                 value={loads.avionics || 0}
                 onChange={(e) => onLoadsChange({ ...loads, avionics: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="1"
               />
@@ -73,7 +73,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
                 type="number"
                 value={loads.servos || 0}
                 onChange={(e) => onLoadsChange({ ...loads, servos: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="1"
               />
@@ -84,7 +84,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
                 type="number"
                 value={loads.cameras || 0}
                 onChange={(e) => onLoadsChange({ ...loads, cameras: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="1"
               />
@@ -95,7 +95,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
                 type="number"
                 value={loads.telemetry || 0}
                 onChange={(e) => onLoadsChange({ ...loads, telemetry: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="0.5"
               />
@@ -106,7 +106,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
                 type="number"
                 value={loads.payload || 0}
                 onChange={(e) => onLoadsChange({ ...loads, payload: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="5"
               />
@@ -117,7 +117,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
                 type="number"
                 value={loads.thermal || 0}
                 onChange={(e) => onLoadsChange({ ...loads, thermal: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="5"
               />
@@ -127,14 +127,14 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
         
         {/* CubeSat Loads */}
         <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
-          <h4 className="text-sm font-semibold text-cyan-400 mb-3">CubeSat Loads</h4>
+          <h4 className="text-sm font-semibold text-primary mb-3">CubeSat Loads</h4>
           <div className="grid grid-cols-2 gap-4">
             <AeroFormField label="ADCS (W)">
               <input
                 type="number"
                 value={loads.adcs || 0}
                 onChange={(e) => onLoadsChange({ ...loads, adcs: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="0.1"
               />
@@ -145,7 +145,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
                 type="number"
                 value={loads.transmitter || 0}
                 onChange={(e) => onLoadsChange({ ...loads, transmitter: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="0.5"
               />
@@ -156,7 +156,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
                 type="number"
                 value={loads.obc || 0}
                 onChange={(e) => onLoadsChange({ ...loads, obc: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-cyan-400/30 rounded text-white"
+                className="w-full px-3 py-2 bg-slate-700/50 border border-primary/30 rounded text-white"
                 min="0"
                 step="0.1"
               />
@@ -166,7 +166,7 @@ export function LoadProfile({ loads, onLoadsChange }: LoadProfileProps) {
         
         {/* Total Load Summary */}
         <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/20">
-          <h4 className="text-sm font-semibold text-cyan-400 mb-2">Total Load</h4>
+          <h4 className="text-sm font-semibold text-primary mb-2">Total Load</h4>
           <div className="text-2xl font-bold text-white">
             {totalLoad.toFixed(1)} W
           </div>
