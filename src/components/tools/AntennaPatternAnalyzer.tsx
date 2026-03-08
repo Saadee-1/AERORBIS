@@ -1343,7 +1343,7 @@ const AntennaPatternAnalyzer = () => {
                 description="Interactive 3D visualization of antenna radiation pattern"
                 icon={Zap}
               >
-                  <div className="relative w-full h-[500px] rounded-lg bg-slate-900 border border-cyan-400/20">
+                  <div className="relative w-full h-[500px] rounded-lg bg-slate-900 border border-primary/20">
                     {threeError && (
                       <div className="absolute inset-0 flex items-center justify-center text-red-300 text-sm p-4 text-center">
                         Unable to initialize 3D visualization: {threeError}
