@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import ProfileMenu from "./ProfileMenu";
 import AudioToggle from "./AudioToggle";
+import ThemeToggle from "./ThemeToggle";
 import aerorbisLogo from "@/assets/aerorbis-logo.png";
 
 const Navbar = () => {
