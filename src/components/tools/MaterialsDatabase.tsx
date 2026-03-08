@@ -245,20 +245,16 @@ const MaterialsDatabase = () => {
   };
 
   const handleAddMaterial = (material: Material) => {
-    // Check for duplicates and append "(Custom)" if needed
-    let materialName = material.name;
-    let counter = 1;
-    while (materials.some((m) => m.name === materialName)) {
-      materialName = `${material.name} (Custom ${counter})`;
-      counter++;
-    }
-
-    const newMaterial: Material = {
-      ...material,
-      name: materialName,
-    };
-
-    setMaterials([...materials, newMaterial]);
+    runCalculation(() => {
+      let materialName = material.name;
+      let counter = 1;
+      while (materials.some((m) => m.name === materialName)) {
+        materialName = `${material.name} (Custom ${counter})`;
+        counter++;
+      }
+      const newMaterial: Material = { ...material, name: materialName };
+      setMaterials([...materials, newMaterial]);
+    });
   };
 
   return (
