@@ -438,7 +438,7 @@ interface GaussOrbitDeterminationProps {
   onMonteCarloResults?: (results: AdvancedResult[]) => void;
 }
 
-export function GaussOrbitDetermination({ onResults }: GaussOrbitDeterminationProps) {
+export function GaussOrbitDetermination({ onResults, onMonteCarloResults }: GaussOrbitDeterminationProps) {
   const [preset, setPreset] = useState('leo_example');
   const [ra1, setRa1] = useState('40.0');
   const [dec1, setDec1] = useState('-20.0');
