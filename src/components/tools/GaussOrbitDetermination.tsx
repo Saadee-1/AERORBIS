@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { GaussMonteCarloAnalysis } from './GaussMonteCarloAnalysis';
 import { AeroCard } from '@/components/common/AeroCard';
 import { AeroButton } from '@/components/common/AeroButton';
 import { AeroFormField } from '@/components/forms/AeroFormField';
