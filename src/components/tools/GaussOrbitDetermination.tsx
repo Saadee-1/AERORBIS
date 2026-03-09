@@ -435,6 +435,7 @@ function computeGaussOD(
 
 interface GaussOrbitDeterminationProps {
   onResults?: (results: AdvancedResult[]) => void;
+  onMonteCarloResults?: (results: AdvancedResult[]) => void;
 }
 
 export function GaussOrbitDetermination({ onResults }: GaussOrbitDeterminationProps) {
