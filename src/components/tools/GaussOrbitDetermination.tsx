@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { GaussMonteCarloAnalysis } from './GaussMonteCarloAnalysis';
 import { AeroCard } from '@/components/common/AeroCard';
 import { AeroButton } from '@/components/common/AeroButton';
 import { AeroFormField } from '@/components/forms/AeroFormField';
@@ -537,9 +538,20 @@ export function GaussOrbitDetermination({ onResults }: GaussOrbitDeterminationPr
         </AeroFormField>
       </div>
 
-      <AeroButton onClick={compute} variant="primary" icon={Crosshair} className="w-full">
+      <AeroButton onClick={compute} variant="primary" icon={Crosshair} className="w-full mb-3">
         Determine Orbit (Gauss Method)
       </AeroButton>
+
+      {/* Monte Carlo Uncertainty Analysis */}
+      <GaussMonteCarloAnalysis
+        ra1={parseFloat(ra1) || 0} dec1={parseFloat(dec1) || 0} t1={parseFloat(t1) || 0}
+        ra2={parseFloat(ra2) || 0} dec2={parseFloat(dec2) || 0} t2={parseFloat(t2) || 0}
+        ra3={parseFloat(ra3) || 0} dec3={parseFloat(dec3) || 0} t3={parseFloat(t3) || 0}
+        onResults={(mcRes) => {
+          setResults(prev => [...prev.filter(r => r.title !== 'Monte Carlo Uncertainty (Gauss OD)'), ...mcRes]);
+          onResults?.([...results.filter(r => r.title !== 'Monte Carlo Uncertainty (Gauss OD)'), ...mcRes]);
+        }}
+      />
 
       {results.length > 0 && (
         <div className="mt-4 pt-4 border-t border-border space-y-3">
