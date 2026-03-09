@@ -133,6 +133,7 @@ export function OrbitalAdvancedPanel({
 
   // ── Gauss OD results ──
   const [gaussResults, setGaussResults] = useState<AdvancedResult[]>([]);
+  const [monteCarloResults, setMonteCarloResults] = useState<AdvancedResult[]>([]);
 
   // ── Results ──
   const [maneuverResults, setManeuverResults] = useState<AdvancedResult[]>([]);
