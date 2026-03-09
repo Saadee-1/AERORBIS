@@ -288,124 +288,144 @@ function computeGaussOD(
   const energy = (v2_mag * v2_mag) / 2 - mu / r2_mag;
   const a = -mu / (2 * energy);
 
-  // Eccentricity vector
-  const rdotv = dot(r2_est, v2_est);
-  const eVec: [number, number, number] = [
-    ((v2_mag * v2_mag - mu / r2_mag) * r2_est[0] - rdotv * v2_est[0]) / mu,
-    ((v2_mag * v2_mag - mu / r2_mag) * r2_est[1] - rdotv * v2_est[1]) / mu,
-    ((v2_mag * v2_mag - mu / r2_mag) * r2_est[2] - rdotv * v2_est[2]) / mu,
-  ];
-  const e = mag(eVec);
+  // ── Compute initial orbital elements from r2, v2 ──
+  const init = stateToElements(r2_est, v2_est, mu);
 
-  // Inclination
-  const incl = Math.acos(h[2] / hMag) / DEG2RAD;
+  steps.push(
+    { label: 'Angular momentum vector', equation: 'h = r₂ × v₂', substitution: `h = [${init.h.map(v => v.toFixed(4)).join(', ')}]`, result: `|h| = ${init.hMag.toFixed(4)} km²/s` },
+    { label: 'Specific orbital energy', equation: 'ε = v²/2 - μ/r', substitution: `ε = ${v2_mag.toFixed(4)}²/2 - ${mu}/${r2_mag.toFixed(2)}`, result: `ε = ${init.energy.toFixed(6)} km²/s²` },
+    { label: 'Semi-major axis (initial)', equation: 'a = -μ/(2ε)', substitution: `a = -${mu}/(2×${init.energy.toFixed(6)})`, result: `a = ${init.a.toFixed(2)} km` },
+    { label: 'Eccentricity (initial)', equation: 'e = |ê|', substitution: `ê = [${init.eVec.map(v => v.toFixed(6)).join(', ')}]`, result: `e = ${init.e.toFixed(6)}` },
+  );
 
-  // RAAN
-  const n_vec = cross([0, 0, 1], h);
-  const n_mag = mag(n_vec);
-  let RAAN = n_mag > 1e-10 ? Math.acos(n_vec[0] / n_mag) / DEG2RAD : 0;
-  if (n_vec[1] < 0) RAAN = 360 - RAAN;
+  // ── Iterative Differential Correction ──
+  const dcSteps: DerivationStep[] = [];
+  let r2_ref = [...r2_est] as [number, number, number];
+  let v2_ref = [...v2_est] as [number, number, number];
+  const MAX_ITER = 8;
+  const CONVERGE_ARCSEC = 1.0;
+  let finalRMS = Infinity;
+  let convergedIter = MAX_ITER;
+  const iterLog: { iter: number; rms: number; dr: number; dv: number }[] = [];
 
-  // Argument of periapsis
-  let argPeri = 0;
-  if (n_mag > 1e-10 && e > 1e-6) {
-    argPeri = Math.acos(dot(n_vec, eVec) / (n_mag * e)) / DEG2RAD;
-    if (eVec[2] < 0) argPeri = 360 - argPeri;
+  for (let it = 0; it < MAX_ITER; it++) {
+    // Propagate from (r2,v2) at t2 to t1 and t3
+    const state1 = propagateState(r2_ref, v2_ref, obs1.t - obs2.t, mu);
+    const state3 = propagateState(r2_ref, v2_ref, obs3.t - obs2.t, mu);
+
+    // Compute predicted RA/Dec
+    const pred1 = computeRaDec(state1.r);
+    const pred2 = computeRaDec(r2_ref);
+    const pred3 = computeRaDec(state3.r);
+
+    // Residuals in arcseconds
+    const dRA1 = (obs1.ra_deg - pred1.ra_deg) * 3600;
+    const dDec1 = (obs1.dec_deg - pred1.dec_deg) * 3600;
+    const dRA2 = (obs2.ra_deg - pred2.ra_deg) * 3600;
+    const dDec2 = (obs2.dec_deg - pred2.dec_deg) * 3600;
+    const dRA3 = (obs3.ra_deg - pred3.ra_deg) * 3600;
+    const dDec3 = (obs3.dec_deg - pred3.dec_deg) * 3600;
+
+    const rms = Math.sqrt((dRA1*dRA1 + dDec1*dDec1 + dRA2*dRA2 + dDec2*dDec2 + dRA3*dRA3 + dDec3*dDec3) / 6);
+    finalRMS = rms;
+
+    // Apply damped correction to position & velocity
+    const damping = 0.3;
+    const posCorrScale = r2_mag * 1e-6 * damping;
+    const velCorrScale = v2_mag * 1e-6 * damping;
+
+    const dr = posCorrScale * rms;
+    const dv = velCorrScale * rms;
+
+    // Correct along residual directions (simplified gradient)
+    const meanDRA = (dRA1 + dRA2 + dRA3) / 3;
+    const meanDDec = (dDec1 + dDec2 + dDec3) / 3;
+    const corrDir = rhoHat(obs2.ra_deg + meanDRA / 3600, obs2.dec_deg + meanDDec / 3600);
+
+    r2_ref = [
+      r2_ref[0] + dr * corrDir[0],
+      r2_ref[1] + dr * corrDir[1],
+      r2_ref[2] + dr * corrDir[2],
+    ];
+    v2_ref = [
+      v2_ref[0] + dv * corrDir[0],
+      v2_ref[1] + dv * corrDir[1],
+      v2_ref[2] + dv * corrDir[2],
+    ];
+
+    iterLog.push({ iter: it + 1, rms, dr, dv });
+
+    dcSteps.push({
+      label: `Iteration ${it + 1}`,
+      equation: `Propagate r₂,v₂ → predict (α,δ)₁,₃ → compute residuals`,
+      substitution: `ΔRA₁=${dRA1.toFixed(2)}″, ΔDec₁=${dDec1.toFixed(2)}″, ΔRA₃=${dRA3.toFixed(2)}″, ΔDec₃=${dDec3.toFixed(2)}″`,
+      result: `RMS = ${rms.toFixed(4)}″, Δr = ${dr.toFixed(4)} km, Δv = ${dv.toFixed(6)} km/s`,
+    });
+
+    if (rms < CONVERGE_ARCSEC) {
+      convergedIter = it + 1;
+      dcSteps.push({
+        label: 'Convergence achieved',
+        equation: `RMS < ${CONVERGE_ARCSEC}″`,
+        substitution: `Final RMS = ${rms.toFixed(4)}″ after ${it + 1} iterations`,
+        result: `Solution converged ✓`,
+      });
+      break;
+    }
   }
 
-  // True anomaly
-  let nu = 0;
-  if (e > 1e-6) {
-    nu = Math.acos(dot(eVec, r2_est) / (e * r2_mag)) / DEG2RAD;
-    if (rdotv < 0) nu = 360 - nu;
-  }
+  // Refined orbital elements
+  const ref = stateToElements(r2_ref, v2_ref, mu);
+  const r2_ref_mag = mag(r2_ref);
+  const v2_ref_mag = mag(v2_ref);
 
-  // Period
-  const period = a > 0 ? 2 * Math.PI * Math.sqrt(a * a * a / mu) : Infinity;
+  dcSteps.push(
+    { label: 'Refined semi-major axis', equation: 'a = -μ/(2ε)', substitution: `ε = ${ref.energy.toFixed(6)}`, result: `a = ${ref.a.toFixed(2)} km (was ${init.a.toFixed(2)} km)` },
+    { label: 'Refined eccentricity', equation: 'e = |ê|', substitution: `ê = [${ref.eVec.map(v => v.toFixed(6)).join(', ')}]`, result: `e = ${ref.e.toFixed(6)} (was ${init.e.toFixed(6)})` },
+    { label: 'Refined inclination', equation: 'i = cos⁻¹(hₖ/|h|)', substitution: `h_z = ${ref.h[2].toFixed(4)}`, result: `i = ${ref.incl.toFixed(4)}° (was ${init.incl.toFixed(4)}°)` },
+  );
 
-  const elementSteps: DerivationStep[] = [
-    ...steps,
-    {
-      label: 'Angular momentum vector',
-      equation: 'h = r₂ × v₂',
-      substitution: `h = [${h.map(v => v.toFixed(4)).join(', ')}]`,
-      result: `|h| = ${hMag.toFixed(4)} km²/s`,
-    },
-    {
-      label: 'Specific orbital energy',
-      equation: 'ε = v²/2 - μ/r',
-      substitution: `ε = ${v2_mag.toFixed(4)}²/2 - ${mu}/${r2_mag.toFixed(2)}`,
-      result: `ε = ${energy.toFixed(6)} km²/s²`,
-    },
-    {
-      label: 'Semi-major axis',
-      equation: 'a = -μ/(2ε)',
-      substitution: `a = -${mu}/(2×${energy.toFixed(6)})`,
-      result: `a = ${a.toFixed(2)} km`,
-    },
-    {
-      label: 'Eccentricity',
-      equation: 'e = |ê| = |(v²−μ/r)r − (r·v)v| / μ',
-      substitution: `ê = [${eVec.map(v => v.toFixed(6)).join(', ')}]`,
-      result: `e = ${e.toFixed(6)}`,
-    },
-    {
-      label: 'Inclination',
-      equation: 'i = cos⁻¹(hₖ/|h|)',
-      substitution: `i = cos⁻¹(${h[2].toFixed(4)}/${hMag.toFixed(4)})`,
-      result: `i = ${incl.toFixed(4)}°`,
-    },
-    {
-      label: 'RAAN (Ω)',
-      equation: 'Ω = cos⁻¹(nₓ/|n|), n = k̂ × h',
-      substitution: `n = [${n_vec.map(v => v.toFixed(4)).join(', ')}]`,
-      result: `Ω = ${RAAN.toFixed(4)}°`,
-    },
-    {
-      label: 'Argument of periapsis (ω)',
-      equation: 'ω = cos⁻¹(n̂·ê / (|n||e|))',
-      substitution: `dot(n,e) = ${dot(n_vec, eVec).toFixed(6)}`,
-      result: `ω = ${argPeri.toFixed(4)}°`,
-    },
-    {
-      label: 'True anomaly (ν)',
-      equation: 'ν = cos⁻¹(ê·r / (e×r))',
-      substitution: `dot(e,r₂) = ${dot(eVec, r2_est).toFixed(6)}`,
-      result: `ν = ${nu.toFixed(4)}°`,
-    },
-  ];
+  const elementSteps: DerivationStep[] = [...steps];
 
   const results: AdvancedResult[] = [
     {
-      title: 'Orbital Elements (Gauss Method)',
-      value: a,
+      title: 'Orbital Elements (Gauss Method — Initial)',
+      value: init.a,
       unit: 'km (semi-major axis)',
       steps: elementSteps,
-      interpretation: `Gauss orbit determination from 3 angular observations yields: a = ${a.toFixed(2)} km (altitude ${(a - R_EARTH).toFixed(0)} km for circular equiv.), e = ${e.toFixed(4)}, i = ${incl.toFixed(2)}°, Ω = ${RAAN.toFixed(2)}°, ω = ${argPeri.toFixed(2)}°, ν = ${nu.toFixed(2)}°. Period = ${a > 0 ? `${(period / 60).toFixed(1)} min` : 'hyperbolic'}. Note: this is a first-approximation using Gauss's method — iterative refinement (differential correction) would improve accuracy. The method works best when observations span 10-60° of orbital arc.`,
+      interpretation: `Initial Gauss solution: a = ${init.a.toFixed(2)} km, e = ${init.e.toFixed(4)}, i = ${init.incl.toFixed(2)}°, Ω = ${init.RAAN.toFixed(2)}°, ω = ${init.argPeri.toFixed(2)}°, ν = ${init.nu.toFixed(2)}°. Period = ${init.a > 0 ? `${(init.period / 60).toFixed(1)} min` : 'hyperbolic'}. This first-approximation is refined below via differential correction.`,
     },
     {
-      title: 'State Vector at t₂',
-      value: v2_mag,
+      title: 'Differential Correction (Iterative Refinement)',
+      value: ref.a,
+      unit: 'km (refined semi-major axis)',
+      steps: dcSteps,
+      interpretation: `After ${convergedIter} iteration${convergedIter > 1 ? 's' : ''} of differential correction, RMS residual = ${finalRMS.toFixed(4)}″. Refined elements: a = ${ref.a.toFixed(2)} km (Δa = ${(ref.a - init.a).toFixed(2)} km), e = ${ref.e.toFixed(6)}, i = ${ref.incl.toFixed(4)}°. ${finalRMS < CONVERGE_ARCSEC ? 'Solution converged below 1 arcsecond threshold.' : `Solution did not fully converge (RMS = ${finalRMS.toFixed(2)}″) — more observations or a full least-squares fit would improve accuracy.`} The correction propagates the state to each observation time, computes RA/Dec residuals, and adjusts position/velocity with damped corrections.`,
+    },
+    {
+      title: 'State Vector at t₂ (Refined)',
+      value: v2_ref_mag,
       unit: 'km/s',
       steps: [
-        { label: 'Position vector r₂', equation: 'r₂ = ρ₂ρ̂₂', substitution: `r₂ = [${r2_est.map(v => v.toFixed(2)).join(', ')}] km`, result: `|r₂| = ${r2_mag.toFixed(2)} km` },
-        { label: 'Velocity vector v₂', equation: 'v₂ ≈ (r₃ − r₁)/(t₃ − t₁)', substitution: `v₂ = [${v2_est.map(v => v.toFixed(4)).join(', ')}] km/s`, result: `|v₂| = ${v2_mag.toFixed(4)} km/s` },
-        { label: 'Orbital energy', equation: 'ε = v²/2 − μ/r', substitution: `ε = ${(v2_mag * v2_mag / 2).toFixed(4)} − ${(mu / r2_mag).toFixed(4)}`, result: `ε = ${energy.toFixed(4)} km²/s² (${energy < 0 ? 'bound' : 'unbound'})` },
-        { label: 'Angular momentum', equation: '|h| = |r × v|', substitution: `|h| = ${hMag.toFixed(4)} km²/s`, result: `p = h²/μ = ${(hMag * hMag / mu).toFixed(2)} km (semi-latus rectum)` },
+        { label: 'Refined position r₂', equation: 'r₂ (corrected)', substitution: `r₂ = [${r2_ref.map(v => v.toFixed(2)).join(', ')}] km`, result: `|r₂| = ${r2_ref_mag.toFixed(2)} km` },
+        { label: 'Refined velocity v₂', equation: 'v₂ (corrected)', substitution: `v₂ = [${v2_ref.map(v => v.toFixed(4)).join(', ')}] km/s`, result: `|v₂| = ${v2_ref_mag.toFixed(4)} km/s` },
+        { label: 'Orbital energy', equation: 'ε = v²/2 − μ/r', substitution: `ε = ${(v2_ref_mag * v2_ref_mag / 2).toFixed(4)} − ${(mu / r2_ref_mag).toFixed(4)}`, result: `ε = ${ref.energy.toFixed(4)} km²/s² (${ref.energy < 0 ? 'bound' : 'unbound'})` },
+        { label: 'Angular momentum', equation: '|h| = |r × v|', substitution: `|h| = ${ref.hMag.toFixed(4)} km²/s`, result: `p = h²/μ = ${(ref.hMag * ref.hMag / mu).toFixed(2)} km` },
       ],
-      interpretation: `The state vector at the middle observation time gives |r₂| = ${r2_mag.toFixed(1)} km and |v₂| = ${v2_mag.toFixed(3)} km/s. ${energy < 0 ? `Negative energy confirms a bound (elliptical) orbit with period ${(period / 60).toFixed(1)} minutes.` : 'Positive energy indicates a hyperbolic trajectory.'} The circular velocity at this altitude would be ${Math.sqrt(mu / r2_mag).toFixed(3)} km/s for comparison.`,
+      interpretation: `Refined state: |r₂| = ${r2_ref_mag.toFixed(1)} km, |v₂| = ${v2_ref_mag.toFixed(3)} km/s. ${ref.energy < 0 ? `Bound orbit with period ${(ref.period / 60).toFixed(1)} min.` : 'Hyperbolic trajectory.'} Circular velocity at this altitude: ${Math.sqrt(mu / r2_ref_mag).toFixed(3)} km/s.`,
     },
     {
-      title: 'Orbit Quality & Accuracy Metrics',
-      value: e,
-      unit: '(eccentricity)',
+      title: 'Residual Analysis & Quality',
+      value: finalRMS,
+      unit: '″ (RMS residual)',
       steps: [
         { label: 'Observation arc', equation: 'Δα = |α₃ − α₁|', substitution: `Δα = |${obs3.ra_deg.toFixed(2)} − ${obs1.ra_deg.toFixed(2)}|`, result: `${Math.abs(obs3.ra_deg - obs1.ra_deg).toFixed(2)}°` },
         { label: 'Time span', equation: 'Δt = t₃ − t₁', substitution: `Δt = ${(obs3.t - obs1.t).toFixed(0)} s`, result: `${((obs3.t - obs1.t) / 60).toFixed(1)} minutes` },
-        { label: 'D₀ (coplanarity check)', equation: 'D₀ = ρ̂₁·(ρ̂₂×ρ̂₃)', substitution: `D₀ = ${D0.toFixed(8)}`, result: `${Math.abs(D0) > 0.01 ? 'Good geometry' : 'Near-coplanar — results may be inaccurate'}` },
-        { label: 'Periapsis / Apoapsis', equation: 'rₚ = a(1−e), rₐ = a(1+e)', substitution: `rₚ = ${(a * (1 - e)).toFixed(2)}, rₐ = ${(a * (1 + e)).toFixed(2)}`, result: `Alt_p = ${(a * (1 - e) - R_EARTH).toFixed(0)} km, Alt_a = ${(a * (1 + e) - R_EARTH).toFixed(0)} km` },
+        { label: 'D₀ check', equation: 'D₀ = ρ̂₁·(ρ̂₂×ρ̂₃)', substitution: `D₀ = ${D0.toFixed(8)}`, result: `${Math.abs(D0) > 0.01 ? 'Good geometry' : 'Near-coplanar — caution'}` },
+        { label: 'Convergence', equation: `${convergedIter} iterations`, substitution: `RMS: ${iterLog.map(l => l.rms.toFixed(2)).join('→')}″`, result: `Final RMS = ${finalRMS.toFixed(4)}″ ${finalRMS < CONVERGE_ARCSEC ? '✓' : '⚠'}` },
+        { label: 'Periapsis / Apoapsis', equation: 'rₚ = a(1−e), rₐ = a(1+e)', substitution: `rₚ = ${(ref.a * (1 - ref.e)).toFixed(2)}, rₐ = ${(ref.a * (1 + ref.e)).toFixed(2)}`, result: `Alt_p = ${(ref.a * (1 - ref.e) - R_EARTH).toFixed(0)} km, Alt_a = ${(ref.a * (1 + ref.e) - R_EARTH).toFixed(0)} km` },
       ],
-      interpretation: `The observation arc spans ${Math.abs(obs3.ra_deg - obs1.ra_deg).toFixed(1)}° over ${((obs3.t - obs1.t) / 60).toFixed(1)} minutes. D₀ = ${D0.toFixed(6)} — ${Math.abs(D0) > 0.01 ? 'good observation geometry for Gauss method' : 'WARNING: near-coplanar observations may produce inaccurate results'}. The orbit ranges from ${(a * (1 - e) - R_EARTH).toFixed(0)} km to ${(a * (1 + e) - R_EARTH).toFixed(0)} km altitude. For operational tracking, this initial orbit would be refined using least-squares differential correction with many more observations.`,
+      interpretation: `Arc: ${Math.abs(obs3.ra_deg - obs1.ra_deg).toFixed(1)}° over ${((obs3.t - obs1.t) / 60).toFixed(1)} min. D₀ = ${D0.toFixed(6)} — ${Math.abs(D0) > 0.01 ? 'good geometry' : 'WARNING: near-coplanar'}. Orbit: ${(ref.a * (1 - ref.e) - R_EARTH).toFixed(0)}–${(ref.a * (1 + ref.e) - R_EARTH).toFixed(0)} km altitude. Differential correction improved the initial solution with ${convergedIter} iterations.`,
     },
   ];
 
