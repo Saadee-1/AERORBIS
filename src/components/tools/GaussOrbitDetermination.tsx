@@ -550,7 +550,7 @@ export function GaussOrbitDetermination({ onResults, onMonteCarloResults }: Gaus
         ra3={parseFloat(ra3) || 0} dec3={parseFloat(dec3) || 0} t3={parseFloat(t3) || 0}
         onResults={(mcRes) => {
           setResults(prev => [...prev.filter(r => r.title !== 'Monte Carlo Uncertainty (Gauss OD)'), ...mcRes]);
-          onResults?.([...results.filter(r => r.title !== 'Monte Carlo Uncertainty (Gauss OD)'), ...mcRes]);
+          onMonteCarloResults?.(mcRes);
         }}
       />
 

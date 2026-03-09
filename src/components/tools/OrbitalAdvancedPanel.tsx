@@ -414,7 +414,7 @@ export function OrbitalAdvancedPanel({
       <LowThrustOptimizer onResults={setLowThrustResults} />
 
       {/* ═══ GAUSS ORBIT DETERMINATION ═══ */}
-      <GaussOrbitDetermination onResults={setGaussResults} />
+      <GaussOrbitDetermination onResults={setGaussResults} onMonteCarloResults={setMonteCarloResults} />
     </div>
   );
 }
