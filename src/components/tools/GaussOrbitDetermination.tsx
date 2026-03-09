@@ -78,9 +78,89 @@ function sub(a: number[], b: number[]): [number, number, number] {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 }
 
+/** Convert position vector to RA/Dec (degrees) */
+function computeRaDec(r: number[]): { ra_deg: number; dec_deg: number } {
+  const rmag = mag(r);
+  const dec = Math.asin(r[2] / rmag) / DEG2RAD;
+  let ra = Math.atan2(r[1], r[0]) / DEG2RAD;
+  if (ra < 0) ra += 360;
+  return { ra_deg: ra, dec_deg: dec };
+}
+
+/** Simplified 2-body Kepler propagation (r,v at t0) → (r,v at t0+dt) using f&g series */
+function propagateState(
+  r0: number[], v0: number[], dt: number, mu: number
+): { r: [number, number, number]; v: [number, number, number] } {
+  const r0mag = mag(r0);
+  const v0mag = mag(v0);
+  const rdotv = dot(r0, v0);
+  const alpha = 2 / r0mag - (v0mag * v0mag) / mu; // 1/a
+
+  // Universal variable — use simple Taylor for small dt
+  const chi = Math.sqrt(mu) * alpha * dt; // first guess
+  const chi2 = chi * chi;
+  const r0a = r0mag * alpha;
+
+  // Stumpff-like approximation (valid for elliptical, small dt)
+  const psi = chi2 * alpha;
+  const c2 = psi > 1e-6 ? (1 - Math.cos(Math.sqrt(psi))) / psi : 1 / 2;
+  const c3 = psi > 1e-6 ? (Math.sqrt(psi) - Math.sin(Math.sqrt(psi))) / Math.sqrt(psi * psi * psi) : 1 / 6;
+
+  const f = 1 - chi2 / r0mag * c2;
+  const g = dt - chi2 * chi / Math.sqrt(mu) * c3;
+  const r1: [number, number, number] = [
+    f * r0[0] + g * v0[0],
+    f * r0[1] + g * v0[1],
+    f * r0[2] + g * v0[2],
+  ];
+  const r1mag = mag(r1);
+  const fdot = Math.sqrt(mu) / (r0mag * r1mag) * chi * (psi * c3 - 1);
+  const gdot = 1 - chi2 / r1mag * c2;
+  const v1: [number, number, number] = [
+    fdot * r0[0] + gdot * v0[0],
+    fdot * r0[1] + gdot * v0[1],
+    fdot * r0[2] + gdot * v0[2],
+  ];
+  return { r: r1, v: v1 };
+}
+
+/** Compute orbital elements from r, v */
+function stateToElements(r: number[], v: number[], mu: number) {
+  const rmag = mag(r);
+  const vmag = mag(v);
+  const h = cross(r, v);
+  const hMag = mag(h);
+  const energy = (vmag * vmag) / 2 - mu / rmag;
+  const a = -mu / (2 * energy);
+  const rdotv = dot(r, v);
+  const eVec: [number, number, number] = [
+    ((vmag * vmag - mu / rmag) * r[0] - rdotv * v[0]) / mu,
+    ((vmag * vmag - mu / rmag) * r[1] - rdotv * v[1]) / mu,
+    ((vmag * vmag - mu / rmag) * r[2] - rdotv * v[2]) / mu,
+  ];
+  const e = mag(eVec);
+  const incl = Math.acos(Math.min(1, Math.max(-1, h[2] / hMag))) / DEG2RAD;
+  const n_vec = cross([0, 0, 1], h);
+  const n_mag = mag(n_vec);
+  let RAAN = n_mag > 1e-10 ? Math.acos(Math.min(1, Math.max(-1, n_vec[0] / n_mag))) / DEG2RAD : 0;
+  if (n_vec[1] < 0) RAAN = 360 - RAAN;
+  let argPeri = 0;
+  if (n_mag > 1e-10 && e > 1e-6) {
+    argPeri = Math.acos(Math.min(1, Math.max(-1, dot(n_vec, eVec) / (n_mag * e)))) / DEG2RAD;
+    if (eVec[2] < 0) argPeri = 360 - argPeri;
+  }
+  let nu = 0;
+  if (e > 1e-6) {
+    nu = Math.acos(Math.min(1, Math.max(-1, dot(eVec, r) / (e * rmag)))) / DEG2RAD;
+    if (rdotv < 0) nu = 360 - nu;
+  }
+  const period = a > 0 ? 2 * Math.PI * Math.sqrt(a * a * a / mu) : Infinity;
+  return { a, e, incl, RAAN, argPeri, nu, energy, h, hMag, eVec, n_vec, n_mag, period, rdotv };
+}
+
 /**
  * Gauss method for angles-only orbit determination
- * Assumes geocentric observer at origin (simplified — no site vector)
+ * with iterative differential correction
  */
 function computeGaussOD(
   obs1: Observation,
