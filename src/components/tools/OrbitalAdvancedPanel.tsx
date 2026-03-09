@@ -133,6 +133,7 @@ export function OrbitalAdvancedPanel({
 
   // ── Gauss OD results ──
   const [gaussResults, setGaussResults] = useState<AdvancedResult[]>([]);
+  const [monteCarloResults, setMonteCarloResults] = useState<AdvancedResult[]>([]);
 
   // ── Results ──
   const [maneuverResults, setManeuverResults] = useState<AdvancedResult[]>([]);
@@ -210,6 +211,7 @@ export function OrbitalAdvancedPanel({
           gravityAssistResults={gravityAssistResults}
           lowThrustResults={lowThrustResults}
           gaussResults={gaussResults}
+          monteCarloResults={monteCarloResults}
           porkChopData={porkChopData}
           orbitParams={semiMajorAxis && eccentricity !== undefined && inclination_deg !== undefined ? {
             semiMajorAxis,
@@ -412,7 +414,7 @@ export function OrbitalAdvancedPanel({
       <LowThrustOptimizer onResults={setLowThrustResults} />
 
       {/* ═══ GAUSS ORBIT DETERMINATION ═══ */}
-      <GaussOrbitDetermination onResults={setGaussResults} />
+      <GaussOrbitDetermination onResults={setGaussResults} onMonteCarloResults={setMonteCarloResults} />
     </div>
   );
 }

@@ -435,9 +435,10 @@ function computeGaussOD(
 
 interface GaussOrbitDeterminationProps {
   onResults?: (results: AdvancedResult[]) => void;
+  onMonteCarloResults?: (results: AdvancedResult[]) => void;
 }
 
-export function GaussOrbitDetermination({ onResults }: GaussOrbitDeterminationProps) {
+export function GaussOrbitDetermination({ onResults, onMonteCarloResults }: GaussOrbitDeterminationProps) {
   const [preset, setPreset] = useState('leo_example');
   const [ra1, setRa1] = useState('40.0');
   const [dec1, setDec1] = useState('-20.0');
@@ -549,7 +550,7 @@ export function GaussOrbitDetermination({ onResults }: GaussOrbitDeterminationPr
         ra3={parseFloat(ra3) || 0} dec3={parseFloat(dec3) || 0} t3={parseFloat(t3) || 0}
         onResults={(mcRes) => {
           setResults(prev => [...prev.filter(r => r.title !== 'Monte Carlo Uncertainty (Gauss OD)'), ...mcRes]);
-          onResults?.([...results.filter(r => r.title !== 'Monte Carlo Uncertainty (Gauss OD)'), ...mcRes]);
+          onMonteCarloResults?.(mcRes);
         }}
       />
 
