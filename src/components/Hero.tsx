@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Rocket, Zap, Target, Shield, Cpu } from "lucide-react";
+import { Rocket, Zap, Plane, Satellite, Orbit } from "lucide-react";
 import aerorbisLogo from "@/assets/aerorbis-logo-refined.png";
 
 // Holographic scan line component
