@@ -1,281 +1,431 @@
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-import { Users, MessageSquare, Briefcase, Trophy, Calendar, Lightbulb, BookOpen, Award } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageSquare, Users, Heart, Send, Plus, Trash2, LogIn } from "lucide-react";
 import Footer from "@/components/Footer";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  author_id: string;
+  likes_count: number;
+  comments_count: number;
+  created_at: string;
+  profiles?: { username: string; display_name: string; avatar_url: string | null };
+}
+
+interface Comment {
+  id: string;
+  content: string;
+  author_id: string;
+  created_at: string;
+  profiles?: { username: string; display_name: string; avatar_url: string | null };
+}
+
+const CATEGORIES = ["general", "aerodynamics", "propulsion", "structures", "career", "projects"];
 
 const Community = () => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showNewPost, setShowNewPost] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [newCategory, setNewCategory] = useState("general");
+  const [selectedPost, setSelectedPost] = useState<string | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [posting, setPosting] = useState(false);
 
-  const tabs = [
-    { id: "forums", label: "Forums", icon: MessageSquare },
-    { id: "projects", label: "Student Projects", icon: Briefcase },
-    { id: "mentorship", label: "Mentorship", icon: Users },
-    { id: "events", label: "Events", icon: Calendar },
-  ];
+  // Fetch posts
+  useEffect(() => {
+    fetchPosts();
+  }, [filterCategory]);
 
-  const forumTopics = [
-    { title: "Best practices for CFD mesh generation", author: "Alex Kumar", replies: 23, views: 456, category: "Aerodynamics" },
-    { title: "Comparing electric vs chemical propulsion", author: "Sarah Chen", replies: 18, views: 342, category: "Propulsion" },
-    { title: "Career advice: Internship vs research position?", author: "Mike Johnson", replies: 31, views: 678, category: "Career" },
-    { title: "Understanding boundary layer transition", author: "Emma Rodriguez", replies: 15, views: 289, category: "Aerodynamics" },
-  ];
+  // Fetch user's likes
+  useEffect(() => {
+    if (user) fetchUserLikes();
+  }, [user]);
 
-  const studentProjects = [
-    { title: "Autonomous Drone Navigation System", author: "Team Skywalkers", description: "AI-powered navigation for UAVs in GPS-denied environments", members: 4, image: "🚁" },
-    { title: "Hybrid Rocket Motor Design", author: "Propulsion Lab Alpha", description: "3D-printed hybrid rocket motor with paraffin-based fuel", members: 5, image: "🚀" },
-    { title: "Wing Morphing Demonstrator", author: "Adaptive Flight Group", description: "Shape-memory alloy actuated wing morphing mechanism", members: 3, image: "✈️" },
-  ];
+  const fetchPosts = async () => {
+    setLoading(true);
+    let query = supabase
+      .from("community_posts")
+      .select("*, profiles!community_posts_author_id_fkey(username, display_name, avatar_url)")
+      .order("created_at", { ascending: false });
 
-  const mentors = [
-    { name: "Dr. Emily Zhang", expertise: "Hypersonic Aerodynamics", experience: "15 years", availability: "2 slots open" },
-    { name: "Prof. James Wilson", expertise: "Electric Propulsion", experience: "20 years", availability: "1 slot open" },
-    { name: "Dr. Maria Santos", expertise: "Composite Structures", experience: "12 years", availability: "3 slots open" },
-  ];
+    if (filterCategory !== "all") {
+      query = query.eq("category", filterCategory);
+    }
 
-  const events = [
-    { title: "AERORBIS Design Challenge 2026", date: "April 15-17, 2026", type: "Competition", description: "Design an efficient VTOL aircraft" },
-    { title: "Guest Lecture: Future of Space Exploration", date: "March 28, 2025", type: "Webinar", description: "By Dr. Sarah Johnson, NASA" },
-    { title: "Aerodynamics Workshop Series", date: "Every Tuesday, 6 PM EST", type: "Workshop", description: "Hands-on CFD simulations" },
-  ];
+    const { data, error } = await query;
+    if (error) {
+      toast.error("Failed to load posts");
+    } else {
+      setPosts((data as any) || []);
+    }
+    setLoading(false);
+  };
+
+  const fetchUserLikes = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("community_likes")
+      .select("post_id")
+      .eq("user_id", user.id);
+    if (data) {
+      setLikedPosts(new Set(data.map((l: any) => l.post_id)));
+    }
+  };
+
+  const handleCreatePost = async () => {
+    if (!user) { navigate("/auth"); return; }
+    if (!newTitle.trim() || !newContent.trim()) {
+      toast.error("Title and content are required");
+      return;
+    }
+    setPosting(true);
+    const { error } = await supabase.from("community_posts").insert({
+      title: newTitle.trim(),
+      content: newContent.trim(),
+      category: newCategory,
+      author_id: user.id,
+    });
+    if (error) {
+      toast.error("Failed to create post");
+    } else {
+      toast.success("Post created!");
+      setNewTitle("");
+      setNewContent("");
+      setNewCategory("general");
+      setShowNewPost(false);
+      fetchPosts();
+    }
+    setPosting(false);
+  };
+
+  const handleLike = async (postId: string) => {
+    if (!user) { navigate("/auth"); return; }
+    if (likedPosts.has(postId)) {
+      await supabase.from("community_likes").delete().eq("post_id", postId).eq("user_id", user.id);
+      setLikedPosts((prev) => { const n = new Set(prev); n.delete(postId); return n; });
+      setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: p.likes_count - 1 } : p));
+    } else {
+      await supabase.from("community_likes").insert({ post_id: postId, user_id: user.id });
+      setLikedPosts((prev) => new Set(prev).add(postId));
+      setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: p.likes_count + 1 } : p));
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    const { error } = await supabase.from("community_posts").delete().eq("id", postId);
+    if (error) toast.error("Failed to delete");
+    else { toast.success("Post deleted"); fetchPosts(); setSelectedPost(null); }
+  };
+
+  // Comments
+  const fetchComments = async (postId: string) => {
+    const { data } = await supabase
+      .from("community_comments")
+      .select("*, profiles!community_comments_author_id_fkey(username, display_name, avatar_url)")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
+    setComments((data as any) || []);
+  };
+
+  const handleOpenComments = (postId: string) => {
+    if (selectedPost === postId) { setSelectedPost(null); return; }
+    setSelectedPost(postId);
+    fetchComments(postId);
+  };
+
+  const handleAddComment = async (postId: string) => {
+    if (!user) { navigate("/auth"); return; }
+    if (!newComment.trim()) return;
+    const { error } = await supabase.from("community_comments").insert({
+      post_id: postId,
+      author_id: user.id,
+      content: newComment.trim(),
+    });
+    if (error) toast.error("Failed to comment");
+    else {
+      setNewComment("");
+      fetchComments(postId);
+      setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comments_count: p.comments_count + 1 } : p));
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string, postId: string) => {
+    const { error } = await supabase.from("community_comments").delete().eq("id", commentId);
+    if (!error) {
+      fetchComments(postId);
+      setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comments_count: p.comments_count - 1 } : p));
+    }
+  };
+
+  const timeAgo = (date: string) => {
+    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+    if (seconds < 60) return "just now";
+    const mins = Math.floor(seconds / 60);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  };
+
+  const getInitials = (name: string) => name?.slice(0, 2).toUpperCase() || "??";
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-black via-slate-900 to-black">
+    <div className="min-h-screen flex flex-col relative">
       <PageBreadcrumb />
-      
-      {/* Hero Section */}
-      <section className="relative py-12 overflow-hidden">
+
+      {/* Hero */}
+      <section className="relative py-12 pt-24">
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <Users className="w-12 h-12 mx-auto mb-4 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
-            <h1 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
-              Join the AERORBIS Community
+            <Users className="w-12 h-12 mx-auto mb-4 text-primary" />
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground font-[Orbitron]">
+              AERORBIS Community
             </h1>
-            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Collaborate. Learn. Launch your ideas together.
+            <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
+              Share knowledge, ask questions, and connect with aerospace engineers worldwide.
             </p>
+            <div className="flex gap-3 justify-center">
+              {user ? (
+                <Button onClick={() => setShowNewPost(true)} className="gap-2">
+                  <Plus className="w-4 h-4" /> New Post
+                </Button>
+              ) : (
+                <Button onClick={() => navigate("/auth")} className="gap-2">
+                  <LogIn className="w-4 h-4" /> Sign In to Post
+                </Button>
+              )}
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Community Features */}
-      <section className="py-20 relative z-10">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {[
-              { icon: MessageSquare, title: "Active Forums", value: "500+ Topics", description: "Discussions on every aerospace field" },
-              { icon: Briefcase, title: "Student Projects", value: "150+ Projects", description: "Collaborative engineering teams" },
-              { icon: Users, title: "Expert Mentors", value: "50+ Mentors", description: "Industry professionals guiding students" },
-              { icon: Trophy, title: "Competitions", value: "Monthly Events", description: "Design challenges and hackathons" },
-            ].map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.05, y: -8 }}
+      {/* Filter + Content */}
+      <section className="flex-1 pb-12">
+        <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
+          {/* Category Filter */}
+          <div className="flex items-center gap-2 mb-6 flex-wrap">
+            <Button
+              variant={filterCategory === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterCategory("all")}
+              className="text-xs"
+            >
+              All
+            </Button>
+            {CATEGORIES.map((cat) => (
+              <Button
+                key={cat}
+                variant={filterCategory === cat ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterCategory(cat)}
+                className="text-xs capitalize"
               >
-                <Card className="text-center bg-card/50 backdrop-blur-lg border-2 border-primary/40 hover:border-primary hover:shadow-[0_0_60px_hsl(160_84%_39%/0.8)] transition-all duration-300 rounded-2xl hover:bg-primary/10">
-                  <CardHeader>
-                    <feature.icon className="w-12 h-12 mx-auto mb-4 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
-                    <CardTitle className="text-lg text-foreground">{feature.title}</CardTitle>
-                    <CardDescription className="text-2xl font-bold text-primary">{feature.value}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                {cat}
+              </Button>
+            ))}
+          </div>
+
+          {/* New Post Form */}
+          <AnimatePresence>
+            {showNewPost && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-6 overflow-hidden"
+              >
+                <Card className="bg-card/60 backdrop-blur-xl border-primary/20">
+                  <CardContent className="pt-6 space-y-3">
+                    <Input
+                      placeholder="Post title..."
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      className="bg-background/50 border-primary/20"
+                    />
+                    <Textarea
+                      placeholder="What's on your mind?"
+                      value={newContent}
+                      onChange={(e) => setNewContent(e.target.value)}
+                      rows={4}
+                      className="bg-background/50 border-primary/20"
+                    />
+                    <div className="flex gap-3 items-center">
+                      <Select value={newCategory} onValueChange={setNewCategory}>
+                        <SelectTrigger className="w-40 bg-background/50 border-primary/20">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map((cat) => (
+                            <SelectItem key={cat} value={cat} className="capitalize">{cat}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex-1" />
+                      <Button variant="outline" onClick={() => setShowNewPost(false)} size="sm">Cancel</Button>
+                      <Button onClick={handleCreatePost} disabled={posting} size="sm" className="gap-1">
+                        <Send className="w-3 h-3" /> Post
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+            )}
+          </AnimatePresence>
 
-      {/* Community Tabs */}
-      <section ref={ref} className="py-20 bg-slate-900/30 relative z-10">
-        <div className="container mx-auto px-4 lg:px-8">
-          <Tabs defaultValue="forums" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-12 gap-2 h-auto bg-card/50 backdrop-blur-lg border border-primary/20 p-2 rounded-2xl">
-              {tabs.map((tab) => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="flex flex-col gap-2 py-4 data-[state=active]:bg-primary/30 data-[state=active]:text-primary data-[state=active]:shadow-[0_0_30px_hsl(160_84%_39%/0.8)] data-[state=active]:border-2 data-[state=active]:border-primary/70 data-[state=active]:font-bold rounded-xl transition-all duration-300"
+          {/* Posts */}
+          {loading ? (
+            <div className="text-center py-20 text-muted-foreground">Loading posts...</div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-20">
+              <MessageSquare className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+              <p className="text-muted-foreground">No posts yet. Be the first to share!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {posts.map((post, i) => (
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
                 >
-                  <tab.icon className="w-5 h-5" />
-                  <span className="text-xs md:text-sm">{tab.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <TabsContent value="forums">
-              <div className="space-y-4">
-                {forumTopics.map((topic, index) => (
-                  <motion.div
-                    key={topic.title}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={isInView ? { opacity: 1, x: 0 } : {}}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                  <Card className="bg-card/50 backdrop-blur-lg border-2 border-primary/30 hover:border-primary hover:shadow-[0_0_50px_hsl(160_84%_39%/0.9)] transition-all duration-300 rounded-2xl hover:scale-[1.02]">
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div className="flex-grow">
-                          <CardTitle className="text-xl mb-2 text-foreground">{topic.title}</CardTitle>
-                          <CardDescription className="text-muted-foreground">
-                            Posted by {topic.author} • {topic.category}
-                          </CardDescription>
-                        </div>
-                        <div className="text-right text-sm text-muted-foreground space-y-1 ml-4">
-                          <div>{topic.replies} replies</div>
-                          <div>{topic.views} views</div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardFooter>
-                      <Button variant="outline" className="border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/60">View Discussion</Button>
-                    </CardFooter>
-                  </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="projects">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {studentProjects.map((project, index) => (
-                  <motion.div
-                    key={project.title}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                  <Card className="h-full flex flex-col bg-card/50 backdrop-blur-lg border-2 border-primary/30 hover:border-primary hover:shadow-[0_0_50px_hsl(160_84%_39%/0.9)] transition-all duration-300 rounded-2xl hover:scale-[1.02]">
-                    <CardHeader>
-                      <div className="text-6xl mb-4 text-center">{project.image}</div>
-                      <CardTitle className="text-xl text-foreground">{project.title}</CardTitle>
-                      <CardDescription className="text-muted-foreground">By {project.author}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                      <p className="text-sm text-muted-foreground mb-4">{project.description}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users className="w-4 h-4" />
-                        <span>{project.members} members</span>
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button variant="outline" className="w-full border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/60">View Project</Button>
-                    </CardFooter>
-                  </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="mentorship">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mentors.map((mentor, index) => (
-                  <motion.div
-                    key={mentor.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                  <Card className="h-full bg-card/50 backdrop-blur-lg border-2 border-primary/30 hover:border-primary hover:shadow-[0_0_50px_hsl(160_84%_39%/0.9)] transition-all duration-300 rounded-2xl hover:scale-[1.02]">
-                    <CardHeader>
-                      <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                        <Users className="w-10 h-10 text-primary" />
-                      </div>
-                      <CardTitle className="text-xl text-center text-foreground">{mentor.name}</CardTitle>
-                      <CardDescription className="text-center text-muted-foreground">{mentor.expertise}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-center space-y-2">
-                      <p className="text-sm text-muted-foreground">{mentor.experience} experience</p>
-                      <p className="text-sm font-medium text-primary">{mentor.availability}</p>
-                    </CardContent>
-                    <CardFooter>
-                      <Button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:shadow-[0_0_50px_hsl(160_84%_39%/0.6)] font-semibold transition-all duration-300">Request Mentorship</Button>
-                    </CardFooter>
-                  </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="events">
-              <div className="space-y-6">
-                {events.map((event, index) => (
-                  <motion.div
-                    key={event.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                  <Card className="bg-card/50 backdrop-blur-lg border-2 border-primary/30 hover:border-primary hover:shadow-[0_0_50px_hsl(160_84%_39%/0.9)] transition-all duration-300 rounded-2xl hover:scale-[1.02]">
-                    <CardHeader>
-                      <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Calendar className="w-8 h-8 text-primary" />
-                        </div>
-                        <div className="flex-grow">
-                          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2 mb-2">
-                            <CardTitle className="text-xl text-foreground">{event.title}</CardTitle>
-                            <span className="inline-block text-xs px-3 py-1 rounded-full bg-primary/20 text-primary w-fit">
-                              {event.type}
+                  <Card className="bg-card/40 backdrop-blur-sm border-border/50 hover:border-primary/30 transition-colors">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="w-9 h-9 border border-primary/20">
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                            {getInitials(post.profiles?.display_name || post.profiles?.username || "")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-semibold text-foreground">
+                              {post.profiles?.display_name || post.profiles?.username || "Unknown"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary capitalize">
+                              {post.category}
                             </span>
                           </div>
-                          <CardDescription className="mb-3 text-muted-foreground">{event.date}</CardDescription>
-                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                          <CardTitle className="text-lg mt-1 text-foreground">{post.title}</CardTitle>
                         </div>
+                        {user?.id === post.author_id && (
+                          <Button variant="ghost" size="icon" onClick={() => handleDeletePost(post.id)} className="text-muted-foreground hover:text-destructive h-8 w-8">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </CardHeader>
-                    <CardFooter>
-                      <Button variant="outline" className="border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/60">Learn More</Button>
+                    <CardContent className="pb-2">
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.content}</p>
+                    </CardContent>
+                    <CardFooter className="pt-0 gap-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLike(post.id)}
+                        className={`gap-1.5 text-xs ${likedPosts.has(post.id) ? "text-red-400" : "text-muted-foreground"}`}
+                      >
+                        <Heart className={`w-4 h-4 ${likedPosts.has(post.id) ? "fill-red-400" : ""}`} />
+                        {post.likes_count}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenComments(post.id)}
+                        className="gap-1.5 text-xs text-muted-foreground"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        {post.comments_count}
+                      </Button>
                     </CardFooter>
-                  </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
 
-      {/* Join CTA */}
-      <section className="py-20 relative z-10">
-        <div className="container mx-auto px-4 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <Award className="w-16 h-16 mx-auto mb-6 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
-              Become Part of AERORBIS
-            </h2>
-            <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-              Join our global community of aerospace enthusiasts, students, and professionals
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:shadow-[0_0_50px_hsl(160_84%_39%/0.6)] font-semibold transition-all duration-300">
-                Join Discord Server
-              </Button>
-              <Button size="lg" variant="outline" className="border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/60">
-                Register Account
-              </Button>
+                    {/* Comments section */}
+                    <AnimatePresence>
+                      {selectedPost === post.id && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="border-t border-border/30 px-6 pb-4 overflow-hidden"
+                        >
+                          <div className="pt-4 space-y-3 max-h-60 overflow-y-auto">
+                            {comments.length === 0 ? (
+                              <p className="text-xs text-muted-foreground text-center py-2">No comments yet</p>
+                            ) : (
+                              comments.map((c) => (
+                                <div key={c.id} className="flex gap-2 items-start">
+                                  <Avatar className="w-6 h-6 border border-primary/10">
+                                    <AvatarFallback className="bg-primary/5 text-primary text-[10px]">
+                                      {getInitials(c.profiles?.display_name || c.profiles?.username || "")}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-semibold text-foreground">
+                                        {c.profiles?.display_name || c.profiles?.username}
+                                      </span>
+                                      <span className="text-[10px] text-muted-foreground">{timeAgo(c.created_at)}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{c.content}</p>
+                                  </div>
+                                  {user?.id === c.author_id && (
+                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteComment(c.id, post.id)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                          {user && (
+                            <div className="flex gap-2 mt-3">
+                              <Input
+                                placeholder="Write a comment..."
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleAddComment(post.id)}
+                                className="text-xs h-8 bg-background/50 border-primary/20"
+                              />
+                              <Button size="sm" onClick={() => handleAddComment(post.id)} className="h-8 px-3">
+                                <Send className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Card>
+                </motion.div>
+              ))}
             </div>
-          </motion.div>
+          )}
         </div>
       </section>
 
