@@ -153,7 +153,7 @@ export function measureTime<T>(fn: () => T, label?: string): T {
   const end = performance.now();
   const duration = end - start;
 
-  if (label && process.env.NODE_ENV === 'development') {
+  if (label && import.meta.env.DEV) {
     console.log(`[Perf] ${label}: ${duration.toFixed(2)}ms`);
   }
 
@@ -172,7 +172,7 @@ export async function measureTimeAsync<T>(
   const end = performance.now();
   const duration = end - start;
 
-  if (label && process.env.NODE_ENV === 'development') {
+  if (label && import.meta.env.DEV) {
     console.log(`[Perf] ${label}: ${duration.toFixed(2)}ms`);
   }
 
