@@ -45,8 +45,8 @@ export const isVisualizerDebug = (): boolean => {
   if (RUNTIME_ENV?.VITE_DEBUG_VISUALIZER !== undefined) {
     return normalizeFlag(RUNTIME_ENV.VITE_DEBUG_VISUALIZER);
   }
-  if (typeof process !== 'undefined' && process.env?.VITE_DEBUG_VISUALIZER) {
-    return normalizeFlag(process.env.VITE_DEBUG_VISUALIZER);
+  if (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.VITE_DEBUG_VISUALIZER) {
+    return normalizeFlag((globalThis as any).process.env.VITE_DEBUG_VISUALIZER);
   }
   return false;
 };
