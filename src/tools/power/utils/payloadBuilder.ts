@@ -115,7 +115,7 @@ export function buildPowerSystemPayload(
       minVoltage: result.minVoltage,
       totalEnergyUsed_Wh,
       totalSolarGenerated_Wh,
-      finalSOC: result.frames.at(-1)?.batteryState.soc ?? null,
+      finalSOC: result.frames.length > 0 ? result.frames[result.frames.length - 1]?.batteryState.soc ?? null : null,
       warnings: result.warnings,
       recommendations,
     },
