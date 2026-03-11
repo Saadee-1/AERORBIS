@@ -35,8 +35,8 @@ export const isDevEnv = (): boolean => {
   if (RUNTIME_ENV?.DEV !== undefined) {
     return normalizeFlag(RUNTIME_ENV.DEV);
   }
-  if (typeof process !== 'undefined' && process.env?.NODE_ENV) {
-    return process.env.NODE_ENV !== 'production';
+  if (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.NODE_ENV) {
+    return (globalThis as any).process.env.NODE_ENV !== 'production';
   }
   return false;
 };
