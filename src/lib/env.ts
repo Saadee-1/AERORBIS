@@ -9,8 +9,8 @@ const getRuntimeEnv = (): RuntimeEnv => {
   if (typeof import.meta !== 'undefined' && (import.meta as unknown as Record<string, unknown>).env) {
     return ((import.meta as unknown as Record<string, unknown>).env) as RuntimeEnv;
   }
-  if (typeof process !== 'undefined' && process.env) {
-    return process.env as RuntimeEnv;
+  if (typeof globalThis !== 'undefined' && (globalThis as any).process?.env) {
+    return (globalThis as any).process.env as RuntimeEnv;
   }
   return {};
 };
