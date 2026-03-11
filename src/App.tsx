@@ -97,6 +97,7 @@ const App = () => {
     <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <AuthProvider>
         <AIAssistantProvider>
           <Toaster />
           <Sonner />
@@ -109,6 +110,7 @@ const App = () => {
             <AIAssistant />
           </BrowserRouter>
         </AIAssistantProvider>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
     </ThemeProvider>
