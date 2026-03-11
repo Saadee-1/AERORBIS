@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Rocket, Zap, Target, Shield, Cpu } from "lucide-react";
+import { Rocket, Zap, Plane, Satellite, Orbit } from "lucide-react";
 import aerorbisLogo from "@/assets/aerorbis-logo-refined.png";
 
 // Holographic scan line component
@@ -172,9 +172,10 @@ const Hero = () => {
       ))}
 
       {/* Floating tech icons */}
-      <FloatingIcon Icon={Target} x="8%" y="25%" delay={1.8} />
-      <FloatingIcon Icon={Shield} x="88%" y="30%" delay={2.2} />
-      <FloatingIcon Icon={Cpu} x="12%" y="65%" delay={2.6} />
+      <FloatingIcon Icon={Rocket} x="8%" y="25%" delay={1.8} />
+      <FloatingIcon Icon={Plane} x="88%" y="30%" delay={2.2} />
+      <FloatingIcon Icon={Satellite} x="12%" y="65%" delay={2.6} />
+      <FloatingIcon Icon={Orbit} x="85%" y="70%" delay={3.0} />
 
       {/* HUD Frame */}
       <div className="absolute inset-4 sm:inset-8 md:inset-16 pointer-events-none">

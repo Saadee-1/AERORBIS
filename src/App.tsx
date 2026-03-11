@@ -8,6 +8,7 @@ import { AnimatePresence } from "framer-motion";
 import { useAudioSection } from "@/hooks/useAudioSection";
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/hooks/useAuth";
 import AIAssistant from "@/components/AIAssistant";
 import PageTransition from "./components/PageTransition";
 import GalaxyBackground from "./components/GalaxyBackground";
@@ -19,6 +20,7 @@ import Tools from "./pages/Tools";
 import ToolsLauncher from "./pages/ToolsLauncher";
 import Community from "./pages/Community";
 import ContactPage from "./pages/ContactPage";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import DashboardOverview from "./pages/DashboardOverview";
 import DashboardLearning from "./pages/DashboardLearning";
@@ -60,6 +62,7 @@ const AnimatedRoutes = () => {
           <Route path="/tools" element={<PageTransition><Tools /></PageTransition>} />
           <Route path="/tools/launch" element={<PageTransition><ToolsLauncher /></PageTransition>} />
           <Route path="/community" element={<PageTransition><Community /></PageTransition>} />
+          <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
           <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
           <Route path="/dashboard" element={<PageTransition><DashboardOverview /></PageTransition>} />
           <Route path="/dashboard/learning" element={<PageTransition><DashboardLearning /></PageTransition>} />
@@ -94,6 +97,7 @@ const App = () => {
     <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <AuthProvider>
         <AIAssistantProvider>
           <Toaster />
           <Sonner />
@@ -106,6 +110,7 @@ const App = () => {
             <AIAssistant />
           </BrowserRouter>
         </AIAssistantProvider>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
     </ThemeProvider>
