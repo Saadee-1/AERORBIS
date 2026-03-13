@@ -1,101 +1,33 @@
 "use client";
-import React, { useEffect, useRef, useState, Suspense } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Sphere, MeshDistortMaterial } from '@react-three/drei';
-import * as THREE from 'three';
 import aerorbisLogo from '@/assets/aerorbis-logo-refined.png';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 type Props = {
   onFinish?: () => void;
   autoPlayDuration?: number;
 };
 
-const IntroGlobe = () => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const wireframeRef = useRef<THREE.Mesh>(null);
-  const ring1Ref = useRef<THREE.Mesh>(null);
-  const ring2Ref = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.006;
-      meshRef.current.rotation.x = Math.sin(t * 0.5) * 0.15;
-    }
-    if (wireframeRef.current) {
-      wireframeRef.current.rotation.y += 0.004;
-      wireframeRef.current.rotation.z += 0.002;
-    }
-    if (ring1Ref.current) {
-      ring1Ref.current.rotation.z = t * 0.3;
-      ring1Ref.current.rotation.x = Math.sin(t * 0.2) * 0.3;
-    }
-    if (ring2Ref.current) {
-      ring2Ref.current.rotation.z = -t * 0.2;
-      ring2Ref.current.rotation.y = Math.cos(t * 0.15) * 0.4;
-    }
-  });
-
-  return (
-    <group>
-      <Sphere ref={meshRef} args={[1, 64, 64]}>
-        <MeshDistortMaterial
-          color="#030824"
-          attach="material"
-          distort={0.2}
-          speed={2.5}
-          roughness={0.2}
-          metalness={0.95}
-        />
-      </Sphere>
-
-      <Sphere ref={wireframeRef} args={[1.03, 32, 32]}>
-        <meshBasicMaterial color="#10b981" wireframe transparent opacity={0.15} />
-      </Sphere>
-
-      {/* Orbital rings */}
-      <mesh ref={ring1Ref} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.5, 0.012, 16, 100]} />
-        <meshBasicMaterial color="#10b981" transparent opacity={0.5} />
-      </mesh>
-      <mesh ref={ring2Ref} rotation={[Math.PI / 3, Math.PI / 4, 0]}>
-        <torusGeometry args={[1.7, 0.008, 16, 100]} />
-        <meshBasicMaterial color="#10b981" transparent opacity={0.25} />
-      </mesh>
-
-      <Sphere args={[1.2, 32, 32]}>
-        <meshBasicMaterial color="#10b981" transparent opacity={0.03} side={THREE.BackSide} />
-      </Sphere>
-    </group>
-  );
-};
-
-// Holographic data stream lines
-const DataStreams = () => {
-  const streams = Array.from({ length: 12 }, (_, i) => ({
+// Floating particles
+const Particles = () => {
+  const particles = Array.from({ length: 30 }, (_, i) => ({
     id: i,
-    left: `${8 + Math.random() * 84}%`,
-    height: `${20 + Math.random() * 60}%`,
-    delay: Math.random() * 2,
-    duration: 1.5 + Math.random() * 2,
+    left: `${Math.random() * 100}%`,
+    size: 1 + Math.random() * 2,
+    delay: Math.random() * 3,
+    duration: 2 + Math.random() * 3,
   }));
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {streams.map((s) => (
+      {particles.map((p) => (
         <motion.div
-          key={s.id}
-          className="absolute w-px"
-          style={{
-            left: s.left,
-            height: s.height,
-            bottom: 0,
-            background: 'linear-gradient(to top, transparent, hsl(var(--primary) / 0.3), transparent)',
-          }}
-          animate={{ opacity: [0, 0.6, 0], y: [20, -40, -80] }}
-          transition={{ duration: s.duration, repeat: Infinity, delay: s.delay, ease: "easeInOut" }}
+          key={p.id}
+          className="absolute rounded-full bg-primary/40"
+          style={{ left: p.left, bottom: -10, width: p.size, height: p.size }}
+          animate={{ y: [0, -600], opacity: [0, 0.8, 0] }}
+          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeOut" }}
         />
       ))}
     </div>
@@ -105,14 +37,12 @@ const DataStreams = () => {
 // Scanning grid overlay
 const ScanGrid = () => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {/* Horizontal scan line */}
     <motion.div
       className="absolute left-0 right-0 h-px"
       style={{ background: 'linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4), transparent)' }}
       animate={{ top: ['0%', '100%'] }}
       transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
     />
-    {/* Subtle grid */}
     <div
       className="absolute inset-0 opacity-[0.03]"
       style={{
@@ -133,7 +63,6 @@ const HudFrame = () => (
     <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-primary/40" />
     <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-primary/40" />
     <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-primary/40" />
-    {/* Top-left label */}
     <motion.div
       className="absolute top-4 left-4 text-[9px] font-rajdhani tracking-[0.3em] text-primary/30 uppercase"
       initial={{ opacity: 0 }}
@@ -142,7 +71,6 @@ const HudFrame = () => (
     >
       SYS.INIT // AERORBIS v2.0
     </motion.div>
-    {/* Bottom-right label */}
     <motion.div
       className="absolute bottom-4 right-4 text-[9px] font-rajdhani tracking-[0.3em] text-primary/30 uppercase"
       initial={{ opacity: 0 }}
@@ -152,24 +80,6 @@ const HudFrame = () => (
       STATUS: INITIALIZING
     </motion.div>
   </div>
-);
-
-// Flicker text component
-const FlickerText = ({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => (
-  <motion.div
-    className={className}
-    initial={{ opacity: 0 }}
-    animate={{
-      opacity: [0, 1, 0.3, 1, 0.7, 1],
-    }}
-    transition={{
-      duration: 0.8,
-      delay,
-      times: [0, 0.1, 0.2, 0.35, 0.5, 0.7],
-    }}
-  >
-    {children}
-  </motion.div>
 );
 
 // Boot sequence text
@@ -198,39 +108,66 @@ const BootSequence = () => {
   );
 };
 
+// CSS Orbital rings around logo
+const OrbitalRings = () => (
+  <div className="absolute inset-0 pointer-events-none">
+    <div
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 rounded-full border border-primary/20"
+      style={{ animation: 'orbitSpin 6s linear infinite' }}
+    />
+    <div
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 md:w-72 md:h-72 rounded-full border border-primary/10"
+      style={{ animation: 'orbitSpin 8s linear infinite reverse' }}
+    />
+    {/* Orbiting dot */}
+    <div
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64"
+      style={{ animation: 'orbitSpin 6s linear infinite' }}
+    >
+      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
+    </div>
+  </div>
+);
+
+// Typing text effect
+const TypingTitle = () => {
+  const letters = "AERORBIS".split("");
+  return (
+    <div className="text-4xl md:text-6xl font-orbitron font-bold tracking-[0.15em] text-foreground relative flex justify-center">
+      {letters.map((char, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: [0, 1, 0.4, 1], y: 0 }}
+          transition={{
+            duration: 0.5,
+            delay: 1.0 + i * 0.08,
+            times: [0, 0.3, 0.6, 1],
+          }}
+        >
+          {char}
+        </motion.span>
+      ))}
+      {/* Holographic underline */}
+      <motion.div
+        className="absolute -bottom-2 left-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent"
+        initial={{ width: 0 }}
+        animate={{ width: '100%' }}
+        transition={{ delay: 1.8, duration: 0.8, ease: "easeOut" }}
+      />
+    </div>
+  );
+};
+
 export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
   const [visible, setVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".intro-globe",
-        { opacity: 0, scale: 0.6 },
-        { opacity: 1, scale: 1, duration: 1.2, ease: "power3.out", delay: 0.2 }
-      );
-
-      gsap.fromTo(
-        ".intro-logo",
-        { opacity: 0, scale: 0.5, filter: "blur(10px)" },
-        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.8, ease: "power2.out", delay: 0.6 }
-      );
-
-      gsap.fromTo(
-        ".intro-glow",
-        { opacity: 0 },
-        { opacity: 1, duration: 1, ease: "power2.out", delay: 0.8 }
-      );
-    }, containerRef);
-
     const timer = setTimeout(() => startExit(), autoPlayDuration * 1000);
 
     function startExit() {
-      if (!visible) return;
-      setVisible(false);
-
+      if (!containerRef.current) return;
       gsap.to(containerRef.current, {
         opacity: 0,
         scale: 1.05,
@@ -238,16 +175,14 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
         duration: 0.8,
         ease: "power2.inOut",
         onComplete: () => {
+          setVisible(false);
           if (onFinish) onFinish();
         },
       });
     }
 
-    return () => {
-      clearTimeout(timer);
-      ctx.revert();
-    };
-  }, [onFinish, autoPlayDuration, visible]);
+    return () => clearTimeout(timer);
+  }, [onFinish, autoPlayDuration]);
 
   if (!visible) return null;
 
@@ -261,80 +196,78 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
     >
       {/* Ambient effects */}
       <ScanGrid />
-      <DataStreams />
+      <Particles />
       <HudFrame />
       <BootSequence />
 
-      {/* Glow pulse behind globe */}
-      <div className="intro-glow absolute w-80 h-80 rounded-full opacity-0" style={{
-        background: 'radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)',
-        filter: 'blur(40px)',
-      }} />
+      {/* Glow pulse behind logo */}
+      <motion.div
+        className="absolute w-64 h-64 md:w-80 md:h-80 rounded-full"
+        style={{
+          background: 'radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)',
+          filter: 'blur(40px)',
+        }}
+        animate={{ opacity: [0.3, 0.7, 0.3], scale: [0.9, 1.1, 0.9] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      />
 
-      {/* Globe */}
-      <div className="intro-globe w-52 h-52 md:w-72 md:h-72 mb-6 z-10 opacity-0">
-        <Suspense fallback={null}>
-          <Canvas camera={{ position: [0, 0, 3.8], fov: 42 }}>
-            <ambientLight intensity={0.3} />
-            <pointLight position={[10, 10, 10]} intensity={1.5} color="#10b981" />
-            <pointLight position={[-10, -10, -10]} intensity={0.4} color="#6366f1" />
-            <IntroGlobe />
-          </Canvas>
-        </Suspense>
-      </div>
+      {/* Orbital rings */}
+      <motion.div
+        className="relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8, duration: 1 }}
+      >
+        <OrbitalRings />
+      </motion.div>
 
-      {/* Logo and title with holographic flicker */}
+      {/* Logo */}
+      <motion.img
+        src={aerorbisLogo}
+        alt="Aerorbis Logo"
+        className="w-16 h-16 md:w-20 md:h-20 object-contain mb-6 z-10"
+        initial={{ opacity: 0, scale: 0.3 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      />
+
+      {/* Pulse ring on logo entrance */}
+      <motion.div
+        className="absolute w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-primary/50"
+        initial={{ opacity: 0.8, scale: 0.5 }}
+        animate={{ opacity: 0, scale: 3 }}
+        transition={{ delay: 0.5, duration: 1.5, ease: "easeOut" }}
+        style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', marginTop: '-3rem' }}
+      />
+
+      {/* Title and slogan */}
       <div className="text-center z-10 relative">
-        <FlickerText delay={0.5}>
-          <img
-            src={aerorbisLogo}
-            alt="Aerorbis Logo"
-            className="intro-logo w-12 h-12 md:w-16 md:h-16 object-contain mx-auto mb-4"
-          />
-        </FlickerText>
+        <TypingTitle />
 
-        <FlickerText delay={0.8} className="mb-3">
-          <div className="text-4xl md:text-6xl font-orbitron font-bold tracking-[0.15em] text-foreground relative">
-            AERORBIS
-            {/* Holographic underline */}
-            <motion.div
-              className="absolute -bottom-2 left-1/2 h-px bg-gradient-to-r from-transparent via-primary to-transparent"
-              initial={{ width: 0, x: '-50%' }}
-              animate={{ width: '100%', x: '-50%' }}
-              transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
-            />
-          </div>
-        </FlickerText>
-
-        <FlickerText delay={1.2}>
-          <div className="text-xs md:text-sm font-rajdhani tracking-[0.4em] uppercase text-primary/60">
-            Where Aerospace Minds Connect
-          </div>
-        </FlickerText>
+        <motion.div
+          className="text-xs md:text-sm font-rajdhani tracking-[0.4em] uppercase text-primary/60 mt-4"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.8, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        >
+          Where Aerospace Minds Connect
+        </motion.div>
       </div>
 
-      {/* Loading indicator - holographic style */}
+      {/* Loading indicator */}
       <motion.div
         className="mt-10 flex flex-col items-center gap-3 z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.8 }}
+        transition={{ delay: 2.2 }}
       >
         <div className="flex items-center gap-1.5">
           {[0, 1, 2, 3, 4].map((i) => (
             <motion.div
               key={i}
-              className="w-6 h-1 rounded-full"
-              style={{ background: 'hsl(var(--primary))' }}
-              animate={{
-                opacity: [0.2, 1, 0.2],
-                scaleX: [0.6, 1, 0.6],
-              }}
-              transition={{
-                duration: 0.8,
-                repeat: Infinity,
-                delay: i * 0.12,
-              }}
+              className="w-6 h-1 rounded-full bg-primary"
+              animate={{ opacity: [0.2, 1, 0.2], scaleX: [0.6, 1, 0.6] }}
+              transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.12 }}
             />
           ))}
         </div>
@@ -343,7 +276,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
         </span>
       </motion.div>
 
-      {/* Skip button - HUD style */}
+      {/* Skip button */}
       <button
         onClick={() => {
           setVisible(false);
@@ -353,6 +286,14 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
       >
         Skip Intro →
       </button>
+
+      {/* Orbital ring keyframe */}
+      <style>{`
+        @keyframes orbitSpin {
+          from { transform: translate(-50%, -50%) rotate(0deg); }
+          to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
