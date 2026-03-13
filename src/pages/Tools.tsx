@@ -129,7 +129,7 @@ const Tools = () => {
   const enabledTools = ["Thrust Calculator", "Wing Loading Calculator", "Orbital Path Visualizer", "Lift-to-Drag Ratio Analyzer", "Reynolds Number Calculator", "Material Density Database", "Delta-V Budget Planner", "Antenna Pattern Analyzer", "Standard Atmosphere Calculator", "Rocket Engine Performance", "Stability & Control Derivatives", "Battery & Solar Power System", "Structural Weight Estimator", "Rocket Trajectory Simulator", "Climb Performance Calculator"];
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col relative z-10">
       <PageBreadcrumb />
       
       {/* Hero Section */}
