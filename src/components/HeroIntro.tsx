@@ -55,7 +55,7 @@ const ScanGrid = () => (
 );
 
 const HudFrame = () => (
-  <div className="absolute inset-6 md:inset-16 pointer-events-none">
+  <div className="intro-hud-frame absolute inset-6 md:inset-16 pointer-events-none">
     <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-primary/40" />
     <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-primary/40" />
     <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-primary/40" />
