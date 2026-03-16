@@ -105,9 +105,17 @@ const App = () => {
             <GalaxyBackground />
             <div className="relative z-10">
               <GlobalAudioProvider />
-              {!showIntro && <Navbar />}
+              <Navbar />
               <AudioVisualizer />
-              {showIntro ? <HeroIntro /> : <AnimatedRoutes />}
+              <AnimatedRoutes />
+              {showIntro && (
+                <HeroIntro
+                  onFinish={() => {
+                    setShowIntro(false);
+                    localStorage.setItem('hasSeenIntro', 'true');
+                  }}
+                />
+              )}
               <AIAssistant />
             </div>
           </BrowserRouter>
