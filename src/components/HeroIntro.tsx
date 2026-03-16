@@ -187,7 +187,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden px-6 py-10"
+      className="hero-intro-screen fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden px-6 py-10"
       style={{
         background: "radial-gradient(ellipse at center, hsl(220, 80%, 6%) 0%, hsl(220, 100%, 2%) 100%)",
       }}

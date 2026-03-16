@@ -447,15 +447,27 @@
 @media (max-height: 640px) {
   .hero-viewport-shell {
     align-items: flex-start;
-    padding-top: 4.25rem;
-    padding-bottom: 2rem;
+    padding-top: 3.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .hero-viewport-shell h1 {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+
+  .hero-viewport-shell p {
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-viewport-shell .grid {
+    gap: 0.5rem;
   }
 
   .hero-intro-screen {
     justify-content: flex-start;
     overflow-y: auto;
-    padding-top: 4rem;
-    padding-bottom: 2rem;
+    padding-top: 3rem;
+    padding-bottom: 1.5rem;
   }
 
   .intro-hud-frame,
@@ -464,19 +476,32 @@
   }
 
   .intro-loader {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
   }
 }
 
 @media (max-height: 420px) {
   .hero-viewport-shell {
-    padding-top: 3.5rem;
-    padding-bottom: 1.25rem;
+    padding-top: 2.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .hero-viewport-shell h1 {
+    font-size: clamp(1.6rem, 7vw, 2.2rem);
+  }
+
+  .hero-viewport-shell .flex.flex-col.sm\:flex-row {
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-viewport-shell .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .hero-intro-screen {
-    padding-top: 3rem;
-    padding-bottom: 1.25rem;
+    padding-top: 2rem;
+    padding-bottom: 1rem;
   }
 
   .intro-orbital,
