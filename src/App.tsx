@@ -31,6 +31,7 @@ import AudioVisualizer from "@/components/AudioVisualizer";
 import GlobalAudioProvider from "@/components/GlobalAudioProvider";
 import HeroIntro from "@/components/HeroIntro";
 import Navbar from "@/components/Navbar";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
