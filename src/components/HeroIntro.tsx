@@ -207,7 +207,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <motion.div className="relative" initial={{ opacity: 0.7 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 1 }}>
+      <motion.div className="intro-orbital relative" initial={{ opacity: 0.7 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 1 }}>
         <OrbitalRings />
       </motion.div>
 
