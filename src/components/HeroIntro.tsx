@@ -88,7 +88,7 @@ const BootSequence = () => {
   ];
 
   return (
-    <div className="absolute bottom-20 left-6 md:left-16 z-10">
+    <div className="intro-boot-sequence absolute bottom-20 left-6 md:left-16 z-10">
       {lines.map((line, i) => (
         <motion.div
           key={i}
