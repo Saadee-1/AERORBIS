@@ -242,7 +242,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
       </div>
 
       <motion.div
-        className="mt-10 flex flex-col items-center gap-3 z-10"
+        className="intro-loader mt-10 flex flex-col items-center gap-3 z-10"
         initial={{ opacity: 0.75 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2.2 }}
