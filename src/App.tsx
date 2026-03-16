@@ -78,11 +78,25 @@ const AnimatedRoutes = () => {
 };
 
 // ---- MAIN APP ----
+const SHORT_VIEWPORT_HEIGHT = 480;
+
 const App = () => {
   const [showIntro, setShowIntro] = useState(() => {
     const hasSeenIntro = localStorage.getItem('hasSeenIntro');
-    return !hasSeenIntro;
+    return !hasSeenIntro && window.innerHeight >= SHORT_VIEWPORT_HEIGHT;
   });
+
+  useEffect(() => {
+    const handleViewportResize = () => {
+      if (window.innerHeight < SHORT_VIEWPORT_HEIGHT) {
+        setShowIntro(false);
+      }
+    };
+
+    handleViewportResize();
+    window.addEventListener('resize', handleViewportResize);
+    return () => window.removeEventListener('resize', handleViewportResize);
+  }, []);
 
   useEffect(() => {
     if (showIntro) {
@@ -96,34 +110,36 @@ const App = () => {
 
   return (
     <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-        <AIAssistantProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <GalaxyBackground />
-            <div className="relative z-10">
-              <GlobalAudioProvider />
-              <Navbar />
-              <AudioVisualizer />
-              <AnimatedRoutes />
-              {showIntro && (
-                <HeroIntro
-                  onFinish={() => {
-                    setShowIntro(false);
-                    localStorage.setItem('hasSeenIntro', 'true');
-                  }}
-                />
-              )}
-              <AIAssistant />
-            </div>
-          </BrowserRouter>
-        </AIAssistantProvider>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AuthProvider>
+            <AIAssistantProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <GalaxyBackground />
+                <div className="relative z-10 min-h-[100dvh]">
+                  <GlobalAudioProvider />
+                  <ErrorBoundary toolName="App Shell">
+                    <Navbar />
+                    <AudioVisualizer />
+                    <AnimatedRoutes />
+                    {showIntro && (
+                      <HeroIntro
+                        onFinish={() => {
+                          setShowIntro(false);
+                          localStorage.setItem('hasSeenIntro', 'true');
+                        }}
+                      />
+                    )}
+                    <AIAssistant />
+                  </ErrorBoundary>
+                </div>
+              </BrowserRouter>
+            </AIAssistantProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 };

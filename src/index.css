@@ -393,8 +393,23 @@
 }
 
 /* ===================================
-   HERO INTRO
+   HERO INTRO + SHORT VIEWPORT SAFETY
    =================================== */
+.hero-viewport-shell {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-viewport-content {
+  width: 100%;
+}
+
+.hero-intro-screen {
+  overflow: hidden;
+}
+
 .hero-intro-container {
   position: fixed;
   inset: 0;
@@ -427,6 +442,47 @@
 
 .fade-out {
   animation: fadeOut 0.8s ease-in forwards;
+}
+
+@media (max-height: 640px) {
+  .hero-viewport-shell {
+    align-items: flex-start;
+    padding-top: 4.25rem;
+    padding-bottom: 2rem;
+  }
+
+  .hero-intro-screen {
+    justify-content: flex-start;
+    overflow-y: auto;
+    padding-top: 4rem;
+    padding-bottom: 2rem;
+  }
+
+  .intro-hud-frame,
+  .intro-boot-sequence {
+    display: none;
+  }
+
+  .intro-loader {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-height: 420px) {
+  .hero-viewport-shell {
+    padding-top: 3.5rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .hero-intro-screen {
+    padding-top: 3rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .intro-orbital,
+  .intro-loader {
+    display: none;
+  }
 }
 
 /* ===================================
