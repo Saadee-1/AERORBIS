@@ -103,11 +103,13 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <GalaxyBackground />
-            <GlobalAudioProvider />
-            {!showIntro && <Navbar />}
-            <AudioVisualizer />
-            {showIntro ? <HeroIntro /> : <AnimatedRoutes />}
-            <AIAssistant />
+            <div className="relative z-10">
+              <GlobalAudioProvider />
+              {!showIntro && <Navbar />}
+              <AudioVisualizer />
+              {showIntro ? <HeroIntro /> : <AnimatedRoutes />}
+              <AIAssistant />
+            </div>
           </BrowserRouter>
         </AIAssistantProvider>
         </AuthProvider>
