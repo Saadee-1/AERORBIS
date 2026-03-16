@@ -55,7 +55,7 @@ const ScanGrid = () => (
 );
 
 const HudFrame = () => (
-  <div className="absolute inset-6 md:inset-16 pointer-events-none">
+  <div className="intro-hud-frame absolute inset-6 md:inset-16 pointer-events-none">
     <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-primary/40" />
     <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-primary/40" />
     <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-primary/40" />
@@ -88,7 +88,7 @@ const BootSequence = () => {
   ];
 
   return (
-    <div className="absolute bottom-20 left-6 md:left-16 z-10">
+    <div className="intro-boot-sequence absolute bottom-20 left-6 md:left-16 z-10">
       {lines.map((line, i) => (
         <motion.div
           key={i}
@@ -187,7 +187,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden px-6 py-10"
+      className="hero-intro-screen fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden px-6 py-10"
       style={{
         background: "radial-gradient(ellipse at center, hsl(220, 80%, 6%) 0%, hsl(220, 100%, 2%) 100%)",
       }}
@@ -207,7 +207,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <motion.div className="relative" initial={{ opacity: 0.7 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 1 }}>
+      <motion.div className="intro-orbital relative" initial={{ opacity: 0.7 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 1 }}>
         <OrbitalRings />
       </motion.div>
 
@@ -242,7 +242,7 @@ export default function HeroIntro({ onFinish, autoPlayDuration = 4.5 }: Props) {
       </div>
 
       <motion.div
-        className="mt-10 flex flex-col items-center gap-3 z-10"
+        className="intro-loader mt-10 flex flex-col items-center gap-3 z-10"
         initial={{ opacity: 0.75 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2.2 }}

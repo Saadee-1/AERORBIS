@@ -141,7 +141,7 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="min-h-screen flex items-center justify-center bg-transparent pt-16 pb-8 relative overflow-hidden"
+      className="hero-viewport-shell relative overflow-x-hidden bg-transparent pt-16 pb-8"
     >
       {/* Animated grid background */}
       <div 
@@ -187,7 +187,7 @@ const Hero = () => {
 
       {/* Status indicators removed for cleaner look */}
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="hero-viewport-content container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
           
           {/* Logo with futuristic holographic treatment */}
