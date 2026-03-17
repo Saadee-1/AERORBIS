@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -117,8 +117,19 @@ const LaunchParticles = ({ active }: { active: boolean }) => {
 const Hero = () => {
   const [rocketLaunched, setRocketLaunched] = useState(false);
   const [zapLaunched, setZapLaunched] = useState(false);
+  const [isCompactViewport, setIsCompactViewport] = useState(false);
   const navigate = useNavigate();
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const syncViewportMode = () => {
+      setIsCompactViewport(window.innerWidth < 640 && window.innerHeight < 760);
+    };
+
+    syncViewportMode();
+    window.addEventListener("resize", syncViewportMode);
+    return () => window.removeEventListener("resize", syncViewportMode);
+  }, []);
 
   const handleLaunchTools = () => {
     if (rocketLaunched) return;
@@ -141,126 +152,115 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="hero-viewport-shell relative overflow-x-hidden bg-transparent pt-16 pb-8"
+      className={`hero-viewport-shell relative overflow-x-hidden bg-transparent pt-16 pb-8 ${isCompactViewport ? "hero-compact-shell" : ""}`}
     >
-      {/* Animated grid background */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(hsl(var(--primary)) 1px, transparent 1px),
             linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)
           `,
-          backgroundSize: '80px 80px',
+          backgroundSize: "80px 80px",
         }}
       />
 
-      {/* Radial gradient overlay */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse 60% 50% at 50% 50%, hsl(var(--primary) / 0.05) 0%, transparent 70%)',
+          background: "radial-gradient(ellipse 60% 50% at 50% 50%, hsl(var(--primary) / 0.05) 0%, transparent 70%)",
         }}
       />
 
-      {/* Scan line effect */}
-      <ScanLine />
+      {!isCompactViewport && <ScanLine />}
 
-      {/* Data streams */}
-      {[0.5, 2, 4, 6, 8].map((delay, i) => (
+      {!isCompactViewport && [0.5, 2, 4, 6, 8].map((delay, i) => (
         <DataStream key={i} delay={delay} />
       ))}
 
-      {/* Floating tech icons */}
-      <FloatingIcon Icon={Rocket} x="8%" y="25%" delay={1.8} />
-      <FloatingIcon Icon={Plane} x="88%" y="30%" delay={2.2} />
-      <FloatingIcon Icon={Satellite} x="12%" y="65%" delay={2.6} />
-      <FloatingIcon Icon={Orbit} x="85%" y="70%" delay={3.0} />
+      {!isCompactViewport && (
+        <>
+          <FloatingIcon Icon={Rocket} x="8%" y="25%" delay={1.8} />
+          <FloatingIcon Icon={Plane} x="88%" y="30%" delay={2.2} />
+          <FloatingIcon Icon={Satellite} x="12%" y="65%" delay={2.6} />
+          <FloatingIcon Icon={Orbit} x="85%" y="70%" delay={3.0} />
 
-      {/* HUD Frame */}
-      <div className="absolute inset-4 sm:inset-8 md:inset-16 pointer-events-none">
-        <HUDCorner position="tl" />
-        <HUDCorner position="tr" />
-        <HUDCorner position="bl" />
-        <HUDCorner position="br" />
-      </div>
-
-      {/* Status indicators removed for cleaner look */}
+          <div className="absolute inset-4 sm:inset-8 md:inset-16 pointer-events-none hero-ambient-frame">
+            <HUDCorner position="tl" />
+            <HUDCorner position="tr" />
+            <HUDCorner position="bl" />
+            <HUDCorner position="br" />
+          </div>
+        </>
+      )}
 
       <div className="hero-viewport-content container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-5xl mx-auto text-center">
-          
-          {/* Logo with futuristic holographic treatment */}
+        <div className="max-w-5xl mx-auto text-center hero-content-stack">
           <motion.div
             initial={{ opacity: 0, scale: 0.5, filter: "blur(20px)" }}
             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-6 sm:mb-8 relative inline-flex items-center justify-center"
+            className="hero-logo mb-6 sm:mb-8 relative inline-flex items-center justify-center"
           >
-            {/* Clean logo (no glow/panel) */}
-            <img 
-              src={aerorbisLogo} 
-              alt="AERORBIS" 
+            <img
+              src={aerorbisLogo}
+              alt="AERORBIS"
               className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 relative z-10"
             />
           </motion.div>
 
-          {/* Main title with glitch effect */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.8 }}
-            className="mb-3 sm:mb-4 relative"
+            className="hero-title-block mb-3 sm:mb-4 relative"
           >
             <motion.h1
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground font-[Orbitron] tracking-tight leading-none"
+              className="hero-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground font-[Orbitron] tracking-tight leading-none"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             >
               AERORBIS
             </motion.h1>
-            {/* Underline accent */}
-            <motion.div 
+            <motion.div
               className="h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-3 sm:mt-4"
               initial={{ width: 0 }}
-              animate={{ width: '60%' }}
-              transition={{ delay: 1, duration: 0.8, ease: 'easeOut' }}
+              animate={{ width: "60%" }}
+              transition={{ delay: 1, duration: 0.8, ease: "easeOut" }}
             />
           </motion.div>
 
-          {/* Tagline with typewriter effect */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.2 }}
-            className="text-sm sm:text-lg md:text-2xl text-primary font-rajdhani tracking-[0.2em] sm:tracking-[0.3em] uppercase mb-6 sm:mb-8"
+            className="hero-tagline text-sm sm:text-lg md:text-2xl text-primary font-rajdhani tracking-[0.2em] sm:tracking-[0.3em] uppercase mb-6 sm:mb-8"
           >
             Where Aerospace Minds Connect
           </motion.p>
 
-          {/* Description */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.5 }}
-            className="text-sm sm:text-base md:text-lg text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto px-2"
+            className="hero-description text-sm sm:text-base md:text-lg text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto px-2"
           >
-            Professional-grade engineering tools, interactive simulators, and deep learning resources 
-            for the next generation of aerospace engineers.
+            {isCompactViewport
+              ? "Engineering tools and learning modules built for aerospace engineers."
+              : "Professional-grade engineering tools, interactive simulators, and deep learning resources for the next generation of aerospace engineers."}
           </motion.p>
 
-          {/* CTA buttons with futuristic styling */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.8 }}
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-10 sm:mb-16 px-4 sm:px-0"
+            className="hero-cta-group flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-10 sm:mb-16 px-4 sm:px-0"
           >
-             <Button 
+            <Button
               ref={buttonRef}
               variant="outline"
-              size="lg" 
+              size="lg"
               onClick={handleLaunchTools}
               className="px-6 sm:px-10 py-5 sm:py-6 gap-2 sm:gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-sm sm:text-base tracking-wider uppercase font-rajdhani group transition-all duration-300 hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] relative overflow-visible"
             >
@@ -280,20 +280,19 @@ const Hero = () => {
                 <LaunchParticles active={rocketLaunched} />
               </span>
               Launch Tools
-              {/* Button glow burst on launch */}
               {rocketLaunched && (
                 <motion.span
                   className="absolute inset-0 rounded-md"
-                  style={{ boxShadow: '0 0 40px hsl(var(--primary) / 0.6), inset 0 0 20px hsl(var(--primary) / 0.2)' }}
+                  style={{ boxShadow: "0 0 40px hsl(var(--primary) / 0.6), inset 0 0 20px hsl(var(--primary) / 0.2)" }}
                   initial={{ opacity: 1 }}
                   animate={{ opacity: 0 }}
                   transition={{ duration: 0.6 }}
                 />
               )}
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
+            <Button
+              variant="outline"
+              size="lg"
               onClick={handleExploreModules}
               className="px-6 sm:px-10 py-5 sm:py-6 gap-2 sm:gap-3 border-primary/40 hover:border-primary hover:bg-primary/10 text-sm sm:text-base tracking-wider uppercase font-rajdhani group relative overflow-visible"
             >
@@ -316,7 +315,7 @@ const Hero = () => {
               {zapLaunched && (
                 <motion.span
                   className="absolute inset-0 rounded-md"
-                  style={{ boxShadow: '0 0 40px hsl(var(--primary) / 0.6), inset 0 0 20px hsl(var(--primary) / 0.2)' }}
+                  style={{ boxShadow: "0 0 40px hsl(var(--primary) / 0.6), inset 0 0 20px hsl(var(--primary) / 0.2)" }}
                   initial={{ opacity: 1 }}
                   animate={{ opacity: 0 }}
                   transition={{ duration: 0.6 }}
@@ -325,43 +324,42 @@ const Hero = () => {
             </Button>
           </motion.div>
 
-          {/* Stats with futuristic cards */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2.2 }}
-            className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 max-w-2xl mx-auto"
-          >
-            {[
-              { value: "15+", label: "Engineering Tools" },
-              { value: "50+", label: "Learning Modules" },
-              { value: "10K+", label: "Active Engineers" },
-            ].map((stat, index) => (
-              <motion.div 
-                key={stat.label} 
-                className="relative p-3 sm:p-4 md:p-6 rounded-lg border border-primary/20 bg-card/20 backdrop-blur-sm group hover:border-primary/50 transition-colors"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 2.2 + index * 0.15 }}
-              >
-                {/* Corner accents */}
-                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-primary/40" />
-                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary/40" />
-                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary/40" />
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-primary/40" />
-                
-                <div className="text-xl sm:text-2xl md:text-4xl font-bold text-primary font-[Orbitron] group-hover:drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all">
-                  {stat.value}
-                </div>
-                <div className="text-[8px] sm:text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mt-1 font-rajdhani">
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+          {!isCompactViewport && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 2.2 }}
+              className="hero-stats grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 max-w-2xl mx-auto"
+            >
+              {[
+                { value: "15+", label: "Engineering Tools" },
+                { value: "50+", label: "Learning Modules" },
+                { value: "10K+", label: "Active Engineers" },
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  className="relative p-3 sm:p-4 md:p-6 rounded-lg border border-primary/20 bg-card/20 backdrop-blur-sm group hover:border-primary/50 transition-colors"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 2.2 + index * 0.15 }}
+                >
+                  <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-primary/40" />
+                  <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary/40" />
+                  <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary/40" />
+                  <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-primary/40" />
+
+                  <div className="text-xl sm:text-2xl md:text-4xl font-bold text-primary font-[Orbitron] group-hover:drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all">
+                    {stat.value}
+                  </div>
+                  <div className="text-[8px] sm:text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest mt-1 font-rajdhani">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </div>
-
     </section>
   );
 };
