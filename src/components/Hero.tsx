@@ -117,8 +117,19 @@ const LaunchParticles = ({ active }: { active: boolean }) => {
 const Hero = () => {
   const [rocketLaunched, setRocketLaunched] = useState(false);
   const [zapLaunched, setZapLaunched] = useState(false);
+  const [isCompactViewport, setIsCompactViewport] = useState(false);
   const navigate = useNavigate();
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const syncViewportMode = () => {
+      setIsCompactViewport(window.innerWidth < 640 && window.innerHeight < 760);
+    };
+
+    syncViewportMode();
+    window.addEventListener("resize", syncViewportMode);
+    return () => window.removeEventListener("resize", syncViewportMode);
+  }, []);
 
   const handleLaunchTools = () => {
     if (rocketLaunched) return;
