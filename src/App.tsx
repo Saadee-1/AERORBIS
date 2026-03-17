@@ -80,29 +80,43 @@ const AnimatedRoutes = () => {
 // ---- MAIN APP ----
 const SHORT_VIEWPORT_HEIGHT = 480;
 
+const isEmbeddedPreview = () => {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+};
+
+const shouldEnableIntro = () => {
+  if (typeof window === "undefined") return false;
+
+  const hasSeenIntro = window.localStorage.getItem("hasSeenIntro");
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  return !hasSeenIntro && window.innerHeight >= SHORT_VIEWPORT_HEIGHT && !prefersReducedMotion && !isEmbeddedPreview();
+};
+
 const App = () => {
-  const [showIntro, setShowIntro] = useState(() => {
-    const hasSeenIntro = localStorage.getItem('hasSeenIntro');
-    return !hasSeenIntro && window.innerHeight >= SHORT_VIEWPORT_HEIGHT;
-  });
+  const [showIntro, setShowIntro] = useState(shouldEnableIntro);
 
   useEffect(() => {
     const handleViewportResize = () => {
-      if (window.innerHeight < SHORT_VIEWPORT_HEIGHT) {
+      if (window.innerHeight < SHORT_VIEWPORT_HEIGHT || isEmbeddedPreview()) {
         setShowIntro(false);
       }
     };
 
     handleViewportResize();
-    window.addEventListener('resize', handleViewportResize);
-    return () => window.removeEventListener('resize', handleViewportResize);
+    window.addEventListener("resize", handleViewportResize);
+    return () => window.removeEventListener("resize", handleViewportResize);
   }, []);
 
   useEffect(() => {
     if (showIntro) {
       const timer = setTimeout(() => {
         setShowIntro(false);
-        localStorage.setItem('hasSeenIntro', 'true');
+        localStorage.setItem("hasSeenIntro", "true");
       }, 4000);
       return () => clearTimeout(timer);
     }
