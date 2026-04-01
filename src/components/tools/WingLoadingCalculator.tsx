@@ -500,7 +500,7 @@ function generateBestUseCase(
   }
   
   // Mismatch cases
-  let mismatchReasons: string[] = [];
+  const mismatchReasons: string[] = [];
   if (!wsWithinRange) {
     if (wsKgm2 < params.wsMinKg) {
       mismatchReasons.push("wing loading is below typical range");
