@@ -12,7 +12,7 @@ const PageTransition = ({ children }: PageTransitionProps) => {
   // Framer Motion will start at the `animate` values (fully visible).
   return (
     <motion.div
-      initial={false}
+      initial={{ opacity: 0, filter: 'blur(6px)', y: 12, scale: 0.995 }}
       animate={{ opacity: 1, filter: 'blur(0px)', y: 0, scale: 1 }}
       exit={{ opacity: 0, filter: 'blur(4px)', y: -8, scale: 0.998 }}
       transition={{
