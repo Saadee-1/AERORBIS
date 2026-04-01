@@ -32,12 +32,14 @@ function formatAxis(value: number): string {
   return value.toFixed(2);
 }
 
+const EMPTY_ARRAY: unknown[] = [];
+
 export const TwoDVisualizer = memo(function TwoDVisualizer({
   trajectoryData,
   mode,
   title = '2D Trajectory Visualizer',
 }: TwoDVisualizerProps) {
-  const frames = trajectoryData?.frames ?? [];
+  const frames = trajectoryData?.frames ?? EMPTY_ARRAY;
   const metadata = trajectoryData?.metadata;
 
   const sanitize = (value: number, fallback = 0) =>

@@ -143,6 +143,22 @@ const DeltaVPlanner = () => {
     [getLatestStoredRequestId, sendCalculationEvent, updateToolContext]
   );
 
+  const loadPreset = useCallback((preset: typeof MISSION_PRESETS[0]) => {
+    runCalculation(() => {
+      setMission(preset.mission);
+      setStages(
+        preset.stages.map((s, i) => ({
+          ...s,
+          id: `stage-${Date.now()}-${i}`,
+        }))
+      );
+      toast({
+        title: "Preset Loaded",
+        description: `${preset.name} configuration loaded`,
+      });
+    });
+  }, [toast, runCalculation]);
+
   // Load last mission on mount
   useEffect(() => {
     const last = loadLastMission();
@@ -167,7 +183,7 @@ const DeltaVPlanner = () => {
     if (storedCustomFactor) {
       setCustomFactor(storedCustomFactor);
     }
-  }, []);
+  }, [loadPreset]);
 
   // Save mission on change
   useEffect(() => {
@@ -275,22 +291,6 @@ const DeltaVPlanner = () => {
     unitSystem,
     warnings,
   ]);
-
-  const loadPreset = useCallback((preset: typeof MISSION_PRESETS[0]) => {
-    runCalculation(() => {
-      setMission(preset.mission);
-      setStages(
-        preset.stages.map((s, i) => ({
-          ...s,
-          id: `stage-${Date.now()}-${i}`,
-        }))
-      );
-      toast({
-        title: "Preset Loaded",
-        description: `${preset.name} configuration loaded`,
-      });
-    });
-  }, [toast, runCalculation]);
 
 
   const handleSavePreset = () => {

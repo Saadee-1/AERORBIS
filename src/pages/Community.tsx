@@ -55,11 +55,13 @@ const Community = () => {
   // Fetch posts
   useEffect(() => {
     fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterCategory]);
 
   // Fetch user's likes
   useEffect(() => {
     if (user) fetchUserLikes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchPosts = async () => {
@@ -77,7 +79,7 @@ const Community = () => {
     if (error) {
       toast.error("Failed to load posts");
     } else {
-      setPosts((data as any) || []);
+      setPosts((data as Post[]) || []);
     }
     setLoading(false);
   };
@@ -89,7 +91,7 @@ const Community = () => {
       .select("post_id")
       .eq("user_id", user.id);
     if (data) {
-      setLikedPosts(new Set(data.map((l: any) => l.post_id)));
+      setLikedPosts(new Set(data.map((l: { post_id: string }) => l.post_id)));
     }
   };
 
@@ -145,7 +147,7 @@ const Community = () => {
       .select("*, profiles!community_comments_author_id_fkey(username, display_name, avatar_url)")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
-    setComments((data as any) || []);
+    setComments((data as Comment[]) || []);
   };
 
   const handleOpenComments = (postId: string) => {

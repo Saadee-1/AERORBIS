@@ -67,6 +67,7 @@ export function CGInertiaPanel({
         onLocationsChange(updatedLocations);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [componentWeights.wing, componentWeights.fuselage, componentWeights.horizontalTail, 
       componentWeights.verticalTail, componentWeights.landingGear.total, componentWeights.engine,
       componentWeights.fuelSystem, componentWeights.controls, componentWeights.avionics,

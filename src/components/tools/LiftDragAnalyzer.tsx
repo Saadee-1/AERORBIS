@@ -727,7 +727,7 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
   };
 
   // FIXED: Standardized property names to match interface
-  const getParsedCustomAirfoil = (): Airfoil => {
+  const getParsedCustomAirfoil = useCallback((): Airfoil => {
     const parse = (val: string, defaultVal: number) => {
       const num = parseFloat(val);
       return isNaN(num) ? defaultVal : num;
@@ -740,13 +740,13 @@ const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: Lift
       CD_0: parse(customAirfoil.CD_0, 0.007),
       alpha_stall: parse(customAirfoil.alpha_stall, 15),
     };
-  };
+  }, [customAirfoil]);
 
-  const getActiveAirfoil = (): Airfoil => {
+  const getActiveAirfoil = useCallback((): Airfoil => {
     return inputs.airfoil === "custom" 
       ? getParsedCustomAirfoil() 
       : AIRFOIL_DATA[inputs.airfoil];
-  };
+  }, [inputs.airfoil, getParsedCustomAirfoil]);
 
   const calculateLiftDrag = async () => {
     setError("");
@@ -1118,7 +1118,7 @@ const point: Record<string, unknown> = { alpha };
     if (!result) return [];
     const activeAirfoil = getActiveAirfoil();
     return generateComparisonData(activeAirfoil, result.k_factor, inputs.airfoil);
-  }, [result, inputs.airfoil, customAirfoil, comparedAirfoilIds, generateComparisonData, getActiveAirfoil]);
+  }, [result, inputs.airfoil, generateComparisonData, getActiveAirfoil]);
   
   const handleCustomAirfoilChange = (field: keyof CustomAirfoilInputs, value: string) => {
     setCustomAirfoil(prev => ({ ...prev, [field]: value }));

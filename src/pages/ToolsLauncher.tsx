@@ -114,6 +114,7 @@ const ToolsLauncher = () => {
       // No tool parameter - show all tabs
       setHideTabs(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolParam]);
 
   // Reset hover state when modal closes

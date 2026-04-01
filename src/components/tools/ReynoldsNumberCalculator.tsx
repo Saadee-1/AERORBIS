@@ -591,7 +591,8 @@ const ReynoldsNumberCalculator = () => {
     }
 
     return data;
-  }, [result, inputs, unitSystem, customFactors]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, inputs, unitSystem, customFactors, convertFromSI, convertToSI]);
 
   const resetCalculator = () => {
     setInputs({ density: "", velocity: "", length: "", viscosity: "" });

@@ -30,6 +30,8 @@ interface VisualizerSceneProps {
 
 const IS_DEV = isDevEnv();
 
+const EMPTY_ARRAY: TrajectoryFrame[] = [];
+
 export const VisualizerScene = memo(function VisualizerScene({
   trajectoryData,
   planet,
@@ -40,7 +42,7 @@ export const VisualizerScene = memo(function VisualizerScene({
   onSceneReady,
 }: VisualizerSceneProps) {
   const { gl } = useThree();
-  const frames = trajectoryData?.frames ?? [];
+  const frames = trajectoryData?.frames ?? EMPTY_ARRAY;
   
   // Track active stage separation events
   const [activeSeparations, setActiveSeparations] = useState<Array<{ id: string; frame: TrajectoryFrame }>>([]);

@@ -304,6 +304,7 @@ export default function StructuralWeightEstimator() {
         variant: 'destructive',
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [applyToolPayload, inputs, missionProfile, toast]);
 
   return (

@@ -142,7 +142,7 @@ const AIAssistant: React.FC = () => {
 
       return () => clearInterval(timer);
     }
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;

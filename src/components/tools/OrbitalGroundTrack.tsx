@@ -511,7 +511,7 @@ export function OrbitalGroundTrack({
     const svgAhead = toSVG(ahead.lat, ahead.lon);
 
     let dx = svgAhead[0] - svgPos[0];
-    let dy = svgAhead[1] - svgPos[1];
+    const dy = svgAhead[1] - svgPos[1];
     if (Math.abs(dx) > W / 2) dx = dx > 0 ? dx - W : dx + W;
     const mag = Math.sqrt(dx * dx + dy * dy);
     const velDir = mag > 0.01 ? { dx: dx / mag, dy: dy / mag } : { dx: 1, dy: 0 };

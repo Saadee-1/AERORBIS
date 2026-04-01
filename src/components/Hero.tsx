@@ -51,7 +51,7 @@ const DataStream = ({ delay = 0 }: { delay?: number }) => (
 );
 
 // Floating tech icon
-const FloatingIcon = ({ Icon, x, y, delay }: { Icon: any; x: string; y: string; delay: number }) => (
+const FloatingIcon = ({ Icon, x, y, delay }: { Icon: React.ElementType; x: string; y: string; delay: number }) => (
   <motion.div
     className="absolute text-primary/10 pointer-events-none"
     style={{ left: x, top: y }}

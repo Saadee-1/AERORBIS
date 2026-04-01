@@ -841,7 +841,7 @@ const OrbitalVisualizer = () => {
 
       // ── Animation Loop ──
       let lastTime = performance.now();
-      let trailIndex = 0;
+      const trailIndex = 0;
       let frameCounter = 0;
 
       const animate = () => {
@@ -967,6 +967,7 @@ const OrbitalVisualizer = () => {
     }
 
     return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- Calculation Functions (PHYSICS FROZEN) ---

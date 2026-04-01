@@ -48,7 +48,7 @@ function computeLowThrust(
   const edelbaum_angle = (Math.PI / 2) * di_rad; // Edelbaum's effective angle
 
   let deltaV: number;
-  let isCoplanar = inclChange_deg === 0 || Math.abs(inclChange_deg) < 0.001;
+  const isCoplanar = inclChange_deg === 0 || Math.abs(inclChange_deg) < 0.001;
 
   if (isCoplanar) {
     deltaV = Math.abs(v1 - v2);

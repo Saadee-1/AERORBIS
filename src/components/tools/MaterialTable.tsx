@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Material, UnitSystem } from "./types";
 import { convertDensityToImperial } from "./unitConversion";
 import {
@@ -73,7 +73,7 @@ const MaterialTable = ({ materials, unitSystem, customUnitName, customFactor, on
   const paged = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   // Reset page when materials change
-  useMemo(() => setPage(0), [materials.length]);
+  useEffect(() => setPage(0), [materials]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");

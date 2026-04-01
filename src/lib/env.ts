@@ -9,8 +9,8 @@ const getRuntimeEnv = (): RuntimeEnv => {
   if (typeof import.meta !== 'undefined' && (import.meta as unknown as Record<string, unknown>).env) {
     return ((import.meta as unknown as Record<string, unknown>).env) as RuntimeEnv;
   }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).process?.env) {
-    return (globalThis as any).process.env as RuntimeEnv;
+  if (typeof globalThis !== 'undefined' && (globalThis as unknown as { process?: { env?: RuntimeEnv } }).process?.env) {
+    return (globalThis as unknown as { process: { env: RuntimeEnv } }).process.env;
   }
   return {};
 };
@@ -35,8 +35,8 @@ export const isDevEnv = (): boolean => {
   if (RUNTIME_ENV?.DEV !== undefined) {
     return normalizeFlag(RUNTIME_ENV.DEV);
   }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.NODE_ENV) {
-    return (globalThis as any).process.env.NODE_ENV !== 'production';
+  if (typeof globalThis !== 'undefined' && (globalThis as unknown as { process?: { env?: { NODE_ENV?: string } } }).process?.env?.NODE_ENV) {
+    return (globalThis as unknown as { process: { env: { NODE_ENV: string } } }).process.env.NODE_ENV !== 'production';
   }
   return false;
 };
@@ -45,8 +45,8 @@ export const isVisualizerDebug = (): boolean => {
   if (RUNTIME_ENV?.VITE_DEBUG_VISUALIZER !== undefined) {
     return normalizeFlag(RUNTIME_ENV.VITE_DEBUG_VISUALIZER);
   }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.VITE_DEBUG_VISUALIZER) {
-    return normalizeFlag((globalThis as any).process.env.VITE_DEBUG_VISUALIZER);
+  if (typeof globalThis !== 'undefined' && (globalThis as unknown as { process?: { env?: { VITE_DEBUG_VISUALIZER?: unknown } } }).process?.env?.VITE_DEBUG_VISUALIZER) {
+    return normalizeFlag((globalThis as unknown as { process: { env: { VITE_DEBUG_VISUALIZER: unknown } } }).process.env.VITE_DEBUG_VISUALIZER);
   }
   return false;
 };
