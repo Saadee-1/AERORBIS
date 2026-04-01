@@ -410,6 +410,15 @@
   overflow: hidden;
 }
 
+/* Fallback: ensure page content is never stuck invisible.
+   If framer-motion fails to animate, CSS kicks in after 1s. */
+#root [style*="opacity: 0"] {
+  animation: forceVisible 0s 1.2s forwards;
+}
+@keyframes forceVisible {
+  to { opacity: 1 !important; filter: none !important; transform: none !important; }
+}
+
 .hero-intro-container {
   position: fixed;
   inset: 0;
