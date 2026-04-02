@@ -10,6 +10,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 const DashboardOverview = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [displayName, setDisplayName] = useState("Engineer");
+
+  useEffect(() => {
+    if (!user) { navigate('/auth'); return; }
+    supabase.from('profiles').select('display_name, username').eq('id', user.id).single()
+      .then(({ data }) => {
+        if (data) setDisplayName(data.display_name || data.username || 'Engineer');
+      });
+  }, [user, navigate]);
+
   const welcomeRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const quickAccessRef = useRef<HTMLDivElement>(null);
