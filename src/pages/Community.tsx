@@ -79,7 +79,7 @@ const Community = () => {
     if (error) {
       toast.error("Failed to load posts");
     } else {
-      setPosts((data as Post[]) || []);
+      setPosts((data as unknown as Post[]) || []);
     }
     setLoading(false);
   };
@@ -147,7 +147,7 @@ const Community = () => {
       .select("*, profiles!community_comments_author_id_fkey(username, display_name, avatar_url)")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
-    setComments((data as Comment[]) || []);
+    setComments((data as unknown as Comment[]) || []);
   };
 
   const handleOpenComments = (postId: string) => {
