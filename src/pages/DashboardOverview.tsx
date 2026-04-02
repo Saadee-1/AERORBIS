@@ -4,10 +4,24 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import { BookOpen, FlaskConical, Wrench, Users, ArrowRight, Rocket, Target, Activity, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRef } from "react";
-import { Link } from "react-router-dom";
+import { useRef, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const DashboardOverview = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [displayName, setDisplayName] = useState("Engineer");
+
+  useEffect(() => {
+    if (!user) { navigate('/auth'); return; }
+    supabase.from('profiles').select('display_name, username').eq('id', user.id).single()
+      .then(({ data }) => {
+        if (data) setDisplayName(data.display_name || data.username || 'Engineer');
+      });
+  }, [user, navigate]);
+
   const welcomeRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const quickAccessRef = useRef<HTMLDivElement>(null);
@@ -105,7 +119,7 @@ const DashboardOverview = () => {
             animate={welcomeInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
-            Welcome back, <span className="text-primary drop-shadow-[0_0_15px_hsl(160_84%_39%/0.5)]">Saad</span>
+            Welcome back, <span className="text-primary drop-shadow-[0_0_15px_hsl(160_84%_39%/0.5)]">{displayName}</span>
           </motion.h1>
           <motion.p
             className="text-muted-foreground text-sm"
