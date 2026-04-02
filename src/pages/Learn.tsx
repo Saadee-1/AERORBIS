@@ -192,9 +192,9 @@ const Learn = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardFooter>
-                    <Button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold shadow-[0_0_20px_hsl(160_84%_39%/0.3)]">
-                      Watch Now
-                    </Button>
+                    <Button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold shadow-[0_0_20px_hsl(160_84%_39%/0.3)]"
+                      onClick={() => toast.info("🚀 Coming Soon — Video lectures are under production!")}
+                    >
                   </CardFooter>
                 </Card>
               </motion.div>
