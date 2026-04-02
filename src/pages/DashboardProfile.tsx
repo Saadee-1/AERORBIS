@@ -34,14 +34,54 @@ const HudPanel = ({ children, className = "", label }: { children: React.ReactNo
   </div>
 );
 
-const userProfile = {
-  name: "Saad Ahmed",
-  email: "saad@aeroverse.com",
-  university: "MIT",
-  bio: "Passionate aerospace engineering student focused on hypersonic flight and advanced propulsion systems.",
-  interests: ["Aerodynamics", "Space Systems", "Propulsion"],
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Saad",
-};
+const DashboardProfile = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState({
+    display_name: "",
+    username: "",
+    bio: "",
+    avatar_url: "",
+  });
+
+  useEffect(() => {
+    if (!user) { navigate('/auth'); return; }
+    supabase.from('profiles').select('*').eq('id', user.id).single()
+      .then(({ data }) => {
+        if (data) setProfile({
+          display_name: data.display_name || '',
+          username: data.username || '',
+          bio: data.bio || '',
+          avatar_url: data.avatar_url || '',
+        });
+      });
+  }, [user, navigate]);
+
+  const handleSave = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase.from('profiles').update({
+      display_name: profile.display_name,
+      username: profile.username,
+      bio: profile.bio,
+    }).eq('id', user.id);
+    setSaving(false);
+    if (error) toast.error("Failed to save changes");
+    else toast.success("Profile updated!");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const handlePasswordUpdate = async () => {
+    toast.info("Coming Soon — Password change will be available in the next update.");
+  };
+
+  const displayName = profile.display_name || profile.username || user?.email?.split('@')[0] || 'User';
+  const initials = displayName.slice(0, 2).toUpperCase();
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
