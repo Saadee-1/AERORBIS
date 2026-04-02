@@ -48,7 +48,7 @@ const Research = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black relative">
+    <div className="min-h-screen flex flex-col relative z-10">
       <PageBreadcrumb />
       
       {/* Hero Section */}
