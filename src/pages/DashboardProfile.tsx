@@ -7,8 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Lock, Palette, LogOut, Upload, Shield, Wifi } from "lucide-react";
+import { User, Bell, Lock, Palette, LogOut, Upload, Shield, Wifi, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const HudCorners = () => (
   <>
