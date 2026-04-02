@@ -3,19 +3,33 @@ import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Linkedin, Youtube, Github, Instagram, Send, ArrowRight } from "lucide-react";
+import { Linkedin, Youtube, Github, Instagram, Send, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Transmission sent! We'll respond shortly.");
-    setFormData({ name: "", email: "", message: "" });
+    setSending(true);
+    const { error } = await supabase.from('contact_messages').insert({
+      name: formData.name,
+      email: formData.email,
+      subject: 'Homepage Contact',
+      message: formData.message,
+    });
+    setSending(false);
+    if (error) {
+      toast.error("Failed to send. Please try again.");
+    } else {
+      toast.success("Transmission sent! We'll respond shortly.");
+      setFormData({ name: "", email: "", message: "" });
+    }
   };
 
   const socials = [
@@ -75,9 +89,9 @@ const Contact = () => {
                 rows={6}
                 className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 resize-none focus:border-primary/50 focus:ring-primary/20 transition-all"
               />
-              <Button type="submit" size="lg" className="w-full gap-2 glow-cyan font-semibold tracking-wide">
-                <Send className="w-4 h-4" />
-                Send Transmission
+              <Button type="submit" size="lg" className="w-full gap-2 glow-cyan font-semibold tracking-wide" disabled={sending}>
+                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {sending ? "Sending..." : "Send Transmission"}
               </Button>
             </form>
           </div>
