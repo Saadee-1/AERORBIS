@@ -159,7 +159,7 @@ const DashboardResearch = () => {
                 <p className="text-[12px] text-muted-foreground mb-4 leading-relaxed">{item.abstract}</p>
                 <div className="flex gap-2">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15 text-[10px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                    <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15 text-[10px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }} onClick={() => toast.info("🚀 Coming Soon!")}>
                       <Eye className="w-3 h-3 mr-1" /> View
                     </Button>
                   </motion.div>
