@@ -1,4 +1,5 @@
 import { motion, useInView } from "framer-motion";
+import { toast } from "sonner";
 import { useRef } from "react";
 import { BookOpen, Rocket, Plane, Satellite, Wrench, Box } from "lucide-react";
 import Footer from "@/components/Footer";
