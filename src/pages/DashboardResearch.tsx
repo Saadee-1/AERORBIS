@@ -164,7 +164,7 @@ const DashboardResearch = () => {
                     </Button>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15 text-[10px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                    <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15 text-[10px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }} onClick={() => toast.info("🚀 Coming Soon!")}>
                       <Edit className="w-3 h-3 mr-1" /> Edit
                     </Button>
                   </motion.div>

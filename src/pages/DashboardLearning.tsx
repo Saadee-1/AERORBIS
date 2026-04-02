@@ -196,8 +196,8 @@ const DashboardLearning = () => {
                             </div>
 
                             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                              <Button className="w-full bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20 text-[11px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                                Continue Module →
+                              <Button className="w-full bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20 text-[11px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }} onClick={() => toast.info("🚀 Coming Soon — Module content is under development!")}>
+                                Coming Soon →
                               </Button>
                             </motion.div>
                           </div>
