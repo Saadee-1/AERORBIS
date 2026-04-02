@@ -213,7 +213,7 @@ const Community = () => {
             >
               <Users className="w-12 h-12 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
             </motion.div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 font-[Orbitron] uppercase tracking-wider bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+            <h1 className="text-[26px] md:text-[32px] lg:text-[44px] leading-tight font-bold mb-4 font-[Orbitron] uppercase tracking-wider bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
               AERORBIS Community
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
