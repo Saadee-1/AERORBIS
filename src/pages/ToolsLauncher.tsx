@@ -325,8 +325,7 @@ const ToolsLauncher = () => {
                   <TabsTrigger
                     key={value}
                     value={value}
-                    className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border-primary/30 data-[state=active]:border text-[11px] tracking-wider uppercase rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
-                    style={{ fontFamily: 'Rajdhani, sans-serif' }}
+                    className="px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
                   >
                     <Icon className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">{label}</span>
