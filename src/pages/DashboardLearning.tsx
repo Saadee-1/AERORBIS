@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Award, BookOpen, Clock, Flame, Zap } from "lucide-react";
 import { motion, useInView } from "framer-motion";
+import { toast } from "sonner";
 import { useRef } from "react";
 
 const DashboardLearning = () => {
