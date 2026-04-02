@@ -32,7 +32,9 @@ function formatAxis(value: number): string {
   return value.toFixed(2);
 }
 
-const EMPTY_ARRAY: unknown[] = [];
+import type { TrajectoryFrame } from '../../utils/three/threeUtils';
+
+const EMPTY_ARRAY: TrajectoryFrame[] = [];
 
 export const TwoDVisualizer = memo(function TwoDVisualizer({
   trajectoryData,
