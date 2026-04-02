@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,11 @@ const HudPanel = ({ children, className = "", label }: { children: React.ReactNo
     {children}
   </div>
 );
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.4 } }),
+};
 
 const DashboardProfile = () => {
   const { user, signOut } = useAuth();
@@ -76,19 +81,14 @@ const DashboardProfile = () => {
     navigate('/');
   };
 
-  const handlePasswordUpdate = async () => {
+  const handlePasswordUpdate = () => {
     toast.info("Coming Soon — Password change will be available in the next update.");
   };
 
   const displayName = profile.display_name || profile.username || user?.email?.split('@')[0] || 'User';
   const initials = displayName.slice(0, 2).toUpperCase();
+  const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A';
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.4 } }),
-};
-
-const DashboardProfile = () => {
   return (
     <DashboardLayout>
       {/* Header */}
@@ -120,30 +120,30 @@ const DashboardProfile = () => {
                 <div className="relative">
                   <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary/40 to-primary/10 blur-sm" />
                   <Avatar className="w-28 h-28 relative border-2 border-primary/30">
-                    <AvatarImage src={userProfile.avatar} />
-                    <AvatarFallback className="bg-primary/20 text-primary text-2xl font-orbitron">SA</AvatarFallback>
+                    <AvatarImage src={profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`} />
+                    <AvatarFallback className="bg-primary/20 text-primary text-2xl font-orbitron">{initials}</AvatarFallback>
                   </Avatar>
                 </div>
                 <Button
                   size="sm"
-                  className="absolute bottom-0 right-0 rounded-full bg-primary/20 border border-primary/40 text-primary hover:bg-primary/30 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+                  className="absolute bottom-0 right-0 rounded-full bg-primary/20 border border-primary/40 text-primary hover:bg-primary/30"
+                  onClick={() => toast.info("Coming Soon — Avatar upload will be available soon.")}
                 >
                   <Upload className="w-4 h-4" />
                 </Button>
               </motion.div>
 
-              <h2 className="text-xl font-orbitron font-bold text-foreground mt-4">{userProfile.name}</h2>
-              <p className="text-muted-foreground text-sm">{userProfile.email}</p>
+              <h2 className="text-xl font-orbitron font-bold text-foreground mt-4">{displayName}</h2>
+              <p className="text-muted-foreground text-sm">{user?.email}</p>
               <div className="flex items-center gap-2 mt-2">
                 <Shield className="w-3 h-3 text-primary" />
-                <span className="text-xs font-rajdhani tracking-wider text-primary">CLEARANCE: L3</span>
+                <span className="text-xs font-rajdhani tracking-wider text-primary">VERIFIED MEMBER</span>
               </div>
 
               <div className="w-full mt-6 space-y-3">
                 {[
-                  { label: "Member Since", value: "January 2024" },
-                  { label: "Institution", value: userProfile.university },
-                  { label: "Rank", value: "#47 (Top 5%)", highlight: true },
+                  { label: "Member Since", value: memberSince },
+                  { label: "Username", value: profile.username || 'Not set' },
                 ].map((item, i) => (
                   <motion.div
                     key={item.label}
@@ -155,19 +155,18 @@ const DashboardProfile = () => {
                     whileHover={{ scale: 1.02, borderColor: "hsl(var(--primary) / 0.3)" }}
                   >
                     <p className="text-[10px] font-rajdhani tracking-widest text-muted-foreground uppercase">{item.label}</p>
-                    <p className={`text-sm font-semibold ${item.highlight ? 'text-primary' : 'text-foreground'}`}>{item.value}</p>
+                    <p className="text-sm font-semibold text-foreground">{item.value}</p>
                   </motion.div>
                 ))}
               </div>
 
-              {/* Status indicators */}
               <div className="w-full mt-4 flex items-center justify-between text-[10px] font-rajdhani tracking-wider text-muted-foreground border-t border-primary/10 pt-3">
-                <span className="flex items-center gap-1"><Wifi className="w-3 h-3 text-emerald-400" /> ONLINE</span>
+                <span className="flex items-center gap-1"><Wifi className="w-3 h-3 text-primary" /> ONLINE</span>
                 <span className="flex items-center gap-1"><Shield className="w-3 h-3 text-primary" /> VERIFIED</span>
               </div>
 
               <motion.div className="w-full mt-4" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button variant="outline" className="w-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive">
+                <Button variant="outline" className="w-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </Button>
@@ -191,7 +190,7 @@ const DashboardProfile = () => {
                 { value: "security", icon: Lock, label: "Security" },
                 { value: "preferences", icon: Palette, label: "Display" },
               ].map((tab) => (
-                <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2 font-rajdhani tracking-wider text-xs data-[state=active]:text-primary data-[state=active]:shadow-[0_0_10px_hsl(var(--primary)/0.2)]">
+                <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2 font-rajdhani tracking-wider text-xs data-[state=active]:text-primary">
                   <tab.icon className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{tab.label}</span>
                 </TabsTrigger>
@@ -207,30 +206,25 @@ const DashboardProfile = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[
-                        { id: "name", label: "Full Name", value: userProfile.name },
-                        { id: "university", label: "Institution", value: userProfile.university },
-                      ].map((field, i) => (
-                        <motion.div key={field.id} custom={i} variants={itemVariants} initial="hidden" animate="visible">
-                          <Label htmlFor={field.id} className="text-foreground text-xs font-rajdhani tracking-wider uppercase">{field.label}</Label>
-                          <Input id={field.id} defaultValue={field.value} className="bg-muted/30 border-primary/20 focus:border-primary/50 focus:shadow-[0_0_10px_hsl(var(--primary)/0.1)]" />
-                        </motion.div>
-                      ))}
+                      <div>
+                        <Label htmlFor="display_name" className="text-foreground text-xs font-rajdhani tracking-wider uppercase">Display Name</Label>
+                        <Input id="display_name" value={profile.display_name} onChange={(e) => setProfile({ ...profile, display_name: e.target.value })} className="bg-muted/30 border-primary/20 focus:border-primary/50" />
+                      </div>
+                      <div>
+                        <Label htmlFor="username" className="text-foreground text-xs font-rajdhani tracking-wider uppercase">Username</Label>
+                        <Input id="username" value={profile.username} onChange={(e) => setProfile({ ...profile, username: e.target.value })} className="bg-muted/30 border-primary/20 focus:border-primary/50" />
+                      </div>
                     </div>
                     <div>
                       <Label htmlFor="email" className="text-foreground text-xs font-rajdhani tracking-wider uppercase">Email Address</Label>
-                      <Input id="email" type="email" defaultValue={userProfile.email} className="bg-muted/30 border-primary/20 focus:border-primary/50" />
+                      <Input id="email" type="email" value={user?.email || ''} disabled className="bg-muted/30 border-primary/20 opacity-60" />
                     </div>
                     <div>
                       <Label htmlFor="bio" className="text-foreground text-xs font-rajdhani tracking-wider uppercase">Bio</Label>
-                      <Textarea id="bio" defaultValue={userProfile.bio} className="bg-muted/30 border-primary/20 focus:border-primary/50 min-h-24" />
+                      <Textarea id="bio" value={profile.bio} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} className="bg-muted/30 border-primary/20 focus:border-primary/50 min-h-24" placeholder="Tell us about yourself..." />
                     </div>
-                    <div>
-                      <Label htmlFor="interests" className="text-foreground text-xs font-rajdhani tracking-wider uppercase">Interests</Label>
-                      <Input id="interests" defaultValue={userProfile.interests.join(", ")} className="bg-muted/30 border-primary/20 focus:border-primary/50" />
-                    </div>
-                    <Button className="bg-primary/20 border border-primary/40 text-primary hover:bg-primary/30 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
-                      Save Changes
+                    <Button onClick={handleSave} disabled={saving} className="bg-primary/20 border border-primary/40 text-primary hover:bg-primary/30">
+                      {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : "Save Changes"}
                     </Button>
                   </CardContent>
                 </HudPanel>
@@ -263,7 +257,7 @@ const DashboardProfile = () => {
                           <p className="font-medium text-foreground text-sm">{item.title}</p>
                           <p className="text-xs text-muted-foreground">{item.desc}</p>
                         </div>
-                        <Switch defaultChecked={item.defaultChecked} />
+                        <Switch defaultChecked={item.defaultChecked} onCheckedChange={() => toast.info("Coming Soon — Notification preferences will be saved in a future update.")} />
                       </motion.div>
                     ))}
                   </CardContent>
@@ -289,7 +283,7 @@ const DashboardProfile = () => {
                         <Input id={field.id} type="password" className="bg-muted/30 border-primary/20 focus:border-primary/50" />
                       </motion.div>
                     ))}
-                    <Button className="bg-primary/20 border border-primary/40 text-primary hover:bg-primary/30 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
+                    <Button onClick={handlePasswordUpdate} className="bg-primary/20 border border-primary/40 text-primary hover:bg-primary/30">
                       Update Password
                     </Button>
                   </CardContent>
@@ -322,7 +316,7 @@ const DashboardProfile = () => {
                           <p className="font-medium text-foreground text-sm">{item.title}</p>
                           <p className="text-xs text-muted-foreground">{item.desc}</p>
                         </div>
-                        <Switch defaultChecked={item.defaultChecked} disabled={item.disabled} />
+                        <Switch defaultChecked={item.defaultChecked} disabled={item.disabled} onCheckedChange={() => toast.info("Coming Soon — Display preferences will be saved in a future update.")} />
                       </motion.div>
                     ))}
                   </CardContent>
