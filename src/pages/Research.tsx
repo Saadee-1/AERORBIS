@@ -216,6 +216,7 @@ const Research = () => {
             <Button 
               size="lg" 
               className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-[0_0_30px_hsl(160_84%_39%/0.4)] hover:shadow-[0_0_50px_hsl(160_84%_39%/0.6)] transition-all duration-300"
+              onClick={() => { import("sonner").then(m => m.toast.info("🚀 Coming Soon — Research submission portal is under development!")); }}
             >
               Submit Research Paper
             </Button>

@@ -218,10 +218,13 @@ const Tools = () => {
               <CardContent className="pt-6">
                 <div className="space-y-6">
                   <div className="text-center p-6 bg-muted rounded">
-                    <Rocket className="w-16 h-16 mx-auto mb-3 text-muted-foreground" />
-                    <p className="text-muted-foreground text-sm">
-                      Interactive calculator interface will be embedded here
+                    <Rocket className="w-16 h-16 mx-auto mb-3 text-primary" />
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Try our full-featured Thrust Calculator with detailed analysis
                     </p>
+                    <Button asChild>
+                      <a href="/tools/launch?tool=thrust">Launch Thrust Calculator</a>
+                    </Button>
                   </div>
 
                   <div className="grid md:grid-cols-3 gap-4 text-center">

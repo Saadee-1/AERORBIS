@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, FileText, Calendar, Eye, Edit } from "lucide-react";
+import { toast } from "sonner";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 
@@ -108,7 +109,7 @@ const DashboardResearch = () => {
                 <Label htmlFor="file" className="text-muted-foreground text-[11px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Upload PDF</Label>
                 <Input id="file" type="file" accept=".pdf" className="bg-slate-800/30 border-primary/15 text-foreground text-sm" />
               </div>
-              <Button className="w-full bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 text-xs tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+              <Button className="w-full bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 text-xs tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }} onClick={() => toast.info("🚀 Coming Soon — Research submission portal is under development!")}>
                 Submit Research
               </Button>
             </div>
@@ -158,12 +159,12 @@ const DashboardResearch = () => {
                 <p className="text-[12px] text-muted-foreground mb-4 leading-relaxed">{item.abstract}</p>
                 <div className="flex gap-2">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15 text-[10px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                    <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15 text-[10px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }} onClick={() => toast.info("🚀 Coming Soon!")}>
                       <Eye className="w-3 h-3 mr-1" /> View
                     </Button>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15 text-[10px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                    <Button variant="ghost" size="sm" className="text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15 text-[10px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }} onClick={() => toast.info("🚀 Coming Soon!")}>
                       <Edit className="w-3 h-3 mr-1" /> Edit
                     </Button>
                   </motion.div>

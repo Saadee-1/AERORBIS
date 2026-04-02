@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Mail, MapPin, Phone, Linkedin, Youtube, Github, Instagram } from "lucide-react";
+import { Mail, MapPin, Phone, Linkedin, Youtube, Github, Instagram, Loader2 } from "lucide-react";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
+import { supabase } from "@/integrations/supabase/client";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -17,11 +18,24 @@ const ContactPage = () => {
     subject: "",
     message: "",
   });
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Message sent successfully! We'll get back to you soon.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setSending(true);
+    const { error } = await supabase.from('contact_messages').insert({
+      name: formData.name,
+      email: formData.email,
+      subject: formData.subject,
+      message: formData.message,
+    });
+    setSending(false);
+    if (error) {
+      toast.error("Failed to send message. Please try again.");
+    } else {
+      toast.success("Message sent successfully! We'll get back to you soon.");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    }
   };
 
   const socialLinks = [
@@ -38,116 +52,65 @@ const ContactPage = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-black via-slate-900 to-black relative">
+    <div className="min-h-screen flex flex-col relative">
       <PageBreadcrumb />
       
-      {/* Hero Section */}
       <section className="relative py-24 overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <Mail className="w-16 h-16 mx-auto mb-6 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
-              Contact AeroVerse
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center">
+            <Mail className="w-16 h-16 mx-auto mb-6 text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.8)]" />
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+              Contact AERORBIS
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
               We'd love to hear from you
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Contact Form & Info Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            {/* Contact Form */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
+            <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <Card className="bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-white">Send us a Message</CardTitle>
-                  <CardDescription className="text-gray-300">
+                  <CardTitle className="text-2xl text-foreground">Send us a Message</CardTitle>
+                  <CardDescription className="text-muted-foreground">
                     Fill out the form below and we'll get back to you as soon as possible
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-white">Full Name</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                        className="bg-background/50 border-primary/20 text-foreground"
-                      />
+                      <Label htmlFor="name" className="text-foreground">Full Name</Label>
+                      <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className="bg-background/50 border-primary/20 text-foreground" />
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-white">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        required
-                        className="bg-background/50 border-primary/20 text-foreground"
-                      />
+                      <Label htmlFor="email" className="text-foreground">Email Address</Label>
+                      <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className="bg-background/50 border-primary/20 text-foreground" />
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="subject" className="text-white">Subject</Label>
-                      <Input
-                        id="subject"
-                        value={formData.subject}
-                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                        required
-                        className="bg-background/50 border-primary/20 text-foreground"
-                      />
+                      <Label htmlFor="subject" className="text-foreground">Subject</Label>
+                      <Input id="subject" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required className="bg-background/50 border-primary/20 text-foreground" />
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="message" className="text-white">Message</Label>
-                      <Textarea
-                        id="message"
-                        rows={6}
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        required
-                        className="bg-background/50 border-primary/20 text-foreground"
-                      />
+                      <Label htmlFor="message" className="text-foreground">Message</Label>
+                      <Textarea id="message" rows={6} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} required className="bg-background/50 border-primary/20 text-foreground" />
                     </div>
-
-                    <Button type="submit" className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:shadow-[0_0_50px_hsl(160_84%_39%/0.6)] font-semibold transition-all duration-300" size="lg">
-                      Send Message
+                    <Button type="submit" className="w-full" size="lg" disabled={sending}>
+                      {sending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</> : "Send Message"}
                     </Button>
                   </form>
                 </CardContent>
               </Card>
             </motion.div>
 
-            {/* Contact Info & Social */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-8"
-            >
-              {/* Contact Information */}
+            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-8">
               <Card className="bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-white">Contact Information</CardTitle>
-                  <CardDescription className="text-gray-300">
-                    Reach out through any of these channels
-                  </CardDescription>
+                  <CardTitle className="text-2xl text-foreground">Contact Information</CardTitle>
+                  <CardDescription className="text-muted-foreground">Reach out through any of these channels</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {contactInfo.map((item) => (
@@ -156,57 +119,45 @@ const ContactPage = () => {
                         <item.icon className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold mb-1 text-white">{item.label}</p>
-                        <p className="text-gray-300">{item.value}</p>
+                        <p className="font-semibold mb-1 text-foreground">{item.label}</p>
+                        <p className="text-muted-foreground">{item.value}</p>
                       </div>
                     </div>
                   ))}
                 </CardContent>
               </Card>
 
-              {/* Social Media */}
               <Card className="bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-white">Follow Us</CardTitle>
-                  <CardDescription className="text-gray-300">
-                    Join our community on social media
-                  </CardDescription>
+                  <CardTitle className="text-2xl text-foreground">Follow Us</CardTitle>
+                  <CardDescription className="text-muted-foreground">Join our community on social media</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     {socialLinks.map((social) => (
-                      <motion.a
-                        key={social.label}
-                        href={social.href}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`flex items-center gap-3 p-4 rounded-lg bg-background/50 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all ${social.color}`}
-                      >
+                      <motion.a key={social.label} href={social.href} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={`flex items-center gap-3 p-4 rounded-lg bg-background/50 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all ${social.color}`}>
                         <social.icon className="w-6 h-6" />
-                        <span className="font-medium text-white">{social.label}</span>
+                        <span className="font-medium text-foreground">{social.label}</span>
                       </motion.a>
                     ))}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Office Hours */}
               <Card className="bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-white">Support Hours</CardTitle>
+                  <CardTitle className="text-2xl text-foreground">Support Hours</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-300">Monday - Friday</span>
-                    <span className="font-semibold text-white">9:00 AM - 6:00 PM EST</span>
+                    <span className="text-muted-foreground">Monday - Friday</span>
+                    <span className="font-semibold text-foreground">9:00 AM - 6:00 PM EST</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-300">Weekend</span>
-                    <span className="font-semibold text-white">Closed</span>
+                    <span className="text-muted-foreground">Weekend</span>
+                    <span className="font-semibold text-foreground">Closed</span>
                   </div>
-                  <p className="text-sm text-gray-400 mt-4">
-                    We typically respond within 24 hours during business days
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-4">We typically respond within 24 hours during business days</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -214,22 +165,14 @@ const ContactPage = () => {
         </div>
       </section>
 
-      {/* Map/Illustration Section */}
-      <section className="py-20 bg-slate-900/30 relative z-10">
+      <section className="py-20 relative z-10">
         <div className="container mx-auto px-4 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">
-              Global Community, Local Impact
-            </h2>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-foreground">Global Community, Local Impact</h2>
             <div className="relative h-96 bg-card/50 backdrop-blur-lg border border-primary/20 rounded-2xl flex items-center justify-center overflow-hidden">
               <div className="relative z-10 text-center">
-                <MapPin className="w-24 h-24 mx-auto mb-4 text-primary drop-shadow-[0_0_20px_hsl(160_84%_39%/0.8)]" />
-                <p className="text-xl text-gray-300 max-w-md mx-auto">
+                <MapPin className="w-24 h-24 mx-auto mb-4 text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.8)]" />
+                <p className="text-xl text-muted-foreground max-w-md mx-auto">
                   Connecting aerospace enthusiasts from every corner of the globe
                 </p>
               </div>
