@@ -79,7 +79,7 @@ const Community = () => {
     if (error) {
       toast.error("Failed to load posts");
     } else {
-      setPosts((data as Post[]) || []);
+      setPosts((data as unknown as Post[]) || []);
     }
     setLoading(false);
   };
