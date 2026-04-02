@@ -122,83 +122,97 @@ const DashboardLearning = () => {
           ))}
         </TabsList>
 
-        <TabsContent value="all" className="mt-6">
-          <motion.div
-            ref={modulesRef}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-5"
-            variants={containerVariants}
-            initial="hidden"
-            animate={modulesInView ? "visible" : "hidden"}
-          >
-            {modules.map((module) => (
+        {["all", "beginner", "intermediate", "advanced"].map((tabValue) => {
+          const filteredModules = tabValue === "all" 
+            ? modules 
+            : modules.filter(m => m.difficulty.toLowerCase() === tabValue);
+
+          return (
+            <TabsContent key={tabValue} value={tabValue} className="mt-6">
               <motion.div
-                key={module.id}
-                variants={itemVariants}
-                whileHover={{ scale: 1.02, y: -4 }}
+                ref={tabValue === "all" ? modulesRef : null}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+                variants={containerVariants}
+                initial="hidden"
+                animate={modulesInView ? "visible" : "hidden"}
               >
-                <div className="relative rounded-xl overflow-hidden group">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-lg" />
-                  <div className="absolute inset-0 rounded-xl border border-primary/10 group-hover:border-primary/30 transition-colors" />
-                  <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/30" />
-                  <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/30" />
+                {filteredModules.length > 0 ? (
+                  filteredModules.map((module) => (
+                    <motion.div
+                      key={module.id}
+                      variants={itemVariants}
+                      whileHover={{ scale: 1.02, y: -4 }}
+                    >
+                      <div className="relative rounded-xl overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-lg" />
+                        <div className="absolute inset-0 rounded-xl border border-primary/10 group-hover:border-primary/30 transition-colors" />
+                        <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/30" />
+                        <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/30" />
 
-                  {/* Thumbnail */}
-                  <div className="h-36 bg-cover bg-center relative" style={{ backgroundImage: `url(${module.thumbnail})` }}>
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
-                    <div className="absolute bottom-3 left-3">
-                      <Badge className={`${getDifficultyColor(module.difficulty)} text-[10px] tracking-wider uppercase border`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                        {module.difficulty}
-                      </Badge>
-                    </div>
-                    <div className="absolute top-3 right-3 text-[9px] text-primary/50 tracking-[0.2em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                      {module.category}
-                    </div>
-                  </div>
-
-                  <div className="relative p-5">
-                    <h3 className="text-base font-semibold text-foreground mb-3 tracking-wide" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                      {module.title}
-                    </h3>
-                    
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex justify-between text-[11px] mb-1.5">
-                          <span className="text-muted-foreground tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Progress</span>
-                          <span className="text-primary font-semibold" style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px' }}>{module.progress}%</span>
+                        {/* Thumbnail */}
+                        <div className="h-36 bg-cover bg-center relative" style={{ backgroundImage: `url(${module.thumbnail})` }}>
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+                          <div className="absolute bottom-3 left-3">
+                            <Badge className={`${getDifficultyColor(module.difficulty)} text-[10px] tracking-wider uppercase border`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                              {module.difficulty}
+                            </Badge>
+                          </div>
+                          <div className="absolute top-3 right-3 text-[9px] text-primary/50 tracking-[0.2em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                            {module.category}
+                          </div>
                         </div>
-                        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
-                          <motion.div
-                            className="h-full rounded-full bg-gradient-to-r from-primary to-info"
-                            initial={{ width: 0 }}
-                            animate={modulesInView ? { width: `${module.progress}%` } : { width: 0 }}
-                            transition={{ duration: 1, delay: 0.3 }}
-                          />
+
+                        <div className="relative p-5">
+                          <h3 className="text-base font-semibold text-foreground mb-3 tracking-wide" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                            {module.title}
+                          </h3>
+                          
+                          <div className="space-y-3">
+                            <div>
+                              <div className="flex justify-between text-[11px] mb-1.5">
+                                <span className="text-muted-foreground tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Progress</span>
+                                <span className="text-primary font-semibold" style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px' }}>{module.progress}%</span>
+                              </div>
+                              <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                                <motion.div
+                                  className="h-full rounded-full bg-gradient-to-r from-primary to-info"
+                                  initial={{ width: 0 }}
+                                  animate={modulesInView ? { width: `${module.progress}%` } : { width: 0 }}
+                                  transition={{ duration: 1, delay: 0.3 }}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <BookOpen className="w-3 h-3" />
+                                <span>{module.completedLessons}/{module.totalLessons}</span>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                <span>{module.timeRemaining}</span>
+                              </span>
+                            </div>
+
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                              <Button className="w-full bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20 text-[11px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                                Continue Module →
+                              </Button>
+                            </motion.div>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <BookOpen className="w-3 h-3" />
-                          <span>{module.completedLessons}/{module.totalLessons}</span>
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{module.timeRemaining}</span>
-                        </span>
-                      </div>
-
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Button className="w-full bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20 text-[11px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                          Continue Module →
-                        </Button>
-                      </motion.div>
-                    </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="col-span-full py-8 text-center text-muted-foreground" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                    <p className="tracking-wider uppercase">No modules available in this category.</p>
                   </div>
-                </div>
+                )}
               </motion.div>
-            ))}
-          </motion.div>
-        </TabsContent>
+            </TabsContent>
+          );
+        })}
       </Tabs>
 
       {/* Badges */}

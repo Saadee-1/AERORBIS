@@ -152,7 +152,7 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className={`hero-viewport-shell relative overflow-x-hidden bg-transparent pt-16 pb-8 ${isCompactViewport ? "hero-compact-shell" : ""}`}
+      className={`hero-viewport-shell relative overflow-hidden bg-transparent pt-16 pb-8 ${isCompactViewport ? "hero-compact-shell" : ""}`}
     >
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"

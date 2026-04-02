@@ -304,7 +304,7 @@ const ToolsLauncher = () => {
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               {!hideTabs && (
                 <div className="flex items-start gap-3 mb-8">
-                <TabsList className="flex flex-wrap flex-1 max-w-full bg-muted/50 backdrop-blur-lg border border-border p-3 gap-2 sm:gap-3 rounded-xl overflow-hidden">
+                <TabsList className="flex flex-wrap flex-1 max-w-full bg-slate-800/30 backdrop-blur-lg border border-primary/10 p-3 gap-2 sm:gap-3 rounded-xl overflow-hidden">
                 {[
                   { value: "thrust", icon: Rocket, label: "Thrust Calculator" },
                   { value: "wing", icon: Plane, label: "Wing Loading" },
@@ -325,10 +325,11 @@ const ToolsLauncher = () => {
                   <TabsTrigger
                     key={value}
                     value={value}
-                    className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-[0_0_20px_hsl(var(--primary)/0.4)] data-[state=active]:border-2 data-[state=active]:border-primary/60 data-[state=active]:font-bold rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
+                    className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border-primary/30 data-[state=active]:border text-[11px] tracking-wider uppercase rounded-lg transition-all duration-300 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 flex items-center justify-center min-w-0 flex-shrink-0 max-w-full"
+                    style={{ fontFamily: 'Rajdhani, sans-serif' }}
                   >
                     <Icon className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                    <span className="text-xs sm:text-sm truncate">{label}</span>
+                    <span className="truncate">{label}</span>
                   </TabsTrigger>
                 ))}
                 </TabsList>
