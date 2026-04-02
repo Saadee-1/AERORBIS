@@ -4,8 +4,10 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import { BookOpen, FlaskConical, Wrench, Users, ArrowRight, Rocket, Target, Activity, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRef } from "react";
-import { Link } from "react-router-dom";
+import { useRef, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const DashboardOverview = () => {
   const welcomeRef = useRef<HTMLDivElement>(null);
