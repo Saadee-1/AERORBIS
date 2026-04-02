@@ -109,7 +109,7 @@ const DashboardResearch = () => {
                 <Label htmlFor="file" className="text-muted-foreground text-[11px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Upload PDF</Label>
                 <Input id="file" type="file" accept=".pdf" className="bg-slate-800/30 border-primary/15 text-foreground text-sm" />
               </div>
-              <Button className="w-full bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 text-xs tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+              <Button className="w-full bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 text-xs tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }} onClick={() => toast.info("🚀 Coming Soon — Research submission portal is under development!")}>
                 Submit Research
               </Button>
             </div>
