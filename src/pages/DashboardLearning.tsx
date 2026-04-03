@@ -1,11 +1,8 @@
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Award, BookOpen, Clock, Flame, Zap } from "lucide-react";
+import { Award, BookOpen, Flame } from "lucide-react";
 import { motion, useInView } from "framer-motion";
-import { toast } from "sonner";
 import { useRef } from "react";
 
 const DashboardLearning = () => {
@@ -20,15 +17,15 @@ const DashboardLearning = () => {
   const badgesInView = useInView(badgesRef, { once: true, margin: "-50px" as `${number}px` });
 
   const modules = [
-    { id: 1, title: "Aerodynamics 101", category: "Aerodynamics", difficulty: "Beginner", progress: 75, totalLessons: 12, completedLessons: 9, thumbnail: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400", timeRemaining: "2 hours" },
-    { id: 2, title: "Rocket Propulsion Systems", category: "Propulsion", difficulty: "Intermediate", progress: 45, totalLessons: 15, completedLessons: 7, thumbnail: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=400", timeRemaining: "5 hours" },
-    { id: 3, title: "Orbital Mechanics", category: "Space Systems", difficulty: "Advanced", progress: 30, totalLessons: 20, completedLessons: 6, thumbnail: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400", timeRemaining: "12 hours" },
+    { id: 1, title: "Aerodynamics 101", category: "Aerodynamics", difficulty: "Beginner" },
+    { id: 2, title: "Rocket Propulsion Systems", category: "Propulsion", difficulty: "Intermediate" },
+    { id: 3, title: "Orbital Mechanics", category: "Space Systems", difficulty: "Advanced" },
   ];
 
   const badges = [
-    { name: "Aero Apprentice", icon: "🎯", earned: true },
-    { name: "Propulsion Pro", icon: "🚀", earned: true },
-    { name: "5 Day Streak", icon: "🔥", earned: true },
+    { name: "Aero Apprentice", icon: "🎯", earned: false },
+    { name: "Propulsion Pro", icon: "🚀", earned: false },
+    { name: "5 Day Streak", icon: "🔥", earned: false },
     { name: "Research Contrib", icon: "📝", earned: false },
     { name: "Orbital Master", icon: "🌌", earned: false },
   ];
@@ -93,18 +90,12 @@ const DashboardLearning = () => {
           </motion.div>
           <div>
             <h3 className="text-xl font-bold text-foreground" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-              5 Day Streak
+              Learning Streak
             </h3>
-            <p className="text-xs text-muted-foreground mt-1" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-              Consecutive days of training — keep the momentum
+            <p className="text-sm text-primary/70 tracking-wider uppercase font-semibold mt-2" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+              Coming Soon
             </p>
           </div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-            <Button className="bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 text-xs tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-              <Zap className="w-3 h-3 mr-1.5" />
-              View Achievements
-            </Button>
-          </motion.div>
         </div>
       </motion.div>
 
@@ -150,57 +141,21 @@ const DashboardLearning = () => {
                         <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/30" />
                         <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/30" />
 
-                        {/* Thumbnail */}
-                        <div className="h-36 bg-cover bg-center relative" style={{ backgroundImage: `url(${module.thumbnail})` }}>
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
-                          <div className="absolute bottom-3 left-3">
+                        <div className="relative p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-base font-semibold text-foreground tracking-wide" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                              {module.title}
+                            </h3>
                             <Badge className={`${getDifficultyColor(module.difficulty)} text-[10px] tracking-wider uppercase border`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
                               {module.difficulty}
                             </Badge>
                           </div>
-                          <div className="absolute top-3 right-3 text-[9px] text-primary/50 tracking-[0.2em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                          <div className="flex items-center justify-center py-6">
+                            <p className="text-sm text-primary/70 tracking-wider uppercase font-semibold" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Coming Soon</p>
+                          </div>
+                          <p className="text-[9px] text-primary/50 tracking-[0.2em] uppercase text-center" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
                             {module.category}
-                          </div>
-                        </div>
-
-                        <div className="relative p-5">
-                          <h3 className="text-base font-semibold text-foreground mb-3 tracking-wide" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                            {module.title}
-                          </h3>
-                          
-                          <div className="space-y-3">
-                            <div>
-                              <div className="flex justify-between text-[11px] mb-1.5">
-                                <span className="text-muted-foreground tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Progress</span>
-                                <span className="text-primary font-semibold" style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px' }}>{module.progress}%</span>
-                              </div>
-                              <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
-                                <motion.div
-                                  className="h-full rounded-full bg-gradient-to-r from-primary to-info"
-                                  initial={{ width: 0 }}
-                                  animate={modulesInView ? { width: `${module.progress}%` } : { width: 0 }}
-                                  transition={{ duration: 1, delay: 0.3 }}
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <BookOpen className="w-3 h-3" />
-                                <span>{module.completedLessons}/{module.totalLessons}</span>
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                <span>{module.timeRemaining}</span>
-                              </span>
-                            </div>
-
-                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                              <Button className="w-full bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20 text-[11px] tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }} onClick={() => toast.info("🚀 Coming Soon — Module content is under development!")}>
-                                Coming Soon →
-                              </Button>
-                            </motion.div>
-                          </div>
+                          </p>
                         </div>
                       </div>
                     </motion.div>
@@ -248,22 +203,13 @@ const DashboardLearning = () => {
                 <motion.div
                   key={badge.name}
                   variants={itemVariants}
-                  whileHover={{ scale: badge.earned ? 1.08 : 1, y: badge.earned ? -3 : 0 }}
-                  className={`p-4 rounded-lg text-center transition-all duration-300 border ${
-                    badge.earned
-                      ? "bg-primary/5 border-primary/20 hover:shadow-[0_0_15px_hsl(160_84%_39%/0.1)]"
-                      : "bg-muted/5 border-muted/10 opacity-40"
-                  }`}
+                  className="p-4 rounded-lg text-center transition-all duration-300 border bg-muted/5 border-muted/10 opacity-40"
                 >
-                  <motion.div
-                    className="text-3xl mb-2"
-                    animate={badge.earned ? { scale: [1, 1.15, 1] } : {}}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  >
+                  <div className="text-3xl mb-2">
                     {badge.icon}
-                  </motion.div>
+                  </div>
                   <p className="text-[10px] font-medium text-foreground/80 tracking-wide" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                    {badge.name}
+                    Coming Soon
                   </p>
                 </motion.div>
               ))}

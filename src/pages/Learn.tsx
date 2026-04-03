@@ -1,12 +1,10 @@
 import { motion, useInView } from "framer-motion";
-import { toast } from "sonner";
 import { useRef } from "react";
 import { BookOpen, Rocket, Plane, Satellite, Wrench, Box } from "lucide-react";
 import Footer from "@/components/Footer";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 const Learn = () => {
@@ -23,29 +21,29 @@ const Learn = () => {
 
   const modules = {
     aerodynamics: [
-      { title: "Introduction to Aerodynamics", description: "Understand the basics of airflow and lift generation", level: "Beginner", progress: 75 },
-      { title: "Boundary Layer Theory", description: "Explore flow separation and turbulence concepts", level: "Intermediate", progress: 45 },
-      { title: "High-Speed Aerodynamics", description: "Master supersonic and hypersonic flight principles", level: "Advanced", progress: 20 },
+      { title: "Introduction to Aerodynamics" },
+      { title: "Boundary Layer Theory" },
+      { title: "High-Speed Aerodynamics" },
     ],
     propulsion: [
-      { title: "Rocket Propulsion Basics", description: "Learn thrust generation and combustion principles", level: "Beginner", progress: 60 },
-      { title: "Jet Engine Systems", description: "Study turbofan and turboprop engine mechanics", level: "Intermediate", progress: 30 },
-      { title: "Advanced Propulsion Systems", description: "Explore ion drives and future propulsion tech", level: "Advanced", progress: 0 },
+      { title: "Rocket Propulsion Basics" },
+      { title: "Jet Engine Systems" },
+      { title: "Advanced Propulsion Systems" },
     ],
     design: [
-      { title: "Aircraft Design Fundamentals", description: "Introduction to aircraft configuration and sizing", level: "Beginner", progress: 80 },
-      { title: "Structural Analysis", description: "Learn stress, strain, and fatigue analysis", level: "Intermediate", progress: 55 },
-      { title: "Composite Materials Design", description: "Advanced lightweight structure design", level: "Advanced", progress: 15 },
+      { title: "Aircraft Design Fundamentals" },
+      { title: "Structural Analysis" },
+      { title: "Composite Materials Design" },
     ],
     orbital: [
-      { title: "Orbital Mechanics 101", description: "Understand orbits, trajectories, and transfers", level: "Beginner", progress: 90 },
-      { title: "Mission Planning", description: "Design space missions and calculate delta-v", level: "Intermediate", progress: 40 },
-      { title: "Interplanetary Navigation", description: "Master gravity assists and deep space travel", level: "Advanced", progress: 10 },
+      { title: "Orbital Mechanics 101" },
+      { title: "Mission Planning" },
+      { title: "Interplanetary Navigation" },
     ],
     materials: [
-      { title: "Material Science Basics", description: "Properties of aerospace materials", level: "Beginner", progress: 70 },
-      { title: "Fatigue and Failure Analysis", description: "Study material behavior under stress", level: "Intermediate", progress: 35 },
-      { title: "Smart Materials", description: "Explore shape memory alloys and composites", level: "Advanced", progress: 0 },
+      { title: "Material Science Basics" },
+      { title: "Fatigue and Failure Analysis" },
+      { title: "Smart Materials" },
     ],
   };
 
@@ -112,35 +110,11 @@ const Learn = () => {
                     >
                       <Card className="h-full flex flex-col bg-card/50 backdrop-blur-lg border-primary/20 rounded-2xl overflow-hidden hover:border-primary/60 hover:shadow-[0_0_40px_hsl(160_84%_39%/0.3)] transition-all duration-300">
                         <CardHeader>
-                          <div className="flex justify-between items-start mb-2">
-                            <CardTitle className="text-xl text-foreground">{module.title}</CardTitle>
-                            <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                              module.level === "Beginner" ? "bg-emerald-500/20 text-emerald-500" :
-                              module.level === "Intermediate" ? "bg-amber-400/20 text-amber-400" :
-                              "bg-purple-400/20 text-purple-400"
-                            }`}>
-                              {module.level}
-                            </span>
-                          </div>
-                          <CardDescription className="text-muted-foreground">{module.description}</CardDescription>
+                          <CardTitle className="text-xl text-foreground">{module.title}</CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-grow">
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm text-muted-foreground">
-                              <span>Progress</span>
-                              <span className="text-primary font-semibold">{module.progress}%</span>
-                            </div>
-                            <Progress value={module.progress} className="h-2" />
-                          </div>
+                        <CardContent className="flex-grow flex items-center justify-center">
+                          <p className="text-sm text-primary/70 tracking-wider uppercase font-semibold" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Coming Soon</p>
                         </CardContent>
-                        <CardFooter>
-                          <Button 
-                            className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold shadow-[0_0_20px_hsl(160_84%_39%/0.3)]"
-                            onClick={() => toast.info("🚀 Coming Soon — Course content is under development!")}
-                          >
-                            {module.progress > 0 ? "Continue Learning" : "Start Learning"}
-                          </Button>
-                        </CardFooter>
                       </Card>
                     </motion.div>
                   ))}
@@ -158,50 +132,16 @@ const Learn = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent">
               Featured Video Lectures
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-lg mb-8">
               Expert tutorials and demonstrations from aerospace professionals
             </p>
+            <p className="text-sm text-primary/70 tracking-wider uppercase font-semibold" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Coming Soon — Video lectures under production</p>
           </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              { title: "Introduction to Flight Dynamics", duration: "45 min", instructor: "Dr. Sarah Chen" },
-              { title: "Rocket Engine Design Fundamentals", duration: "60 min", instructor: "Prof. Michael Torres" },
-            ].map((video, index) => (
-              <motion.div
-                key={video.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.03, y: -5 }}
-              >
-                <Card className="bg-card/50 backdrop-blur-lg border-primary/20 rounded-2xl overflow-hidden hover:border-primary/60 hover:shadow-[0_0_40px_hsl(160_84%_39%/0.3)] transition-all duration-300">
-                  <CardHeader>
-                    <div className="aspect-video bg-card/50 rounded-lg mb-4 flex items-center justify-center border border-primary/10">
-                      <BookOpen className="w-16 h-16 text-primary/60" />
-                    </div>
-                    <CardTitle className="text-foreground">{video.title}</CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                      {video.duration} • {video.instructor}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardFooter>
-                    <Button className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold shadow-[0_0_20px_hsl(160_84%_39%/0.3)]"
-                      onClick={() => toast.info("🚀 Coming Soon — Video lectures are under production!")}
-                    >
-                      Watch Now
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 

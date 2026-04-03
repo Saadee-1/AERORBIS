@@ -20,11 +20,7 @@ const DashboardResearch = () => {
   const listInView = useInView(listRef, { once: true, margin: "-50px" as `${number}px` });
   const statsInView = useInView(statsRef, { once: true, margin: "-50px" as `${number}px` });
 
-  const research = [
-    { id: 1, title: "Optimization of Wing Design for Hypersonic Flight", category: "Aerodynamics", status: "Featured", uploadDate: "2024-01-15", abstract: "This research explores novel approaches to wing geometry optimization for sustained hypersonic flight conditions..." },
-    { id: 2, title: "Advanced Ion Propulsion Systems", category: "Propulsion", status: "Approved", uploadDate: "2024-01-20", abstract: "An in-depth analysis of ion propulsion efficiency improvements through magnetic field manipulation..." },
-    { id: 3, title: "Composite Materials for Spacecraft Structures", category: "Structures", status: "Pending", uploadDate: "2024-01-25", abstract: "Investigation of carbon-fiber reinforced polymers under extreme temperature variations in space environments..." },
-  ];
+  const research: { id: number; title: string; category: string; status: string; uploadDate: string; abstract: string }[] = [];
 
   const getStatusStyle = (status: string) => {
     if (status === "Featured") return "bg-primary/10 text-primary border-primary/30";
@@ -184,9 +180,9 @@ const DashboardResearch = () => {
         animate={statsInView ? "visible" : "hidden"}
       >
         {[
-          { value: "5", label: "Total Submissions", unit: "PUB" },
-          { value: "1", label: "Featured Research", unit: "FTR" },
-          { value: "234", label: "Total Views", unit: "VIS" },
+          { value: "—", label: "Total Submissions", unit: "PUB" },
+          { value: "—", label: "Featured Research", unit: "FTR" },
+          { value: "—", label: "Total Views", unit: "VIS" },
         ].map((stat) => (
           <motion.div key={stat.label} variants={itemVariants} whileHover={{ scale: 1.03, y: -3 }}>
             <div className="relative rounded-xl overflow-hidden">

@@ -9,9 +9,9 @@ const Research = () => {
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   const features = [
-    { icon: FileText, title: "Published Papers", description: "Access peer-reviewed research and contribute your findings", count: "200+" },
-    { icon: Users, title: "Research Guidance", description: "Connect with mentors and collaborate on projects", count: "50+" },
-    { icon: Lightbulb, title: "Open Projects", description: "Join ongoing research initiatives in aerospace innovation", count: "30+" },
+    { icon: FileText, title: "Published Papers", description: "Access peer-reviewed research and contribute your findings", count: "Coming Soon" },
+    { icon: Users, title: "Research Guidance", description: "Connect with mentors and collaborate on projects", count: "Coming Soon" },
+    { icon: Lightbulb, title: "Open Projects", description: "Join ongoing research initiatives in aerospace innovation", count: "Coming Soon" },
   ];
 
   const containerVariants = {

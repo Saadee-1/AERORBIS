@@ -333,8 +333,8 @@ const Hero = () => {
             >
               {[
                 { value: "15+", label: "Engineering Tools" },
-                { value: "50+", label: "Learning Modules" },
-                { value: "10K+", label: "Active Engineers" },
+                { value: "Coming Soon", label: "Learning Modules" },
+                { value: "Coming Soon", label: "Community" },
               ].map((stat, index) => (
                 <motion.div
                   key={stat.label}

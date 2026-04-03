@@ -33,19 +33,15 @@ const DashboardOverview = () => {
   const progressInView = useInView(progressRef, { once: true, margin: "-50px" as `${number}px` });
 
   const stats = {
-    coursesInProgress: 3,
-    researchSubmissions: 2,
-    toolsUsed: 8,
-    communityRank: "#142",
+    coursesInProgress: "—",
+    researchSubmissions: "—",
+    toolsUsed: "—",
+    communityRank: "—",
   };
 
-  const learningProgress = 67;
+  const learningProgress = 0;
 
-  const recentUpdates = [
-    { id: 1, title: "New Propulsion Module Released", type: "SYS-UPDATE", time: "2h ago" },
-    { id: 2, title: "Your research was featured!", type: "ACHIEVEMENT", time: "5h ago" },
-    { id: 3, title: "Community Challenge: Design a Mars Lander", type: "MISSION", time: "1d ago" },
-  ];
+  const recentUpdates: { id: number; title: string; type: string; time: string }[] = [];
 
   const quickAccessCards = [
     { title: "Training Modules", description: "Access study materials & lectures", icon: BookOpen, link: "/dashboard/learning" },
@@ -142,18 +138,16 @@ const DashboardOverview = () => {
         animate={statsInView ? "visible" : "hidden"}
       >
         {[
-          { title: "Active Courses", value: stats.coursesInProgress, icon: BookOpen, trend: "+1 this week" },
-          { title: "Research Papers", value: stats.researchSubmissions, icon: FlaskConical, description: "Featured articles" },
-          { title: "Simulations Run", value: stats.toolsUsed, icon: Wrench, trend: "12 this month" },
-          { title: "Global Rank", value: stats.communityRank, icon: Users, trend: "↑ 23 positions" },
+          { title: "Active Courses", value: stats.coursesInProgress, icon: BookOpen },
+          { title: "Research Papers", value: stats.researchSubmissions, icon: FlaskConical },
+          { title: "Simulations Run", value: stats.toolsUsed, icon: Wrench },
+          { title: "Global Rank", value: stats.communityRank, icon: Users },
         ].map((stat) => (
           <motion.div key={stat.title} variants={itemVariants}>
             <DashboardCard
               title={stat.title}
               value={stat.value}
               icon={stat.icon}
-              trend={stat.trend}
-              description={stat.description}
             />
           </motion.div>
         ))}
@@ -255,44 +249,13 @@ const DashboardOverview = () => {
               </p>
 
               <div className="flex items-center justify-center mb-6">
-                <div className="relative w-36 h-36">
-                  <svg className="transform -rotate-90 w-36 h-36">
-                    <circle cx="72" cy="72" r="64" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-muted/30" />
-                    <motion.circle
-                      cx="72" cy="72" r="64"
-                      stroke="url(#progressGrad)"
-                      strokeWidth="8"
-                      fill="transparent"
-                      strokeLinecap="round"
-                      initial={{ strokeDasharray: `${2 * Math.PI * 64}`, strokeDashoffset: `${2 * Math.PI * 64}` }}
-                      animate={progressInView ? { strokeDashoffset: `${2 * Math.PI * 64 * (1 - learningProgress / 100)}` } : {}}
-                      transition={{ duration: 1.5, delay: 0.5, ease: "easeOut" }}
-                    />
-                    <defs>
-                      <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="hsl(160 84% 39%)" />
-                        <stop offset="100%" stopColor="hsl(140 70% 45%)" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <motion.div
-                    className="absolute inset-0 flex flex-col items-center justify-center"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={progressInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
-                    transition={{ duration: 0.6, delay: 1 }}
-                  >
-                    <span className="text-3xl font-bold text-primary" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-                      {learningProgress}%
-                    </span>
-                    <span className="text-[9px] text-muted-foreground tracking-[0.2em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                      Complete
-                    </span>
-                  </motion.div>
+                <div className="relative w-36 h-36 flex items-center justify-center">
+                  <p className="text-sm text-primary/70 tracking-wider uppercase font-semibold text-center" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Coming Soon</p>
                 </div>
               </div>
 
               <p className="text-center text-[11px] text-muted-foreground" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                Excellent trajectory — maintain current pace 🚀
+                Progress tracking will appear here once modules are available
               </p>
             </div>
           </div>
@@ -318,26 +281,9 @@ const DashboardOverview = () => {
               </p>
 
               <div className="space-y-3">
-                {recentUpdates.map((update, index) => (
-                  <motion.div
-                    key={update.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={progressInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-                    transition={{ delay: 0.3 + index * 0.15, duration: 0.5 }}
-                    whileHover={{ x: 4, backgroundColor: "rgba(34, 211, 238, 0.03)" }}
-                    className="p-3 rounded-lg bg-muted/10 border border-primary/10 hover:border-primary/25 transition-all cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between mb-1.5">
-                      <h4 className="text-sm font-medium text-foreground">{update.title}</h4>
-                      <span className="text-[10px] text-muted-foreground tracking-wider" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                        {update.time}
-                      </span>
-                    </div>
-                    <span className="inline-block px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[9px] font-semibold text-primary tracking-[0.15em] uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                      {update.type}
-                    </span>
-                  </motion.div>
-                ))}
+                <div className="p-6 text-center">
+                  <p className="text-sm text-primary/70 tracking-wider uppercase font-semibold" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Updates — Coming Soon</p>
+                </div>
               </div>
             </div>
           </div>
