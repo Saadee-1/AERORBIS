@@ -69,7 +69,7 @@ const Contact = () => {
   };
 
   const socials = [
-    { icon: Linkedin, href: "#", label: "LinkedIn" },
+    { icon: Linkedin, href: "https://www.linkedin.com/in/sahad-ahmad-ist", label: "LinkedIn" },
     { icon: Youtube, href: "#", label: "YouTube" },
     { icon: Github, href: "#", label: "GitHub" },
     { icon: Instagram, href: "#", label: "Instagram" },

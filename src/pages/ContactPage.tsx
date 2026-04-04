@@ -71,7 +71,7 @@ const ContactPage = () => {
   };
 
   const socialLinks = [
-    { icon: Linkedin, label: "LinkedIn", href: "#", color: "hover:text-[#0077b5]" },
+    { icon: Linkedin, label: "LinkedIn", href: "https://www.linkedin.com/in/sahad-ahmad-ist", color: "hover:text-[#0077b5]" },
     { icon: Youtube, label: "YouTube", href: "#", color: "hover:text-[#ff0000]" },
     { icon: Github, label: "GitHub", href: "#", color: "hover:text-[#333333]" },
     { icon: Instagram, label: "Instagram", href: "#", color: "hover:text-[#e4405f]" },
