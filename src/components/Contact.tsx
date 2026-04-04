@@ -6,29 +6,65 @@ import { Textarea } from "@/components/ui/textarea";
 import { Linkedin, Youtube, Github, Instagram, Send, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+
+const CATEGORIES = [
+  "Calculator Bug",
+  "Calculator Suggestion",
+  "Request a New Calculator",
+  "General Feedback",
+] as const;
+
+const CALCULATORS = [
+  "Lift & Drag",
+  "Range & Endurance",
+  "Thrust-to-Weight",
+  "Glide Performance",
+  "Other",
+] as const;
+
+const CALC_CATEGORIES = ["Calculator Bug", "Calculator Suggestion"] as const;
 
 const Contact = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    category: "" as string,
+    calculator: "" as string,
+    message: "",
+  });
   const [sending, setSending] = useState(false);
+
+  const showCalculator = CALC_CATEGORIES.includes(formData.category as typeof CALC_CATEGORIES[number]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.category) {
+      toast.error("Please select a category.");
+      return;
+    }
     setSending(true);
-    const { error } = await supabase.from('contact_messages').insert({
-      name: formData.name,
-      email: formData.email,
-      subject: 'Homepage Contact',
-      message: formData.message,
-    });
-    setSending(false);
-    if (error) {
-      toast.error("Failed to send. Please try again.");
-    } else {
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          category: formData.category,
+          calculator: showCalculator ? formData.calculator : undefined,
+          subject: undefined,
+          message: formData.message,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed');
       toast.success("Transmission sent! We'll respond shortly.");
-      setFormData({ name: "", email: "", message: "" });
+      setFormData({ name: "", email: "", category: "", calculator: "", message: "" });
+    } catch {
+      toast.error("Failed to send. Please try again.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -38,6 +74,9 @@ const Contact = () => {
     { icon: Github, href: "#", label: "GitHub" },
     { icon: Instagram, href: "#", label: "Instagram" },
   ];
+
+  const inputClass = "bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20 transition-all";
+  const selectClass = "w-full rounded-md px-3 py-2 text-sm bg-input/50 border border-border/50 text-foreground focus:border-primary/50 focus:ring-primary/20 focus:outline-none transition-all appearance-none";
 
   return (
     <section id="contact" className="py-16 sm:py-28 bg-transparent relative">
@@ -66,28 +105,62 @@ const Contact = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid md:grid-cols-2 gap-5">
                 <Input
-                  placeholder="Callsign (Name)"
+                  placeholder="Full Name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                  className={inputClass}
                 />
                 <Input
                   type="email"
-                  placeholder="Frequency (Email)"
+                  placeholder="Email Address"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                  className={inputClass}
                 />
               </div>
+
+              {/* Category */}
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Category *</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value, calculator: "" })}
+                  required
+                  className={selectClass}
+                >
+                  <option value="" disabled>Select a category...</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Conditional Calculator dropdown */}
+              {showCalculator && (
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground tracking-wider uppercase" style={{ fontFamily: 'Rajdhani, sans-serif' }}>Calculator</label>
+                  <select
+                    value={formData.calculator}
+                    onChange={(e) => setFormData({ ...formData, calculator: e.target.value })}
+                    className={selectClass}
+                  >
+                    <option value="" disabled>Select a calculator...</option>
+                    {CALCULATORS.map((calc) => (
+                      <option key={calc} value={calc}>{calc}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <Textarea
-                placeholder="Your Transmission..."
+                placeholder="Your message..."
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 required
                 rows={6}
-                className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 resize-none focus:border-primary/50 focus:ring-primary/20 transition-all"
+                className={`${inputClass} resize-none`}
               />
               <Button type="submit" size="lg" className="w-full gap-2 glow-cyan font-semibold tracking-wide" disabled={sending}>
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

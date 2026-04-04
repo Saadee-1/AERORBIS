@@ -9,32 +9,64 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
-import { supabase } from "@/integrations/supabase/client";
+
+const CATEGORIES = [
+  "Calculator Bug",
+  "Calculator Suggestion",
+  "Request a New Calculator",
+  "General Feedback",
+] as const;
+
+const CALCULATORS = [
+  "Lift & Drag",
+  "Range & Endurance",
+  "Thrust-to-Weight",
+  "Glide Performance",
+  "Other",
+] as const;
+
+const CALC_CATEGORIES = ["Calculator Bug", "Calculator Suggestion"] as const;
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    category: "" as string,
+    calculator: "" as string,
     subject: "",
     message: "",
   });
   const [sending, setSending] = useState(false);
 
+  const showCalculator = CALC_CATEGORIES.includes(formData.category as typeof CALC_CATEGORIES[number]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.category) {
+      toast.error("Please select a category.");
+      return;
+    }
     setSending(true);
-    const { error } = await supabase.from('contact_messages').insert({
-      name: formData.name,
-      email: formData.email,
-      subject: formData.subject,
-      message: formData.message,
-    });
-    setSending(false);
-    if (error) {
-      toast.error("Failed to send message. Please try again.");
-    } else {
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          category: formData.category,
+          calculator: showCalculator ? formData.calculator : undefined,
+          subject: formData.subject || undefined,
+          message: formData.message,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed');
       toast.success("Message sent successfully! We'll get back to you soon.");
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      setFormData({ name: "", email: "", category: "", calculator: "", subject: "", message: "" });
+    } catch {
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -50,6 +82,9 @@ const ContactPage = () => {
     { icon: Phone, label: "Phone", value: "+1 (555) 123-4567" },
     { icon: MapPin, label: "Location", value: "Virtual • Global Community" },
   ];
+
+  const inputClass = "bg-background/50 border-primary/20 text-foreground";
+  const selectClass = "w-full rounded-md px-3 py-2 text-sm bg-background/50 border border-primary/20 text-foreground focus:border-primary/50 focus:ring-primary/20 focus:outline-none transition-all appearance-none";
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -83,20 +118,56 @@ const ContactPage = () => {
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-foreground">Full Name</Label>
-                      <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className="bg-background/50 border-primary/20 text-foreground" />
+                      <Label htmlFor="name" className="text-foreground">Full Name *</Label>
+                      <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={inputClass} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-foreground">Email Address</Label>
-                      <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className="bg-background/50 border-primary/20 text-foreground" />
+                      <Label htmlFor="email" className="text-foreground">Email Address *</Label>
+                      <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={inputClass} />
                     </div>
+
+                    {/* Category */}
+                    <div className="space-y-2">
+                      <Label htmlFor="category" className="text-foreground">Category *</Label>
+                      <select
+                        id="category"
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value, calculator: "" })}
+                        required
+                        className={selectClass}
+                      >
+                        <option value="" disabled>Select a category...</option>
+                        {CATEGORIES.map((cat) => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Conditional Calculator dropdown */}
+                    {showCalculator && (
+                      <div className="space-y-2">
+                        <Label htmlFor="calculator" className="text-foreground">Calculator</Label>
+                        <select
+                          id="calculator"
+                          value={formData.calculator}
+                          onChange={(e) => setFormData({ ...formData, calculator: e.target.value })}
+                          className={selectClass}
+                        >
+                          <option value="" disabled>Select a calculator...</option>
+                          {CALCULATORS.map((calc) => (
+                            <option key={calc} value={calc}>{calc}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
                     <div className="space-y-2">
                       <Label htmlFor="subject" className="text-foreground">Subject</Label>
-                      <Input id="subject" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required className="bg-background/50 border-primary/20 text-foreground" />
+                      <Input id="subject" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} className={inputClass} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="message" className="text-foreground">Message</Label>
-                      <Textarea id="message" rows={6} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} required className="bg-background/50 border-primary/20 text-foreground" />
+                      <Label htmlFor="message" className="text-foreground">Message *</Label>
+                      <Textarea id="message" rows={6} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} required className={inputClass} />
                     </div>
                     <Button type="submit" className="w-full" size="lg" disabled={sending}>
                       {sending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</> : "Send Message"}
