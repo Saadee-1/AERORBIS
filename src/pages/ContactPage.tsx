@@ -78,8 +78,6 @@ const ContactPage = () => {
   ];
 
   const contactInfo = [
-    { icon: Mail, label: "Email", value: "hello@aeroverse.space" },
-    { icon: Phone, label: "Phone", value: "+1 (555) 123-4567" },
     { icon: MapPin, label: "Location", value: "Virtual • Global Community" },
   ];
 

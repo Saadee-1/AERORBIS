@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     await resend.emails.send({
-      from: 'AERORBIS Contact <onboarding@resend.dev>',
+      from: 'AERORBIS Contact <contact@aerorbis.space>',
       to: 'albertienstien123@gmail.com',
       replyTo: email,
       subject: `[${category}] ${subject || 'No Subject'} - from ${name}`,
