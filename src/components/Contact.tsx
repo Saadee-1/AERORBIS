@@ -15,10 +15,22 @@ const CATEGORIES = [
 ] as const;
 
 const CALCULATORS = [
-  "Lift & Drag",
-  "Range & Endurance",
-  "Thrust-to-Weight",
-  "Glide Performance",
+  "Thrust Calculator -- Aircraft Thrust",
+  "Thrust Calculator -- Rocket Thrust",
+  "Lift-to-Drag Ratio Analyzer",
+  "Orbital Path Visualizer",
+  "Material Density Database",
+  "Wing Loading Calculator",
+  "Delta-V Budget Planner",
+  "Antenna Pattern Analyzer",
+  "Reynolds Number Calculator",
+  "Standard Atmosphere Calculator",
+  "Rocket Engine Performance",
+  "Stability & Control Derivatives",
+  "Battery & Solar Power System",
+  "Structural Weight Estimator",
+  "Rocket Trajectory Simulator",
+  "Climb Performance Calculator",
   "Other",
 ] as const;
 
@@ -76,7 +88,7 @@ const Contact = () => {
   ];
 
   const inputClass = "bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20 transition-all";
-  const selectClass = "w-full rounded-md px-3 py-2 text-sm bg-input/50 border border-border/50 text-foreground focus:border-primary/50 focus:ring-primary/20 focus:outline-none transition-all appearance-none";
+  const selectClass = "w-full rounded-md px-3 py-2 text-sm border transition-all focus:outline-none cursor-pointer bg-[#0a0f1a] border-[rgba(0,255,180,0.2)] text-[#e2e8f0] focus:border-[rgba(0,255,180,0.6)] focus:shadow-[0_0_8px_rgba(0,255,180,0.15)] [&>option]:bg-[#0a0f1a] [&>option]:text-[#e2e8f0] [&>option:hover]:bg-[rgba(0,255,180,0.08)] [-webkit-appearance:none] [-moz-appearance:none] bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2300ffb4%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_12px_center] bg-no-repeat pr-9";
 
   return (
     <section id="contact" className="py-16 sm:py-28 bg-transparent relative">

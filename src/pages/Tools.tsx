@@ -204,57 +204,6 @@ const Tools = () => {
         </div>
       </section>
 
-      {/* Demo Calculator Section */}
-      <section className="py-16 bg-card border-y border-border">
-        <div className="container mx-auto px-4 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-3xl mx-auto"
-          >
-            <div className="text-center mb-8">
-              <Calculator className="w-10 h-10 mx-auto mb-4 text-primary" />
-              <h2 className="text-2xl font-semibold mb-2 text-foreground">Quick Demo: Thrust Calculator</h2>
-              <p className="text-muted-foreground">
-                Try our interactive thrust calculator right here
-              </p>
-            </div>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-6">
-                  <div className="text-center p-6 bg-muted rounded">
-                    <Rocket className="w-16 h-16 mx-auto mb-3 text-primary" />
-                    <p className="text-muted-foreground text-sm mb-4">
-                      Try our full-featured Thrust Calculator with detailed analysis
-                    </p>
-                    <Button asChild>
-                      <a href="/tools/launch?tool=thrust">Launch Thrust Calculator</a>
-                    </Button>
-                  </div>
-
-                  <div className="grid md:grid-cols-3 gap-4 text-center">
-                    <div className="p-3 bg-muted rounded">
-                      <p className="text-lg font-mono font-medium text-foreground">F = ṁ × Ve</p>
-                      <p className="text-xs text-muted-foreground mt-1">Thrust Equation</p>
-                    </div>
-                    <div className="p-3 bg-muted rounded">
-                      <p className="text-lg font-mono font-medium text-foreground">Isp = F / (ṁ × g₀)</p>
-                      <p className="text-xs text-muted-foreground mt-1">Specific Impulse</p>
-                    </div>
-                    <div className="p-3 bg-muted rounded">
-                      <p className="text-lg font-mono font-medium text-foreground">Ve = Isp × g₀</p>
-                      <p className="text-xs text-muted-foreground mt-1">Exhaust Velocity</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-16">
         <div className="container mx-auto px-4 lg:px-8">
