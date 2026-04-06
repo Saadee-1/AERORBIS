@@ -439,7 +439,7 @@ Provide:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'You are AEROVERSE AI — a concise aerospace engineering calculation interpreter. Keep explanations SHORT, TECHNICAL, and PROFESSIONAL (6-10 bullet points max). No teaching tone, no fluff.' },
+          { role: 'system', content: 'You are AERORBIS AI — a concise aerospace engineering calculation interpreter. Keep explanations SHORT, TECHNICAL, and PROFESSIONAL (6-10 bullet points max). No teaching tone, no fluff.' },
           { role: 'user', content: explainPrompt }
         ],
         temperature: 0.3,
@@ -673,7 +673,7 @@ function generatePDFHTML(context: CalculationEvent, options: { includeAssistantE
   <div class="footer">
     <p><strong>Report Generated:</strong> ${new Date().toISOString()}</p>
     <p><strong>Tool:</strong> ${context.toolName} | <strong>Version:</strong> 1.0.0</p>
-    <p style="margin-top: 10px; font-size: 0.8em;">This report was generated automatically by AeroVerse Calculation Tools.</p>
+    <p style="margin-top: 10px; font-size: 0.8em;">This report was generated automatically by AERORBIS Calculation Tools.</p>
   </div>
 </body>
 </html>`;

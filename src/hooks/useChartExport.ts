@@ -25,7 +25,7 @@ export function useChartExport(
       }
 
       // Default filename generation
-      const parts: string[] = ["aeroverse"];
+      const parts: string[] = ["aerorbis"];
 
       if (options?.calculatorId) {
         parts.push(options.calculatorId);

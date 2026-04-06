@@ -498,7 +498,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
           </div>
           
           <p className="text-xs text-slate-400 mt-2 text-center">
-            Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
+            AERORBIS Polar Dataset — {polars.map(p => p.name).join(', ')}
           </p>
         </ChartCard>
             </div>
@@ -582,7 +582,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
           </div>
           
           <p className="text-xs text-slate-400 mt-2 text-center">
-            Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
+            AERORBIS Polar Dataset — {polars.map(p => p.name).join(', ')}
           </p>
         </ChartCard>
             </div>
@@ -684,7 +684,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
             </div>
             
             <p className="text-xs text-slate-400 mt-2 text-center">
-              Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
+              AERORBIS Polar Dataset — {polars.map(p => p.name).join(', ')}
             </p>
           </ChartCard>
               </div>
@@ -778,7 +778,7 @@ export function PolarChartsPanel({ polars, reynoldsNumber }: PolarChartsPanelPro
                 </div>
                 
                 <p className="text-xs text-slate-400 mt-2 text-center">
-                  Aeroverse Polar Dataset — {polars.map(p => p.name).join(', ')}
+                  AERORBIS Polar Dataset — {polars.map(p => p.name).join(', ')}
                 </p>
               </ChartCard>
             </div>

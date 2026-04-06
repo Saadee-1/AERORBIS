@@ -44,9 +44,9 @@ export function ChartsPanel({ results, cgSweepData, downwashData }: ChartsPanelP
   const downwashRef = useRef<HTMLDivElement>(null);
 
   // Export hooks
-  const cmAlphaExport = useChartExport(cmAlphaRef, { calculatorId: 'stability', getFileBaseName: () => 'aeroverse-stability-cm-alpha' });
-  const cgSweepExport = useChartExport(cgSweepRef, { calculatorId: 'stability', getFileBaseName: () => 'aeroverse-stability-cg-sweep' });
-  const downwashExport = useChartExport(downwashRef, { calculatorId: 'stability', getFileBaseName: () => 'aeroverse-stability-downwash' });
+  const cmAlphaExport = useChartExport(cmAlphaRef, { calculatorId: 'stability', getFileBaseName: () => 'aerorbis-stability-cm-alpha' });
+  const cgSweepExport = useChartExport(cgSweepRef, { calculatorId: 'stability', getFileBaseName: () => 'aerorbis-stability-cg-sweep' });
+  const downwashExport = useChartExport(downwashRef, { calculatorId: 'stability', getFileBaseName: () => 'aerorbis-stability-downwash' });
 
   return (
     <div className="space-y-6">

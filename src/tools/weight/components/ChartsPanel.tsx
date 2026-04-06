@@ -92,12 +92,12 @@ export function ChartsPanel({ components, W_empty, W_fuel, W_to, iteration, inpu
   const wingLoadingRef = useRef<HTMLDivElement>(null);
 
   // Export hooks
-  const componentExport = useChartExport(componentRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-components' });
-  const distributionExport = useChartExport(distributionRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-distribution' });
-  const iterationExport = useChartExport(iterationRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-iteration' });
-  const cgExport = useChartExport(cgRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-cg' });
-  const fuelExport = useChartExport(fuelRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-fuel' });
-  const wingLoadingExport = useChartExport(wingLoadingRef, { calculatorId: 'weight', getFileBaseName: () => 'aeroverse-weight-wing-loading' });
+  const componentExport = useChartExport(componentRef, { calculatorId: 'weight', getFileBaseName: () => 'aerorbis-weight-components' });
+  const distributionExport = useChartExport(distributionRef, { calculatorId: 'weight', getFileBaseName: () => 'aerorbis-weight-distribution' });
+  const iterationExport = useChartExport(iterationRef, { calculatorId: 'weight', getFileBaseName: () => 'aerorbis-weight-iteration' });
+  const cgExport = useChartExport(cgRef, { calculatorId: 'weight', getFileBaseName: () => 'aerorbis-weight-cg' });
+  const fuelExport = useChartExport(fuelRef, { calculatorId: 'weight', getFileBaseName: () => 'aerorbis-weight-fuel' });
+  const wingLoadingExport = useChartExport(wingLoadingRef, { calculatorId: 'weight', getFileBaseName: () => 'aerorbis-weight-wing-loading' });
 
   return (
     <div className="space-y-6">

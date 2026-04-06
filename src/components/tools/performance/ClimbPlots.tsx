@@ -87,15 +87,15 @@ export function ClimbPlots({ result }: ClimbPlotsProps) {
   // Export hooks
   const dragThrustExport = useChartExport(dragThrustCardRef, {
     calculatorId: 'climb',
-    getFileBaseName: () => 'aeroverse-climb-drag-thrust',
+    getFileBaseName: () => 'aerorbis-climb-drag-thrust',
   });
   const powerExport = useChartExport(powerCardRef, {
     calculatorId: 'climb',
-    getFileBaseName: () => 'aeroverse-climb-power',
+    getFileBaseName: () => 'aerorbis-climb-power',
   });
   const rocExport = useChartExport(rocCardRef, {
     calculatorId: 'climb',
-    getFileBaseName: () => 'aeroverse-climb-roc-gradient',
+    getFileBaseName: () => 'aerorbis-climb-roc-gradient',
   });
 
   // Prepare chart data
