@@ -19,7 +19,7 @@ import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 
 // Import child calculators
-import { RocketThrustCalculator } from "@/components/tools/thrust/RocketThrustCalculator";
+import RocketThrustCalculator from "@/components/tools/thrust/RocketThrustCalculator";
 import ThrustLoadingCalculator from "@/components/tools/ThrustLoadingCalculator";
 
 // ============================================================================
