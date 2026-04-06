@@ -229,16 +229,8 @@ const ContactPage = () => {
                 <CardHeader>
                   <CardTitle className="text-2xl text-foreground">Support Hours</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Monday - Friday</span>
-                    <span className="font-semibold text-foreground">9:00 AM - 6:00 PM EST</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Weekend</span>
-                    <span className="font-semibold text-foreground">Closed</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-4">We typically respond within 24 hours during business days</p>
+                <CardContent>
+                  <p className="text-muted-foreground">We typically respond within 48 hours</p>
                 </CardContent>
               </Card>
             </motion.div>
