@@ -13,6 +13,7 @@ export interface DesignSessionData {
   wingLoadingKgm2?: number;
   missionType?: MissionType;
   densityKgM3?: number;
+  pressurePa?: number;
   clMaxUsed?: number;
   stallSpeedMs?: number;
   stallSpeedKts?: number;

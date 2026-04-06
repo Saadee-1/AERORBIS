@@ -29,5 +29,5 @@ export const SEA_LEVEL_SPEED_OF_SOUND = 340.294; // m/s
 
 // Altitude limits (geopotential)
 export const MIN_ALTITUDE = 0; // m
-export const MAX_ALTITUDE = 86000; // m (86 km)
+export const MAX_ALTITUDE = 150000; // m (150 km) - covers LEO entry and Karman line
 

@@ -231,7 +231,29 @@ export function calculateAtmosphere(
   
   // Find the layer
   const layer = findLayerForAltitude(geopotentialAltitude);
+  
   if (!layer) {
+    if (geopotentialAltitude > 86000) {
+      // Exosphere/Vacuum extension
+      const geomAlt = geopotentialToGeometric(geopotentialAltitude);
+      const grav = calculateGravity(geomAlt);
+      return {
+        geopotentialAltitude,
+        geometricAltitude: geomAlt,
+        temperature: 186.87, // Constant minimum temp from 86km
+        pressure: 0.0, // Vacuum
+        density: 0.0,
+        speedOfSound: 274.0, 
+        viscosity: 0.0,
+        gravity: grav,
+        pressureRatio: 0.0,
+        densityRatio: 0.0,
+        temperatureRatio: 186.87 / 288.15,
+        layerName: "Vacuum / Exosphere",
+        layerId: "vacuum",
+        warnings: ["Beyond 86km geopotential - standard model limit. Returning vacuum asymptotic values."]
+      };
+    }
     throw new Error('Invalid altitude: could not determine atmospheric layer');
   }
   

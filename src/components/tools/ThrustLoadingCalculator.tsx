@@ -70,6 +70,7 @@ import {
 import { ThrustLoadingGraphs } from "./ThrustLoadingGraphs";
 import { ThrustWingSizingDiagram } from "./ThrustWingSizingDiagram";
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
+import { calculateAtmosphere } from "@/tools/atmosphere/utils/calcAtmosphere";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
 import { FIELD_KEYS } from "./utils/interlinkConfig";
 import { 
@@ -81,6 +82,16 @@ import {
   SourceInfo
 } from "./utils/interlink";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from "recharts";
 
 // ============================================================================
 // TYPES & CONSTANTS - BATCH 1
@@ -210,10 +221,70 @@ interface CalculationResult {
   twClass: ThrustLoadingClass;
   interpretation: string;
   steps: string[];
-  climbGradient?: number; // Expert mode: climb gradient (rad)
-  rateOfClimb?: number; // Expert mode: ROC (m/s)
-  climbWarning?: string; // Expert mode: warning if climb performance insufficient
-  jetLowBandLabel?: string; // Jet low-band sub-label
+  climbGradient?: number;
+  rateOfClimb?: number;
+  climbWarning?: string;
+  jetLowBandLabel?: string;
+  takeoffGroundRoll?: number;
+  specificExcessPower?: number;
+  thrustLapseOutput?: number;
+  clTo?: number;
+  muRoll?: number;
+  ps?: number;
+  isProp?: boolean;
+  powerCurveData?: PowerCurvePoint[];
+}
+
+interface PowerCurvePoint {
+  v: number;
+  pa: number;
+  pr: number;
+}
+
+interface PowerCurveInputs {
+  mtowKg: number;
+  thrustN: number;
+  wingAreaM2: number;
+  cd0: number;
+  k: number;
+  rho: number;
+  isProp: boolean;
+}
+
+function generatePowerCurveData(inputs: PowerCurveInputs): PowerCurvePoint[] {
+  const { mtowKg, thrustN, wingAreaM2, cd0, k, rho, isProp } = inputs;
+  if (!mtowKg || !wingAreaM2 || !cd0 || !k || !rho) return [];
+
+  const weightN = mtowKg * 9.81;
+  const data: PowerCurvePoint[] = [];
+  
+  // Estimate V_stall to start the sweep (assuming CL_max ≈ 2.0 if not specified)
+  const vStall = Math.sqrt((2 * weightN) / (rho * wingAreaM2 * 2.0));
+  const vStart = Math.max(1, vStall * 0.8);
+  const vEnd = Math.max(vStall * 4, 150); // Flight envelope sweep
+  const step = (vEnd - vStart) / 40;
+
+  for (let v = vStart; v <= vEnd; v += step) {
+    const q = 0.5 * rho * v * v;
+    const cl = weightN / (q * wingAreaM2);
+    const cd = cd0 + k * cl * cl;
+    const drag = q * wingAreaM2 * cd;
+    const pr = (drag * v) / 1000; // Required Power in kW
+    
+    let pa = 0;
+    if (isProp) {
+      // Simplified prop power: P = T * V. But T drops with V.
+      // At low speed, T is high. At high speed, efficiency rolls off.
+      // Approximation: Constant Power Available for props.
+      pa = (thrustN * vStall * 1.2) / 1000; 
+    } else {
+      // Jets: Pa = T * V
+      pa = (thrustN * v) / 1000;
+    }
+
+    data.push({ v, pa, pr });
+  }
+  return data;
 }
 
 // ============================================================================
@@ -263,6 +334,42 @@ function calculateClimbGradient(thrustToWeight: number, ldClimb: number): number
 function calculateRateOfClimb(vClimbMs: number, climbGradient: number): number {
   if (vClimbMs <= 0) throw new Error("Climb velocity must be positive");
   return vClimbMs * Math.sin(climbGradient);
+}
+
+/**
+ * Calculate Takeoff Ground Roll (Expert mode)
+ * S_TO = 1.44 * W^2 / (g * rho * S * C_L_TO * T)
+ */
+function calculateTakeoffGroundRoll(
+  weightN: number,
+  wingAreaM2: number,
+  clTo: number,
+  thrustN: number,
+  density: number = 1.225
+): number {
+  if (clTo <= 0 || thrustN <= 0 || wingAreaM2 <= 0) return 0;
+  return (1.44 * Math.pow(weightN, 2)) / (GRAVITY * density * wingAreaM2 * clTo * thrustN);
+}
+
+/**
+ * Calculate Thrust Lapse (Expert mode)
+ * T/T_SL = (rho/rho0)^n
+ */
+function calculateThrustLapse(
+  thrustSL: number,
+  altitudeM: number,
+  isJet: boolean = true
+): number {
+  if (altitudeM <= 0) return thrustSL;
+  const T0 = 288.15;
+  const L = 0.0065;
+  const R = 287.05;
+  const g = 9.80665;
+  const alt = Math.min(altitudeM, 11000);
+  const temp = T0 - L * alt;
+  const densityRatio = Math.pow(temp / T0, (g / (L * R)) - 1);
+  const n = isJet ? 1.0 : 0.7; // Exponent for thrust variation with density
+  return thrustSL * Math.pow(densityRatio, n);
 }
 
 // ============================================================================
@@ -500,6 +607,10 @@ const ThrustLoadingCalculator = () => {
   const [numEngines, setNumEngines] = useState<string>("1");
   const [thrustUnit, setThrustUnit] = useState<ThrustUnit>('N');
   const [calculationMode, setCalculationMode] = useState<CalculationMode>('computeTW');
+  
+  // Phase 2: Expert Mode Additional States
+  const [altitudeInput, setAltitudeInput] = useState<string>("0");
+  const [wingAreaInput, setWingAreaInput] = useState<string>("");
   const [targetTW, setTargetTW] = useState<string>("");
   const [engineType, setEngineType] = useState<EngineType>('Prop');
   const [vClimb, setVClimb] = useState<string>("");
@@ -761,28 +872,50 @@ const ThrustLoadingCalculator = () => {
       // Climb performance (Expert mode only)
       let climbGradient: number | undefined;
       let rateOfClimb: number | undefined;
+      let specificExcessPower: number | undefined;
+      let takeoffGroundRoll: number | undefined;
+      let thrustLapseOutput: number | undefined;
       
-      if (calculatorMode === 'Expert' && vClimb && ldClimb) {
-        const vClimbInput = parseFloat(vClimb);
-        const ldClimbInput = parseFloat(ldClimb);
-        if (!isNaN(vClimbInput) && vClimbInput > 0 && !isNaN(ldClimbInput) && ldClimbInput > 0) {
-          if (vClimbInput > 1000) {
-            toast({ title: "Invalid Input", description: "Climb velocity is unrealistically large (typical: 20-100 m/s)", variant: "destructive" });
-            return;
-          }
-          if (ldClimbInput > 100) {
-            toast({ title: "Invalid Input", description: "L/D ratio is unrealistically large (typical: 8-20)", variant: "destructive" });
-            return;
-          }
-          climbGradient = calculateClimbGradient(tw, ldClimbInput);
-          if (!isFinite(climbGradient) || climbGradient < 0) {
-            toast({ title: "Calculation Error", description: "Climb gradient calculation resulted in invalid value", variant: "destructive" });
-            return;
-          }
-          rateOfClimb = calculateRateOfClimb(vClimbInput, climbGradient);
-          if (!isFinite(rateOfClimb) || rateOfClimb < 0 || rateOfClimb > 1000) {
-            toast({ title: "Calculation Error", description: "Rate of climb calculation resulted in invalid or unrealistic value", variant: "destructive" });
-            return;
+      if (calculatorMode === 'Expert') {
+        const altIn = parseFloat(altitudeInput);
+        if (!isNaN(altIn)) {
+          const isJet = engineType === 'Turbofan' || engineType === 'Turbojet';
+          thrustLapseOutput = calculateThrustLapse(totalThrustNSI, unitSystem === 'SI' ? altIn : altIn * 0.3048, isJet);
+        }
+
+        const areaIn = parseFloat(wingAreaInput);
+        const clIn = parseFloat(clToInput);
+        if (!isNaN(areaIn) && areaIn > 0 && !isNaN(clIn) && clIn > 0) {
+          const areaM2 = unitSystem === 'SI' ? areaIn : areaIn * 0.092903;
+          takeoffGroundRoll = calculateTakeoffGroundRoll(finalWeightN, areaM2, clIn, totalThrustNSI);
+        }
+
+        if (vClimb && ldClimb) {
+          const vClimbInput = parseFloat(vClimb);
+          const ldClimbInput = parseFloat(ldClimb);
+          if (!isNaN(vClimbInput) && vClimbInput > 0 && !isNaN(ldClimbInput) && ldClimbInput > 0) {
+            if (vClimbInput > 1000) {
+              toast({ title: "Invalid Input", description: "Climb velocity is unrealistically large (typical: 20-100 m/s)", variant: "destructive" });
+              return;
+            }
+            if (ldClimbInput > 100) {
+              toast({ title: "Invalid Input", description: "L/D ratio is unrealistically large (typical: 8-20)", variant: "destructive" });
+              return;
+            }
+            climbGradient = calculateClimbGradient(tw, ldClimbInput);
+            if (!isFinite(climbGradient) || climbGradient < 0) {
+              toast({ title: "Calculation Error", description: "Climb gradient calculation resulted in invalid value", variant: "destructive" });
+              return;
+            }
+            rateOfClimb = calculateRateOfClimb(vClimbInput, climbGradient);
+            
+            // Specific Excess Power: Ps = V * (T/W - D/W) = V * (T/W - 1/(L/D))
+            specificExcessPower = vClimbInput * (tw - (1 / ldClimbInput));
+
+            if (!isFinite(rateOfClimb) || rateOfClimb < 0 || rateOfClimb > 1000) {
+              toast({ title: "Calculation Error", description: "Rate of climb calculation resulted in invalid or unrealistic value", variant: "destructive" });
+              return;
+            }
           }
         }
       }
@@ -857,6 +990,11 @@ const ThrustLoadingCalculator = () => {
         steps.push(`Rate of Climb: ROC = V_climb × sin(γ) = ${parseFloat(vClimb).toFixed(1)} m/s × sin(${(climbGradient * 180 / Math.PI).toFixed(2)}°) = ${rateOfClimb.toFixed(2)} m/s`);
       }
       
+      const cd0Val = parseFloat(cd0Input) || 0.025;
+      const kVal = parseFloat(kInput) || 0.045;
+      const altM = unitSystem === 'SI' ? parseFloat(altitudeInput) : parseFloat(altitudeInput) * 0.3048;
+      const rhoActual = calculateAtmosphere(altM).density;
+
       const calculationResult: CalculationResult = {
         weightN: finalWeightN,
         totalThrustN: totalThrustNSI,
@@ -867,7 +1005,20 @@ const ThrustLoadingCalculator = () => {
         steps,
         climbGradient,
         rateOfClimb,
-        climbWarning
+        specificExcessPower,
+        takeoffGroundRoll,
+        thrustLapseOutput,
+        climbWarning,
+        isProp: engineType === 'Prop',
+        powerCurveData: generatePowerCurveData({
+          mtowKg: finalWeightN / 9.81,
+          thrustN: thrustLapseOutput || totalThrustNSI,
+          wingAreaM2: unitSystem === 'SI' ? parseFloat(wingAreaInput) : parseFloat(wingAreaInput) * 0.092903,
+          cd0: cd0Val,
+          k: kVal,
+          rho: rhoActual,
+          isProp: engineType === 'Prop'
+        })
       };
       
       setResult(calculationResult);
@@ -1415,6 +1566,21 @@ const ThrustLoadingCalculator = () => {
                     return null;
                   })()}
                 </AeroFormField>
+
+                <AeroFormField 
+                  label={`Altitude for Lapse ${unitSystem === 'SI' ? '(m)' : '(ft)'}`} 
+                  helperText="Altitude used to calculate static thrust degradation (thrust lapse). T/T_SL = (ρ/ρ₀)^n."
+                >
+                  <Input
+                    type="number"
+                    step="1"
+                    value={altitudeInput}
+                    onChange={(e) => setAltitudeInput(e.target.value)}
+                    className="bg-input border-border"
+                    placeholder="e.g. 5000"
+                    min="0"
+                  />
+                </AeroFormField>
                 
                 <AeroFormField 
                   label="Lift-to-Drag Ratio (L/D_climb)" 
@@ -1498,6 +1664,13 @@ const ThrustLoadingCalculator = () => {
                       placeholder="e.g., 0.025"
                       min="0"
                     />
+                    <InlineInterlinkHint 
+                      fieldKey={FIELD_KEYS.cd0} 
+                      className="mt-1" 
+                      currentValue={cd0Input}
+                      onImport={(value) => setCd0Input(String(value))}
+                      onUndo={(prevValue) => setCd0Input(prevValue === null ? '' : String(prevValue))}
+                    />
                   </AeroFormField>
 
                   <AeroFormField 
@@ -1512,6 +1685,13 @@ const ThrustLoadingCalculator = () => {
                       className="bg-input border-border"
                       placeholder="e.g., 0.045"
                       min="0"
+                    />
+                    <InlineInterlinkHint 
+                      fieldKey={FIELD_KEYS.k} 
+                      className="mt-1" 
+                      currentValue={kInput}
+                      onImport={(value) => setKInput(String(value))}
+                      onUndo={(prevValue) => setKInput(prevValue === null ? '' : String(prevValue))}
                     />
                   </AeroFormField>
 
@@ -1574,6 +1754,28 @@ const ThrustLoadingCalculator = () => {
                       className="bg-input border-border"
                       placeholder="e.g. 1.6"
                       min="0"
+                    />
+                  </AeroFormField>
+
+                  <AeroFormField 
+                    label={`Wing Area (S, ${unitSystem === 'SI' ? 'm²' : 'ft²'})`} 
+                    helperText="Reference wing area. Used for takeoff distance and power curve calculations."
+                  >
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={wingAreaInput}
+                      onChange={(e) => setWingAreaInput(e.target.value)}
+                      className="bg-input border-border"
+                      placeholder="e.g. 16.0"
+                      min="0"
+                    />
+                    <InlineInterlinkHint 
+                      fieldKey={FIELD_KEYS.wingAreaM2} 
+                      className="mt-1" 
+                      currentValue={wingAreaInput}
+                      onImport={(value) => setWingAreaInput(String(unitSystem === 'SI' ? value : (value as number) / 0.092903))}
+                      onUndo={(prevValue) => setWingAreaInput(prevValue === null ? '' : String(prevValue))}
                     />
                   </AeroFormField>
 
@@ -1780,6 +1982,19 @@ const ThrustLoadingCalculator = () => {
                         </p>
                       </div>
                       
+                      {result.specificExcessPower !== undefined && (
+                        <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                          <p className="text-sm text-muted-foreground mb-1">Specific Excess Power (Ps)</p>
+                          <p className="text-xs text-muted-foreground/70 mb-1">(Ps = V × (T/W - D/W))</p>
+                          <p className="text-xl font-bold text-primary">
+                            {result.specificExcessPower.toFixed(2)} m/s
+                          </p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">
+                            Fundamental measure of an aircraft's ability to climb or accelerate. Represents power available relative to weight.
+                          </p>
+                        </div>
+                      )}
+                      
                       {result.climbWarning && (
                         <div className="p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
                           <p className="text-sm text-yellow-700 dark:text-yellow-200 whitespace-pre-wrap leading-relaxed">
@@ -1787,6 +2002,105 @@ const ThrustLoadingCalculator = () => {
                           </p>
                         </div>
                       )}
+                    </div>
+                  </AeroCard>
+                )}
+
+                {/* Additional Expert Metrics Card */}
+                {calculatorMode === 'Expert' && (result.takeoffGroundRoll !== undefined || result.thrustLapseOutput !== undefined) && (
+                  <AeroCard
+                    title="Advanced Metrics"
+                    description="Takeoff and Thrust Lapse"
+                    icon={Gauge}
+                  >
+                    <div className="space-y-3">
+                      {result.takeoffGroundRoll !== undefined && (
+                        <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                          <p className="text-sm text-muted-foreground mb-1">Takeoff Ground Roll (S_TO)</p>
+                          <p className="text-xs text-muted-foreground/70 mb-1">Ideal zero-wind ground roll distance</p>
+                          <p className="text-xl font-bold text-primary">
+                            {unitSystem === 'SI' ? result.takeoffGroundRoll.toFixed(1) : (result.takeoffGroundRoll / 0.3048).toFixed(1)} {unitSystem === 'SI' ? 'm' : 'ft'}
+                          </p>
+                        </div>
+                      )}
+                      {result.thrustLapseOutput !== undefined && (
+                        <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                          <p className="text-sm text-muted-foreground mb-1">Thrust at specified altitude</p>
+                          <p className="text-xs text-muted-foreground/70 mb-1">Due to air density drop</p>
+                          <p className="text-xl font-bold text-primary">
+                            {(() => {
+                              const thrustUnitOutput: ThrustUnit = outputUnits?.thrust === 'lbf' ? 'lbf' : outputUnits?.thrust === 'kgf' ? 'kgf' : 'N';
+                              const converted = convertThrustFromSI(result.thrustLapseOutput!, thrustUnitOutput);
+                              return converted.toFixed(0);
+                            })()} {outputUnits?.thrust || 'N'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </AeroCard>
+                )}
+
+                {/* Power Curves Card (Expert only) */}
+                {calculatorMode === 'Expert' && result.powerCurveData && result.powerCurveData.length > 0 && (
+                  <AeroCard
+                    title="Power Curves"
+                    description={`Power Available vs. Power Required (${result.isProp ? 'Constant Power Prop model' : 'Jet model'})`}
+                    icon={Zap}
+                  >
+                    <div className="h-64 mt-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={result.powerCurveData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                          <XAxis 
+                            dataKey="v" 
+                            label={{ value: 'Velocity (m/s)', position: 'insideBottom', offset: -5 }} 
+                            stroke="#94a3b8"
+                            fontSize={10}
+                          />
+                          <YAxis 
+                            label={{ value: 'Power (kW)', angle: -90, position: 'insideLeft', offset: 10 }}
+                            stroke="#94a3b8"
+                            fontSize={10}
+                          />
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}
+                            itemStyle={{ fontSize: '10px' }}
+                            labelStyle={{ fontSize: '10px', fontWeight: 'bold' }}
+                            formatter={(value: number) => [value.toFixed(1) + ' kW', '']}
+                            labelFormatter={(label: number) => `V: ${label.toFixed(1)} m/s`}
+                          />
+                          <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                          <Line 
+                            name="Power Available (Pa)" 
+                            type="monotone" 
+                            dataKey="pa" 
+                            stroke="#3b82f6" 
+                            strokeWidth={2} 
+                            dot={false}
+                            activeDot={{ r: 4 }}
+                          />
+                          <Line 
+                            name="Power Required (Pr)" 
+                            type="monotone" 
+                            dataKey="pr" 
+                            stroke="#ef4444" 
+                            strokeWidth={2} 
+                            dot={false}
+                            activeDot={{ r: 4 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-4 space-y-2 text-xs text-muted-foreground/70">
+                      <p>
+                        The intersection(s) of <b>Pa</b> and <b>Pr</b> define the steady-state flight envelope. 
+                        The region where Pa &gt; Pr allows for climb or acceleration (Specific Excess Power).
+                      </p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li><b>Lowest intersection:</b> Stall speed or minimum steady flight speed.</li>
+                        <li><b>Highest intersection:</b> Maximum level flight speed (at sea level).</li>
+                        <li><b>Maximum gap (Pa - Pr):</b> Velocity for best rate of climb (V_y).</li>
+                      </ul>
                     </div>
                   </AeroCard>
                 )}

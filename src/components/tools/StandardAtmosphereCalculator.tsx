@@ -315,10 +315,11 @@ export default function StandardAtmosphereCalculator() {
 
       syncRequestId(eventResponse);
       
-      // Publish density to designSession only if finite and positive
+      // Publish density and pressure to designSession only if finite and positive
       if (Number.isFinite(atmosphereResult.density) && atmosphereResult.density > 0) {
         updateDesignSession({
           densityKgM3: atmosphereResult.density,
+          pressurePa: atmosphereResult.pressure,
         });
       }
       

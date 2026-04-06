@@ -24,6 +24,7 @@ export const FIELD_KEYS = {
   takeoffRunwayM: 'takeoffRunwayM',
   clTo: 'clTo',
   muRoll: 'muRoll',
+  pressurePa: 'pressurePa',
   other: 'other',
 } as const;
 
@@ -56,7 +57,7 @@ export const INTERLINK_PUBLISHERS: ToolPublish[] = [
   { toolId: 'thrustloading', publishes: [FIELD_KEYS.totalThrustN, FIELD_KEYS.perEngineThrustN, FIELD_KEYS.numEngines, FIELD_KEYS.wingLoadingKgm2], label: 'Thrust Loading' },
   { toolId: 'ld', publishes: [FIELD_KEYS.cd0, FIELD_KEYS.k, FIELD_KEYS.clMax, FIELD_KEYS.ldClimb], label: 'L/D Analyzer' },
   { toolId: 'climb', publishes: [FIELD_KEYS.vClimbVyMs, FIELD_KEYS.vClimbVxMs, FIELD_KEYS.rocVyMs, FIELD_KEYS.gammaVy], label: 'Climb Performance' },
-  { toolId: 'atmosphere', publishes: [FIELD_KEYS.densityKgM3], label: 'Atmosphere / ISA' },
+  { toolId: 'atmosphere', publishes: [FIELD_KEYS.densityKgM3, FIELD_KEYS.pressurePa], label: 'Atmosphere / ISA' },
   { toolId: 'materials', publishes: [FIELD_KEYS.other], label: 'Materials DB' }
 ];
 
