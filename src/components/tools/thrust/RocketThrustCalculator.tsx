@@ -155,7 +155,7 @@ const RocketThrustCalculator = () => {
 
   const [result, setResult] = useState<ThrustResult | null>(null);
   const [chartData, setChartData] = useState<any[]>([]);
-  const [chartMode, setChartMode] = useState<"pressure" | "altitude">("pressure");
+  const [chartMode, setChartMode] = useState<"pressure" | "altitude" | "nozzle">("altitude");
   const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
@@ -231,7 +231,7 @@ const RocketThrustCalculator = () => {
     return value;
   };
 
-  const syncChartData = useCallback((f: number, mdot: number, ve: number, ae: number, pe: number, pa: number, mode: "pressure" | "altitude") => {
+  const syncChartData = useCallback((f: number, mdot: number, ve: number, ae: number, pe: number, pa: number, mode: "pressure" | "altitude" | "nozzle") => {
     if (mdot > 0 && ve > 0 && ae > 0 && pe > 0) {
       const data = [];
       if (mode === "pressure") {
@@ -239,22 +239,41 @@ const RocketThrustCalculator = () => {
         const maxPa = Math.max(pa_base * 2, 202650);
         const stepSize = maxPa / 20;
         for (let pa_current = 0; pa_current <= maxPa; pa_current += stepSize) {
-          const force = mdot * ve + (pe - pa_current) * ae;
+          const momentumThrust = mdot * ve;
+          const pressureThrust = (pe - pa_current) * ae;
+          const force = momentumThrust + pressureThrust;
           data.push({
             ambientPressure: convertFromSI(pa_current, "ambientPressure"),
-            thrust: convertFromSI(force, "thrust")
+            thrust: convertFromSI(force, "thrust"),
+            momentumThrust: convertFromSI(momentumThrust, "thrust"),
+            pressureThrust: convertFromSI(pressureThrust, "thrust")
           });
         }
-      } else {
+      } else if (mode === "altitude") {
         // Altitude Sweep (ISA Atmosphere)
-        // Set steps to reach 150km (LEO entry)
-        for (let h = 0; h <= 150000; h += 7500) {
+        for (let h = 0; h <= 150000; h += 5000) {
           const atm = calculateAtmosphere(h);
-          const force = mdot * ve + (pe - atm.pressure) * ae;
+          const momentumThrust = mdot * ve;
+          const pressureThrust = (pe - atm.pressure) * ae;
+          const force = momentumThrust + pressureThrust;
           data.push({
             altitude: unitSystem === "Imperial" ? h / 0.3048 : h / 1000,
             thrust: convertFromSI(force, "thrust"),
-            pressure: convertFromSI(atm.pressure, "ambientPressure")
+            pressure: convertFromSI(atm.pressure, "ambientPressure"),
+            momentumThrust: convertFromSI(momentumThrust, "thrust"),
+            pressureThrust: convertFromSI(pressureThrust, "thrust")
+          });
+        }
+      } else if (mode === "nozzle") {
+        // Nozzle Exit Pressure vs Ambient Pressure
+        const pa_base = 101325; // SL
+        for (let h = 0; h <= 150000; h += 5000) {
+          const atm = calculateAtmosphere(h);
+          data.push({
+            altitude: unitSystem === "Imperial" ? h / 0.3048 : h / 1000,
+            exitPressure: convertFromSI(pe, "exitPressure"),
+            ambientPressure: convertFromSI(atm.pressure, "ambientPressure"),
+            ratio: pe / (atm.pressure || 0.0001)
           });
         }
       }
@@ -531,22 +550,49 @@ const RocketThrustCalculator = () => {
               )}
             </AeroCard>
 
-            {chartData.length > 0 && (
-              <ChartCard title="Performance Sweep" headerActions={
-                <div className="flex bg-muted/50 rounded p-1">
-                  <button onClick={() => setChartMode("pressure")} className={`px-2 py-0.5 text-[10px] rounded ${chartMode === "pressure" ? "bg-primary text-white" : ""}`}>Pressure</button>
-                  <button onClick={() => setChartMode("altitude")} className={`px-2 py-0.5 text-[10px] rounded ${chartMode === "altitude" ? "bg-primary text-white" : ""}`}>Altitude</button>
+            {chartData.length > 0 ? (
+              <ChartCard title={chartMode === "nozzle" ? "Nozzle Expansion" : "Performance Sweep"} headerActions={
+                <div className="flex bg-muted/50 rounded p-1 gap-1">
+                  <button onClick={() => setChartMode("altitude")} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === "altitude" ? "bg-primary text-white" : "hover:bg-muted"}`}>Altitude</button>
+                  <button onClick={() => setChartMode("nozzle")} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === "nozzle" ? "bg-primary text-white" : "hover:bg-muted"}`}>Nozzle</button>
+                  <button onClick={() => setChartMode("pressure")} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === "pressure" ? "bg-primary text-white" : "hover:bg-muted"}`}>Ambient</button>
                 </div>
               }>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey={chartMode === "pressure" ? "ambientPressure" : "altitude"} tick={{fontSize: 10}} />
-                    <YAxis tick={{fontSize: 10}} />
-                    <RechartsTooltip />
-                    <Line type="monotone" dataKey="thrust" stroke="hsl(var(--primary))" dot={false} />
+                <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                    {chartMode === "nozzle" ? (
+                      <>
+                        <XAxis dataKey="altitude" tick={{fontSize: 10}} label={{ value: unitSystem === "Imperial" ? "ft" : "km", position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis tick={{fontSize: 10}} scale="log" domain={['auto', 'auto']} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} />
+                        <Line type="monotone" name="Exit Pressure" dataKey="exitPressure" stroke="#10b981" dot={false} strokeWidth={2} />
+                        <Line type="monotone" name="Ambient Pressure" dataKey="ambientPressure" stroke="#94a3b8" dot={false} strokeDasharray="5 5" />
+                        <ReferenceLine y={convertFromSI(101325, "ambientPressure")} stroke="#ef4444" strokeDasharray="3 3" label={{ value: "SL", fontSize: 8, fill: "#ef4444" }} />
+                      </>
+                    ) : (
+                      <>
+                        <XAxis dataKey={chartMode === "pressure" ? "ambientPressure" : "altitude"} tick={{fontSize: 10}} label={{ value: chartMode === "pressure" ? "Pa" : (unitSystem === "Imperial" ? "ft" : "km"), position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis tick={{fontSize: 10}} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} />
+                        <Line type="monotone" name="Total Thrust" dataKey="thrust" stroke="hsl(var(--primary))" dot={false} strokeWidth={3} />
+                        <Line type="monotone" name="Momentum Thrust" dataKey="momentumThrust" stroke="#3b82f6" dot={false} strokeOpacity={0.5} />
+                        <Line type="monotone" name="Pressure Thrust" dataKey="pressureThrust" stroke="#f59e0b" dot={false} strokeOpacity={0.5} />
+                      </>
+                    )}
+                    <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
                   </LineChart>
                 </ResponsiveContainer>
+                </div>
+              </ChartCard>
+            ) : (
+              <ChartCard title="Performance Sweep">
+                <div className="h-[250px] flex flex-col items-center justify-center text-muted-foreground bg-muted/20 rounded-lg border border-dashed border-border/50 transition-all">
+                  <TrendingUp className="w-8 h-8 mb-2 opacity-20" />
+                  <p className="text-xs">Enter mass flow, velocity, area, and pressure</p>
+                  <p className="text-[10px] opacity-50 mt-1">Graph will generate automatically</p>
+                </div>
               </ChartCard>
             )}
           </div>

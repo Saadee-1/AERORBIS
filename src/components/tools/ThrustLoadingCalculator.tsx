@@ -233,6 +233,14 @@ interface CalculationResult {
   ps?: number;
   isProp?: boolean;
   powerCurveData?: PowerCurvePoint[];
+  sizingData?: SizingDiagramPoint[];
+}
+
+interface SizingDiagramPoint {
+  ws: number; // Wing Loading (N/m^2)
+  takeoffTW: number;
+  cruiseTW: number;
+  climbTW: number;
 }
 
 interface PowerCurvePoint {
@@ -258,10 +266,10 @@ function generatePowerCurveData(inputs: PowerCurveInputs): PowerCurvePoint[] {
   const weightN = mtowKg * 9.81;
   const data: PowerCurvePoint[] = [];
   
-  // Estimate V_stall to start the sweep (assuming CL_max ≈ 2.0 if not specified)
+  // Estimate V_stall to start the sweep
   const vStall = Math.sqrt((2 * weightN) / (rho * wingAreaM2 * 2.0));
   const vStart = Math.max(1, vStall * 0.8);
-  const vEnd = Math.max(vStall * 4, 150); // Flight envelope sweep
+  const vEnd = Math.max(vStall * 4, 150); 
   const step = (vEnd - vStart) / 40;
 
   for (let v = vStart; v <= vEnd; v += step) {
@@ -269,20 +277,44 @@ function generatePowerCurveData(inputs: PowerCurveInputs): PowerCurvePoint[] {
     const cl = weightN / (q * wingAreaM2);
     const cd = cd0 + k * cl * cl;
     const drag = q * wingAreaM2 * cd;
-    const pr = (drag * v) / 1000; // Required Power in kW
+    const pr = (drag * v) / 1000; 
     
     let pa = 0;
     if (isProp) {
-      // Simplified prop power: P = T * V. But T drops with V.
-      // At low speed, T is high. At high speed, efficiency rolls off.
-      // Approximation: Constant Power Available for props.
       pa = (thrustN * vStall * 1.2) / 1000; 
     } else {
-      // Jets: Pa = T * V
       pa = (thrustN * v) / 1000;
     }
 
     data.push({ v, pa, pr });
+  }
+  return data;
+}
+
+function generateSizingDiagramData(inputs: { 
+  weightN: number; 
+  clTo: number; 
+  cd0: number; 
+  k: number; 
+  h: number; 
+  vCruise: number;
+  gammaReq: number; 
+  ldClimb: number;
+  runwayLength: number;
+}): SizingDiagramPoint[] {
+  const { clTo, cd0, k, h, vCruise, gammaReq, ldClimb, runwayLength } = inputs;
+  if (!clTo || !cd0 || !k || !vCruise || !ldClimb) return [];
+
+  const atm = calculateAtmosphere(h);
+  const sigma = atm.density / 1.225;
+  const q_cruise = 0.5 * atm.density * Math.pow(vCruise * 0.51444, 2); // knots to m/s
+  
+  const data: SizingDiagramPoint[] = [];
+  for (let ws = 100; ws <= 5000; ws += 200) {
+    const takeoffTW = (1.21 * ws) / (Math.max(0.1, sigma) * Math.max(0.1, clTo) * Math.max(10, runwayLength) * 0.5);
+    const cruiseTW = (q_cruise * cd0) / ws + (k / q_cruise) * ws;
+    const climbTW = Math.sin(gammaReq) + (1 / ldClimb);
+    data.push({ ws, takeoffTW, cruiseTW, climbTW });
   }
   return data;
 }
@@ -670,36 +702,40 @@ const ThrustLoadingCalculator = () => {
     }
   }, []);
   
-  // Save to localStorage
+  // Save to localStorage (Debounced)
   useEffect(() => {
-    const state = {
-      unitSystem,
-      calculatorMode,
-      aircraftPreset,
-      missionType,
-      weightMode,
-      massKg,
-      weightN,
-      thrustMode,
-      totalThrust,
-      perEngineThrust,
-      numEngines,
-      thrustUnit,
-      calculationMode,
-      targetTW,
-      engineType,
-      vClimb,
-      ldClimb,
-      gammaReqPercent,
-      cd0Input,
-      kInput,
-      vCruiseInput,
-      runwayLengthInput,
-      clToInput,
-      muRollInput,
-      hasTouchedRunway
-    };
-    localStorage.setItem("thrustLoadingCalc_state", JSON.stringify(state));
+    const timer = setTimeout(() => {
+      const state = {
+        unitSystem,
+        calculatorMode,
+        aircraftPreset,
+        missionType,
+        weightMode,
+        massKg,
+        weightN,
+        thrustMode,
+        totalThrust,
+        perEngineThrust,
+        numEngines,
+        thrustUnit,
+        calculationMode,
+        targetTW,
+        engineType,
+        vClimb,
+        ldClimb,
+        gammaReqPercent,
+        cd0Input,
+        kInput,
+        vCruiseInput,
+        runwayLengthInput,
+        clToInput,
+        muRollInput,
+        hasTouchedRunway
+      };
+      localStorage.setItem("thrustLoadingCalc_state", JSON.stringify(state));
+    }, 1000); // 1-second debounce
+
+    return () => clearTimeout(timer);
   }, [unitSystem, calculatorMode, aircraftPreset, missionType, weightMode, massKg, weightN, thrustMode, totalThrust, perEngineThrust, numEngines, thrustUnit, calculationMode, targetTW, engineType, vClimb, ldClimb, gammaReqPercent, cd0Input, kInput, vCruiseInput, runwayLengthInput, clToInput, muRollInput, hasTouchedRunway]);
   
   // Auto-fill runway length based on mission type
@@ -1018,6 +1054,17 @@ const ThrustLoadingCalculator = () => {
           k: kVal,
           rho: rhoActual,
           isProp: engineType === 'Prop'
+        }),
+        sizingData: generateSizingDiagramData({
+          weightN: finalWeightN,
+          clTo: parseFloat(clToInput) || 1.8,
+          cd0: cd0Val,
+          k: kVal,
+          h: parseFloat(altitudeInput),
+          vCruise: parseFloat(vCruiseInput),
+          gammaReq: (parseFloat(gammaReqPercent) / 100),
+          ldClimb: ldClimbVal,
+          runwayLength: parseFloat(runwayLengthInput)
         })
       };
       
@@ -2041,67 +2088,136 @@ const ThrustLoadingCalculator = () => {
                 )}
 
                 {/* Power Curves Card (Expert only) */}
-                {calculatorMode === 'Expert' && result.powerCurveData && result.powerCurveData.length > 0 && (
+                {calculatorMode === 'Expert' && (
                   <AeroCard
                     title="Power Curves"
                     description={`Power Available vs. Power Required (${result.isProp ? 'Constant Power Prop model' : 'Jet model'})`}
                     icon={Zap}
                   >
-                    <div className="h-64 mt-4">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={result.powerCurveData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                          <XAxis 
-                            dataKey="v" 
-                            label={{ value: 'Velocity (m/s)', position: 'insideBottom', offset: -5 }} 
-                            stroke="#94a3b8"
-                            fontSize={10}
-                          />
-                          <YAxis 
-                            label={{ value: 'Power (kW)', angle: -90, position: 'insideLeft', offset: 10 }}
-                            stroke="#94a3b8"
-                            fontSize={10}
-                          />
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}
-                            itemStyle={{ fontSize: '10px' }}
-                            labelStyle={{ fontSize: '10px', fontWeight: 'bold' }}
-                            formatter={(value: number) => [value.toFixed(1) + ' kW', '']}
-                            labelFormatter={(label: number) => `V: ${label.toFixed(1)} m/s`}
-                          />
-                          <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                          <Line 
-                            name="Power Available (Pa)" 
-                            type="monotone" 
-                            dataKey="pa" 
-                            stroke="#3b82f6" 
-                            strokeWidth={2} 
-                            dot={false}
-                            activeDot={{ r: 4 }}
-                          />
-                          <Line 
-                            name="Power Required (Pr)" 
-                            type="monotone" 
-                            dataKey="pr" 
-                            stroke="#ef4444" 
-                            strokeWidth={2} 
-                            dot={false}
-                            activeDot={{ r: 4 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="mt-4 space-y-2 text-xs text-muted-foreground/70">
-                      <p>
-                        The intersection(s) of <b>Pa</b> and <b>Pr</b> define the steady-state flight envelope. 
-                        The region where Pa &gt; Pr allows for climb or acceleration (Specific Excess Power).
-                      </p>
-                      <ul className="list-disc list-inside space-y-1">
-                        <li><b>Lowest intersection:</b> Stall speed or minimum steady flight speed.</li>
-                        <li><b>Highest intersection:</b> Maximum level flight speed (at sea level).</li>
-                        <li><b>Maximum gap (Pa - Pr):</b> Velocity for best rate of climb (V_y).</li>
-                      </ul>
-                    </div>
+                    {result.powerCurveData && result.powerCurveData.length > 0 ? (
+                      <div className="h-64 mt-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={result.powerCurveData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} strokeOpacity={0.2} />
+                            <XAxis 
+                              dataKey="v" 
+                              label={{ value: 'Velocity (m/s)', position: 'insideBottom', offset: -5, fontSize: 10, fill: '#94a3b8' }} 
+                              stroke="#94a3b8"
+                              fontSize={10}
+                            />
+                            <YAxis 
+                              label={{ value: 'Power (kW)', angle: -90, position: 'insideLeft', offset: 10, fontSize: 10, fill: '#94a3b8' }}
+                              stroke="#94a3b8"
+                              fontSize={10}
+                            />
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}
+                              itemStyle={{ fontSize: '10px' }}
+                              labelStyle={{ fontSize: '10px', fontWeight: 'bold' }}
+                              formatter={(value: number) => [value.toFixed(1) + ' kW', '']}
+                              labelFormatter={(label: number) => `V: ${label.toFixed(1)} m/s`}
+                            />
+                            <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                            <Line 
+                              name="Power Available (Pa)" 
+                              type="monotone" 
+                              dataKey="pa" 
+                              stroke="#3b82f6" 
+                              strokeWidth={2} 
+                              dot={false}
+                              activeDot={{ r: 4 }}
+                            />
+                            <Line 
+                              name="Power Required (Pr)" 
+                              type="monotone" 
+                              dataKey="pr" 
+                              stroke="#ef4444" 
+                              strokeWidth={2} 
+                              dot={false}
+                              activeDot={{ r: 4 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                        <div className="mt-4 space-y-2 text-xs text-muted-foreground/70">
+                          <p>
+                            The intersection(s) of <b>Pa</b> and <b>Pr</b> define the steady-state flight envelope. 
+                            The region where Pa &gt; Pr allows for climb or acceleration (Specific Excess Power).
+                          </p>
+                          <ul className="list-disc list-inside space-y-1">
+                            <li><b>Lowest intersection:</b> Stall speed or minimum steady flight speed.</li>
+                            <li><b>Highest intersection:</b> Maximum level flight speed.</li>
+                            <li><b>Maximum gap (Pa - Pr):</b> Velocity for best rate of climb (V_y).</li>
+                          </ul>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-64 flex flex-col items-center justify-center text-muted-foreground bg-muted/20 rounded-lg border border-dashed border-border/50 mt-4">
+                        <Zap className="w-8 h-8 mb-2 opacity-20" />
+                        <p className="text-xs">Enter MTOW, Wing Area, and Cd0 to see Power Curves</p>
+                      </div>
+                    )}
+                  </AeroCard>
+                )}
+
+                {/* Sizing Diagram Card (Expert only) */}
+                {calculatorMode === 'Expert' && (
+                  <AeroCard
+                    title="Master Sizing Diagram"
+                    description="Thrust-to-Weight (T/W) vs. Wing Loading (W/S)"
+                    icon={TrendingUp}
+                  >
+                    {result.sizingData && result.sizingData.length > 0 ? (
+                      <div className="h-72 mt-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={result.sizingData}>
+                            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                            <XAxis 
+                              dataKey="ws" 
+                              label={{ value: 'Wing Loading (N/m²)', position: 'insideBottom', offset: -5, fontSize: 10, fill: '#94a3b8' }} 
+                              stroke="#94a3b8"
+                              fontSize={10}
+                            />
+                            <YAxis 
+                              label={{ value: 'T/W', angle: -90, position: 'insideLeft', offset: 10, fontSize: 10, fill: '#94a3b8' }}
+                              stroke="#94a3b8"
+                              fontSize={10}
+                            />
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}
+                              itemStyle={{ fontSize: '10px' }}
+                              labelStyle={{ fontSize: '10px', fontWeight: 'bold' }}
+                              formatter={(value: number) => [value.toFixed(3), '']}
+                            />
+                            <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                            <Line name="Takeoff Constraint" dataKey="takeoffTW" stroke="#10b981" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                            <Line name="Cruise Constraint" dataKey="cruiseTW" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                            <Line name="Climb Constraint" dataKey="climbTW" stroke="#ef4444" strokeWidth={2} dot={false} />
+                            
+                            {/* Current Design Point Mark */}
+                            {(() => {
+                              const currentWS = result.weightN / (unitSystem === 'SI' ? parseFloat(wingAreaInput) : parseFloat(wingAreaInput) * 0.092903);
+                              if (currentWS > 0 && currentWS < 5000) {
+                                return (
+                                  <ReferenceLine 
+                                    x={currentWS} 
+                                    stroke="hsl(var(--primary))" 
+                                    label={{ value: 'Current Design', position: 'top', fill: 'hsl(var(--primary))', fontSize: 10 }} 
+                                  />
+                                );
+                              }
+                            })()}
+                          </LineChart>
+                        </ResponsiveContainer>
+                        <div className="mt-4 text-[10px] text-muted-foreground/60 leading-relaxed italic">
+                          * The valid design region is ABOVE all constraint lines. The optimal point is typically the lowest T/W that meets all requirements at a given Wing Loading.
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-64 flex flex-col items-center justify-center text-muted-foreground bg-muted/20 rounded-lg border border-dashed border-border/50 mt-4">
+                        <TrendingUp className="w-8 h-8 mb-2 opacity-20" />
+                        <p className="text-xs">Enter L/D, Cd0, CL_TO, and Cruise Speed to see Sizing Diagram</p>
+                      </div>
+                    )}
                   </AeroCard>
                 )}
                 
