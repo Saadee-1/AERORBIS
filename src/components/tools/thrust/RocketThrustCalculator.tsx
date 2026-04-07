@@ -65,6 +65,17 @@ interface CalculationStep {
   description: string;
 }
 
+interface ChartPoint {
+  altitude?: number;
+  thrust?: number;
+  pressure?: number;
+  momentumThrust?: number;
+  pressureThrust?: number;
+  ambientPressure?: number;
+  exitPressure?: number;
+  ratio?: number;
+}
+
 interface SavedPreset {
   name: string;
   inputs: {
@@ -154,7 +165,7 @@ const RocketThrustCalculator = () => {
   });
 
   const [result, setResult] = useState<ThrustResult | null>(null);
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [chartMode, setChartMode] = useState<"pressure" | "altitude" | "nozzle">("altitude");
   const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -281,7 +292,7 @@ const RocketThrustCalculator = () => {
     } else {
       setChartData([]);
     }
-  }, [unitSystem, customFactors, customUnitNames]);
+  }, [unitSystem, customFactors, customUnitNames, convertFromSI]);
 
   useEffect(() => {
     if (result) {
