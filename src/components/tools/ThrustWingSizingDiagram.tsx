@@ -62,6 +62,8 @@ interface SizingPoint {
   twClimb?: number;  // required T/W for climb
   twCruise?: number; // required T/W for cruise
   twTakeoff?: number; // required T/W for takeoff
+  twCeiling?: number; // required T/W for service ceiling
+  twTurn?: number;    // required T/W for sustained turn
   twRequired?: number; // combined required T/W from all applicable constraints at this W/S
 }
 
@@ -88,6 +90,8 @@ interface ThrustWingSizingDiagramProps {
   takeoffRunwayMeters?: number; // Required takeoff distance in meters
   clTo?: number; // Takeoff lift coefficient
   muRoll?: number; // Rolling friction coefficient
+  deltaISA?: number; 
+  nTurn?: number;
   
   // Calculator mode
   calculatorMode: 'Beginner' | 'University' | 'Expert';
@@ -144,6 +148,8 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
   takeoffRunwayMeters,
   clTo,
   muRoll,
+  deltaISA,
+  nTurn,
   calculatorMode,
 }) => {
   const graphRef = useRef<HTMLDivElement>(null);
@@ -268,16 +274,11 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
       let twReq = -Infinity;
       
       // Only consider valid constraints
-      if (typeof point.twClimb === 'number' && Number.isFinite(point.twClimb) && point.twClimb > 0) {
-        twReq = Math.max(twReq, point.twClimb);
-      }
-      
-      if (typeof point.twCruise === 'number' && Number.isFinite(point.twCruise) && point.twCruise > 0) {
-        twReq = Math.max(twReq, point.twCruise);
-      }
-      
-      if (typeof point.twTakeoff === 'number' && Number.isFinite(point.twTakeoff) && point.twTakeoff > 0) {
-        twReq = Math.max(twReq, point.twTakeoff);
+      const constraints = [point.twClimb, point.twCruise, point.twTakeoff, point.twCeiling, point.twTurn];
+      for (const c of constraints) {
+        if (typeof c === 'number' && Number.isFinite(c) && c > 0) {
+          twReq = Math.max(twReq, c);
+        }
       }
       
       if (twReq > 0 && Number.isFinite(twReq)) {
@@ -572,6 +573,30 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
                 isAnimationActive={false}
               />
             )}
+
+            {/* Service Ceiling constraint curve */}
+            <Line
+              type="monotone"
+              dataKey="twCeiling"
+              stroke="#a855f7"
+              strokeWidth={2}
+              strokeDasharray="3 3"
+              dot={false}
+              name="Service Ceiling (100fpm)"
+              isAnimationActive={false}
+            />
+
+            {/* Sustained Turn constraint curve */}
+            <Line
+              type="monotone"
+              dataKey="twTurn"
+              stroke="#14b8a6"
+              strokeWidth={2}
+              strokeDasharray="5 2"
+              dot={false}
+              name="Sustained Turn (2.0g)"
+              isAnimationActive={false}
+            />
             
             {/* Combined required T/W envelope */}
             <Line
@@ -647,6 +672,30 @@ export const ThrustWingSizingDiagram: React.FC<ThrustWingSizingDiagramProps> = (
               </span>
             </div>
           )}
+          <div className="flex items-center gap-2">
+            <div
+              className="w-4 h-4 border-t-2"
+              style={{
+                borderColor: '#a855f7',
+                borderStyle: 'dashed',
+              }}
+            />
+            <span className="text-gray-300">
+              Service Ceiling
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className="w-4 h-4 border-t-2"
+              style={{
+                borderColor: '#14b8a6',
+                borderStyle: 'dashed',
+              }}
+            />
+            <span className="text-gray-300">
+              Sustained Turn ({nTurn || 2.0}g)
+            </span>
+          </div>
           {hasDesignPoint && (
             <div className="flex items-center gap-2">
               <div

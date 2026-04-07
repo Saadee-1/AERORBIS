@@ -477,27 +477,27 @@ const RocketThrustCalculator = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 {veMode === "fromIsp" ? (
-                  <AeroFormField label={`Isp (${getUnit("isp")})`}>
+                  <AeroFormField label={`Specific Impulse (Isp, ${getUnit("isp")})`}>
                     <Input value={inputs.isp} onChange={(e) => handleInputChange("isp", e.target.value)} type="number" placeholder="e.g. 311" />
                   </AeroFormField>
                 ) : (
-                  <AeroFormField label={`Ve (${getUnit("exhaustVelocity")})`}>
+                  <AeroFormField label={`Exhaust Velocity (Ve, ${getUnit("exhaustVelocity")})`}>
                     <Input value={inputs.exhaustVelocity} onChange={(e) => handleInputChange("exhaustVelocity", e.target.value)} type="number" placeholder="Blank to solve" />
                   </AeroFormField>
                 )}
-                <AeroFormField label={`ṁ (${getUnit("massFlowRate")})`}>
+                <AeroFormField label={`Mass Flow Rate (ṁ, ${getUnit("massFlowRate")})`}>
                   <Input value={inputs.massFlowRate} onChange={(e) => handleInputChange("massFlowRate", e.target.value)} type="number" />
                 </AeroFormField>
-                <AeroFormField label={`Thrust (${getUnit("thrust")})`}>
+                <AeroFormField label={`Total Thrust (${getUnit("thrust")})`}>
                   <Input value={inputs.thrust} onChange={(e) => handleInputChange("thrust", e.target.value)} type="number" />
                 </AeroFormField>
-                <AeroFormField label={`Ae (${getUnit("exitArea")})`}>
+                <AeroFormField label={`Exit Area (Ae, ${getUnit("exitArea")})`}>
                   <Input value={inputs.exitArea} onChange={(e) => handleInputChange("exitArea", e.target.value)} type="number" />
                 </AeroFormField>
-                <AeroFormField label={`Pe (${getUnit("exitPressure")})`}>
+                <AeroFormField label={`Exit Pressure (Pe, ${getUnit("exitPressure")})`}>
                   <Input value={inputs.exitPressure} onChange={(e) => handleInputChange("exitPressure", e.target.value)} type="number" />
                 </AeroFormField>
-                <AeroFormField label={`Pa (${getUnit("ambientPressure")})`}>
+                <AeroFormField label={`Ambient Pressure (Pa, ${getUnit("ambientPressure")})`}>
                   <Input value={inputs.ambientPressure} onChange={(e) => handleInputChange("ambientPressure", e.target.value)} type="number" />
                   {unitSystem === "SI" && <InlineInterlinkHint fieldKey={FIELD_KEYS.pressurePa} currentValue={inputs.ambientPressure} onImport={(v) => handleInputChange("ambientPressure", String(v))} />}
                 </AeroFormField>
@@ -507,8 +507,8 @@ const RocketThrustCalculator = () => {
                 <AccordionItem value="advanced" className="border-border">
                   <AccordionTrigger className="text-xs">Advanced (Cf calculation)</AccordionTrigger>
                   <AccordionContent className="grid grid-cols-2 gap-4">
-                    <AeroFormField label={`Pc (${getUnit("exitPressure")})`}><Input value={inputs.chamberPressure} onChange={(e) => handleInputChange("chamberPressure", e.target.value)} type="number" /></AeroFormField>
-                    <AeroFormField label={`At (${getUnit("exitArea")})`}><Input value={inputs.throatArea} onChange={(e) => handleInputChange("throatArea", e.target.value)} type="number" /></AeroFormField>
+                    <AeroFormField label={`Chamber Pressure (Pc, ${getUnit("exitPressure")})`}><Input value={inputs.chamberPressure} onChange={(e) => handleInputChange("chamberPressure", e.target.value)} type="number" /></AeroFormField>
+                    <AeroFormField label={`Throat Area (At, ${getUnit("exitArea")})`}><Input value={inputs.throatArea} onChange={(e) => handleInputChange("throatArea", e.target.value)} type="number" /></AeroFormField>
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
