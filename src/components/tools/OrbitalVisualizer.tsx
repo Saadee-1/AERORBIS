@@ -1686,7 +1686,7 @@ const OrbitalVisualizer = () => {
                     </div>
                     <p className="text-sm text-foreground/90 leading-relaxed">
                       Your satellite circles Earth once every <strong>{format("time", orbitResult.orbitalPeriod)}</strong>.
-                      It rises as high as <strong>{format("dist", orbitResult.apoapsisAltitude)}</strong> and dips as low as <strong>{format("dist", orbitResult.periapsisAltitude)}</strong> above the surface,
+                      It rises as high as <strong>{format("dist", orbitResult.apoapsisAltitude)}</strong> and dips as low as <strong>{inputs.periapsisAltitude} {getUnit("dist")}</strong> above the surface,
                       moving fastest ({format("vel", orbitResult.periapsisVelocity)}) at its lowest point and slowest ({format("vel", orbitResult.apoapsisVelocity)}) at its highest.
                       The orbit is {orbitResult.eccentricity < 0.01 ? "almost a perfect circle" : "noticeably stretched (elliptical)"}.
                     </p>
