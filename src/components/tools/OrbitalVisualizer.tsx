@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe } from "lucide-react";
+import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe, GraduationCap } from "lucide-react";
 import { OrbitalGroundTrack } from "@/components/tools/OrbitalGroundTrack";
 import { OrbitalAdvancedPanel } from "@/components/tools/OrbitalAdvancedPanel";
 import * as THREE from "three";
@@ -46,6 +46,7 @@ import { spacingVertical } from "@/styles/spacing";
 import { useToast } from "@/hooks/use-toast";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
+type CalculatorMode = "Beginner" | "University" | "Expert";
 
 // --- Constants ---
 const GM_EARTH = 398600.4418;
@@ -412,6 +413,12 @@ const OrbitalVisualizer = () => {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
     return (localStorage.getItem("orbitalUnitSystem") as UnitSystem) || "SI";
   });
+  const [calculatorMode, setCalculatorMode] = useState<CalculatorMode>(() => {
+    return (localStorage.getItem("aerorbis_orbital_mode") as CalculatorMode) || "University";
+  });
+  useEffect(() => {
+    localStorage.setItem("aerorbis_orbital_mode", calculatorMode);
+  }, [calculatorMode]);
   const [customOrbits, setCustomOrbits] = useState<SavedOrbit[]>([]);
   const [currentTrueAnomaly, setCurrentTrueAnomaly] = useState<number>(0);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -1370,23 +1377,27 @@ const OrbitalVisualizer = () => {
                 <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
-            <AeroButton
-              type="button"
-              onClick={() => setIsSaveDialogOpen(true)}
-              variant="outline"
-              icon={Save}
-            >
-              Save Custom Orbit
-            </AeroButton>
-            <AeroButton
-              type="button"
-              onClick={() => setIsLoadDialogOpen(true)}
-              variant="outline"
-              icon={FolderOpen}
-              disabled={customOrbits.length === 0}
-            >
-              Load ({customOrbits.length})
-            </AeroButton>
+            {calculatorMode !== "Beginner" && (
+              <>
+                <AeroButton
+                  type="button"
+                  onClick={() => setIsSaveDialogOpen(true)}
+                  variant="outline"
+                  icon={Save}
+                >
+                  Save Custom Orbit
+                </AeroButton>
+                <AeroButton
+                  type="button"
+                  onClick={() => setIsLoadDialogOpen(true)}
+                  variant="outline"
+                  icon={FolderOpen}
+                  disabled={customOrbits.length === 0}
+                >
+                  Load ({customOrbits.length})
+                </AeroButton>
+              </>
+            )}
           </ToolActions>
         }
       />
@@ -1429,7 +1440,7 @@ const OrbitalVisualizer = () => {
       </AeroCard>
 
       {/* Ground Track */}
-      {orbitResult && (
+      {orbitResult && calculatorMode !== "Beginner" && (
         <AeroCard title="Orbit Ground Track" icon={Globe} className="mb-6">
           <OrbitalGroundTrack
             semiMajorAxis={orbitResult.semiMajorAxis}
@@ -1459,8 +1470,8 @@ const OrbitalVisualizer = () => {
         </AeroCard>
       )}
 
-      {/* Advanced Orbital Analysis */}
-      {orbitResult && (
+      {/* Advanced Orbital Analysis - Expert mode only */}
+      {orbitResult && calculatorMode === "Expert" && (
         <OrbitalAdvancedPanel
           semiMajorAxis={orbitResult.semiMajorAxis}
           eccentricity={orbitResult.eccentricity}
@@ -1473,25 +1484,46 @@ const OrbitalVisualizer = () => {
         {/* Left Column - Inputs */}
         <div>
           <div className={spacingVertical.L}>
-            {/* Preset Configurations */}
-            <AeroCard title="Quick Load Preset Orbits" icon={Rocket}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3">
-                {(Object.keys(presets) as Array<keyof typeof presets>).map((presetKey) => (
-                  <AeroButton
-                    key={presetKey}
-                    type="button"
-                    onClick={() => loadPreset(presetKey)}
-                    variant="outline"
-                    icon={Rocket}
-                  >
-                    {presetKey}
-                  </AeroButton>
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                Click any preset to instantly load real-world satellite parameters
+            {/* Calculator Mode Selector */}
+            <AeroCard title="Calculator Mode" icon={GraduationCap} description="Choose your level of detail">
+              <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
+                <SelectTrigger className="bg-muted/50 border-border text-foreground">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Beginner">🎓 Beginner — Simple inputs, plain-English results</SelectItem>
+                  <SelectItem value="University">📐 University — Full Keplerian + Hohmann + Ground Track</SelectItem>
+                  <SelectItem value="Expert">🚀 Expert — Adds J2, Lambert, interplanetary, low-thrust</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-3">
+                {calculatorMode === "Beginner" && "Perfect for school and freshman students learning orbital basics."}
+                {calculatorMode === "University" && "Standard Keplerian elements with maneuver planning and ground track."}
+                {calculatorMode === "Expert" && "Full research toolkit: perturbations, Lambert solver, interplanetary trajectories."}
               </p>
             </AeroCard>
+
+            {/* Preset Configurations */}
+            {calculatorMode !== "Beginner" && (
+              <AeroCard title="Quick Load Preset Orbits" icon={Rocket}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3">
+                  {(Object.keys(presets) as Array<keyof typeof presets>).map((presetKey) => (
+                    <AeroButton
+                      key={presetKey}
+                      type="button"
+                      onClick={() => loadPreset(presetKey)}
+                      variant="outline"
+                      icon={Rocket}
+                    >
+                      {presetKey}
+                    </AeroButton>
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Click any preset to instantly load real-world satellite parameters
+                </p>
+              </AeroCard>
+            )}
 
             {/* Custom Units Card */}
             {unitSystem === "Custom" && (
@@ -1543,53 +1575,61 @@ const OrbitalVisualizer = () => {
                 <AeroFormField label={`Inclination (${getUnit("incl")})`}>
                   <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
-                <AeroFormField label={`RAAN Ω (${getUnit("incl")})`}>
-                  <Input id="raan" type="number" step="0.1" value={inputs.raan} onChange={(e) => setInputs({ ...inputs, raan: e.target.value })} className="bg-muted/50" placeholder="0-360" />
-                </AeroFormField>
-                <AeroFormField label={`Arg. of Periapsis ω (${getUnit("incl")})`}>
-                  <Input id="argOfPeriapsis" type="number" step="0.1" value={inputs.argOfPeriapsis} onChange={(e) => setInputs({ ...inputs, argOfPeriapsis: e.target.value })} className="bg-muted/50" placeholder="0-360" />
-                </AeroFormField>
-                <AeroFormField label={`True Anomaly ν (${getUnit("incl")})`}>
-                  <Input id="trueAnomaly" type="number" step="1" value={inputs.trueAnomaly} onChange={(e) => setInputs({ ...inputs, trueAnomaly: e.target.value })} className="bg-muted/50" placeholder="0-360" />
-                </AeroFormField>
-                <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
-                  <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-muted/50" />
-                </AeroFormField>
+                {calculatorMode !== "Beginner" && (
+                  <>
+                    <AeroFormField label={`RAAN Ω (${getUnit("incl")})`}>
+                      <Input id="raan" type="number" step="0.1" value={inputs.raan} onChange={(e) => setInputs({ ...inputs, raan: e.target.value })} className="bg-muted/50" placeholder="0-360" />
+                    </AeroFormField>
+                    <AeroFormField label={`Arg. of Periapsis ω (${getUnit("incl")})`}>
+                      <Input id="argOfPeriapsis" type="number" step="0.1" value={inputs.argOfPeriapsis} onChange={(e) => setInputs({ ...inputs, argOfPeriapsis: e.target.value })} className="bg-muted/50" placeholder="0-360" />
+                    </AeroFormField>
+                    <AeroFormField label={`True Anomaly ν (${getUnit("incl")})`}>
+                      <Input id="trueAnomaly" type="number" step="1" value={inputs.trueAnomaly} onChange={(e) => setInputs({ ...inputs, trueAnomaly: e.target.value })} className="bg-muted/50" placeholder="0-360" />
+                    </AeroFormField>
+                    <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
+                      <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-muted/50" />
+                    </AeroFormField>
+                  </>
+                )}
               </div>
-              <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
-                <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-muted/50" />
-              </AeroFormField>
+              {calculatorMode !== "Beginner" && (
+                <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
+                  <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-muted/50" />
+                </AeroFormField>
+              )}
               <AeroButton type="button" onClick={() => runCalculation(() => calculateOrbit(inputs))} variant="primary" icon={Orbit} className="w-full">
                 Calculate Orbit
               </AeroButton>
             </AeroCard>
 
-            {/* --- Part 2: Maneuver Calculator --- */}
-            <AeroCard title="Part 2: Hohmann Transfer" icon={Move}>
-              <AeroFormField label={`Target Circular Altitude (${getUnit("dist")})`}>
-                <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-muted/50" placeholder="e.g., 800" />
-              </AeroFormField>
-              <AeroButton type="button" onClick={() => runCalculation(calculateManeuver)} variant="primary" icon={Move} className="w-full" disabled={!orbitResult}>
-                Calculate Maneuver
-              </AeroButton>
-              {maneuverResult && (
-                <div className="space-y-2 pt-2">
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <div className="text-sm text-primary">First Burn (Δv₁)</div>
-                    <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v1)}</div>
+            {/* --- Part 2: Maneuver Calculator (hidden in Beginner) --- */}
+            {calculatorMode !== "Beginner" && (
+              <AeroCard title="Part 2: Hohmann Transfer" icon={Move}>
+                <AeroFormField label={`Target Circular Altitude (${getUnit("dist")})`}>
+                  <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-muted/50" placeholder="e.g., 800" />
+                </AeroFormField>
+                <AeroButton type="button" onClick={() => runCalculation(calculateManeuver)} variant="primary" icon={Move} className="w-full" disabled={!orbitResult}>
+                  Calculate Maneuver
+                </AeroButton>
+                {maneuverResult && (
+                  <div className="space-y-2 pt-2">
+                    <div className="p-3 rounded-lg bg-muted/50">
+                      <div className="text-sm text-primary">First Burn (Δv₁)</div>
+                      <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v1)}</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/50">
+                      <div className="text-sm text-primary">Second Burn (Δv₂)</div>
+                      <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v2)}</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                      <div className="text-sm text-primary">Total Maneuver Δv</div>
+                      <div className="text-2xl font-bold text-primary">{format("vel", maneuverResult.total_dv)}</div>
+                      <div className="text-sm text-muted-foreground mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
+                    </div>
                   </div>
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <div className="text-sm text-primary">Second Burn (Δv₂)</div>
-                    <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v2)}</div>
-                  </div>
-                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
-                    <div className="text-sm text-primary">Total Maneuver Δv</div>
-                    <div className="text-2xl font-bold text-primary">{format("vel", maneuverResult.total_dv)}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
-                  </div>
-                </div>
-              )}
-            </AeroCard>
+                )}
+              </AeroCard>
+            )}
           </div>
         </div>
 
@@ -1638,6 +1678,20 @@ const OrbitalVisualizer = () => {
                     <div className="text-2xl font-bold text-foreground">{format("vel", orbitResult.periapsisVelocity)}</div>
                   </div>
                 </div>
+
+                {calculatorMode === "Beginner" && (
+                  <div className="mb-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                    <div className="flex items-center gap-2 text-primary text-sm font-semibold mb-2">
+                      <Info className="w-4 h-4" /> In Plain English
+                    </div>
+                    <p className="text-sm text-foreground/90 leading-relaxed">
+                      Your satellite circles Earth once every <strong>{format("time", orbitResult.orbitalPeriod)}</strong>.
+                      It rises as high as <strong>{format("dist", orbitResult.apoapsisAltitude)}</strong> and dips as low as <strong>{inputs.periapsisAltitude} {getUnit("dist")}</strong> above the surface,
+                      moving fastest ({format("vel", orbitResult.periapsisVelocity)}) at its lowest point and slowest ({format("vel", orbitResult.apoapsisVelocity)}) at its highest.
+                      The orbit is {orbitResult.eccentricity < 0.01 ? "almost a perfect circle" : "noticeably stretched (elliptical)"}.
+                    </p>
+                  </div>
+                )}
 
                 <Accordion type="single" collapsible className="bg-muted/50 rounded-lg border border-border">
                   <AccordionItem value="explanation" className="border-none">
