@@ -1484,25 +1484,46 @@ const OrbitalVisualizer = () => {
         {/* Left Column - Inputs */}
         <div>
           <div className={spacingVertical.L}>
-            {/* Preset Configurations */}
-            <AeroCard title="Quick Load Preset Orbits" icon={Rocket}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3">
-                {(Object.keys(presets) as Array<keyof typeof presets>).map((presetKey) => (
-                  <AeroButton
-                    key={presetKey}
-                    type="button"
-                    onClick={() => loadPreset(presetKey)}
-                    variant="outline"
-                    icon={Rocket}
-                  >
-                    {presetKey}
-                  </AeroButton>
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                Click any preset to instantly load real-world satellite parameters
+            {/* Calculator Mode Selector */}
+            <AeroCard title="Calculator Mode" icon={GraduationCap} description="Choose your level of detail">
+              <Select value={calculatorMode} onValueChange={(v) => setCalculatorMode(v as CalculatorMode)}>
+                <SelectTrigger className="bg-muted/50 border-border text-foreground">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Beginner">🎓 Beginner — Simple inputs, plain-English results</SelectItem>
+                  <SelectItem value="University">📐 University — Full Keplerian + Hohmann + Ground Track</SelectItem>
+                  <SelectItem value="Expert">🚀 Expert — Adds J2, Lambert, interplanetary, low-thrust</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-3">
+                {calculatorMode === "Beginner" && "Perfect for school and freshman students learning orbital basics."}
+                {calculatorMode === "University" && "Standard Keplerian elements with maneuver planning and ground track."}
+                {calculatorMode === "Expert" && "Full research toolkit: perturbations, Lambert solver, interplanetary trajectories."}
               </p>
             </AeroCard>
+
+            {/* Preset Configurations */}
+            {calculatorMode !== "Beginner" && (
+              <AeroCard title="Quick Load Preset Orbits" icon={Rocket}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3">
+                  {(Object.keys(presets) as Array<keyof typeof presets>).map((presetKey) => (
+                    <AeroButton
+                      key={presetKey}
+                      type="button"
+                      onClick={() => loadPreset(presetKey)}
+                      variant="outline"
+                      icon={Rocket}
+                    >
+                      {presetKey}
+                    </AeroButton>
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Click any preset to instantly load real-world satellite parameters
+                </p>
+              </AeroCard>
+            )}
 
             {/* Custom Units Card */}
             {unitSystem === "Custom" && (
