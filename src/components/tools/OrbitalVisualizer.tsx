@@ -1454,6 +1454,7 @@ const OrbitalVisualizer = () => {
             gm={parseFloat(inputs.gm)}
             numOrbits={3}
             currentTrueAnomaly={currentTrueAnomaly}
+            selectedLaunchSiteName={selectedLaunchSite || undefined}
             onLaunchSiteClick={(params, siteName) => {
               const newInputs: OrbitalInputs = {
                 ...inputs,
