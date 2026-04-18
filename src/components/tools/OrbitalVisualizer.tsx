@@ -1575,22 +1575,28 @@ const OrbitalVisualizer = () => {
                 <AeroFormField label={`Inclination (${getUnit("incl")})`}>
                   <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
-                <AeroFormField label={`RAAN Ω (${getUnit("incl")})`}>
-                  <Input id="raan" type="number" step="0.1" value={inputs.raan} onChange={(e) => setInputs({ ...inputs, raan: e.target.value })} className="bg-muted/50" placeholder="0-360" />
-                </AeroFormField>
-                <AeroFormField label={`Arg. of Periapsis ω (${getUnit("incl")})`}>
-                  <Input id="argOfPeriapsis" type="number" step="0.1" value={inputs.argOfPeriapsis} onChange={(e) => setInputs({ ...inputs, argOfPeriapsis: e.target.value })} className="bg-muted/50" placeholder="0-360" />
-                </AeroFormField>
-                <AeroFormField label={`True Anomaly ν (${getUnit("incl")})`}>
-                  <Input id="trueAnomaly" type="number" step="1" value={inputs.trueAnomaly} onChange={(e) => setInputs({ ...inputs, trueAnomaly: e.target.value })} className="bg-muted/50" placeholder="0-360" />
-                </AeroFormField>
-                <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
-                  <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-muted/50" />
-                </AeroFormField>
+                {calculatorMode !== "Beginner" && (
+                  <>
+                    <AeroFormField label={`RAAN Ω (${getUnit("incl")})`}>
+                      <Input id="raan" type="number" step="0.1" value={inputs.raan} onChange={(e) => setInputs({ ...inputs, raan: e.target.value })} className="bg-muted/50" placeholder="0-360" />
+                    </AeroFormField>
+                    <AeroFormField label={`Arg. of Periapsis ω (${getUnit("incl")})`}>
+                      <Input id="argOfPeriapsis" type="number" step="0.1" value={inputs.argOfPeriapsis} onChange={(e) => setInputs({ ...inputs, argOfPeriapsis: e.target.value })} className="bg-muted/50" placeholder="0-360" />
+                    </AeroFormField>
+                    <AeroFormField label={`True Anomaly ν (${getUnit("incl")})`}>
+                      <Input id="trueAnomaly" type="number" step="1" value={inputs.trueAnomaly} onChange={(e) => setInputs({ ...inputs, trueAnomaly: e.target.value })} className="bg-muted/50" placeholder="0-360" />
+                    </AeroFormField>
+                    <AeroFormField label={`Body Radius (${getUnit("dist")})`}>
+                      <Input id="centralBodyRadius" type="number" value={inputs.centralBodyRadius} onChange={(e) => setInputs({ ...inputs, centralBodyRadius: e.target.value })} className="bg-muted/50" />
+                    </AeroFormField>
+                  </>
+                )}
               </div>
-              <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
-                <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-muted/50" />
-              </AeroFormField>
+              {calculatorMode !== "Beginner" && (
+                <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
+                  <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-muted/50" />
+                </AeroFormField>
+              )}
               <AeroButton type="button" onClick={() => runCalculation(() => calculateOrbit(inputs))} variant="primary" icon={Orbit} className="w-full">
                 Calculate Orbit
               </AeroButton>
