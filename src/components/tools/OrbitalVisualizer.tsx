@@ -46,6 +46,7 @@ import { spacingVertical } from "@/styles/spacing";
 import { useToast } from "@/hooks/use-toast";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
+type CalculatorMode = "Beginner" | "University" | "Expert";
 
 // --- Constants ---
 const GM_EARTH = 398600.4418;
