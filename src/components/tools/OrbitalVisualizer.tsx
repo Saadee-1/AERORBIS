@@ -1602,32 +1602,34 @@ const OrbitalVisualizer = () => {
               </AeroButton>
             </AeroCard>
 
-            {/* --- Part 2: Maneuver Calculator --- */}
-            <AeroCard title="Part 2: Hohmann Transfer" icon={Move}>
-              <AeroFormField label={`Target Circular Altitude (${getUnit("dist")})`}>
-                <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-muted/50" placeholder="e.g., 800" />
-              </AeroFormField>
-              <AeroButton type="button" onClick={() => runCalculation(calculateManeuver)} variant="primary" icon={Move} className="w-full" disabled={!orbitResult}>
-                Calculate Maneuver
-              </AeroButton>
-              {maneuverResult && (
-                <div className="space-y-2 pt-2">
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <div className="text-sm text-primary">First Burn (Δv₁)</div>
-                    <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v1)}</div>
+            {/* --- Part 2: Maneuver Calculator (hidden in Beginner) --- */}
+            {calculatorMode !== "Beginner" && (
+              <AeroCard title="Part 2: Hohmann Transfer" icon={Move}>
+                <AeroFormField label={`Target Circular Altitude (${getUnit("dist")})`}>
+                  <Input id="targetAltitude" type="number" value={inputs.targetAltitude} onChange={(e) => setInputs({ ...inputs, targetAltitude: e.target.value })} className="bg-muted/50" placeholder="e.g., 800" />
+                </AeroFormField>
+                <AeroButton type="button" onClick={() => runCalculation(calculateManeuver)} variant="primary" icon={Move} className="w-full" disabled={!orbitResult}>
+                  Calculate Maneuver
+                </AeroButton>
+                {maneuverResult && (
+                  <div className="space-y-2 pt-2">
+                    <div className="p-3 rounded-lg bg-muted/50">
+                      <div className="text-sm text-primary">First Burn (Δv₁)</div>
+                      <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v1)}</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/50">
+                      <div className="text-sm text-primary">Second Burn (Δv₂)</div>
+                      <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v2)}</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                      <div className="text-sm text-primary">Total Maneuver Δv</div>
+                      <div className="text-2xl font-bold text-primary">{format("vel", maneuverResult.total_dv)}</div>
+                      <div className="text-sm text-muted-foreground mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
+                    </div>
                   </div>
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <div className="text-sm text-primary">Second Burn (Δv₂)</div>
-                    <div className="text-xl font-bold text-foreground">{format("vel", maneuverResult.delta_v2)}</div>
-                  </div>
-                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
-                    <div className="text-sm text-primary">Total Maneuver Δv</div>
-                    <div className="text-2xl font-bold text-primary">{format("vel", maneuverResult.total_dv)}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Transfer Time: {format("time", maneuverResult.transferTime)}</div>
-                  </div>
-                </div>
-              )}
-            </AeroCard>
+                )}
+              </AeroCard>
+            )}
           </div>
         </div>
 
