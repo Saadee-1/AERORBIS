@@ -1566,16 +1566,134 @@ const OrbitalVisualizer = () => {
               </AeroCard>
             )}
 
+            {/* --- Launch Site Intelligence (University + Expert) --- */}
+            {calculatorMode !== "Beginner" && (() => {
+              const targetIncl = parseFloat(inputs.inclination) || 0;
+              const ranked = rankLaunchSites(LAUNCH_SITES, targetIncl);
+              return (
+                <AeroCard
+                  title="Launch Site (Efficiency Ranked)"
+                  icon={MapPin}
+                  description={`Sorted by Δv efficiency for i = ${targetIncl}° — best on top`}
+                >
+                  <Select
+                    value={selectedLaunchSite}
+                    onValueChange={(v) => {
+                      setSelectedLaunchSite(v);
+                      const site = LAUNCH_SITES.find((s) => s.name === v);
+                      if (site) {
+                        toast({
+                          title: `${site.name} selected`,
+                          description: `Min reachable inclination ≈ ${Math.abs(site.lat).toFixed(1)}° (site latitude)`,
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-muted/50 border-border text-foreground">
+                      <SelectValue placeholder="Choose a launch site…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ranked.map((r) => (
+                        <SelectItem key={r.name} value={r.name}>
+                          <span className="font-mono text-primary mr-2">{starsLabel(r.stars)}</span>
+                          {r.name}, {r.country}
+                          <span className="text-muted-foreground ml-2 text-xs">
+                            {r.netScoreMs >= 0 ? `+${Math.round(r.netScoreMs)}` : Math.round(r.netScoreMs)} m/s
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedLaunchSite && (() => {
+                    const r = ranked.find((x) => x.name === selectedLaunchSite);
+                    if (!r) return null;
+                    return (
+                      <div className="mt-3 p-3 rounded-lg bg-muted/40 border border-primary/20 text-xs space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Earth-rotation assist</span>
+                          <span className="text-foreground font-mono">+{Math.round(r.rotationBonusMs)} m/s</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Plane-change penalty</span>
+                          <span className="text-foreground font-mono">−{Math.round(r.planeChangePenaltyMs)} m/s</span>
+                        </div>
+                        <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
+                          <span className="text-muted-foreground">Net Δv advantage</span>
+                          <span className={`font-mono font-bold ${r.netScoreMs >= 0 ? "text-primary" : "text-destructive"}`}>
+                            {r.netScoreMs >= 0 ? "+" : ""}{Math.round(r.netScoreMs)} m/s
+                          </span>
+                        </div>
+                        {!r.reachable && (
+                          <p className="text-destructive text-[11px] mt-2">
+                            ⚠ Target inclination &lt; {r.minInclinationDeg.toFixed(1)}° requires expensive dogleg from this pad.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </AeroCard>
+              );
+            })()}
+
             {/* --- Part 1: Orbit Definition --- */}
             <AeroCard title="Part 1: Define Initial Orbit" icon={Orbit}>
+              <TooltipProvider delayDuration={150}>
               <div className="grid grid-cols-2 gap-4">
-                <AeroFormField label={`Periapsis Altitude (${getUnit("dist")})`}>
+                <AeroFormField
+                  label={
+                    <span className="inline-flex items-center gap-1.5">
+                      Periapsis Altitude ({getUnit("dist")})
+                      {calculatorMode === "Beginner" && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="w-3.5 h-3.5 text-primary/70 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            The lowest point of the orbit above Earth's surface. Lower = faster satellite, more atmospheric drag.
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </span>
+                  }
+                >
                   <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
-                <AeroFormField label="Eccentricity (0-1)">
+                <AeroFormField
+                  label={
+                    <span className="inline-flex items-center gap-1.5">
+                      Eccentricity (0-1)
+                      {calculatorMode === "Beginner" && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="w-3.5 h-3.5 text-primary/70 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            How stretched the orbit is. 0 = perfect circle, closer to 1 = long oval. Most satellites use ~0.
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </span>
+                  }
+                >
                   <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
-                <AeroFormField label={`Inclination (${getUnit("incl")})`}>
+                <AeroFormField
+                  label={
+                    <span className="inline-flex items-center gap-1.5">
+                      Inclination ({getUnit("incl")})
+                      {calculatorMode === "Beginner" && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="w-3.5 h-3.5 text-primary/70 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            Tilt of the orbit vs the equator. 0° = equatorial, 90° = polar (over both poles), 51.6° = ISS.
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </span>
+                  }
+                >
                   <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50" />
                 </AeroFormField>
                 {calculatorMode !== "Beginner" && (
@@ -1595,6 +1713,7 @@ const OrbitalVisualizer = () => {
                   </>
                 )}
               </div>
+              </TooltipProvider>
               {calculatorMode !== "Beginner" && (
                 <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
                   <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-muted/50" />
