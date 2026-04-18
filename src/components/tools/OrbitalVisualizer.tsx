@@ -1679,6 +1679,20 @@ const OrbitalVisualizer = () => {
                   </div>
                 </div>
 
+                {calculatorMode === "Beginner" && (
+                  <div className="mb-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                    <div className="flex items-center gap-2 text-primary text-sm font-semibold mb-2">
+                      <Info className="w-4 h-4" /> In Plain English
+                    </div>
+                    <p className="text-sm text-foreground/90 leading-relaxed">
+                      Your satellite circles Earth once every <strong>{format("time", orbitResult.orbitalPeriod)}</strong>.
+                      It rises as high as <strong>{format("dist", orbitResult.apoapsisAltitude)}</strong> and dips as low as <strong>{format("dist", orbitResult.periapsisAltitude)}</strong> above the surface,
+                      moving fastest ({format("vel", orbitResult.periapsisVelocity)}) at its lowest point and slowest ({format("vel", orbitResult.apoapsisVelocity)}) at its highest.
+                      The orbit is {orbitResult.eccentricity < 0.01 ? "almost a perfect circle" : "noticeably stretched (elliptical)"}.
+                    </p>
+                  </div>
+                )}
+
                 <Accordion type="single" collapsible className="bg-muted/50 rounded-lg border border-border">
                   <AccordionItem value="explanation" className="border-none">
                     <AccordionTrigger className="px-4 text-primary hover:text-primary/80">
