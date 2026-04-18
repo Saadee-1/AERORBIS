@@ -46,6 +46,8 @@ interface GroundTrackProps {
   currentTrueAnomaly?: number;
   /** Called when user clicks a launch site — provides typical orbit params */
   onLaunchSiteClick?: (params: LaunchSiteOrbit, siteName: string) => void;
+  /** Optional: highlight a specific launch site with pulse + telemetry */
+  selectedLaunchSiteName?: string;
 }
 
 // Physics: Solve Kepler's equation M = E - e·sin(E)
@@ -185,7 +187,7 @@ function buildNightPolygon(
 }
 
 // Launch sites with typical orbit parameters from each site
-const LAUNCH_SITES = [
+export const LAUNCH_SITES = [
   { name: 'Cape Canaveral', lat: 28.396, lon: -80.605, country: 'USA', operator: 'NASA / SpaceX / ULA', pads: 4, since: 1950, orbit: { periapsisAltitude: '400', inclination: '28.5', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
   { name: 'Baikonur', lat: 45.965, lon: 63.305, country: 'Kazakhstan', operator: 'Roscosmos', pads: 6, since: 1955, orbit: { periapsisAltitude: '400', inclination: '51.6', eccentricity: '0.001', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
   { name: 'Kourou', lat: 5.236, lon: -52.768, country: 'French Guiana', operator: 'ESA / Arianespace', pads: 3, since: 1968, orbit: { periapsisAltitude: '35786', inclination: '5.2', eccentricity: '0.0', raan: '0', argOfPeriapsis: '0', trueAnomaly: '0' } },
@@ -293,6 +295,7 @@ export function OrbitalGroundTrack({
   numOrbits = 3,
   currentTrueAnomaly,
   onLaunchSiteClick,
+  selectedLaunchSiteName,
 }: GroundTrackProps) {
   const [showCoords, setShowCoords] = useState(true);
   const [showStations, setShowStations] = useState(true);
@@ -810,10 +813,11 @@ export function OrbitalGroundTrack({
           const [sx, sy] = toSVG(site.lat, site.lon);
           const isClickable = !!onLaunchSiteClick;
           const isHovered = hoveredSite?.name === site.name;
+          const isSelected = selectedLaunchSiteName === site.name;
           return (
             <g
               key={site.name}
-              opacity={isHovered ? 1 : 0.75}
+              opacity={isHovered || isSelected ? 1 : 0.75}
               className={isClickable ? 'cursor-pointer' : ''}
               onClick={isClickable ? () => onLaunchSiteClick(site.orbit, site.name) : undefined}
               onMouseEnter={(e) => {
@@ -827,14 +831,23 @@ export function OrbitalGroundTrack({
               }}
               onMouseLeave={() => setHoveredSite(null)}
             >
+              {isSelected && (
+                <>
+                  <circle cx={sx} cy={sy} r="8" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.8" opacity="0.9">
+                    <animate attributeName="r" values="6;14;6" dur="2.2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.9;0.1;0.9" dur="2.2s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx={sx} cy={sy} r="5" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.5" opacity="0.7" />
+                </>
+              )}
               <circle cx={sx} cy={sy} r="14" fill="transparent" />
               <polygon
-                points={`${sx},${sy - (isHovered ? 5 : 4)} ${sx + (isHovered ? 4 : 3)},${sy} ${sx},${sy + (isHovered ? 5 : 4)} ${sx - (isHovered ? 4 : 3)},${sy}`}
-                fill={isHovered ? 'hsl(45 95% 65%)' : 'hsl(45 90% 55%)'}
+                points={`${sx},${sy - (isHovered || isSelected ? 5 : 4)} ${sx + (isHovered || isSelected ? 4 : 3)},${sy} ${sx},${sy + (isHovered || isSelected ? 5 : 4)} ${sx - (isHovered || isSelected ? 4 : 3)},${sy}`}
+                fill={isSelected ? 'hsl(var(--primary))' : isHovered ? 'hsl(45 95% 65%)' : 'hsl(45 90% 55%)'}
                 stroke="hsl(220 60% 8%)"
                 strokeWidth="0.6"
               />
-              <text x={sx + 5} y={sy + 3} fill={isHovered ? 'hsl(45 95% 75%)' : 'hsl(45 80% 65%)'} fontSize="6.5" fontWeight={isHovered ? '700' : '500'}>
+              <text x={sx + 5} y={sy + 3} fill={isSelected ? 'hsl(var(--primary))' : isHovered ? 'hsl(45 95% 75%)' : 'hsl(45 80% 65%)'} fontSize="6.5" fontWeight={isHovered || isSelected ? '700' : '500'}>
                 {site.name}
               </text>
               {isClickable && (

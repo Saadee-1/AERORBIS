@@ -23,9 +23,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe, GraduationCap } from "lucide-react";
-import { OrbitalGroundTrack } from "@/components/tools/OrbitalGroundTrack";
+import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe, GraduationCap, HelpCircle, MapPin } from "lucide-react";
+import { OrbitalGroundTrack, LAUNCH_SITES } from "@/components/tools/OrbitalGroundTrack";
 import { OrbitalAdvancedPanel } from "@/components/tools/OrbitalAdvancedPanel";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { rankLaunchSites, starsLabel } from "@/components/tools/utils/launchSiteEfficiency";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -419,6 +421,7 @@ const OrbitalVisualizer = () => {
   useEffect(() => {
     localStorage.setItem("aerorbis_orbital_mode", calculatorMode);
   }, [calculatorMode]);
+  const [selectedLaunchSite, setSelectedLaunchSite] = useState<string>("");
   const [customOrbits, setCustomOrbits] = useState<SavedOrbit[]>([]);
   const [currentTrueAnomaly, setCurrentTrueAnomaly] = useState<number>(0);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -1451,6 +1454,7 @@ const OrbitalVisualizer = () => {
             gm={parseFloat(inputs.gm)}
             numOrbits={3}
             currentTrueAnomaly={currentTrueAnomaly}
+            selectedLaunchSiteName={selectedLaunchSite || undefined}
             onLaunchSiteClick={(params, siteName) => {
               const newInputs: OrbitalInputs = {
                 ...inputs,
@@ -1563,17 +1567,129 @@ const OrbitalVisualizer = () => {
               </AeroCard>
             )}
 
+            {/* --- Launch Site Intelligence (University + Expert) --- */}
+            {calculatorMode !== "Beginner" && (() => {
+              const targetIncl = parseFloat(inputs.inclination) || 0;
+              const ranked = rankLaunchSites(LAUNCH_SITES, targetIncl);
+              return (
+                <AeroCard
+                  title="Launch Site (Efficiency Ranked)"
+                  icon={MapPin}
+                  description={`Sorted by Δv efficiency for i = ${targetIncl}° — best on top`}
+                >
+                  <Select
+                    value={selectedLaunchSite}
+                    onValueChange={(v) => {
+                      setSelectedLaunchSite(v);
+                      const site = LAUNCH_SITES.find((s) => s.name === v);
+                      if (site) {
+                        toast({
+                          title: `${site.name} selected`,
+                          description: `Min reachable inclination ≈ ${Math.abs(site.lat).toFixed(1)}° (site latitude)`,
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-muted/50 border-border text-foreground">
+                      <SelectValue placeholder="Choose a launch site…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ranked.map((r) => (
+                        <SelectItem key={r.name} value={r.name}>
+                          <span className="font-mono text-primary mr-2">{starsLabel(r.stars)}</span>
+                          {r.name}, {r.country}
+                          <span className="text-muted-foreground ml-2 text-xs">
+                            {r.netScoreMs >= 0 ? `+${Math.round(r.netScoreMs)}` : Math.round(r.netScoreMs)} m/s
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedLaunchSite && (() => {
+                    const r = ranked.find((x) => x.name === selectedLaunchSite);
+                    if (!r) return null;
+                    return (
+                      <div className="mt-3 p-3 rounded-lg bg-muted/40 border border-primary/20 text-xs space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Earth-rotation assist</span>
+                          <span className="text-foreground font-mono">+{Math.round(r.rotationBonusMs)} m/s</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Plane-change penalty</span>
+                          <span className="text-foreground font-mono">−{Math.round(r.planeChangePenaltyMs)} m/s</span>
+                        </div>
+                        <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
+                          <span className="text-muted-foreground">Net Δv advantage</span>
+                          <span className={`font-mono font-bold ${r.netScoreMs >= 0 ? "text-primary" : "text-destructive"}`}>
+                            {r.netScoreMs >= 0 ? "+" : ""}{Math.round(r.netScoreMs)} m/s
+                          </span>
+                        </div>
+                        {!r.reachable && (
+                          <p className="text-destructive text-[11px] mt-2">
+                            ⚠ Target inclination &lt; {r.minInclinationDeg.toFixed(1)}° requires expensive dogleg from this pad.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </AeroCard>
+              );
+            })()}
+
             {/* --- Part 1: Orbit Definition --- */}
             <AeroCard title="Part 1: Define Initial Orbit" icon={Orbit}>
+              <TooltipProvider delayDuration={150}>
               <div className="grid grid-cols-2 gap-4">
                 <AeroFormField label={`Periapsis Altitude (${getUnit("dist")})`}>
-                  <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-muted/50" />
+                  <div className="relative">
+                    <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-muted/50 pr-8" />
+                    {calculatorMode === "Beginner" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" aria-label="What is periapsis altitude?" className="absolute right-2 top-1/2 -translate-y-1/2 text-primary/70 hover:text-primary">
+                            <HelpCircle className="w-4 h-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          The lowest point of the orbit above Earth's surface. Lower = faster satellite, more atmospheric drag.
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </AeroFormField>
                 <AeroFormField label="Eccentricity (0-1)">
-                  <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-muted/50" />
+                  <div className="relative">
+                    <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-muted/50 pr-8" />
+                    {calculatorMode === "Beginner" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" aria-label="What is eccentricity?" className="absolute right-2 top-1/2 -translate-y-1/2 text-primary/70 hover:text-primary">
+                            <HelpCircle className="w-4 h-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          How stretched the orbit is. 0 = perfect circle, closer to 1 = long oval. Most satellites use ~0.
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </AeroFormField>
                 <AeroFormField label={`Inclination (${getUnit("incl")})`}>
-                  <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50" />
+                  <div className="relative">
+                    <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50 pr-8" />
+                    {calculatorMode === "Beginner" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" aria-label="What is inclination?" className="absolute right-2 top-1/2 -translate-y-1/2 text-primary/70 hover:text-primary">
+                            <HelpCircle className="w-4 h-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          Tilt of the orbit vs the equator. 0° = equatorial, 90° = polar (over both poles), 51.6° = ISS.
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </AeroFormField>
                 {calculatorMode !== "Beginner" && (
                   <>
@@ -1592,6 +1708,7 @@ const OrbitalVisualizer = () => {
                   </>
                 )}
               </div>
+              </TooltipProvider>
               {calculatorMode !== "Beginner" && (
                 <AeroFormField label={`Grav. Parameter (GM) (${getUnit("gm")})`}>
                   <Input id="gm" type="number" value={inputs.gm} onChange={(e) => setInputs({ ...inputs, gm: e.target.value })} className="bg-muted/50" />
