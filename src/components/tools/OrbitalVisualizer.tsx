@@ -1377,23 +1377,27 @@ const OrbitalVisualizer = () => {
                 <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
-            <AeroButton
-              type="button"
-              onClick={() => setIsSaveDialogOpen(true)}
-              variant="outline"
-              icon={Save}
-            >
-              Save Custom Orbit
-            </AeroButton>
-            <AeroButton
-              type="button"
-              onClick={() => setIsLoadDialogOpen(true)}
-              variant="outline"
-              icon={FolderOpen}
-              disabled={customOrbits.length === 0}
-            >
-              Load ({customOrbits.length})
-            </AeroButton>
+            {calculatorMode !== "Beginner" && (
+              <>
+                <AeroButton
+                  type="button"
+                  onClick={() => setIsSaveDialogOpen(true)}
+                  variant="outline"
+                  icon={Save}
+                >
+                  Save Custom Orbit
+                </AeroButton>
+                <AeroButton
+                  type="button"
+                  onClick={() => setIsLoadDialogOpen(true)}
+                  variant="outline"
+                  icon={FolderOpen}
+                  disabled={customOrbits.length === 0}
+                >
+                  Load ({customOrbits.length})
+                </AeroButton>
+              </>
+            )}
           </ToolActions>
         }
       />
