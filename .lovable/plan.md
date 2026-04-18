@@ -1,45 +1,70 @@
+## Plan: Beginner Tooltips + Real-Time Launchpad Intelligence
 
-## Plan: Add Beginner / University / Expert Modes to Orbital Path Visualizer
+Two enhancements to the Orbital Path Visualizer.
 
-Mirror the exact pattern used in Wing Loading, L/D, Thrust Loading, and Climb Performance calculators — physics stays frozen (per logic-freeze policy), only UI complexity changes by mode.
+### Part 1 — Beginner Mode Tooltips
 
-### Mode definitions
+Add small `(?)` icon next to each input label in Beginner mode (Periapsis Altitude, Eccentricity, Inclination). Uses existing shadcn `Tooltip` component (already in `src/components/ui/tooltip.tsx`).
 
-**Beginner** — for school / freshman students
-- Inputs shown: Periapsis Altitude, Eccentricity, Inclination only (RAAN, ω, ν auto-default to 0)
-- Hide: Central body radius / GM (locked to Earth), Target altitude / Hohmann section
-- Results: Orbital Period, Apoapsis, Periapsis, Orbital Velocity — with plain-English one-line explanations
-- Hide: `OrbitalGroundTrack`, `OrbitalAdvancedPanel`, save/load presets
-- 3D view: keep (it's the visual hook for beginners) but with simplified label overlay
+Plain-English copy for school students:
 
-**University** — default mode
-- All Keplerian inputs (a, e, i, Ω, ω, ν), unit selector, presets (LEO/GEO/Molniya), save/load
-- Show: 3D view + `OrbitalGroundTrack` + Hohmann transfer calculator
-- Hide: `OrbitalAdvancedPanel` (J2, Lambert, gravity assist, Gauss OD, low-thrust, pork-chop)
-- Results include step-by-step derivations
+- **Periapsis Altitude**: "The lowest point of the orbit above Earth's surface. Lower = faster satellite, more atmospheric drag."
+- **Eccentricity**: "How stretched the orbit is. 0 = perfect circle, closer to 1 = long oval. Most satellites use ~0."
+- **Inclination**: "The tilt of the orbit relative to the equator. 0° = equatorial, 90° = polar (passes over both poles), 51.6° = ISS."
 
-**Expert** — research / professional
-- Everything in University **plus** full `OrbitalAdvancedPanel` (J2 perturbations, plane changes, bi-elliptic, phasing, Lambert solver, interplanetary Hohmann, pork-chop plot, gravity assist, launch C3, low-thrust optimizer, Gauss orbit determination with Monte Carlo)
+Tooltips render only when `calculatorMode === 'Beginner'` to keep advanced UI clean.
 
-### Implementation (single file: `src/components/tools/OrbitalVisualizer.tsx`)
+### Part 2 — Launch Site Dropdown with Efficiency Ranking
 
-1. Add `type CalculatorMode = 'Beginner' | 'University' | 'Expert'` and `useState` (default `'University'`), persisted to `localStorage` with `aerorbis_` prefix per memory standard.
-2. Add a "Calculator Mode" `AeroCard` with `Select` at the top of inputs — same copy/layout as `WingLoadingCalculator` lines 1016-1040 for visual consistency.
-3. Wrap conditional sections:
-   - Beginner-only defaults: force RAAN/ω/ν inputs hidden, set values to "0" internally
-   - `{calculatorMode !== 'Beginner' && <Hohmann transfer card />}`
-   - `{calculatorMode !== 'Beginner' && <OrbitalGroundTrack />}` (line ~1432)
-   - `{calculatorMode === 'Expert' && <OrbitalAdvancedPanel />}` (line ~1463)
-   - Save/Load presets dialog: hidden in Beginner
-4. Add a small "Plain English" interpretation block in the results card that only renders in Beginner mode (e.g. "Your satellite circles Earth once every X minutes at an average height of Y km").
-5. **No physics changes** — all formulas, Three.js scene, Kepler propagation, shaders untouched (logic-freeze policy).
-6. Save a memory note: `mem://features/orbital-visualizer-mode-tiers` documenting the three-tier breakdown so it stays consistent with sibling calculators.
+Add a new "Launch Site" `AeroCard` in the inputs panel (visible in University + Expert modes; optional in Beginner with a simplified label).
+
+**Data source**: Reuse the `LAUNCH_SITES` constant already defined in `src/components/tools/OrbitalGroundTrack.tsx` (Kennedy, Baikonur, Kourou, Vandenberg, Tanegashima, Sriharikota, Wenchou, etc.). Will export it from that file so `OrbitalVisualizer.tsx` can import.
+
+**Efficiency ranking logic** (deterministic, no external API):
+For a given target inclination `i`, the minimum required Δv penalty for a plane change at launch is approximately:
+
+```
+penalty = |cos(launch_latitude) - cos(i)| + max(0, launch_latitude - i)
+```
+
+Plus an Earth-rotation bonus for eastward launches near the equator: `bonus = cos(launch_latitude) × cos(i)` (lower latitude + prograde = more free Δv from Earth's spin, ~465 m/s at equator).
+
+Combined score: `efficiency = bonus - penalty` → sort descending. Display as:
+
+```
+🇫🇷 Kourou, French Guiana          ★★★★★  (best — equatorial, +463 m/s assist)
+🇺🇸 Kennedy Space Center, USA      ★★★★☆  (+390 m/s assist)
+🇰🇿 Baikonur, Kazakhstan           ★★★☆☆  (latitude penalty for low-i orbits)
+...
+```
+
+**Selecting a launch site** auto-fills the minimum achievable inclination (= site latitude) as a hint and highlights that pad on the 3D globe + ground track map.
+
+### Part 3 — Real-Time Launchpad Data on Ground Track
+
+Currently `OrbitalGroundTrack.tsx` shows static launch site dots. Enhance to show live telemetry:
+
+- **Local time** at each pad (computed from longitude offset, no API)
+- **Day/night status** (already computed via `computeTerminator`)
+- **Next launch window** for the currently selected orbit: simple calculation of when Earth rotation brings the pad's latitude under the orbital plane (LAN crossing). Display as countdown "Next window in: 02h 14m"
+- **Selected pad highlight**: pulsing cyan ring + label panel showing lat/lon/local time/window
+
+No external API needed (no paid APIs per logic-freeze policy). All derived from existing orbital math + Date object.
 
 ### Files touched
-- `src/components/tools/OrbitalVisualizer.tsx` (UI gating + mode selector + localStorage)
-- `mem://features/orbital-visualizer-mode-tiers` (new memory)
-- `mem://index.md` (add reference line)
+
+- `src/components/tools/OrbitalVisualizer.tsx` — add tooltips, Launch Site card, pass selectedLaunchSite to ground track
+- `src/components/tools/OrbitalGroundTrack.tsx` — export `LAUNCH_SITES`, add `selectedLaunchSiteId` prop, add real-time telemetry overlay for selected pad
+- New helper `src/components/tools/utils/launchSiteEfficiency.ts` — pure ranking function
+- `mem://features/launch-site-intelligence` — new memory documenting the feature
+- `mem://index.md` — add reference
 
 ### Out of scope
-- No changes to `OrbitalAdvancedPanel.tsx`, `OrbitalGroundTrack.tsx`, or any physics utility
-- No new tool routes — single tool, three views
+
+- No external launch APIs (LL2, SpaceX API) — stays self-contained per "no paid APIs" rule
+- No changes to physics/Kepler propagation
+- No new tool routes  
+  
+  
+  
+and what if we add free api keys, and look for free api keys and tell me
