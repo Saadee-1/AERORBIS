@@ -413,6 +413,12 @@ const OrbitalVisualizer = () => {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
     return (localStorage.getItem("orbitalUnitSystem") as UnitSystem) || "SI";
   });
+  const [calculatorMode, setCalculatorMode] = useState<CalculatorMode>(() => {
+    return (localStorage.getItem("aerorbis_orbital_mode") as CalculatorMode) || "University";
+  });
+  useEffect(() => {
+    localStorage.setItem("aerorbis_orbital_mode", calculatorMode);
+  }, [calculatorMode]);
   const [customOrbits, setCustomOrbits] = useState<SavedOrbit[]>([]);
   const [currentTrueAnomaly, setCurrentTrueAnomaly] = useState<number>(0);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
