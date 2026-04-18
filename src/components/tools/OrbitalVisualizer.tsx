@@ -1639,62 +1639,56 @@ const OrbitalVisualizer = () => {
             <AeroCard title="Part 1: Define Initial Orbit" icon={Orbit}>
               <TooltipProvider delayDuration={150}>
               <div className="grid grid-cols-2 gap-4">
-                <AeroFormField
-                  label={
-                    <span className="inline-flex items-center gap-1.5">
-                      Periapsis Altitude ({getUnit("dist")})
-                      {calculatorMode === "Beginner" && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="w-3.5 h-3.5 text-primary/70 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            The lowest point of the orbit above Earth's surface. Lower = faster satellite, more atmospheric drag.
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </span>
-                  }
-                >
-                  <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-muted/50" />
+                <AeroFormField label={`Periapsis Altitude (${getUnit("dist")})`}>
+                  <div className="relative">
+                    <Input id="periapsisAltitude" type="number" value={inputs.periapsisAltitude} onChange={(e) => setInputs({ ...inputs, periapsisAltitude: e.target.value })} className="bg-muted/50 pr-8" />
+                    {calculatorMode === "Beginner" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" aria-label="What is periapsis altitude?" className="absolute right-2 top-1/2 -translate-y-1/2 text-primary/70 hover:text-primary">
+                            <HelpCircle className="w-4 h-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          The lowest point of the orbit above Earth's surface. Lower = faster satellite, more atmospheric drag.
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </AeroFormField>
-                <AeroFormField
-                  label={
-                    <span className="inline-flex items-center gap-1.5">
-                      Eccentricity (0-1)
-                      {calculatorMode === "Beginner" && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="w-3.5 h-3.5 text-primary/70 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            How stretched the orbit is. 0 = perfect circle, closer to 1 = long oval. Most satellites use ~0.
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </span>
-                  }
-                >
-                  <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-muted/50" />
+                <AeroFormField label="Eccentricity (0-1)">
+                  <div className="relative">
+                    <Input id="eccentricity" type="number" step="0.01" value={inputs.eccentricity} onChange={(e) => setInputs({ ...inputs, eccentricity: e.target.value })} className="bg-muted/50 pr-8" />
+                    {calculatorMode === "Beginner" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" aria-label="What is eccentricity?" className="absolute right-2 top-1/2 -translate-y-1/2 text-primary/70 hover:text-primary">
+                            <HelpCircle className="w-4 h-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          How stretched the orbit is. 0 = perfect circle, closer to 1 = long oval. Most satellites use ~0.
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </AeroFormField>
-                <AeroFormField
-                  label={
-                    <span className="inline-flex items-center gap-1.5">
-                      Inclination ({getUnit("incl")})
-                      {calculatorMode === "Beginner" && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="w-3.5 h-3.5 text-primary/70 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            Tilt of the orbit vs the equator. 0° = equatorial, 90° = polar (over both poles), 51.6° = ISS.
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </span>
-                  }
-                >
-                  <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50" />
+                <AeroFormField label={`Inclination (${getUnit("incl")})`}>
+                  <div className="relative">
+                    <Input id="inclination" type="number" step="0.1" value={inputs.inclination} onChange={(e) => setInputs({ ...inputs, inclination: e.target.value })} className="bg-muted/50 pr-8" />
+                    {calculatorMode === "Beginner" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" aria-label="What is inclination?" className="absolute right-2 top-1/2 -translate-y-1/2 text-primary/70 hover:text-primary">
+                            <HelpCircle className="w-4 h-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          Tilt of the orbit vs the equator. 0° = equatorial, 90° = polar (over both poles), 51.6° = ISS.
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </AeroFormField>
                 {calculatorMode !== "Beginner" && (
                   <>
