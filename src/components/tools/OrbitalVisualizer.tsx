@@ -1440,8 +1440,7 @@ const OrbitalVisualizer = () => {
       </AeroCard>
 
       {/* Ground Track */}
-      {orbitResult && (
-        <AeroCard title="Orbit Ground Track" icon={Globe} className="mb-6">
+      {orbitResult && calculatorMode !== "Beginner" && (
           <OrbitalGroundTrack
             semiMajorAxis={orbitResult.semiMajorAxis}
             eccentricity={orbitResult.eccentricity}
