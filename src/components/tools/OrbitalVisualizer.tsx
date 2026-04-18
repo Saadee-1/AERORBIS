@@ -1441,6 +1441,7 @@ const OrbitalVisualizer = () => {
 
       {/* Ground Track */}
       {orbitResult && calculatorMode !== "Beginner" && (
+        <AeroCard title="Orbit Ground Track" icon={Globe} className="mb-6">
           <OrbitalGroundTrack
             semiMajorAxis={orbitResult.semiMajorAxis}
             eccentricity={orbitResult.eccentricity}
@@ -1469,8 +1470,8 @@ const OrbitalVisualizer = () => {
         </AeroCard>
       )}
 
-      {/* Advanced Orbital Analysis */}
-      {orbitResult && (
+      {/* Advanced Orbital Analysis - Expert mode only */}
+      {orbitResult && calculatorMode === "Expert" && (
         <OrbitalAdvancedPanel
           semiMajorAxis={orbitResult.semiMajorAxis}
           eccentricity={orbitResult.eccentricity}
