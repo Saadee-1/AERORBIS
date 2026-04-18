@@ -23,9 +23,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe, GraduationCap } from "lucide-react";
-import { OrbitalGroundTrack } from "@/components/tools/OrbitalGroundTrack";
+import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe, GraduationCap, HelpCircle, MapPin } from "lucide-react";
+import { OrbitalGroundTrack, LAUNCH_SITES } from "@/components/tools/OrbitalGroundTrack";
 import { OrbitalAdvancedPanel } from "@/components/tools/OrbitalAdvancedPanel";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { rankLaunchSites, starsLabel } from "@/components/tools/utils/launchSiteEfficiency";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -419,6 +421,7 @@ const OrbitalVisualizer = () => {
   useEffect(() => {
     localStorage.setItem("aerorbis_orbital_mode", calculatorMode);
   }, [calculatorMode]);
+  const [selectedLaunchSite, setSelectedLaunchSite] = useState<string>("");
   const [customOrbits, setCustomOrbits] = useState<SavedOrbit[]>([]);
   const [currentTrueAnomaly, setCurrentTrueAnomaly] = useState<number>(0);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
