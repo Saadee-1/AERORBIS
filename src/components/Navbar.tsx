@@ -115,7 +115,7 @@ const Navbar = () => {
       />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-12">
+        <div className="relative flex items-center justify-between h-12">
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
             <img
@@ -128,9 +128,9 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* ── Desktop Dock ── */}
+          {/* ── Desktop Dock (centered) ── */}
           <div
-            className="hidden lg:flex items-end gap-3 px-4 py-1.5 rounded-xl bg-card/30 backdrop-blur-xl border border-border/15 shadow-[0_1px_12px_hsl(0_0%_0%/0.12)]"
+            className="hidden lg:flex items-end gap-3 px-4 py-1.5 rounded-xl bg-card/30 backdrop-blur-xl border border-border/15 shadow-[0_1px_12px_hsl(0_0%_0%/0.12)] absolute left-1/2 -translate-x-1/2"
             onMouseMove={(e) => mouseX.set(e.clientX)}
             onMouseLeave={() => mouseX.set(-200)}
           >
