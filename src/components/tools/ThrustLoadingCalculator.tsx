@@ -2087,25 +2087,6 @@ const ThrustLoadingCalculator = () => {
                         style={{ left: `${getEnvelopePosition()}%` }}
                       />
                       
-                      {/* Reference Aircraft Markers (University/Expert) */}
-                      {(calculatorMode === 'University' || calculatorMode === 'Expert') && REFERENCE_AIRCRAFT.map((ac) => {
-                        const params = getMissionThrustData(missionType);
-                        const extendedMin = 0.8 * params.twMin;
-                        const extendedMax = 1.2 * params.twMax;
-                        const pos = ((ac.tw - extendedMin) / (extendedMax - extendedMin)) * 100;
-                        if (pos < 0 || pos > 100) return null;
-                        return (
-                          <div
-                            key={ac.name}
-                            className="absolute bottom-0 w-px h-3 z-0"
-                            style={{ left: `${pos}%`, backgroundColor: ac.color }}
-                          >
-                            <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-bold whitespace-nowrap opacity-60" style={{ color: ac.color }}>
-                              {ac.name}
-                            </span>
-                          </div>
-                        );
-                      })}
                       
                       {/* Labels */}
                       <div className="absolute -top-6 left-0 right-0 flex justify-between text-xs text-muted-foreground">
