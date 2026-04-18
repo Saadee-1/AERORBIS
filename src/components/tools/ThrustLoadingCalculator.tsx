@@ -90,7 +90,8 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend
+  Legend,
+  ReferenceLine
 } from "recharts";
 
 // ============================================================================
@@ -248,6 +249,8 @@ interface SizingDiagramPoint {
   takeoffTW: number;
   cruiseTW: number;
   climbTW: number;
+  twCeiling?: number;
+  twTurn?: number;
 }
 
 interface PowerCurvePoint {
@@ -1659,8 +1662,8 @@ const ThrustLoadingCalculator = () => {
                   <Input
                     type="number"
                     step="0.1"
-                    value={deltaIsa}
-                    onChange={(e) => setDeltaIsa(e.target.value)}
+                    value={deltaISA}
+                    onChange={(e) => setDeltaISA(e.target.value)}
                     className="bg-input border-border"
                     placeholder="e.g., 15.0"
                   />
