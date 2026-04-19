@@ -23,11 +23,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe, GraduationCap, HelpCircle, MapPin } from "lucide-react";
+import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe, GraduationCap, HelpCircle, MapPin, Sun, Moon, Radio } from "lucide-react";
 import { OrbitalGroundTrack, LAUNCH_SITES } from "@/components/tools/OrbitalGroundTrack";
 import { OrbitalAdvancedPanel } from "@/components/tools/OrbitalAdvancedPanel";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { rankLaunchSites, starsLabel } from "@/components/tools/utils/launchSiteEfficiency";
+import { computeLaunchPadClock } from "@/components/tools/utils/launchSiteLocalTime";
+import { supabase } from "@/integrations/supabase/client";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
