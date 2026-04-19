@@ -1641,9 +1641,27 @@ const OrbitalVisualizer = () => {
                   </Select>
                   {selectedLaunchSite && (() => {
                     const r = ranked.find((x) => x.name === selectedLaunchSite);
-                    if (!r) return null;
+                    const site = LAUNCH_SITES.find((s) => s.name === selectedLaunchSite);
+                    if (!r || !site) return null;
+                    // clockTick referenced to re-render every second
+                    void clockTick;
+                    const clock = computeLaunchPadClock(site.lat, site.lon);
                     return (
                       <div className="mt-3 p-3 rounded-lg bg-muted/40 border border-primary/20 text-xs space-y-1">
+                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-border/50">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Local time</span>
+                            <span className="font-mono text-foreground">{clock.localTimeStr}</span>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className={`gap-1 ${clock.isDay ? "border-amber-400/50 text-amber-300" : "border-indigo-400/50 text-indigo-300"}`}
+                          >
+                            {clock.isDay ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
+                            {clock.isDay ? "Day" : "Night"}
+                            <span className="opacity-60 ml-1">{clock.sunAltitudeDeg.toFixed(0)}°</span>
+                          </Badge>
+                        </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Earth-rotation assist</span>
                           <span className="text-foreground font-mono">+{Math.round(r.rotationBonusMs)} m/s</span>
@@ -1669,6 +1687,63 @@ const OrbitalVisualizer = () => {
                 </AeroCard>
               );
             })()}
+
+            {/* --- Upcoming Real Launches (Expert only, optional) --- */}
+            {calculatorMode === "Expert" && (
+              <AeroCard
+                title="Upcoming Real Launches"
+                icon={Radio}
+                description="Live data from The Space Devs Launch Library 2 (cached 30 min)"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <Label htmlFor="show-upcoming" className="text-sm text-muted-foreground cursor-pointer">
+                    Show upcoming launches feed
+                  </Label>
+                  <Switch
+                    id="show-upcoming"
+                    checked={showUpcomingLaunches}
+                    onCheckedChange={setShowUpcomingLaunches}
+                  />
+                </div>
+                {showUpcomingLaunches && (
+                  <div className="space-y-2">
+                    {upcomingLoading && (
+                      <p className="text-xs text-muted-foreground">Loading live launch manifest…</p>
+                    )}
+                    {upcomingError && (
+                      <p className="text-xs text-destructive">⚠ {upcomingError}</p>
+                    )}
+                    {!upcomingLoading && !upcomingError && upcomingLaunches.length === 0 && (
+                      <p className="text-xs text-muted-foreground">No upcoming launches returned.</p>
+                    )}
+                    {upcomingLaunches.slice(0, 8).map((l) => {
+                      const netDate = l.net ? new Date(l.net) : null;
+                      const validDate = netDate && !isNaN(netDate.getTime());
+                      return (
+                        <div key={l.id} className="p-2 rounded-md bg-muted/30 border border-border/50 text-xs">
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="font-semibold text-foreground truncate">{l.name}</span>
+                            <Badge variant="outline" className="text-[10px] shrink-0">{l.status}</Badge>
+                          </div>
+                          <div className="text-muted-foreground mt-1 flex justify-between">
+                            <span className="truncate">{l.rocket}</span>
+                            <span className="font-mono shrink-0 ml-2">
+                              {validDate ? netDate!.toUTCString().slice(5, 22) + " UTC" : "TBD"}
+                            </span>
+                          </div>
+                          {l.pad && <p className="text-muted-foreground/70 text-[11px] mt-0.5 truncate">📍 {l.pad}</p>}
+                        </div>
+                      );
+                    })}
+                    {upcomingCacheAgeSec !== null && (
+                      <p className="text-[10px] text-muted-foreground/60 text-right pt-1">
+                        Cached {Math.floor(upcomingCacheAgeSec / 60)}m {upcomingCacheAgeSec % 60}s ago · refresh every 30 min
+                      </p>
+                    )}
+                  </div>
+                )}
+              </AeroCard>
+            )}
 
             {/* --- Part 1: Orbit Definition --- */}
             <AeroCard title="Part 1: Define Initial Orbit" icon={Orbit}>
