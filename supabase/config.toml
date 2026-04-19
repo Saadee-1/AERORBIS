@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.news]
 verify_jwt = false
+
+[functions.upcoming-launches]
+verify_jwt = false

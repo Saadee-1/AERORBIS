@@ -23,11 +23,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe, GraduationCap, HelpCircle, MapPin } from "lucide-react";
+import { Rocket, Info, Orbit, Move, Save, FolderOpen, Trash2, Settings2, Globe, GraduationCap, HelpCircle, MapPin, Sun, Moon, Radio } from "lucide-react";
 import { OrbitalGroundTrack, LAUNCH_SITES } from "@/components/tools/OrbitalGroundTrack";
 import { OrbitalAdvancedPanel } from "@/components/tools/OrbitalAdvancedPanel";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { rankLaunchSites, starsLabel } from "@/components/tools/utils/launchSiteEfficiency";
+import { computeLaunchPadClock } from "@/components/tools/utils/launchSiteLocalTime";
+import { supabase } from "@/integrations/supabase/client";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -422,6 +426,36 @@ const OrbitalVisualizer = () => {
     localStorage.setItem("aerorbis_orbital_mode", calculatorMode);
   }, [calculatorMode]);
   const [selectedLaunchSite, setSelectedLaunchSite] = useState<string>("");
+  const [clockTick, setClockTick] = useState(0);
+  useEffect(() => {
+    if (!selectedLaunchSite) return;
+    const id = setInterval(() => setClockTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [selectedLaunchSite]);
+  const [showUpcomingLaunches, setShowUpcomingLaunches] = useState(false);
+  const [upcomingLaunches, setUpcomingLaunches] = useState<Array<{
+    id: string; name: string; net: string; status: string; rocket: string; pad: string; mission: string | null;
+  }>>([]);
+  const [upcomingLoading, setUpcomingLoading] = useState(false);
+  const [upcomingError, setUpcomingError] = useState<string | null>(null);
+  const [upcomingCacheAgeSec, setUpcomingCacheAgeSec] = useState<number | null>(null);
+  useEffect(() => {
+    if (!showUpcomingLaunches || calculatorMode !== "Expert") return;
+    let cancelled = false;
+    setUpcomingLoading(true);
+    setUpcomingError(null);
+    supabase.functions.invoke("upcoming-launches").then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) {
+        setUpcomingError(error.message);
+      } else if (data) {
+        setUpcomingLaunches(data.launches ?? []);
+        setUpcomingCacheAgeSec(data.cacheAgeSec ?? null);
+      }
+      setUpcomingLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [showUpcomingLaunches, calculatorMode]);
   const [customOrbits, setCustomOrbits] = useState<SavedOrbit[]>([]);
   const [currentTrueAnomaly, setCurrentTrueAnomaly] = useState<number>(0);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -1607,9 +1641,27 @@ const OrbitalVisualizer = () => {
                   </Select>
                   {selectedLaunchSite && (() => {
                     const r = ranked.find((x) => x.name === selectedLaunchSite);
-                    if (!r) return null;
+                    const site = LAUNCH_SITES.find((s) => s.name === selectedLaunchSite);
+                    if (!r || !site) return null;
+                    // clockTick referenced to re-render every second
+                    void clockTick;
+                    const clock = computeLaunchPadClock(site.lat, site.lon);
                     return (
                       <div className="mt-3 p-3 rounded-lg bg-muted/40 border border-primary/20 text-xs space-y-1">
+                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-border/50">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Local time</span>
+                            <span className="font-mono text-foreground">{clock.localTimeStr}</span>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className={`gap-1 ${clock.isDay ? "border-amber-400/50 text-amber-300" : "border-indigo-400/50 text-indigo-300"}`}
+                          >
+                            {clock.isDay ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
+                            {clock.isDay ? "Day" : "Night"}
+                            <span className="opacity-60 ml-1">{clock.sunAltitudeDeg.toFixed(0)}°</span>
+                          </Badge>
+                        </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Earth-rotation assist</span>
                           <span className="text-foreground font-mono">+{Math.round(r.rotationBonusMs)} m/s</span>
@@ -1635,6 +1687,63 @@ const OrbitalVisualizer = () => {
                 </AeroCard>
               );
             })()}
+
+            {/* --- Upcoming Real Launches (Expert only, optional) --- */}
+            {calculatorMode === "Expert" && (
+              <AeroCard
+                title="Upcoming Real Launches"
+                icon={Radio}
+                description="Live data from The Space Devs Launch Library 2 (cached 30 min)"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <Label htmlFor="show-upcoming" className="text-sm text-muted-foreground cursor-pointer">
+                    Show upcoming launches feed
+                  </Label>
+                  <Switch
+                    id="show-upcoming"
+                    checked={showUpcomingLaunches}
+                    onCheckedChange={setShowUpcomingLaunches}
+                  />
+                </div>
+                {showUpcomingLaunches && (
+                  <div className="space-y-2">
+                    {upcomingLoading && (
+                      <p className="text-xs text-muted-foreground">Loading live launch manifest…</p>
+                    )}
+                    {upcomingError && (
+                      <p className="text-xs text-destructive">⚠ {upcomingError}</p>
+                    )}
+                    {!upcomingLoading && !upcomingError && upcomingLaunches.length === 0 && (
+                      <p className="text-xs text-muted-foreground">No upcoming launches returned.</p>
+                    )}
+                    {upcomingLaunches.slice(0, 8).map((l) => {
+                      const netDate = l.net ? new Date(l.net) : null;
+                      const validDate = netDate && !isNaN(netDate.getTime());
+                      return (
+                        <div key={l.id} className="p-2 rounded-md bg-muted/30 border border-border/50 text-xs">
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="font-semibold text-foreground truncate">{l.name}</span>
+                            <Badge variant="outline" className="text-[10px] shrink-0">{l.status}</Badge>
+                          </div>
+                          <div className="text-muted-foreground mt-1 flex justify-between">
+                            <span className="truncate">{l.rocket}</span>
+                            <span className="font-mono shrink-0 ml-2">
+                              {validDate ? netDate!.toUTCString().slice(5, 22) + " UTC" : "TBD"}
+                            </span>
+                          </div>
+                          {l.pad && <p className="text-muted-foreground/70 text-[11px] mt-0.5 truncate">📍 {l.pad}</p>}
+                        </div>
+                      );
+                    })}
+                    {upcomingCacheAgeSec !== null && (
+                      <p className="text-[10px] text-muted-foreground/60 text-right pt-1">
+                        Cached {Math.floor(upcomingCacheAgeSec / 60)}m {upcomingCacheAgeSec % 60}s ago · refresh every 30 min
+                      </p>
+                    )}
+                  </div>
+                )}
+              </AeroCard>
+            )}
 
             {/* --- Part 1: Orbit Definition --- */}
             <AeroCard title="Part 1: Define Initial Orbit" icon={Orbit}>
