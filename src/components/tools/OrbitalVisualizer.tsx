@@ -426,6 +426,36 @@ const OrbitalVisualizer = () => {
     localStorage.setItem("aerorbis_orbital_mode", calculatorMode);
   }, [calculatorMode]);
   const [selectedLaunchSite, setSelectedLaunchSite] = useState<string>("");
+  const [clockTick, setClockTick] = useState(0);
+  useEffect(() => {
+    if (!selectedLaunchSite) return;
+    const id = setInterval(() => setClockTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [selectedLaunchSite]);
+  const [showUpcomingLaunches, setShowUpcomingLaunches] = useState(false);
+  const [upcomingLaunches, setUpcomingLaunches] = useState<Array<{
+    id: string; name: string; net: string; status: string; rocket: string; pad: string; mission: string | null;
+  }>>([]);
+  const [upcomingLoading, setUpcomingLoading] = useState(false);
+  const [upcomingError, setUpcomingError] = useState<string | null>(null);
+  const [upcomingCacheAgeSec, setUpcomingCacheAgeSec] = useState<number | null>(null);
+  useEffect(() => {
+    if (!showUpcomingLaunches || calculatorMode !== "Expert") return;
+    let cancelled = false;
+    setUpcomingLoading(true);
+    setUpcomingError(null);
+    supabase.functions.invoke("upcoming-launches").then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) {
+        setUpcomingError(error.message);
+      } else if (data) {
+        setUpcomingLaunches(data.launches ?? []);
+        setUpcomingCacheAgeSec(data.cacheAgeSec ?? null);
+      }
+      setUpcomingLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [showUpcomingLaunches, calculatorMode]);
   const [customOrbits, setCustomOrbits] = useState<SavedOrbit[]>([]);
   const [currentTrueAnomaly, setCurrentTrueAnomaly] = useState<number>(0);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
