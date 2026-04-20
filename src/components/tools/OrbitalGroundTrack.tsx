@@ -9,6 +9,7 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { Download, Radio, Satellite, Sun, Moon } from 'lucide-react';
 import { computeLaunchPadClock } from './utils/launchSiteLocalTime';
+import { GroundTrack3DGlobe, type GroundTrackPoint, type LaunchSitePin } from './GroundTrack3DGlobe';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
