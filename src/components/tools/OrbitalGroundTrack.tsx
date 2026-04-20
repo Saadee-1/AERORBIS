@@ -618,19 +618,7 @@ export function OrbitalGroundTrack({
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  if (tracks.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground text-sm">
-        Calculate an orbit to see the ground track
-      </div>
-    );
-  }
-
-  const latLines = [-60, -30, 0, 30, 60];
-  const lonLines = [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150];
-  const currentSVG = currentPos ? toSVG(currentPos.lat, currentPos.lon) : null;
-
-  // 3D globe data — reuse same tracks; pass altitude for satellite marker
+  // 3D globe data — reuse same tracks (computed once before any early return so hook order stays stable)
   const tracks3D: GroundTrackPoint[] = useMemo(
     () => tracks.map((t) => ({ lat: t.lat, lon: t.lon, orbitIdx: t.orbitIdx })),
     [tracks],
@@ -645,6 +633,18 @@ export function OrbitalGroundTrack({
       })),
     [selectedLaunchSiteName],
   );
+
+  if (tracks.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground text-sm">
+        Calculate an orbit to see the ground track
+      </div>
+    );
+  }
+
+  const latLines = [-60, -30, 0, 30, 60];
+  const lonLines = [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150];
+  const currentSVG = currentPos ? toSVG(currentPos.lat, currentPos.lon) : null;
 
   return (
     <div className="relative w-full">
