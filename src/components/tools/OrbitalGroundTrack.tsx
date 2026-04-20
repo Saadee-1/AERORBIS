@@ -1099,6 +1099,30 @@ export function OrbitalGroundTrack({
             <span className="text-foreground">{hoveredSite.lat.toFixed(1)}° / {hoveredSite.lon.toFixed(1)}°</span>
             <span>Typical i</span>
             <span className="text-foreground">{hoveredSite.orbit.inclination}°</span>
+            {hoveredSiteClock && (
+              <>
+                <span>Local time</span>
+                <span className="text-foreground tabular-nums">{hoveredSiteClock.localTimeStr}</span>
+                <span>Sky</span>
+                <span className="text-foreground flex items-center gap-1">
+                  {hoveredSiteClock.isDay ? (
+                    <>
+                      <Sun className="w-3 h-3" style={{ color: 'hsl(45 95% 60%)' }} />
+                      <span>Day</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="w-3 h-3" style={{ color: 'hsl(230 70% 75%)' }} />
+                      <span>Night</span>
+                    </>
+                  )}
+                  <span className="text-muted-foreground/70 ml-0.5">
+                    {hoveredSiteClock.sunAltitudeDeg >= 0 ? '+' : ''}
+                    {hoveredSiteClock.sunAltitudeDeg.toFixed(0)}°
+                  </span>
+                </span>
+              </>
+            )}
           </div>
           {onLaunchSiteClick && (
             <div className="mt-1.5 text-[9px] text-muted-foreground/60 italic">Click to load orbit</div>
