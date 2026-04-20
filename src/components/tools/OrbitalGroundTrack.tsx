@@ -6,8 +6,9 @@
  *           ground station visibility, elapsed time, orbit number
  */
 
-import { useMemo, useState, useRef, useCallback } from 'react';
-import { Download, Radio, Satellite } from 'lucide-react';
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
+import { Download, Radio, Satellite, Sun, Moon } from 'lucide-react';
+import { computeLaunchPadClock } from './utils/launchSiteLocalTime';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
@@ -303,6 +304,20 @@ export function OrbitalGroundTrack({
   const [hoveredSite, setHoveredSite] = useState<typeof LAUNCH_SITES[number] | null>(null);
   const [hoveredStation, setHoveredStation] = useState<typeof GROUND_STATIONS[number] | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [clockTick, setClockTick] = useState(0);
+
+  // 1 Hz tick only while a site is hovered (keeps tooltip clock live, no idle work)
+  useEffect(() => {
+    if (!hoveredSite) return;
+    const id = window.setInterval(() => setClockTick(t => t + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [hoveredSite]);
+
+  const hoveredSiteClock = useMemo(
+    () => (hoveredSite ? computeLaunchPadClock(hoveredSite.lat, hoveredSite.lon) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hoveredSite, clockTick],
+  );
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Orbit color palette (HSL strings)
@@ -1084,6 +1099,30 @@ export function OrbitalGroundTrack({
             <span className="text-foreground">{hoveredSite.lat.toFixed(1)}° / {hoveredSite.lon.toFixed(1)}°</span>
             <span>Typical i</span>
             <span className="text-foreground">{hoveredSite.orbit.inclination}°</span>
+            {hoveredSiteClock && (
+              <>
+                <span>Local time</span>
+                <span className="text-foreground tabular-nums">{hoveredSiteClock.localTimeStr}</span>
+                <span>Sky</span>
+                <span className="text-foreground flex items-center gap-1">
+                  {hoveredSiteClock.isDay ? (
+                    <>
+                      <Sun className="w-3 h-3" style={{ color: 'hsl(45 95% 60%)' }} />
+                      <span>Day</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="w-3 h-3" style={{ color: 'hsl(230 70% 75%)' }} />
+                      <span>Night</span>
+                    </>
+                  )}
+                  <span className="text-muted-foreground/70 ml-0.5">
+                    {hoveredSiteClock.sunAltitudeDeg >= 0 ? '+' : ''}
+                    {hoveredSiteClock.sunAltitudeDeg.toFixed(0)}°
+                  </span>
+                </span>
+              </>
+            )}
           </div>
           {onLaunchSiteClick && (
             <div className="mt-1.5 text-[9px] text-muted-foreground/60 italic">Click to load orbit</div>
