@@ -6,8 +6,9 @@
  *           ground station visibility, elapsed time, orbit number
  */
 
-import { useMemo, useState, useRef, useCallback } from 'react';
-import { Download, Radio, Satellite } from 'lucide-react';
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
+import { Download, Radio, Satellite, Sun, Moon } from 'lucide-react';
+import { computeLaunchPadClock } from './utils/launchSiteLocalTime';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
