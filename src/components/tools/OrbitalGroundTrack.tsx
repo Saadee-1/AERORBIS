@@ -1090,6 +1090,30 @@ export function OrbitalGroundTrack({
         )}
       </svg>
 
+      {/* 3D Globe inset — clickable mini preview in the top-right corner of the map */}
+      <GroundTrack3DGlobe
+        mode="inset"
+        tracks={tracks3D}
+        launchSites={launchSites3D}
+        currentLat={satelliteData?.lat}
+        currentLon={satelliteData?.lon}
+        currentAltKm={satelliteData?.altitude}
+        onExpand={() => setShow3DFullscreen(true)}
+      />
+
+      {/* 3D Globe fullscreen — opened on inset click */}
+      {show3DFullscreen && (
+        <GroundTrack3DGlobe
+          mode="fullscreen"
+          tracks={tracks3D}
+          launchSites={launchSites3D}
+          currentLat={satelliteData?.lat}
+          currentLon={satelliteData?.lon}
+          currentAltKm={satelliteData?.altitude}
+          onClose={() => setShow3DFullscreen(false)}
+        />
+      )}
+
       {/* Launch site hover tooltip */}
       {hoveredSite && (
         <div
