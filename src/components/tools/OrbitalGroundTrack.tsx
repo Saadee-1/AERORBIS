@@ -630,6 +630,22 @@ export function OrbitalGroundTrack({
   const lonLines = [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150];
   const currentSVG = currentPos ? toSVG(currentPos.lat, currentPos.lon) : null;
 
+  // 3D globe data — reuse same tracks; pass altitude for satellite marker
+  const tracks3D: GroundTrackPoint[] = useMemo(
+    () => tracks.map((t) => ({ lat: t.lat, lon: t.lon, orbitIdx: t.orbitIdx })),
+    [tracks],
+  );
+  const launchSites3D: LaunchSitePin[] = useMemo(
+    () =>
+      LAUNCH_SITES.map((s) => ({
+        name: s.name,
+        lat: s.lat,
+        lon: s.lon,
+        isSelected: selectedLaunchSiteName === s.name,
+      })),
+    [selectedLaunchSiteName],
+  );
+
   return (
     <div className="relative w-full">
       {/* Export + Station + Constellation toggle buttons */}
