@@ -306,6 +306,7 @@ export function OrbitalGroundTrack({
   const [hoveredStation, setHoveredStation] = useState<typeof GROUND_STATIONS[number] | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [clockTick, setClockTick] = useState(0);
+  const [show3DFullscreen, setShow3DFullscreen] = useState(false);
 
   // 1 Hz tick only while a site is hovered (keeps tooltip clock live, no idle work)
   useEffect(() => {
