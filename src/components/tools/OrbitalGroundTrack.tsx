@@ -304,6 +304,20 @@ export function OrbitalGroundTrack({
   const [hoveredSite, setHoveredSite] = useState<typeof LAUNCH_SITES[number] | null>(null);
   const [hoveredStation, setHoveredStation] = useState<typeof GROUND_STATIONS[number] | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [clockTick, setClockTick] = useState(0);
+
+  // 1 Hz tick only while a site is hovered (keeps tooltip clock live, no idle work)
+  useEffect(() => {
+    if (!hoveredSite) return;
+    const id = window.setInterval(() => setClockTick(t => t + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [hoveredSite]);
+
+  const hoveredSiteClock = useMemo(
+    () => (hoveredSite ? computeLaunchPadClock(hoveredSite.lat, hoveredSite.lon) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hoveredSite, clockTick],
+  );
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Orbit color palette (HSL strings)
