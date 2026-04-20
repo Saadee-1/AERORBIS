@@ -9,6 +9,7 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { Download, Radio, Satellite, Sun, Moon } from 'lucide-react';
 import { computeLaunchPadClock } from './utils/launchSiteLocalTime';
+import { GroundTrack3DGlobe, type GroundTrackPoint, type LaunchSitePin } from './GroundTrack3DGlobe';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
@@ -305,6 +306,7 @@ export function OrbitalGroundTrack({
   const [hoveredStation, setHoveredStation] = useState<typeof GROUND_STATIONS[number] | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [clockTick, setClockTick] = useState(0);
+  const [show3DFullscreen, setShow3DFullscreen] = useState(false);
 
   // 1 Hz tick only while a site is hovered (keeps tooltip clock live, no idle work)
   useEffect(() => {
@@ -615,6 +617,22 @@ export function OrbitalGroundTrack({
     const s = Math.floor(seconds % 60);
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
+
+  // 3D globe data — reuse same tracks (computed once before any early return so hook order stays stable)
+  const tracks3D: GroundTrackPoint[] = useMemo(
+    () => tracks.map((t) => ({ lat: t.lat, lon: t.lon, orbitIdx: t.orbitIdx })),
+    [tracks],
+  );
+  const launchSites3D: LaunchSitePin[] = useMemo(
+    () =>
+      LAUNCH_SITES.map((s) => ({
+        name: s.name,
+        lat: s.lat,
+        lon: s.lon,
+        isSelected: selectedLaunchSiteName === s.name,
+      })),
+    [selectedLaunchSiteName],
+  );
 
   if (tracks.length === 0) {
     return (
@@ -1071,6 +1089,30 @@ export function OrbitalGroundTrack({
           </g>
         )}
       </svg>
+
+      {/* 3D Globe inset — clickable mini preview in the top-right corner of the map */}
+      <GroundTrack3DGlobe
+        mode="inset"
+        tracks={tracks3D}
+        launchSites={launchSites3D}
+        currentLat={satelliteData?.lat}
+        currentLon={satelliteData?.lon}
+        currentAltKm={satelliteData?.altitude}
+        onExpand={() => setShow3DFullscreen(true)}
+      />
+
+      {/* 3D Globe fullscreen — opened on inset click */}
+      {show3DFullscreen && (
+        <GroundTrack3DGlobe
+          mode="fullscreen"
+          tracks={tracks3D}
+          launchSites={launchSites3D}
+          currentLat={satelliteData?.lat}
+          currentLon={satelliteData?.lon}
+          currentAltKm={satelliteData?.altitude}
+          onClose={() => setShow3DFullscreen(false)}
+        />
+      )}
 
       {/* Launch site hover tooltip */}
       {hoveredSite && (
