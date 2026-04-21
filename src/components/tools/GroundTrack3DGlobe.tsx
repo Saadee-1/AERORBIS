@@ -295,8 +295,10 @@ export function GroundTrack3DGlobe({
     // Track group + pins group
     const trackGroup = new THREE.Group();
     const pinsGroup = new THREE.Group();
+    const liveGroup = new THREE.Group();
     scene.add(trackGroup);
     scene.add(pinsGroup);
+    scene.add(liveGroup);
 
     sceneObjRef.current = {
       scene,
@@ -306,6 +308,7 @@ export function GroundTrack3DGlobe({
       trackGroup,
       pinsGroup,
       satMarker: null,
+      liveGroup,
       raf: 0,
     };
 
@@ -324,6 +327,7 @@ export function GroundTrack3DGlobe({
       obj.earth.rotation.set(rx, ry, 0);
       obj.trackGroup.rotation.set(rx, ry, 0);
       obj.pinsGroup.rotation.set(rx, ry, 0);
+      obj.liveGroup.rotation.set(rx, ry, 0);
 
       // Camera zoom
       obj.camera.position.setLength(dragRef.current.zoom);
