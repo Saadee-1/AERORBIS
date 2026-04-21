@@ -315,7 +315,7 @@ export function OrbitalGroundTrack({
   const { satellites: liveSats, loading: liveSatLoading, error: liveSatError } = useLiveSatellites({
     enabled: liveLayers.liveSats,
     groups: { iss: liveLayers.liveSatsIss, starlink: liveLayers.liveSatsStarlink },
-    intervalMs: 1000,
+    intervalMs: liveLayers.refreshRateMs,
   });
 
   // 1 Hz tick only while a site is hovered (keeps tooltip clock live, no idle work)
