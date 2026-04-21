@@ -861,7 +861,7 @@ export function OrbitalGroundTrack({
                 </circle>
               )}
               {/* Communication link line to satellite */}
-              {isVisible && satelliteData && (
+              {liveLayers.gsLinks && isVisible && satelliteData && (
                 <line
                   x1={sx} y1={sy}
                   x2={satelliteData.svgPos[0]} y2={satelliteData.svgPos[1]}
@@ -1043,7 +1043,7 @@ export function OrbitalGroundTrack({
         )}
 
         {/* Satellite footprint / coverage area */}
-        {satelliteData && satelliteData.altitude > 0 && (() => {
+        {liveLayers.coverage && satelliteData && satelliteData.altitude > 0 && (() => {
           const rho = Math.acos(R_E_KM / (R_E_KM + satelliteData.altitude)) * (180 / Math.PI);
           const latRad = satelliteData.lat * Math.PI / 180;
           const footprintPoints: string[] = [];
