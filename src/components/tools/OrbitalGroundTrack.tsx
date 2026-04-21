@@ -644,6 +644,38 @@ export function OrbitalGroundTrack({
     [selectedLaunchSiteName],
   );
 
+  // Compute eclipse status for the user's primary satellite (cheap, runs only when toggled)
+  const userSatEclipsed = useMemo(() => {
+    if (!liveLayers.eclipse || !satelliteData) return false;
+    // ECI position from sub-point + altitude (ignoring Earth rotation phase — sufficient for shadow test)
+    const lat = (satelliteData.lat * Math.PI) / 180;
+    const lon = (satelliteData.lon * Math.PI) / 180;
+    const r = R_E_KM + satelliteData.altitude;
+    const pos: [number, number, number] = [
+      r * Math.cos(lat) * Math.cos(lon),
+      r * Math.cos(lat) * Math.sin(lon),
+      r * Math.sin(lat),
+    ];
+    // Inline sun direction (avoids extra import cycle)
+    const now = new Date();
+    const jd = now.getTime() / 86400000 + 2440587.5;
+    const nDay = jd - 2451545.0;
+    const L = ((280.46 + 0.9856474 * nDay) * Math.PI) / 180;
+    const g = ((357.528 + 0.9856003 * nDay) * Math.PI) / 180;
+    const lambda = L + ((1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * Math.PI) / 180;
+    const obliq = (23.4393 * Math.PI) / 180;
+    const sx = Math.cos(lambda);
+    const sy = Math.sin(lambda) * Math.cos(obliq);
+    const sz = Math.sin(lambda) * Math.sin(obliq);
+    const dot = pos[0] * sx + pos[1] * sy + pos[2] * sz;
+    if (dot >= 0) return false;
+    const px = pos[0] - dot * sx;
+    const py = pos[1] - dot * sy;
+    const pz = pos[2] - dot * sz;
+    const perp = Math.sqrt(px * px + py * py + pz * pz);
+    return perp < R_E_KM;
+  }, [liveLayers.eclipse, satelliteData]);
+
   if (tracks.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground text-sm">
