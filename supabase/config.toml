@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.upcoming-launches]
 verify_jwt = false
+
+[functions.live-satellites]
+verify_jwt = false

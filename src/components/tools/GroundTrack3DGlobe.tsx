@@ -32,6 +32,29 @@ export interface LaunchSitePin {
   isSelected?: boolean;
 }
 
+export interface LiveSatellite3D {
+  name: string;
+  group: 'iss' | 'starlink';
+  lat: number;
+  lon: number;
+  altKm: number;
+  inEclipse: boolean;
+}
+
+export interface GroundStation3D {
+  name: string;
+  lat: number;
+  lon: number;
+  minElevDeg: number;
+}
+
+export interface LiveLayersFlags {
+  liveSats: boolean;
+  coverage: boolean;
+  eclipse: boolean;
+  gsLinks: boolean;
+}
+
 interface GroundTrack3DGlobeProps {
   tracks: GroundTrackPoint[];
   launchSites?: LaunchSitePin[];
@@ -47,6 +70,14 @@ interface GroundTrack3DGlobeProps {
   onClose?: () => void;
   /** Orbit colour palette (HSL strings) — re-uses the 2D map colours */
   orbitColors?: string[];
+  /** Live overlay flags (4 toggles from LiveLayersPanel) */
+  liveLayers?: LiveLayersFlags;
+  /** Live SGP4-propagated satellites (ISS / Starlink) */
+  liveSats?: LiveSatellite3D[];
+  /** Ground station catalog for link-line rendering */
+  groundStations?: GroundStation3D[];
+  /** Whether the user's primary satellite is currently in Earth's umbra */
+  userSatEclipsed?: boolean;
 }
 
 // Convert lat/lon (deg) + altitude to 3D Cartesian on/above unit sphere
@@ -77,6 +108,10 @@ export function GroundTrack3DGlobe({
     'hsl(35 95% 55%)',
     'hsl(280 70% 60%)',
   ],
+  liveLayers,
+  liveSats = [],
+  groundStations = [],
+  userSatEclipsed = false,
 }: GroundTrack3DGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneObjRef = useRef<{
@@ -87,6 +122,7 @@ export function GroundTrack3DGlobe({
     trackGroup: THREE.Group;
     pinsGroup: THREE.Group;
     satMarker: THREE.Mesh | null;
+    liveGroup: THREE.Group;
     raf: number;
   } | null>(null);
 
@@ -259,8 +295,10 @@ export function GroundTrack3DGlobe({
     // Track group + pins group
     const trackGroup = new THREE.Group();
     const pinsGroup = new THREE.Group();
+    const liveGroup = new THREE.Group();
     scene.add(trackGroup);
     scene.add(pinsGroup);
+    scene.add(liveGroup);
 
     sceneObjRef.current = {
       scene,
@@ -270,6 +308,7 @@ export function GroundTrack3DGlobe({
       trackGroup,
       pinsGroup,
       satMarker: null,
+      liveGroup,
       raf: 0,
     };
 
@@ -288,6 +327,7 @@ export function GroundTrack3DGlobe({
       obj.earth.rotation.set(rx, ry, 0);
       obj.trackGroup.rotation.set(rx, ry, 0);
       obj.pinsGroup.rotation.set(rx, ry, 0);
+      obj.liveGroup.rotation.set(rx, ry, 0);
 
       // Camera zoom
       obj.camera.position.setLength(dragRef.current.zoom);
@@ -437,12 +477,154 @@ export function GroundTrack3DGlobe({
 
     const pos = latLonToVec3(currentLat, currentLon, currentAltKm ?? 0);
     const satGeo = new THREE.SphereGeometry(mode === 'inset' ? 0.022 : 0.028, 16, 16);
-    const satMat = new THREE.MeshBasicMaterial({ color: new THREE.Color('hsl(0, 90%, 60%)') });
+    const eclipseColor = userSatEclipsed && liveLayers?.eclipse
+      ? new THREE.Color('hsl(230, 70%, 75%)')
+      : new THREE.Color('hsl(0, 90%, 60%)');
+    const satMat = new THREE.MeshBasicMaterial({ color: eclipseColor });
     const sat = new THREE.Mesh(satGeo, satMat);
     sat.position.copy(pos);
     obj.pinsGroup.add(sat);
     obj.satMarker = sat;
-  }, [currentLat, currentLon, currentAltKm, mode]);
+  }, [currentLat, currentLon, currentAltKm, mode, userSatEclipsed, liveLayers?.eclipse]);
+
+  // Live layers — coverage cone, live satellites, GS link lines
+  useEffect(() => {
+    const obj = sceneObjRef.current;
+    if (!obj) return;
+
+    // Clear previous live layer objects
+    while (obj.liveGroup.children.length > 0) {
+      const child = obj.liveGroup.children[0];
+      obj.liveGroup.remove(child);
+      const mesh = child as THREE.Mesh & { geometry?: THREE.BufferGeometry; material?: THREE.Material | THREE.Material[] };
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (mesh.material) {
+        if (Array.isArray(mesh.material)) mesh.material.forEach((m) => m.dispose());
+        else mesh.material.dispose();
+      }
+    }
+
+    if (!liveLayers) return;
+
+    // 1) Coverage cone for the user's primary satellite
+    if (
+      liveLayers.coverage &&
+      currentLat !== undefined &&
+      currentLon !== undefined &&
+      currentAltKm !== undefined &&
+      currentAltKm > 0
+    ) {
+      const altKm = currentAltKm;
+      const rho = Math.acos(R_E_KM / (R_E_KM + altKm)); // central half-angle
+      const lat1 = (currentLat * Math.PI) / 180;
+      const lon1 = (currentLon * Math.PI) / 180;
+      const ringPts: THREE.Vector3[] = [];
+      const steps = mode === 'inset' ? 36 : 64;
+      for (let i = 0; i <= steps; i++) {
+        const az = (i / steps) * 2 * Math.PI;
+        const lat2 = Math.asin(
+          Math.sin(lat1) * Math.cos(rho) + Math.cos(lat1) * Math.sin(rho) * Math.cos(az),
+        );
+        const lon2 =
+          lon1 +
+          Math.atan2(
+            Math.sin(az) * Math.sin(rho) * Math.cos(lat1),
+            Math.cos(rho) - Math.sin(lat1) * Math.sin(lat2),
+          );
+        ringPts.push(latLonToVec3((lat2 * 180) / Math.PI, (lon2 * 180) / Math.PI, 0).multiplyScalar(1.005));
+      }
+      // Translucent cap
+      const satPos = latLonToVec3(currentLat, currentLon, altKm);
+      const coneGeo = new THREE.BufferGeometry();
+      const verts: number[] = [];
+      for (let i = 0; i < ringPts.length - 1; i++) {
+        const a = ringPts[i];
+        const b = ringPts[i + 1];
+        verts.push(satPos.x, satPos.y, satPos.z, a.x, a.y, a.z, b.x, b.y, b.z);
+      }
+      coneGeo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+      coneGeo.computeVertexNormals();
+      const coneMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color('hsl(190, 90%, 60%)'),
+        transparent: true,
+        opacity: 0.08,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      obj.liveGroup.add(new THREE.Mesh(coneGeo, coneMat));
+      // Outline ring
+      const ringGeo = new THREE.BufferGeometry().setFromPoints(ringPts);
+      const ringMat = new THREE.LineBasicMaterial({
+        color: new THREE.Color('hsl(190, 90%, 65%)'),
+        transparent: true,
+        opacity: 0.6,
+      });
+      obj.liveGroup.add(new THREE.Line(ringGeo, ringMat));
+    }
+
+    // 2) Live satellites (ISS / Starlink)
+    if (liveLayers.liveSats && liveSats.length > 0) {
+      liveSats.forEach((s) => {
+        const isISS = s.group === 'iss';
+        const dim = liveLayers.eclipse && s.inEclipse;
+        const color = new THREE.Color(
+          dim ? 'hsl(230, 60%, 55%)' : isISS ? 'hsl(190, 90%, 60%)' : 'hsl(280, 70%, 65%)',
+        );
+        const radius = isISS ? (mode === 'inset' ? 0.018 : 0.022) : (mode === 'inset' ? 0.008 : 0.011);
+        const geo = new THREE.SphereGeometry(radius, 10, 10);
+        const mat = new THREE.MeshBasicMaterial({ color });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.copy(latLonToVec3(s.lat, s.lon, s.altKm));
+        obj.liveGroup.add(mesh);
+      });
+    }
+
+    // 3) Ground-station link lines to user's primary satellite
+    if (
+      liveLayers.gsLinks &&
+      currentLat !== undefined &&
+      currentLon !== undefined &&
+      currentAltKm !== undefined &&
+      currentAltKm > 0 &&
+      groundStations.length > 0
+    ) {
+      const satVec = latLonToVec3(currentLat, currentLon, currentAltKm);
+      const rho = Math.acos(R_E_KM / (R_E_KM + currentAltKm));
+      const satLatRad = (currentLat * Math.PI) / 180;
+      groundStations.forEach((gs) => {
+        const gsLatRad = (gs.lat * Math.PI) / 180;
+        const dLon = ((currentLon - gs.lon) * Math.PI) / 180;
+        const a =
+          Math.sin((gsLatRad - satLatRad) / 2) ** 2 +
+          Math.cos(satLatRad) * Math.cos(gsLatRad) * Math.sin(dLon / 2) ** 2;
+        const angDist = 2 * Math.asin(Math.sqrt(a));
+        const visible = angDist <= rho - (gs.minElevDeg * Math.PI) / 180;
+        if (!visible) return;
+        const gsVec = latLonToVec3(gs.lat, gs.lon, 0).multiplyScalar(1.005);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([gsVec, satVec]);
+        const lineMat = new THREE.LineBasicMaterial({
+          color: new THREE.Color('hsl(145, 70%, 55%)'),
+          transparent: true,
+          opacity: 0.7,
+        });
+        obj.liveGroup.add(new THREE.Line(lineGeo, lineMat));
+        // small green dot at the station
+        const dotGeo = new THREE.SphereGeometry(mode === 'inset' ? 0.008 : 0.012, 8, 8);
+        const dotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color('hsl(145, 70%, 55%)') });
+        const dot = new THREE.Mesh(dotGeo, dotMat);
+        dot.position.copy(gsVec);
+        obj.liveGroup.add(dot);
+      });
+    }
+  }, [
+    liveLayers,
+    liveSats,
+    groundStations,
+    currentLat,
+    currentLon,
+    currentAltKm,
+    mode,
+  ]);
 
   // Drag/zoom interaction (fullscreen only)
   const handlePointerDown = useCallback(
