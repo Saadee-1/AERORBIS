@@ -10,6 +10,8 @@ import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { Download, Radio, Satellite, Sun, Moon } from 'lucide-react';
 import { computeLaunchPadClock } from './utils/launchSiteLocalTime';
 import { GroundTrack3DGlobe, type GroundTrackPoint, type LaunchSitePin } from './GroundTrack3DGlobe';
+import { LiveLayersPanel, useLiveLayersState } from './LiveLayersPanel';
+import { useLiveSatellites, type LiveSatellite } from './hooks/useLiveSatellites';
 
 interface LaunchSiteOrbit {
   periapsisAltitude: string;
