@@ -314,9 +314,20 @@ export function GroundTrack3DGlobe({
     };
 
     // Animation loop
-    const animate = () => {
+    // Throttle: inset ~30fps, fullscreen ~60fps. Pause when tab hidden.
+    const targetFrameMs = mode === 'inset' ? 1000 / 30 : 1000 / 60;
+    let lastFrameTs = 0;
+    let lastZoom = dragRef.current.zoom;
+    const animate = (ts: number) => {
       if (!sceneObjRef.current) return;
       const obj = sceneObjRef.current;
+      obj.raf = requestAnimationFrame(animate);
+
+      // Skip work entirely when tab hidden
+      if (typeof document !== 'undefined' && document.hidden) return;
+
+      if (ts - lastFrameTs < targetFrameMs) return;
+      lastFrameTs = ts;
 
       if (autoRotate && (mode === 'inset' || !dragRef.current.active)) {
         dragRef.current.rotY += mode === 'inset' ? 0.0035 : 0.0012;
@@ -330,14 +341,18 @@ export function GroundTrack3DGlobe({
       obj.pinsGroup.rotation.set(rx, ry, 0);
       obj.liveGroup.rotation.set(rx, ry, 0);
 
-      // Camera zoom
-      obj.camera.position.setLength(dragRef.current.zoom);
-      obj.camera.lookAt(0, 0, 0);
+      // Camera zoom (only update when changed)
+      if (lastZoom !== dragRef.current.zoom) {
+        obj.camera.position.setLength(dragRef.current.zoom);
+        obj.camera.lookAt(0, 0, 0);
+        lastZoom = dragRef.current.zoom;
+      }
 
       obj.renderer.render(obj.scene, obj.camera);
-      obj.raf = requestAnimationFrame(animate);
     };
-    animate();
+    obj_init_raf: {
+      sceneObjRef.current.raf = requestAnimationFrame(animate);
+    }
 
     // Resize observer
     const ro = new ResizeObserver(() => {
