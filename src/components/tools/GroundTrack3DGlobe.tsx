@@ -156,7 +156,8 @@ export function GroundTrack3DGlobe({
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Lower DPR for inset (mini preview) to save GPU; cap fullscreen at 1.75
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mode === 'inset' ? 1 : 1.75));
     container.appendChild(renderer.domElement);
     renderer.domElement.style.display = 'block';
     renderer.domElement.style.cursor = mode === 'inset' ? 'pointer' : 'grab';
