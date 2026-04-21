@@ -11,6 +11,7 @@
 import { useEffect, useState } from 'react';
 import { Activity, Radio, Sun, Satellite, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 
 export interface LiveLayersState {
   liveSats: boolean;
@@ -19,6 +20,7 @@ export interface LiveLayersState {
   coverage: boolean;
   eclipse: boolean;
   gsLinks: boolean;
+  refreshRateMs: number; // 1000 | 2000 | 5000
 }
 
 const STORAGE_KEY = 'aerorbis_live_layers_v1';
@@ -30,6 +32,7 @@ const DEFAULTS: LiveLayersState = {
   coverage: true,
   eclipse: true,
   gsLinks: true,
+  refreshRateMs: 1000,
 };
 
 function loadState(): LiveLayersState {
@@ -137,9 +140,35 @@ export function LiveLayersPanel({
                   ) : (
                     <span>● {liveSatCount} tracked · CelesTrak SGP4</span>
                   )}
+              </div>
+
+              {/* Refresh rate selector */}
+              <div className="mt-2 ml-4 pt-2 border-t border-border/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">Refresh rate</span>
+                  <div className="flex gap-1">
+                    {[1000, 2000, 5000].map((ms) => (
+                      <button
+                        key={ms}
+                        onClick={() => onChange({ refreshRateMs: ms })}
+                        className={cn(
+                          "px-1.5 py-0.5 text-[9px] rounded transition-colors",
+                          state.refreshRateMs === ms
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                        )}
+                      >
+                        {ms / 1000}s
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="text-[8px] text-muted-foreground/70 mt-0.5">
+                  {state.refreshRateMs === 1000 ? 'Smooth • Higher CPU' : state.refreshRateMs === 2000 ? 'Balanced' : 'Eco • Lower CPU'}
                 </div>
               </div>
-            )}
+            </div>
+          )}
           </div>
 
           {/* Coverage cone */}
