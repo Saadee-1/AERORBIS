@@ -310,6 +310,14 @@ export function OrbitalGroundTrack({
   const [clockTick, setClockTick] = useState(0);
   const [show3DFullscreen, setShow3DFullscreen] = useState(false);
 
+  // Live layers state + live satellite stream
+  const { state: liveLayers, update: setLiveLayers } = useLiveLayersState();
+  const { satellites: liveSats, loading: liveSatLoading, error: liveSatError } = useLiveSatellites({
+    enabled: liveLayers.liveSats,
+    groups: { iss: liveLayers.liveSatsIss, starlink: liveLayers.liveSatsStarlink },
+    intervalMs: 1000,
+  });
+
   // 1 Hz tick only while a site is hovered (keeps tooltip clock live, no idle work)
   useEffect(() => {
     if (!hoveredSite) return;
