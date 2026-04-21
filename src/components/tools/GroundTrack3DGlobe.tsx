@@ -350,9 +350,7 @@ export function GroundTrack3DGlobe({
 
       obj.renderer.render(obj.scene, obj.camera);
     };
-    obj_init_raf: {
-      sceneObjRef.current.raf = requestAnimationFrame(animate);
-    }
+    sceneObjRef.current.raf = requestAnimationFrame(animate);
 
     // Resize observer
     const ro = new ResizeObserver(() => {
