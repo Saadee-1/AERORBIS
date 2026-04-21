@@ -11,6 +11,7 @@
 import { useEffect, useState } from 'react';
 import { Activity, Radio, Sun, Satellite, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 
 export interface LiveLayersState {
   liveSats: boolean;
