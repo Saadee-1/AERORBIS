@@ -122,6 +122,7 @@ export function GroundTrack3DGlobe({
     trackGroup: THREE.Group;
     pinsGroup: THREE.Group;
     satMarker: THREE.Mesh | null;
+    liveGroup: THREE.Group;
     raf: number;
   } | null>(null);
 
