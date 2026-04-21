@@ -90,6 +90,8 @@ export function useLiveSatellites({
     }
 
     const tick = () => {
+      // Skip propagation when tab is hidden — huge CPU saving
+      if (typeof document !== 'undefined' && document.hidden) return;
       const now = new Date();
       const gmst = satellite.gstime(now);
       const sunUnit = sunDirectionECI(now);
@@ -112,7 +114,15 @@ export function useLiveSatellites({
 
     tick();
     const id = window.setInterval(tick, intervalMs);
-    return () => window.clearInterval(id);
+    // Run an immediate tick when tab becomes visible again
+    const onVis = () => {
+      if (!document.hidden) tick();
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', onVis);
+    };
   }, [enabled, groups.iss, groups.starlink, intervalMs, tles.length]);
 
   return { satellites, loading, error };
