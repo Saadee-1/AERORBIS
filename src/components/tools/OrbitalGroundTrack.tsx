@@ -1078,12 +1078,12 @@ export function OrbitalGroundTrack({
         {/* Real-time satellite position */}
         {satelliteData && (
           <g>
-            <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="8" fill="none" stroke="hsl(var(--destructive))" strokeWidth="1" opacity="0.4">
+            <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="8" fill="none" stroke={userSatEclipsed ? 'hsl(230 70% 75%)' : 'hsl(var(--destructive))'} strokeWidth="1" opacity="0.4">
               <animate attributeName="r" values="5;12;5" dur="2s" repeatCount="indefinite" />
               <animate attributeName="opacity" values="0.6;0.05;0.6" dur="2s" repeatCount="indefinite" />
             </circle>
-            <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="6" fill="hsl(var(--destructive))" opacity="0.15" />
-            <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="3.5" fill="hsl(var(--destructive))" stroke="hsl(var(--background))" strokeWidth="1" />
+            <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="6" fill={userSatEclipsed ? 'hsl(230 70% 75%)' : 'hsl(var(--destructive))'} opacity="0.15" />
+            <circle cx={satelliteData.svgPos[0]} cy={satelliteData.svgPos[1]} r="3.5" fill={userSatEclipsed ? 'hsl(230 70% 75%)' : 'hsl(var(--destructive))'} stroke="hsl(var(--background))" strokeWidth="1" />
             {/* Velocity vector arrow */}
             {(() => {
               const arrowLen = 22;
@@ -1107,8 +1107,37 @@ export function OrbitalGroundTrack({
             <text x={satelliteData.svgPos[0] + 10} y={satelliteData.svgPos[1] - 6} fill="hsl(var(--destructive))" fontSize="8" fontWeight="700">
               SAT
             </text>
+            {liveLayers.eclipse && (
+              <text x={satelliteData.svgPos[0] + 10} y={satelliteData.svgPos[1] + 4} fill={userSatEclipsed ? 'hsl(230 70% 75%)' : 'hsl(45 95% 60%)'} fontSize="6.5" fontWeight="600" opacity="0.85">
+                {userSatEclipsed ? '☾ ECLIPSE' : '☀ SUNLIT'}
+              </text>
+            )}
           </g>
         )}
+
+        {/* Live satellites (ISS / Starlink) — SGP4 propagated client-side */}
+        {liveLayers.liveSats && liveSats.map((sat) => {
+          const [lx, ly] = toSVG(sat.lat, sat.lon);
+          const isISS = sat.group === 'iss';
+          const dim = liveLayers.eclipse && sat.inEclipse;
+          const color = isISS ? 'hsl(190 90% 60%)' : 'hsl(280 70% 65%)';
+          const dimColor = 'hsl(230 60% 55%)';
+          const r = isISS ? 3.2 : 1.8;
+          return (
+            <g key={`live-${sat.name}`} opacity={dim ? 0.55 : 1}>
+              <circle cx={lx} cy={ly} r={r} fill={dim ? dimColor : color} stroke="hsl(220 60% 8%)" strokeWidth="0.4" />
+              {isISS && (
+                <>
+                  <circle cx={lx} cy={ly} r={r + 1} fill="none" stroke={color} strokeWidth="0.6" opacity="0.6">
+                    <animate attributeName="r" values={`${r + 1};${r + 5};${r + 1}`} dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                  <text x={lx + 5} y={ly + 2.5} fill={color} fontSize="6" fontWeight="700">ISS</text>
+                </>
+              )}
+            </g>
+          );
+        })}
 
         {/* Day/Night label */}
         <text x={W - 6} y={14} textAnchor="end" fill="hsl(45 90% 60%)" fontSize="8" opacity="0.5">
@@ -1141,6 +1170,10 @@ export function OrbitalGroundTrack({
         currentLon={satelliteData?.lon}
         currentAltKm={satelliteData?.altitude}
         onExpand={() => setShow3DFullscreen(true)}
+        liveLayers={liveLayers}
+        liveSats={liveSats}
+        userSatEclipsed={userSatEclipsed}
+        groundStations={GROUND_STATIONS.map(s => ({ name: s.name, lat: s.lat, lon: s.lon, minElevDeg: s.minElev }))}
       />
 
       {/* 3D Globe fullscreen — opened on inset click */}
@@ -1153,8 +1186,21 @@ export function OrbitalGroundTrack({
           currentLon={satelliteData?.lon}
           currentAltKm={satelliteData?.altitude}
           onClose={() => setShow3DFullscreen(false)}
+          liveLayers={liveLayers}
+          liveSats={liveSats}
+          userSatEclipsed={userSatEclipsed}
+          groundStations={GROUND_STATIONS.map(s => ({ name: s.name, lat: s.lat, lon: s.lon, minElevDeg: s.minElev }))}
         />
       )}
+
+      {/* Live layers control panel */}
+      <LiveLayersPanel
+        state={liveLayers}
+        onChange={setLiveLayers}
+        liveSatCount={liveSats.length}
+        liveSatLoading={liveSatLoading}
+        liveSatError={liveSatError}
+      />
 
       {/* Launch site hover tooltip */}
       {hoveredSite && (
