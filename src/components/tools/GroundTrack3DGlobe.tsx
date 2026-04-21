@@ -32,6 +32,29 @@ export interface LaunchSitePin {
   isSelected?: boolean;
 }
 
+export interface LiveSatellite3D {
+  name: string;
+  group: 'iss' | 'starlink';
+  lat: number;
+  lon: number;
+  altKm: number;
+  inEclipse: boolean;
+}
+
+export interface GroundStation3D {
+  name: string;
+  lat: number;
+  lon: number;
+  minElevDeg: number;
+}
+
+export interface LiveLayersFlags {
+  liveSats: boolean;
+  coverage: boolean;
+  eclipse: boolean;
+  gsLinks: boolean;
+}
+
 interface GroundTrack3DGlobeProps {
   tracks: GroundTrackPoint[];
   launchSites?: LaunchSitePin[];
@@ -47,6 +70,14 @@ interface GroundTrack3DGlobeProps {
   onClose?: () => void;
   /** Orbit colour palette (HSL strings) — re-uses the 2D map colours */
   orbitColors?: string[];
+  /** Live overlay flags (4 toggles from LiveLayersPanel) */
+  liveLayers?: LiveLayersFlags;
+  /** Live SGP4-propagated satellites (ISS / Starlink) */
+  liveSats?: LiveSatellite3D[];
+  /** Ground station catalog for link-line rendering */
+  groundStations?: GroundStation3D[];
+  /** Whether the user's primary satellite is currently in Earth's umbra */
+  userSatEclipsed?: boolean;
 }
 
 // Convert lat/lon (deg) + altitude to 3D Cartesian on/above unit sphere
@@ -77,6 +108,10 @@ export function GroundTrack3DGlobe({
     'hsl(35 95% 55%)',
     'hsl(280 70% 60%)',
   ],
+  liveLayers,
+  liveSats = [],
+  groundStations = [],
+  userSatEclipsed = false,
 }: GroundTrack3DGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneObjRef = useRef<{
