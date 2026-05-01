@@ -94,6 +94,7 @@ import { AeroverseLegend, type LegendItem } from "@/components/charts/AerorbisLe
 import { spacingVertical } from "@/styles/spacing";
 import { buildAntennaPayload } from "./antenna/payloadBuilder";
 import { AntennaResult } from "./antenna/types";
+import { AdvancedAnalysisPanel } from "./antenna/AdvancedAnalysisPanel";
 
 const MIN_FREQUENCY_HZ = 1;
 
@@ -1412,6 +1413,22 @@ const AntennaPatternAnalyzer = () => {
             </AeroCard>
           </div>
         </div>
+
+        {/* ── Tier-1 upgrades: bandwidth / polarization / link budget ── */}
+        {result && selectedAntenna && (
+          <div className="lg:col-span-3">
+            <AdvancedAnalysisPanel
+              antennaId={selectedAntenna.id}
+              antennaName={selectedAntenna.name}
+              geometry={antennaParams as Record<string, number | string | boolean | undefined>}
+              frequencyHz={frequencyHz}
+              peakGainDbi={result.peakGainDbi}
+              peakGainLinear={result.peakGainLinear}
+              eirpDbw={result.eirp.eirpDbw}
+              polarization={polarization}
+            />
+          </div>
+        )}
       </ToolSection>
 
       {/* Save Custom Preset Dialog */}
