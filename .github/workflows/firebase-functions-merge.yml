@@ -37,7 +37,7 @@ jobs:
       - name: Install Firebase CLI
         run: npm i -g firebase-tools
 
-      - name: Set RESEND_API_KEY secret
+      - name: Deploy functions
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
@@ -45,7 +45,4 @@ jobs:
             echo "Missing GitHub secret: RESEND_API_KEY"
             exit 1
           fi
-          printf "%s" "$RESEND_API_KEY" | firebase functions:secrets:set RESEND_API_KEY --project aerorbis-dad0a
-
-      - name: Deploy functions
-        run: firebase deploy --only functions --project aerorbis-dad0a
+          firebase deploy --only functions --project aerorbis-dad0a
