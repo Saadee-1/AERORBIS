@@ -511,6 +511,193 @@ export const AdvancedAnalysisPanel = ({
             </>
           )}
         </TabsContent>
+
+        {/* ─────────────── PHASE 4 — MUTUAL COUPLING (CARTER) ─────────────── */}
+        <TabsContent value="coupling" className={`pt-4 ${spacingVertical.M}`}>
+          <p className="text-xs text-gray-400">
+            Carter&rsquo;s closed-form mutual impedance for parallel side-by-side λ/2
+            dipoles. Solves the Z-matrix and reports the active driving-point impedance
+            and the realised gain correction relative to the analytic isolated-element
+            assumption (Balanis §8.6).
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <AeroFormField label="Elements N">
+              <Input
+                type="number"
+                min={2}
+                max={32}
+                value={coupN}
+                onChange={(e) => setCoupN(parseInt(e.target.value, 10) || 4)}
+                className="bg-slate-900/50 border-primary/30 text-white"
+              />
+            </AeroFormField>
+            <AeroFormField label="Spacing (λ)">
+              <Input
+                value={coupSpacing}
+                onChange={(e) => setCoupSpacing(e.target.value)}
+                className="bg-slate-900/50 border-primary/30 text-white"
+              />
+            </AeroFormField>
+            <AeroFormField label="Progressive phase (deg)">
+              <Input
+                value={coupPhase}
+                onChange={(e) => setCoupPhase(e.target.value)}
+                className="bg-slate-900/50 border-primary/30 text-white"
+              />
+            </AeroFormField>
+            <div className="flex items-end">
+              <AeroButton variant="primary" onClick={handleRunCoupling} icon={Zap}>
+                Solve coupling
+              </AeroButton>
+            </div>
+          </div>
+
+          {coupError && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Coupling failed</AlertTitle>
+              <AlertDescription>{coupError}</AlertDescription>
+            </Alert>
+          )}
+
+          {coupResult && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <Stat label="Self R (λ/2 dipole)" value={`${fmt(coupResult.selfR)} Ω`} />
+                <Stat
+                  label="Avg active Z"
+                  value={`${fmt(coupResult.averageActiveR)} + j${fmt(coupResult.averageActiveX)} Ω`}
+                />
+                <Stat
+                  label="Coupling η"
+                  value={`${fmt(coupResult.couplingEfficiency * 100, 1)} %`}
+                />
+                <Stat
+                  label="Gain correction"
+                  value={`${coupResult.gainCorrectionDb >= 0 ? "+" : ""}${fmt(coupResult.gainCorrectionDb, 2)} dB`}
+                />
+              </div>
+
+              <div className="rounded-md border border-primary/20 bg-slate-900/40 p-3 max-h-56 overflow-auto">
+                <Label className="text-primary text-xs">Per-element driving impedance</Label>
+                <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-1 text-[11px] font-mono text-gray-300">
+                  {coupResult.activeZ.map((z, i) => (
+                    <div key={i} className="px-2 py-1 rounded bg-slate-900/60 border border-primary/10">
+                      <span className="text-gray-500">#{i + 1}</span>{" "}
+                      {fmt(z.re, 1)}
+                      {z.im >= 0 ? " + j" : " − j"}
+                      {fmt(Math.abs(z.im), 1)} Ω
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Alert className="border-primary/20 bg-primary/5">
+                <AlertDescription className="text-xs text-gray-300">
+                  Apply the {fmt(coupResult.gainCorrectionDb, 2)} dB correction on top of the
+                  analytic array gain to account for mutual coupling between elements.
+                  Tighter spacings (&lt; 0.4 λ) usually push the correction more negative.
+                </AlertDescription>
+              </Alert>
+            </>
+          )}
+        </TabsContent>
+
+        {/* ─────────────── PHASE 5 — PO REFLECTOR ─────────────── */}
+        <TabsContent value="po" className={`pt-4 ${spacingVertical.M}`}>
+          <p className="text-xs text-gray-400">
+            Physical-Optics surface-current integration for prime-focus parabolic
+            reflectors. Replaces the sinc² aperture approximation with a J<sub>0</sub>
+            Hankel-transform of cos<sup>q</sup> feed illumination and reports edge taper,
+            spillover and aperture efficiency.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <AeroFormField label="Diameter D (m)">
+              <Input
+                value={dishD}
+                onChange={(e) => setDishD(e.target.value)}
+                className="bg-slate-900/50 border-primary/30 text-white"
+              />
+            </AeroFormField>
+            <AeroFormField label="f / D">
+              <Input
+                value={dishFD}
+                onChange={(e) => setDishFD(e.target.value)}
+                className="bg-slate-900/50 border-primary/30 text-white"
+              />
+            </AeroFormField>
+            <AeroFormField label="Feed taper q (cos^q)">
+              <Input
+                value={feedQ}
+                onChange={(e) => setFeedQ(e.target.value)}
+                className="bg-slate-900/50 border-primary/30 text-white"
+              />
+            </AeroFormField>
+            <div className="flex items-end">
+              <AeroButton variant="primary" onClick={handleRunPO} disabled={poBusy} icon={Zap}>
+                {poBusy ? "Running…" : "Run PO solver"}
+              </AeroButton>
+            </div>
+          </div>
+
+          {poError && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>PO solver failed</AlertTitle>
+              <AlertDescription>{poError}</AlertDescription>
+            </Alert>
+          )}
+
+          {poResult && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <Stat label="Peak gain" value={`${fmt(poResult.peakGainDbi)} dBi`} />
+                <Stat label="HPBW" value={Number.isFinite(poResult.hpbwDeg) ? `${fmt(poResult.hpbwDeg, 2)}°` : "—"} />
+                <Stat label="Edge taper" value={`${fmt(poResult.edgeTaperDb)} dB`} />
+                <Stat label="Rim ψ₀" value={`${fmt(poResult.rimAngleDeg, 1)}°`} />
+                <Stat label="Spillover η" value={`${fmt(poResult.spilloverEfficiency * 100, 1)} %`} />
+                <Stat label="Illumination η" value={`${fmt(poResult.illuminationEfficiency * 100, 1)} %`} />
+                <Stat label="Aperture η" value={`${fmt(poResult.apertureEfficiency * 100, 1)} %`} />
+                <Stat label="D / λ" value={fmt(poResult.diameterM / poResult.wavelengthM, 1)} />
+              </div>
+
+              <div className="h-72 w-full rounded-md border border-primary/10 bg-slate-900/30 p-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={poChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                    <XAxis
+                      dataKey="theta"
+                      label={{ value: "θ (deg, principal cut)", position: "insideBottom", offset: -5, fill: "hsl(var(--muted-foreground))" }}
+                      tick={globalAxisTickStyle}
+                      {...globalAxisCommonProps}
+                    />
+                    <YAxis
+                      domain={[(dataMin: number) => Math.max(-60, dataMin - 5), (dataMax: number) => dataMax + 2]}
+                      label={{ value: "Gain (dBi)", angle: -90, position: "insideLeft", fill: "hsl(var(--primary))" }}
+                      tick={globalAxisTickStyle}
+                      {...globalAxisCommonProps}
+                    />
+                    <RechartsTooltip
+                      contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--primary) / 0.3)" }}
+                      labelStyle={{ color: "hsl(var(--primary))" }}
+                    />
+                    <Legend />
+                    <Line type="monotone" dataKey="gain" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="PO gain (dBi)" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {poResult.warnings.length > 0 && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    {poResult.warnings.join(" · ")}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </>
+          )}
+        </TabsContent>
       </Tabs>
     </AeroCard>
   );
