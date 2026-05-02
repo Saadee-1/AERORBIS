@@ -11,6 +11,7 @@ on:
     paths:
       - "functions/**"
       - "firebase.json"
+  workflow_dispatch:
 
 jobs:
   deploy_functions:
@@ -38,12 +39,10 @@ jobs:
 
       - name: Set RESEND_API_KEY secret
         env:
-          # Prefer a dedicated server-side secret name, but allow existing VITE_RESEND_API_KEY
-          # to keep the pipeline working without requiring a rename.
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || secrets.VITE_RESEND_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           if [ -z "$RESEND_API_KEY" ]; then
-            echo "Missing GitHub secret: RESEND_API_KEY (or VITE_RESEND_API_KEY)"
+            echo "Missing GitHub secret: RESEND_API_KEY"
             exit 1
           fi
           printf "%s" "$RESEND_API_KEY" | firebase functions:secrets:set RESEND_API_KEY --project aerorbis-dad0a
