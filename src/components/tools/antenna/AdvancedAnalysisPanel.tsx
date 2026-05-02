@@ -184,14 +184,80 @@ export const AdvancedAnalysisPanel = ({
     }
   }, [frequencyHz, eirpDbw, distanceKm, rxGainDbi, systemTempK, dataRateKbps, rainDbPerKm, polLossDb]);
 
+  // ── Phase 4: Mutual coupling (Carter) ─────────────────────────────────
+  const initialN = Number((geometry as Record<string, unknown>).numElements) || 4;
+  const initialSpacing = Number((geometry as Record<string, unknown>).spacing) || 0.5;
+  const initialPhase = Number((geometry as Record<string, unknown>).progressivePhase) || 0;
+  const [coupN, setCoupN] = useState(initialN);
+  const [coupSpacing, setCoupSpacing] = useState(String(initialSpacing));
+  const [coupPhase, setCoupPhase] = useState(String(initialPhase));
+  const [coupResult, setCoupResult] = useState<CoupledArraySummary | null>(null);
+  const [coupError, setCoupError] = useState<string | null>(null);
+
+  const handleRunCoupling = () => {
+    setCoupError(null);
+    try {
+      const N = Math.max(2, Math.min(32, Math.floor(coupN)));
+      const sp = parseFloat(coupSpacing);
+      const ph = parseFloat(coupPhase);
+      if (!Number.isFinite(sp) || sp <= 0) throw new Error("Spacing must be > 0 λ");
+      setCoupResult(summarizeCoupledArray(N, sp, Number.isFinite(ph) ? ph : 0));
+    } catch (e) {
+      setCoupError((e as Error).message);
+      setCoupResult(null);
+    }
+  };
+
+  // ── Phase 5: PO Reflector ─────────────────────────────────────────────
+  const initialDish = Number((geometry as Record<string, unknown>).diameter) || 1.0;
+  const [dishD, setDishD] = useState(String(initialDish));
+  const [dishFD, setDishFD] = useState("0.4");
+  const [feedQ, setFeedQ] = useState("2");
+  const [poResult, setPoResult] = useState<POReflectorResult | null>(null);
+  const [poError, setPoError] = useState<string | null>(null);
+  const [poBusy, setPoBusy] = useState(false);
+
+  const handleRunPO = () => {
+    setPoError(null);
+    setPoBusy(true);
+    try {
+      const D = parseFloat(dishD);
+      const fOverD = parseFloat(dishFD);
+      const q = parseFloat(feedQ);
+      if (!Number.isFinite(D) || D <= 0) throw new Error("Diameter must be > 0");
+      if (!Number.isFinite(fOverD) || fOverD <= 0) throw new Error("f/D must be > 0");
+      const r = analyzePOReflector({
+        diameterM: D,
+        fOverD,
+        frequencyHz,
+        feedQ: Number.isFinite(q) && q > 0 ? q : 2,
+      });
+      setPoResult(r);
+    } catch (e) {
+      setPoError((e as Error).message);
+      setPoResult(null);
+    } finally {
+      setPoBusy(false);
+    }
+  };
+
+  const poChartData = useMemo(
+    () =>
+      (poResult?.pattern.thetaDeg ?? []).map((t, i) => ({
+        theta: Number(t.toFixed(3)),
+        gain: Number((poResult?.pattern.gainDbi[i] ?? -80).toFixed(2)),
+      })),
+    [poResult],
+  );
+
   return (
     <AeroCard
       title="Advanced Analyses"
-      description="Bandwidth, polarization & link-budget toolkit (Tier-1 upgrades)"
+      description="Bandwidth, polarization, link-budget, mutual coupling & PO reflector toolkit"
       icon={Activity}
     >
       <Tabs defaultValue="bandwidth" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-900/50 border border-primary/20">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 bg-slate-900/50 border border-primary/20">
           <TabsTrigger value="bandwidth" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             <Activity className="h-4 w-4 mr-2" /> Bandwidth
           </TabsTrigger>
@@ -200,6 +266,12 @@ export const AdvancedAnalysisPanel = ({
           </TabsTrigger>
           <TabsTrigger value="link" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             <Satellite className="h-4 w-4 mr-2" /> Link Budget
+          </TabsTrigger>
+          <TabsTrigger value="coupling" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+            <Layers className="h-4 w-4 mr-2" /> Coupling
+          </TabsTrigger>
+          <TabsTrigger value="po" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+            <Disc3 className="h-4 w-4 mr-2" /> PO Reflector
           </TabsTrigger>
         </TabsList>
 
