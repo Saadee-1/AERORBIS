@@ -32,7 +32,8 @@ const Research = () => {
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/news?filter=${filter}`,
         {
           headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            // Public endpoint; provide anon key as apikey (not as Bearer auth)
+            'apikey': `${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
         }
       );

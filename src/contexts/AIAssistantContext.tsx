@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Message {
   id: string;
@@ -329,7 +330,20 @@ Note: Full AI analysis requires Supabase configuration. For detailed explanation
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          // Supabase Edge Functions expect a user JWT for protected endpoints.
+          // The anon/publishable key is still required in the `apikey` header.
+          ...(await (async () => {
+            const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+            const { data: { session } } = await supabase.auth.getSession();
+            const accessToken = session?.access_token;
+            if (!anonKey || !accessToken) {
+              return {};
+            }
+            return {
+              'apikey': anonKey,
+              'Authorization': `Bearer ${accessToken}`,
+            };
+          })()),
         },
         body: JSON.stringify(requestBody),
       });

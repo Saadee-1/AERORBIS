@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useAIAssistant, ToolContext } from "@/contexts/AIAssistantContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CalculationEventPayload {
   toolId: string;
@@ -98,6 +99,13 @@ export const useToolContext = () => {
       const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+      // Prefer authenticated calls to the edge function. If not signed in, keep everything local.
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!supabaseAnonKey || !accessToken) {
+        return fallbackResponse;
+      }
+
       // Try to send to server, but don't fail if it doesn't work
       try {
         const response = await fetch(
@@ -106,7 +114,7 @@ export const useToolContext = () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${supabaseAnonKey}`,
+              "Authorization": `Bearer ${accessToken}`,
               "apikey": supabaseAnonKey,
             },
             mode: "cors",
@@ -211,13 +219,19 @@ export const useToolContext = () => {
         const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
         const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+        const { data: { session } } = await supabase.auth.getSession();
+        const accessToken = session?.access_token;
+        if (!supabaseAnonKey || !accessToken) {
+          return false;
+        }
+
         const response = await fetch(
           assistantEventsUrl,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${supabaseAnonKey}`,
+              "Authorization": `Bearer ${accessToken}`,
               "apikey": supabaseAnonKey,
             },
             mode: "cors",

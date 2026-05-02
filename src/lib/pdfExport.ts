@@ -5,6 +5,16 @@
  */
 
 import { safeToFixed } from './safeNumbers';
+import { supabase } from '@/integrations/supabase/client';
+
+async function getSupabaseEdgeAuth(): Promise<{ anonKey: string; accessToken: string } | null> {
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!anonKey) return null;
+  const { data: { session } } = await supabase.auth.getSession();
+  const accessToken = session?.access_token;
+  if (!accessToken) return null;
+  return { anonKey, accessToken };
+}
 
 export interface PDFExportOptions {
   includeAssistantExplanation?: boolean;
@@ -192,15 +202,19 @@ export async function exportToPDF(
   try {
     // Use environment variables for Supabase endpoint
     const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const auth = await getSupabaseEdgeAuth();
+    if (!auth) {
+      const html = generatePDFFromLocalStorage(requestId, options);
+      return { status: 'ready', html, requestId };
+    }
 
     try {
       const response = await fetch(`${assistantEventsUrl}/export/pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${auth.accessToken}`,
+          'apikey': auth.anonKey,
         },
         mode: 'cors',
         body: JSON.stringify({
@@ -275,14 +289,17 @@ export async function exportBatchPDF(
   try {
     // Use environment variables for Supabase endpoint
     const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const auth = await getSupabaseEdgeAuth();
+    if (!auth) {
+      throw new Error('Batch export requires sign-in (no Supabase session available).');
+    }
 
     const response = await fetch(`${assistantEventsUrl}/export/batch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${auth.accessToken}`,
+        'apikey': auth.anonKey,
       },
       mode: 'cors',
       body: JSON.stringify({
@@ -386,14 +403,17 @@ export async function getCalculationContext(requestId: string) {
   try {
     // Use environment variables for Supabase endpoint
     const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const auth = await getSupabaseEdgeAuth();
+    if (!auth) {
+      throw new Error('Not authenticated (no Supabase session available).');
+    }
 
     const response = await fetch(`${assistantEventsUrl}/context/${requestId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${auth.accessToken}`,
+        'apikey': auth.anonKey,
       },
       mode: 'cors',
     });
@@ -436,14 +456,17 @@ export async function getExplanation(
   try {
     // Use environment variables for Supabase endpoint
     const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const auth = await getSupabaseEdgeAuth();
+    if (!auth) {
+      throw new Error('Not authenticated (no Supabase session available).');
+    }
 
     const response = await fetch(`${assistantEventsUrl}/explain`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${auth.accessToken}`,
+        'apikey': auth.anonKey,
       },
       mode: 'cors',
       body: JSON.stringify({

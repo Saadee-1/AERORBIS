@@ -116,10 +116,15 @@ serve(async (req) => {
       );
     }
 
-    // Authenticate user (optional - allow anonymous access for tools)
+    // Require authenticated user JWT (defense-in-depth; config.toml also sets verify_jwt=true)
     const auth = await authenticateUser(req);
-    const userId = auth?.user?.id || 'anonymous';
-    console.log('Request from user:', userId);
+    if (!auth) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    console.log('Request from user:', auth.user.id);
 
     const url = new URL(req.url);
     const path = url.pathname;
@@ -163,15 +168,17 @@ serve(async (req) => {
       }
 
       const event = validationResult.data as CalculationEvent;
+      // Trust the authenticated user id, not any client-supplied userId field.
+      const authedEvent = { ...event, userId: auth.user.id } as CalculationEvent;
       
       // Route based on eventType
-      if (event.eventType === 'calculation.complete') {
-        return await handleCalculationEventWithBody(event);
-      } else if (event.eventType === 'calculation.update') {
-        return await handleCalculationUpdateWithBody(event);
+      if (authedEvent.eventType === 'calculation.complete') {
+        return await handleCalculationEventWithBody(authedEvent);
+      } else if (authedEvent.eventType === 'calculation.update') {
+        return await handleCalculationUpdateWithBody(authedEvent);
       } else {
         return new Response(JSON.stringify({ 
-          error: `Unknown eventType: ${event.eventType}. Expected 'calculation.complete' or 'calculation.update'` 
+          error: `Unknown eventType: ${authedEvent.eventType}. Expected 'calculation.complete' or 'calculation.update'` 
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -207,13 +214,43 @@ serve(async (req) => {
   }
 });
 
-// Store calculation context (using in-memory for now, can migrate to Supabase DB)
-const calculationContexts = new Map<string, CalculationEvent & { explanation?: string; explanationId?: string; cachedExplanations?: Map<string, string> }>();
+// Store calculation context in-memory (edge-function instance memory).
+// Hard limits to reduce abuse/memory pressure.
+const CONTEXT_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const MAX_CONTEXTS = 200;
+type StoredContext = CalculationEvent & {
+  storedAt: number;
+  lastAccessAt: number;
+  explanation?: string;
+  explanationId?: string;
+  cachedExplanations?: Map<string, string>;
+};
+
+const calculationContexts = new Map<string, StoredContext>();
+
+function cleanupContexts(now = Date.now()) {
+  // Drop expired entries first.
+  for (const [key, ctx] of calculationContexts.entries()) {
+    if (now - ctx.storedAt > CONTEXT_TTL_MS) {
+      calculationContexts.delete(key);
+    }
+  }
+
+  // Enforce max size by deleting oldest entries.
+  if (calculationContexts.size <= MAX_CONTEXTS) return;
+  const byOldest = [...calculationContexts.entries()].sort((a, b) => a[1].storedAt - b[1].storedAt);
+  const toRemove = calculationContexts.size - MAX_CONTEXTS;
+  for (let i = 0; i < toRemove; i++) {
+    calculationContexts.delete(byOldest[i][0]);
+  }
+}
 
 // Memoization cache for explanations (key: requestId + explanationLevel)
 const explanationCache = new Map<string, string>();
 
 async function handleCalculationEventWithBody(event: CalculationEvent): Promise<Response> {
+  cleanupContexts();
+  const now = Date.now();
 
   // Validate required fields
   if (!event.requestId || !event.toolId || !event.userId) {
@@ -226,6 +263,8 @@ async function handleCalculationEventWithBody(event: CalculationEvent): Promise<
   // Store context
   calculationContexts.set(event.requestId, {
     ...event,
+    storedAt: now,
+    lastAccessAt: now,
     explanationId: `exp-${event.requestId}`,
   });
 
@@ -358,6 +397,7 @@ function generateRecommendations(event: CalculationEvent): string[] {
 }
 
 async function handleExplainRequest(req: Request): Promise<Response> {
+  cleanupContexts();
   let body: unknown;
   try {
     body = await req.json();
@@ -388,6 +428,9 @@ async function handleExplainRequest(req: Request): Promise<Response> {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+
+  context.lastAccessAt = Date.now();
+  calculationContexts.set(requestId, context);
 
   // Check memoization cache
   const cacheKey = `${requestId}:${explanationLevel}`;
@@ -474,6 +517,7 @@ Provide:
 }
 
 async function handlePDFExport(req: Request): Promise<Response> {
+  cleanupContexts();
   let body: unknown;
   try {
     body = await req.json();
@@ -504,6 +548,9 @@ async function handlePDFExport(req: Request): Promise<Response> {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+
+  context.lastAccessAt = Date.now();
+  calculationContexts.set(requestId, context);
 
   // Generate HTML for PDF (client-side will convert to PDF)
   const html = generatePDFHTML(context, options);
@@ -691,6 +738,7 @@ function getApproxLevelDescription(level: string): string {
 }
 
 async function handleGetContext(req: Request): Promise<Response> {
+  cleanupContexts();
   const url = new URL(req.url);
   const requestId = url.pathname.split('/context/')[1];
   
@@ -709,6 +757,10 @@ async function handleGetContext(req: Request): Promise<Response> {
     });
   }
 
+  // Touch LRU timestamp
+  context.lastAccessAt = Date.now();
+  calculationContexts.set(requestId, context);
+
   return new Response(JSON.stringify({
     requestId,
     inputs: context.inputs,
@@ -723,6 +775,8 @@ async function handleGetContext(req: Request): Promise<Response> {
 }
 
 async function handleCalculationUpdateWithBody(event: CalculationEvent): Promise<Response> {
+  cleanupContexts();
+  const now = Date.now();
 
   if (!event.requestId || !event.sequenceId) {
     return new Response(JSON.stringify({ error: 'Missing required fields (requestId, sequenceId)' }), {
@@ -742,11 +796,14 @@ async function handleCalculationUpdateWithBody(event: CalculationEvent): Promise
     if (event.progress !== undefined) {
       (existing as unknown as { progress?: number }).progress = event.progress;
     }
+    existing.lastAccessAt = now;
     calculationContexts.set(event.requestId, existing);
   } else {
     // Create new context for first update
     calculationContexts.set(event.requestId, {
       ...event,
+      storedAt: now,
+      lastAccessAt: now,
       explanationId: `exp-${event.requestId}`,
     });
   }
@@ -763,6 +820,7 @@ async function handleCalculationUpdateWithBody(event: CalculationEvent): Promise
 
 // Handle batch PDF export (multiple requestIds)
 async function handleBatchExport(req: Request): Promise<Response> {
+  cleanupContexts();
   let body: unknown;
   try {
     body = await req.json();

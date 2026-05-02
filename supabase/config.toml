@@ -1,7 +1,16 @@
 project_id = "wutjlluliyrazvdvhgak"
 
 [functions.ai-gateway]
-verify_jwt = false
+verify_jwt = true
+
+[functions.ai-chat]
+verify_jwt = true
+
+[functions.assistant-events]
+verify_jwt = true
+
+[functions.transcribe-audio]
+verify_jwt = true
 
 [functions.news]
 verify_jwt = false
