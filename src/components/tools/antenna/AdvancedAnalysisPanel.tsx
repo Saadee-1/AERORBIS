@@ -21,7 +21,7 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
 } from "recharts";
-import { Activity, Radio, Satellite, Zap, AlertTriangle } from "lucide-react";
+import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3 } from "lucide-react";
 
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroButton } from "@/components/common/AeroButton";
@@ -47,6 +47,14 @@ import {
   type LinkBudgetResult,
   type LinkPresetKey,
 } from "@/lib/antenna/linkBudget";
+import {
+  summarizeCoupledArray,
+  type CoupledArraySummary,
+} from "@/lib/antenna/coupling";
+import {
+  analyzePOReflector,
+  type POReflectorResult,
+} from "@/lib/antenna/po";
 import type { AntennaGeometry } from "@/lib/antenna/models-enhanced";
 
 interface AdvancedAnalysisPanelProps {
