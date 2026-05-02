@@ -102,7 +102,7 @@ export function mutualImpedanceParallelHalfwave(
   const u2 = k * (r - l);
   const factor = ETA / (4 * Math.PI);
   const R = factor * (2 * Ci(u0) - Ci(u1) - Ci(u2));
-  const X = -factor * (2 * Si(u0) - Si(u1) - Si(u2));
+  const X = factor * (2 * Si(u0) - Si(u1) - Si(u2));
   return C(R, X);
 }
 
