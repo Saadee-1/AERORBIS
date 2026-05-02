@@ -158,7 +158,7 @@ export function analyzePOReflector(input: POReflectorInputs): POReflectorResult 
     intA2 += A[i] * A[i] * rho[i] * dRho;
   }
   const illumination =
-    intA2 > 0 ? (intA * intA) / (a * a * intA2) : 0;
+    intA2 > 0 ? (2 * intA * intA) / (a * a * intA2) : 0;
   const apertureEff = Math.max(0, Math.min(1, spillover * illumination));
 
   // Far-field principal-plane cut via J0 Hankel transform.
