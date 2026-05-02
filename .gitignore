@@ -28,6 +28,15 @@ dist-ssr
 *.sln
 *.sw?
 
+# AI/editor tooling folders (should not be committed)
+.agents/
+.continue/
+.claude/
+.windsurf/
+.qoder/
+.cursor/
+.lovable/
+
 # XFOIL and generated polar data
 xfoil/
 raw_polars/
