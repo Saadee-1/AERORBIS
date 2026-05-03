@@ -38,6 +38,6 @@ jobs:
         run: npm i -g firebase-tools
 
       - name: Deploy functions
-        run: |
-          firebase functions:config:set resend.api_key="${{ secrets.RESEND_API_KEY }}" --project aerorbis-dad0a
-          firebase deploy --only functions --project aerorbis-dad0a
+        run: firebase deploy --only functions --project aerorbis-dad0a
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
