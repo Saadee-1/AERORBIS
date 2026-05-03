@@ -21,7 +21,7 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
 } from "recharts";
-import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3 } from "lucide-react";
+import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu } from "lucide-react";
 
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroButton } from "@/components/common/AeroButton";
@@ -55,6 +55,10 @@ import {
   analyzePOReflector,
   type POReflectorResult,
 } from "@/lib/antenna/po";
+import {
+  solveThinWireMoM,
+  type MomResult,
+} from "@/lib/antenna/mom";
 import type { AntennaGeometry } from "@/lib/antenna/models-enhanced";
 
 interface AdvancedAnalysisPanelProps {
@@ -250,14 +254,75 @@ export const AdvancedAnalysisPanel = ({
     [poResult],
   );
 
+  // ── Phase 6: Thin-wire MoM solver ─────────────────────────────────────
+  const initialLength =
+    Number((geometry as Record<string, unknown>).length) ||
+    (299792458 / Math.max(frequencyHz, 1)) / 2; // λ/2 default
+  const [momLength, setMomLength] = useState(initialLength.toFixed(4));
+  const [momRadius, setMomRadius] = useState("0.001");
+  const [momSegments, setMomSegments] = useState(51);
+  const [momResult, setMomResult] = useState<MomResult | null>(null);
+  const [momError, setMomError] = useState<string | null>(null);
+  const [momBusy, setMomBusy] = useState(false);
+
+  const handleRunMoM = () => {
+    setMomError(null);
+    setMomBusy(true);
+    try {
+      const L = parseFloat(momLength);
+      const a = parseFloat(momRadius);
+      if (!Number.isFinite(L) || L <= 0) throw new Error("Length must be > 0 m");
+      if (!Number.isFinite(a) || a <= 0) throw new Error("Radius must be > 0 m");
+      // Defer to keep UI responsive for ~150 segments.
+      setTimeout(() => {
+        try {
+          const r = solveThinWireMoM({
+            lengthM: L,
+            radiusM: a,
+            frequencyHz,
+            numSegments: momSegments,
+          });
+          setMomResult(r);
+        } catch (e) {
+          setMomError((e as Error).message);
+          setMomResult(null);
+        } finally {
+          setMomBusy(false);
+        }
+      }, 10);
+    } catch (e) {
+      setMomError((e as Error).message);
+      setMomResult(null);
+      setMomBusy(false);
+    }
+  };
+
+  const momCurrentChart = useMemo(
+    () =>
+      (momResult?.current ?? []).map((c) => ({
+        z: Number((c.zM * 1000).toFixed(2)),
+        mag: Number((c.mag * 1000).toFixed(4)),
+      })),
+    [momResult],
+  );
+
+  const momPatternChart = useMemo(
+    () =>
+      (momResult?.pattern.thetaDeg ?? []).map((t, i) => ({
+        theta: Number(t.toFixed(2)),
+        gain: Number((momResult?.pattern.gainDbi[i] ?? -60).toFixed(2)),
+      })),
+    [momResult],
+  );
+
   return (
     <AeroCard
       title="Advanced Analyses"
-      description="Bandwidth, polarization, link-budget, mutual coupling & PO reflector toolkit"
+      description="Bandwidth, polarization, link-budget, coupling, PO reflector & MoM solver"
       icon={Activity}
     >
       <Tabs defaultValue="bandwidth" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 bg-slate-900/50 border border-primary/20">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 bg-slate-900/50 border border-primary/20">
           <TabsTrigger value="bandwidth" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             <Activity className="h-4 w-4 mr-2" /> Bandwidth
           </TabsTrigger>
@@ -272,6 +337,9 @@ export const AdvancedAnalysisPanel = ({
           </TabsTrigger>
           <TabsTrigger value="po" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             <Disc3 className="h-4 w-4 mr-2" /> PO Reflector
+          </TabsTrigger>
+          <TabsTrigger value="mom" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+            <Cpu className="h-4 w-4 mr-2" /> MoM Solver
           </TabsTrigger>
         </TabsList>
 
@@ -692,6 +760,229 @@ export const AdvancedAnalysisPanel = ({
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription className="text-xs">
                     {poResult.warnings.join(" · ")}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </>
+          )}
+        </TabsContent>
+
+        {/* ─────────────── PHASE 6 — THIN-WIRE MoM ─────────────── */}
+        <TabsContent value="mom" className={`pt-4 ${spacingVertical.M}`}>
+          <p className="text-xs text-gray-400">
+            High-fidelity Pocklington thin-wire Method-of-Moments kernel
+            (pulse-basis, point-matching) for centre-fed straight wires.
+            Solves the full Z-matrix → driving-point impedance, current
+            distribution, VSWR, and the integrated radiation pattern.
+            Manual trigger to preserve interactivity (Expert default
+            stays analytic).
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <AeroFormField label="Length L (m)">
+              <Input
+                value={momLength}
+                onChange={(e) => setMomLength(e.target.value)}
+                className="bg-slate-900/50 border-primary/30 text-white"
+              />
+            </AeroFormField>
+            <AeroFormField label="Radius a (m)">
+              <Input
+                value={momRadius}
+                onChange={(e) => setMomRadius(e.target.value)}
+                className="bg-slate-900/50 border-primary/30 text-white"
+              />
+            </AeroFormField>
+            <AeroFormField label="Segments N (odd)">
+              <Input
+                type="number"
+                min={11}
+                max={151}
+                step={2}
+                value={momSegments}
+                onChange={(e) =>
+                  setMomSegments(parseInt(e.target.value, 10) || 51)
+                }
+                className="bg-slate-900/50 border-primary/30 text-white"
+              />
+            </AeroFormField>
+            <div className="flex items-end">
+              <AeroButton
+                variant="primary"
+                onClick={handleRunMoM}
+                disabled={momBusy}
+                icon={Zap}
+              >
+                {momBusy ? "Solving…" : "Run MoM"}
+              </AeroButton>
+            </div>
+          </div>
+
+          {momError && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>MoM solver failed</AlertTitle>
+              <AlertDescription>{momError}</AlertDescription>
+            </Alert>
+          )}
+
+          {momResult && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <Stat
+                  label="Z_in"
+                  value={`${fmt(momResult.inputImpedance.re, 1)} ${
+                    momResult.inputImpedance.im >= 0 ? "+ j" : "− j"
+                  }${fmt(Math.abs(momResult.inputImpedance.im), 1)} Ω`}
+                />
+                <Stat
+                  label="VSWR (50 Ω)"
+                  value={
+                    Number.isFinite(momResult.vswr50)
+                      ? fmt(momResult.vswr50, 2)
+                      : "∞"
+                  }
+                />
+                <Stat
+                  label="Return loss"
+                  value={
+                    Number.isFinite(momResult.returnLoss50Db)
+                      ? `${fmt(momResult.returnLoss50Db, 2)} dB`
+                      : "∞"
+                  }
+                />
+                <Stat
+                  label="Peak gain"
+                  value={`${fmt(momResult.peakGainDbi, 2)} dBi`}
+                />
+                <Stat
+                  label="HPBW"
+                  value={
+                    Number.isFinite(momResult.hpbwDeg)
+                      ? `${fmt(momResult.hpbwDeg, 1)}°`
+                      : "—"
+                  }
+                />
+                <Stat
+                  label="Radiated P"
+                  value={`${(momResult.radiatedPowerW * 1000).toFixed(3)} mW`}
+                />
+                <Stat label="Segments" value={`${momResult.segments}`} />
+                <Stat
+                  label="L / λ"
+                  value={fmt(momResult.lengthM / momResult.wavelengthM, 3)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div className="h-64 w-full rounded-md border border-primary/10 bg-slate-900/30 p-2">
+                  <Label className="text-primary text-xs px-2">
+                    Current distribution |I(z)| (mA)
+                  </Label>
+                  <ResponsiveContainer width="100%" height="92%">
+                    <LineChart data={momCurrentChart}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="hsl(var(--border))"
+                        opacity={0.3}
+                      />
+                      <XAxis
+                        dataKey="z"
+                        label={{
+                          value: "z along wire (mm)",
+                          position: "insideBottom",
+                          offset: -5,
+                          fill: "hsl(var(--muted-foreground))",
+                        }}
+                        tick={globalAxisTickStyle}
+                        {...globalAxisCommonProps}
+                      />
+                      <YAxis
+                        tick={globalAxisTickStyle}
+                        {...globalAxisCommonProps}
+                      />
+                      <RechartsTooltip
+                        contentStyle={{
+                          background: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--primary) / 0.3)",
+                        }}
+                        labelStyle={{ color: "hsl(var(--primary))" }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="mag"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        dot={false}
+                        name="|I| (mA)"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="h-64 w-full rounded-md border border-primary/10 bg-slate-900/30 p-2">
+                  <Label className="text-primary text-xs px-2">
+                    E-plane radiation pattern (dBi)
+                  </Label>
+                  <ResponsiveContainer width="100%" height="92%">
+                    <LineChart data={momPatternChart}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="hsl(var(--border))"
+                        opacity={0.3}
+                      />
+                      <XAxis
+                        dataKey="theta"
+                        label={{
+                          value: "θ (deg)",
+                          position: "insideBottom",
+                          offset: -5,
+                          fill: "hsl(var(--muted-foreground))",
+                        }}
+                        tick={globalAxisTickStyle}
+                        {...globalAxisCommonProps}
+                      />
+                      <YAxis
+                        domain={[
+                          (dataMin: number) => Math.max(-40, dataMin - 5),
+                          (dataMax: number) => dataMax + 2,
+                        ]}
+                        tick={globalAxisTickStyle}
+                        {...globalAxisCommonProps}
+                      />
+                      <RechartsTooltip
+                        contentStyle={{
+                          background: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--primary) / 0.3)",
+                        }}
+                        labelStyle={{ color: "hsl(var(--primary))" }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="gain"
+                        stroke="hsl(var(--accent))"
+                        strokeWidth={2}
+                        dot={false}
+                        name="MoM gain (dBi)"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <Alert className="border-primary/20 bg-primary/5">
+                <AlertDescription className="text-xs text-gray-300">
+                  Backend: <code>{momResult.backend}</code>. NEC2-WASM
+                  backend can be swapped in behind the same{" "}
+                  <code>solveThinWireMoM</code> contract without UI
+                  changes.
+                </AlertDescription>
+              </Alert>
+
+              {momResult.warnings.length > 0 && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    {momResult.warnings.join(" · ")}
                   </AlertDescription>
                 </Alert>
               )}
