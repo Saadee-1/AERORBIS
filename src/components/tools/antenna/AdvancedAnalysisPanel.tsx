@@ -921,6 +921,19 @@ export const AdvancedAnalysisPanel = ({
             Manual trigger to preserve interactivity (Expert default
             stays analytic).
           </p>
+          <div className="flex flex-wrap gap-2">
+            {momPresets.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => applyMomPreset(p)}
+                title={p.note}
+                className="px-2.5 py-1 text-[11px] rounded-md border border-primary/30 bg-slate-900/50 hover:bg-primary/15 text-primary transition"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <AeroFormField label="Length L (m)">
               <Input
@@ -1017,6 +1030,66 @@ export const AdvancedAnalysisPanel = ({
                 />
               </div>
 
+              {/* Toolbar: scale toggle + exports */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1 text-xs">
+                  <span className="text-gray-400 mr-1">Pattern scale:</span>
+                  <button
+                    type="button"
+                    onClick={() => setMomScale("dB")}
+                    className={`px-2 py-1 rounded-md border text-[11px] ${
+                      momScale === "dB"
+                        ? "border-primary bg-primary/20 text-primary"
+                        : "border-primary/20 text-gray-300 hover:bg-primary/10"
+                    }`}
+                  >
+                    dB
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMomScale("linear")}
+                    className={`px-2 py-1 rounded-md border text-[11px] ${
+                      momScale === "linear"
+                        ? "border-primary bg-primary/20 text-primary"
+                        : "border-primary/20 text-gray-300 hover:bg-primary/10"
+                    }`}
+                  >
+                    Linear
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AeroButton variant="secondary" onClick={handleExportMomCsv} icon={Download}>
+                    CSV
+                  </AeroButton>
+                  <AeroButton variant="secondary" onClick={handleExportMomJson} icon={Download}>
+                    JSON
+                  </AeroButton>
+                </div>
+              </div>
+
+              {momConvergence && (
+                <Alert
+                  className={
+                    momConvergence.converged
+                      ? "border-emerald-500/40 bg-emerald-500/10"
+                      : "border-amber-500/40 bg-amber-500/10"
+                  }
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle className="text-xs">
+                    Convergence check (N={momResult.segments} → {momConvergence.refinedSegments})
+                  </AlertTitle>
+                  <AlertDescription className="text-[11px] text-gray-300">
+                    ΔZ_in = {fmt(momConvergence.deltaZinPct, 2)}% · ΔPeakGain ={" "}
+                    {fmt(momConvergence.deltaPeakGainDb, 3)} dB · current corr ={" "}
+                    {fmt(momConvergence.currentCorr, 4)}.{" "}
+                    {momConvergence.converged
+                      ? "Solution is converged."
+                      : "Mesh may be too coarse — increase N for stable results."}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <div className="h-64 w-full rounded-md border border-primary/10 bg-slate-900/30 p-2">
                   <Label className="text-primary text-xs px-2">
@@ -1102,16 +1175,88 @@ export const AdvancedAnalysisPanel = ({
                       />
                       <Line
                         type="monotone"
-                        dataKey="gain"
+                        dataKey={momScale === "dB" ? "gain" : "gainLin"}
                         stroke="hsl(var(--accent))"
                         strokeWidth={2}
                         dot={false}
-                        name="MoM gain (dBi)"
+                        name={momScale === "dB" ? "MoM gain (dBi)" : "MoM gain (linear)"}
                       />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
+
+              {/* Cross-engine comparison panel */}
+              <AeroCard
+                title="Cross-Engine Comparison"
+                description="Validate MoM Z_in / VSWR / gain against analytic + link-budget values"
+                icon={GitCompare}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-left text-gray-400 border-b border-primary/20">
+                        <th className="py-1.5 pr-3">Quantity</th>
+                        <th className="py-1.5 pr-3">Analytic / Registry</th>
+                        <th className="py-1.5 pr-3">MoM (Pocklington)</th>
+                        <th className="py-1.5 pr-3">Δ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-gray-200">
+                      <tr className="border-b border-primary/10">
+                        <td className="py-1.5 pr-3">Peak gain (dBi)</td>
+                        <td className="py-1.5 pr-3">{fmt(peakGainDbi, 2)}</td>
+                        <td className="py-1.5 pr-3">{fmt(momResult.peakGainDbi, 2)}</td>
+                        <td className="py-1.5 pr-3 text-primary">
+                          {fmt(momResult.peakGainDbi - peakGainDbi, 2)} dB
+                        </td>
+                      </tr>
+                      <tr className="border-b border-primary/10">
+                        <td className="py-1.5 pr-3">Z_in (Ω)</td>
+                        <td className="py-1.5 pr-3">73 + j42 (λ/2 ref.)</td>
+                        <td className="py-1.5 pr-3">
+                          {fmt(momResult.inputImpedance.re, 1)}{" "}
+                          {momResult.inputImpedance.im >= 0 ? "+ j" : "− j"}
+                          {fmt(Math.abs(momResult.inputImpedance.im), 1)}
+                        </td>
+                        <td className="py-1.5 pr-3 text-primary">
+                          {fmt(Math.hypot(momResult.inputImpedance.re - 73, momResult.inputImpedance.im - 42), 1)} Ω
+                        </td>
+                      </tr>
+                      <tr className="border-b border-primary/10">
+                        <td className="py-1.5 pr-3">VSWR (50 Ω)</td>
+                        <td className="py-1.5 pr-3">—</td>
+                        <td className="py-1.5 pr-3">
+                          {Number.isFinite(momResult.vswr50) ? fmt(momResult.vswr50, 2) : "∞"}
+                        </td>
+                        <td className="py-1.5 pr-3 text-primary">—</td>
+                      </tr>
+                      <tr className="border-b border-primary/10">
+                        <td className="py-1.5 pr-3">Polarization AR (dB)</td>
+                        <td className="py-1.5 pr-3">{fmt(polResult.axialRatioDb, 2)}</td>
+                        <td className="py-1.5 pr-3">linear (thin wire)</td>
+                        <td className="py-1.5 pr-3 text-primary">—</td>
+                      </tr>
+                      {linkResult && (
+                        <tr>
+                          <td className="py-1.5 pr-3">EIRP used in link (dBW)</td>
+                          <td className="py-1.5 pr-3">{fmt(eirpDbw, 2)}</td>
+                          <td className="py-1.5 pr-3">
+                            {fmt(eirpDbw + (momResult.peakGainDbi - peakGainDbi), 2)} (gain-corrected)
+                          </td>
+                          <td className="py-1.5 pr-3 text-primary">
+                            {fmt(momResult.peakGainDbi - peakGainDbi, 2)} dB
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[10px] text-gray-500 mt-2">
+                  Reference Z_in (73 + j42 Ω) is the canonical resonant λ/2 dipole
+                  benchmark from Balanis §8.4. For other geometries, Δ is informational.
+                </p>
+              </AeroCard>
 
               <Alert className="border-primary/20 bg-primary/5">
                 <AlertDescription className="text-xs text-gray-300">
