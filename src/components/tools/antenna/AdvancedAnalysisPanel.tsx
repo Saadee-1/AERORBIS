@@ -21,7 +21,7 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
 } from "recharts";
-import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu } from "lucide-react";
+import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu, Download, GitCompare } from "lucide-react";
 
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroButton } from "@/components/common/AeroButton";
@@ -264,10 +264,34 @@ export const AdvancedAnalysisPanel = ({
   const [momResult, setMomResult] = useState<MomResult | null>(null);
   const [momError, setMomError] = useState<string | null>(null);
   const [momBusy, setMomBusy] = useState(false);
+  const [momScale, setMomScale] = useState<"dB" | "linear">("dB");
+  const [momConvergence, setMomConvergence] = useState<{
+    deltaZinPct: number;
+    deltaPeakGainDb: number;
+    currentCorr: number;
+    converged: boolean;
+    refinedSegments: number;
+  } | null>(null);
+
+  const C0 = 299792458;
+  const lambda = C0 / Math.max(frequencyHz, 1);
+  const momPresets: { label: string; L: number; a: number; note: string }[] = [
+    { label: "λ/2 dipole", L: lambda * 0.5, a: lambda * 1e-3, note: "Resonant, ~73 Ω" },
+    { label: "λ/4 monopole", L: lambda * 0.25, a: lambda * 1e-3, note: "Quarter-wave" },
+    { label: "Full-wave", L: lambda, a: lambda * 1e-3, note: "1λ wire" },
+    { label: "Short dipole", L: lambda * 0.1, a: lambda * 1e-3, note: "0.1λ, capacitive" },
+    { label: "1.25λ extended", L: lambda * 1.25, a: lambda * 1e-3, note: "Higher gain" },
+  ];
+
+  const applyMomPreset = (p: { L: number; a: number }) => {
+    setMomLength(p.L.toFixed(4));
+    setMomRadius(p.a.toExponential(3));
+  };
 
   const handleRunMoM = () => {
     setMomError(null);
     setMomBusy(true);
+    setMomConvergence(null);
     try {
       const L = parseFloat(momLength);
       const a = parseFloat(momRadius);
@@ -283,6 +307,48 @@ export const AdvancedAnalysisPanel = ({
             numSegments: momSegments,
           });
           setMomResult(r);
+          // ── Auto convergence check: re-run with denser mesh
+          try {
+            const refinedN = Math.min(151, (momSegments % 2 === 0 ? momSegments + 1 : momSegments) + 20);
+            if (refinedN > momSegments) {
+              const r2 = solveThinWireMoM({
+                lengthM: L,
+                radiusM: a,
+                frequencyHz,
+                numSegments: refinedN,
+              });
+              const z1 = Math.hypot(r.inputImpedance.re, r.inputImpedance.im);
+              const z2 = Math.hypot(r2.inputImpedance.re, r2.inputImpedance.im);
+              const deltaZinPct = z1 > 0 ? Math.abs(z2 - z1) / z1 * 100 : 0;
+              const deltaPeakGainDb = Math.abs(r2.peakGainDbi - r.peakGainDbi);
+              // Sample-aligned correlation of |I| envelopes
+              const N = Math.min(r.current.length, r2.current.length);
+              const a1: number[] = [];
+              const a2: number[] = [];
+              for (let i = 0; i < N; i++) {
+                const idx2 = Math.round((i / (N - 1)) * (r2.current.length - 1));
+                a1.push(r.current[i].mag);
+                a2.push(r2.current[idx2].mag);
+              }
+              const mean = (xs: number[]) => xs.reduce((s, v) => s + v, 0) / xs.length;
+              const m1 = mean(a1), m2 = mean(a2);
+              let num = 0, d1 = 0, d2 = 0;
+              for (let i = 0; i < N; i++) {
+                const x = a1[i] - m1, y = a2[i] - m2;
+                num += x * y; d1 += x * x; d2 += y * y;
+              }
+              const corr = d1 > 0 && d2 > 0 ? num / Math.sqrt(d1 * d2) : 1;
+              setMomConvergence({
+                deltaZinPct,
+                deltaPeakGainDb,
+                currentCorr: corr,
+                converged: deltaZinPct < 5 && deltaPeakGainDb < 0.5 && corr > 0.99,
+                refinedSegments: refinedN,
+              });
+            }
+          } catch {
+            /* convergence is best-effort */
+          }
         } catch (e) {
           setMomError((e as Error).message);
           setMomResult(null);
@@ -311,9 +377,87 @@ export const AdvancedAnalysisPanel = ({
       (momResult?.pattern.thetaDeg ?? []).map((t, i) => ({
         theta: Number(t.toFixed(2)),
         gain: Number((momResult?.pattern.gainDbi[i] ?? -60).toFixed(2)),
+        gainLin: Number(
+          Math.pow(10, (momResult?.pattern.gainDbi[i] ?? -60) / 10).toFixed(4),
+        ),
       })),
     [momResult],
   );
+
+  // ── Export helpers ────────────────────────────────────────────────
+  const downloadBlob = (filename: string, mime: string, data: string) => {
+    const blob = new Blob([data], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportMomJson = () => {
+    if (!momResult) return;
+    const payload = {
+      antenna: { id: antennaId, name: antennaName },
+      frequencyHz,
+      input: {
+        lengthM: momResult.lengthM,
+        radiusM: momResult.radiusM,
+        segments: momResult.segments,
+      },
+      results: {
+        inputImpedance: momResult.inputImpedance,
+        vswr50: momResult.vswr50,
+        returnLoss50Db: momResult.returnLoss50Db,
+        peakGainDbi: momResult.peakGainDbi,
+        hpbwDeg: momResult.hpbwDeg,
+        radiatedPowerW: momResult.radiatedPowerW,
+        wavelengthM: momResult.wavelengthM,
+      },
+      convergence: momConvergence,
+      currentDistribution: momResult.current,
+      pattern: momResult.pattern,
+      backend: momResult.backend,
+      exportedAt: new Date().toISOString(),
+    };
+    downloadBlob(
+      `mom_${antennaId}_${Date.now()}.json`,
+      "application/json",
+      JSON.stringify(payload, null, 2),
+    );
+  };
+
+  const handleExportMomCsv = () => {
+    if (!momResult) return;
+    const lines: string[] = [];
+    lines.push("# AERORBIS MoM export");
+    lines.push(`# antenna,${antennaName} (${antennaId})`);
+    lines.push(`# frequency_Hz,${frequencyHz}`);
+    lines.push(`# length_m,${momResult.lengthM}`);
+    lines.push(`# radius_m,${momResult.radiusM}`);
+    lines.push(`# segments,${momResult.segments}`);
+    lines.push(`# Zin_re_ohm,${momResult.inputImpedance.re}`);
+    lines.push(`# Zin_im_ohm,${momResult.inputImpedance.im}`);
+    lines.push(`# vswr50,${momResult.vswr50}`);
+    lines.push(`# return_loss_dB,${momResult.returnLoss50Db}`);
+    lines.push(`# peak_gain_dBi,${momResult.peakGainDbi}`);
+    lines.push(`# hpbw_deg,${momResult.hpbwDeg}`);
+    lines.push("");
+    lines.push("section,index,x,y,extra");
+    momResult.current.forEach((c, i) =>
+      lines.push(`current,${i},${c.zM},${c.mag},${c.re};${c.im}`),
+    );
+    momResult.pattern.thetaDeg.forEach((t, i) =>
+      lines.push(`pattern,${i},${t},${momResult.pattern.gainDbi[i]},`),
+    );
+    downloadBlob(
+      `mom_${antennaId}_${Date.now()}.csv`,
+      "text/csv",
+      lines.join("\n"),
+    );
+  };
 
   return (
     <AeroCard
