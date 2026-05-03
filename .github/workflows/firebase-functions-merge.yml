@@ -1,6 +1,5 @@
 # Deploy Firebase Cloud Functions on merge to main.
-# Uses a service account JSON stored in GitHub Secrets and sets the RESEND_API_KEY
-# in Firebase runtime config before deploying only functions.
+# Uses a service account JSON stored in GitHub Secrets.
 
 name: Deploy to Firebase Functions on merge
 
