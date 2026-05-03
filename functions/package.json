@@ -1,7 +1,6 @@
 {
   "name": "aerorbis-functions",
   "private": true,
-  "type": "module",
   "engines": {
     "node": "20"
   },

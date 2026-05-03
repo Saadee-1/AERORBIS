@@ -1,6 +1,6 @@
 # Deploy Firebase Cloud Functions on merge to main.
 # Uses a service account JSON stored in GitHub Secrets and sets the RESEND_API_KEY
-# in Firebase Secret Manager, then deploys only functions.
+# in Firebase runtime config before deploying only functions.
 
 name: Deploy to Firebase Functions on merge
 
@@ -37,11 +37,7 @@ jobs:
       - name: Install Firebase CLI
         run: npm i -g firebase-tools
 
-      - name: Set RESEND_API_KEY in Firebase Secret Manager
-        env:
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-        run: |
-          echo "$RESEND_API_KEY" | firebase functions:secrets:set RESEND_API_KEY --project aerorbis-dad0a --force
-
       - name: Deploy functions
-        run: firebase deploy --only functions --project aerorbis-dad0a
+        run: |
+          firebase functions:config:set resend.api_key="${{ secrets.RESEND_API_KEY }}" --project aerorbis-dad0a
+          firebase deploy --only functions --project aerorbis-dad0a
