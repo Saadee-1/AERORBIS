@@ -21,7 +21,7 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
 } from "recharts";
-import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu, Download, GitCompare } from "lucide-react";
+import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu, Download, GitCompare, Save, Trash2, BookmarkPlus } from "lucide-react";
 
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroButton } from "@/components/common/AeroButton";
@@ -60,6 +60,49 @@ import {
   type MomResult,
 } from "@/lib/antenna/mom";
 import type { AntennaGeometry } from "@/lib/antenna/models-enhanced";
+
+// ── Saved MoM run preset (localStorage) ─────────────────────────────────
+interface SavedMomRun {
+  id: string;
+  label: string;
+  savedAt: string;
+  antennaId: string;
+  antennaName: string;
+  frequencyHz: number;
+  inputs: { lengthM: number; radiusM: number; segments: number };
+  zin: { re: number; im: number };
+  vswr50: number;
+  peakGainDbi: number;
+  hpbwDeg: number;
+  pattern: { thetaDeg: number[]; gainDbi: number[] };
+  current: { zM: number; mag: number }[];
+  analyticPeakGainDbi: number;
+}
+const MOM_RUNS_KEY = "aerorbis_mom_runs";
+const loadSavedMomRuns = (): SavedMomRun[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(MOM_RUNS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as SavedMomRun[]) : [];
+  } catch {
+    return [];
+  }
+};
+const persistSavedMomRuns = (runs: SavedMomRun[]) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(MOM_RUNS_KEY, JSON.stringify(runs));
+};
+
+// Overlay palette (semantic-token friendly via inline HSL refs)
+const OVERLAY_COLORS = [
+  "hsl(var(--accent))",
+  "hsl(45 95% 60%)",
+  "hsl(280 80% 65%)",
+  "hsl(150 70% 55%)",
+  "hsl(15 85% 60%)",
+];
 
 interface AdvancedAnalysisPanelProps {
   antennaId: string;
