@@ -1378,6 +1378,11 @@ export const AdvancedAnalysisPanel = ({
                           border: "1px solid hsl(var(--primary) / 0.3)",
                         }}
                         labelStyle={{ color: "hsl(var(--primary))" }}
+                        formatter={(value: number, name: string) => [
+                          `${Number(value).toFixed(4)} mA`,
+                          name,
+                        ]}
+                        labelFormatter={(z: number) => `z = ${Number(z).toFixed(2)} mm`}
                       />
                       <Line
                         type="monotone"
@@ -1427,6 +1432,13 @@ export const AdvancedAnalysisPanel = ({
                           border: "1px solid hsl(var(--primary) / 0.3)",
                         }}
                         labelStyle={{ color: "hsl(var(--primary))" }}
+                        formatter={(value: number, name: string) => [
+                          momScale === "dB"
+                            ? `${Number(value).toFixed(2)} dBi`
+                            : `${Number(value).toFixed(4)}`,
+                          name,
+                        ]}
+                        labelFormatter={(t: number) => `θ = ${Number(t).toFixed(2)}°`}
                       />
                       <Line
                         type="monotone"
