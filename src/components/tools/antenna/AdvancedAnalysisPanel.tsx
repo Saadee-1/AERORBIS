@@ -1523,7 +1523,241 @@ export const AdvancedAnalysisPanel = ({
                   Reference Z_in (73 + j42 Ω) is the canonical resonant λ/2 dipole
                   benchmark from Balanis §8.4. For other geometries, Δ is informational.
                 </p>
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <AeroButton
+                    variant="secondary"
+                    onClick={() => handleExportComparison("csv")}
+                    icon={Download}
+                  >
+                    Comparison CSV
+                  </AeroButton>
+                  <AeroButton
+                    variant="secondary"
+                    onClick={() => handleExportComparison("json")}
+                    icon={Download}
+                  >
+                    Comparison JSON
+                  </AeroButton>
+                </div>
               </AeroCard>
+
+              {/* Save current run as preset */}
+              <AeroCard
+                title="Saved MoM Runs"
+                description="Save the current run, then toggle overlays for side-by-side pattern + Z_in comparison"
+                icon={BookmarkPlus}
+              >
+                <div className="flex flex-wrap items-end gap-2">
+                  <AeroFormField label="Preset label">
+                    <Input
+                      value={savePresetLabel}
+                      onChange={(e) => setSavePresetLabel(e.target.value)}
+                      placeholder={`${antennaName} · ${(momResult.lengthM / momResult.wavelengthM).toFixed(2)}λ`}
+                      className="h-8 bg-slate-900/50 border-primary/30 text-white min-w-[220px]"
+                    />
+                  </AeroFormField>
+                  <AeroButton variant="primary" onClick={handleSaveMomRun} icon={Save}>
+                    Save run
+                  </AeroButton>
+                </div>
+
+                {savedMomRuns.length === 0 ? (
+                  <p className="text-xs text-gray-500 mt-3">
+                    No saved runs yet. Save the current MoM solution to build a comparison library.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-1.5">
+                    {savedMomRuns.map((r, idx) => {
+                      const active = overlayIds.includes(r.id);
+                      const color = OVERLAY_COLORS[idx % OVERLAY_COLORS.length];
+                      return (
+                        <div
+                          key={r.id}
+                          className="flex flex-wrap items-center gap-2 rounded-md border border-primary/10 bg-slate-900/40 px-2 py-1.5 text-[11px]"
+                        >
+                          <span
+                            className="inline-block h-2 w-2 rounded-full"
+                            style={{ background: color }}
+                          />
+                          <span className="text-primary font-medium truncate max-w-[200px]">
+                            {r.label}
+                          </span>
+                          <span className="text-gray-400">
+                            Z={fmt(r.zin.re, 1)}{r.zin.im >= 0 ? "+j" : "−j"}
+                            {fmt(Math.abs(r.zin.im), 1)} Ω · G={fmt(r.peakGainDbi, 2)} dBi · VSWR=
+                            {Number.isFinite(r.vswr50) ? fmt(r.vswr50, 2) : "∞"}
+                          </span>
+                          <div className="ml-auto flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => toggleOverlay(r.id)}
+                              className={`px-2 py-0.5 rounded border text-[10px] ${
+                                active
+                                  ? "border-primary bg-primary/20 text-primary"
+                                  : "border-primary/20 text-gray-300 hover:bg-primary/10"
+                              }`}
+                            >
+                              {active ? "Overlay on" : "Overlay"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleLoadMomRun(r)}
+                              className="px-2 py-0.5 rounded border border-primary/20 text-gray-300 hover:bg-primary/10 text-[10px]"
+                            >
+                              Load inputs
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMomRun(r.id)}
+                              className="p-1 rounded border border-rose-500/30 text-rose-300 hover:bg-rose-500/10"
+                              aria-label="Delete saved run"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </AeroCard>
+
+              {/* Overlay comparison chart */}
+              {(activeOverlays.length > 0 || momResult) && (
+                <AeroCard
+                  title="Overlay: MoM vs Analytic vs Saved Runs"
+                  description="Visual gain-cut comparison across runs and engines"
+                  icon={GitCompare}
+                >
+                  <div className="h-72 w-full rounded-md border border-primary/10 bg-slate-900/30 p-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={overlayPatternChart}>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="hsl(var(--border))"
+                          opacity={0.3}
+                        />
+                        <XAxis
+                          dataKey="theta"
+                          label={{
+                            value: "θ (deg)",
+                            position: "insideBottom",
+                            offset: -5,
+                            fill: "hsl(var(--muted-foreground))",
+                          }}
+                          tick={globalAxisTickStyle}
+                          {...globalAxisCommonProps}
+                        />
+                        <YAxis
+                          domain={[
+                            (dataMin: number) => Math.max(-40, dataMin - 5),
+                            (dataMax: number) => dataMax + 2,
+                          ]}
+                          label={{
+                            value: "Gain (dBi)",
+                            angle: -90,
+                            position: "insideLeft",
+                            fill: "hsl(var(--primary))",
+                          }}
+                          tick={globalAxisTickStyle}
+                          {...globalAxisCommonProps}
+                        />
+                        <RechartsTooltip
+                          contentStyle={{
+                            background: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--primary) / 0.3)",
+                          }}
+                          labelStyle={{ color: "hsl(var(--primary))" }}
+                          formatter={(value: number, name: string) => [
+                            value == null ? "—" : `${Number(value).toFixed(2)} dBi`,
+                            name,
+                          ]}
+                          labelFormatter={(t: number) => `θ = ${Number(t).toFixed(1)}°`}
+                        />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="__current"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={false}
+                          name="MoM (current run)"
+                          connectNulls
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="__analytic"
+                          stroke="hsl(var(--muted-foreground))"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          dot={false}
+                          name={`Analytic peak (${fmt(peakGainDbi, 2)} dBi)`}
+                        />
+                        {activeOverlays.map((r, idx) => (
+                          <Line
+                            key={r.id}
+                            type="monotone"
+                            dataKey={r.id}
+                            stroke={OVERLAY_COLORS[idx % OVERLAY_COLORS.length]}
+                            strokeWidth={1.75}
+                            dot={false}
+                            name={r.label}
+                            connectNulls
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {activeOverlays.length > 0 && (
+                    <div className="overflow-x-auto mt-3">
+                      <table className="w-full text-[11px]">
+                        <thead>
+                          <tr className="text-left text-gray-400 border-b border-primary/20">
+                            <th className="py-1.5 pr-3">Run</th>
+                            <th className="py-1.5 pr-3">Z_in (Ω)</th>
+                            <th className="py-1.5 pr-3">VSWR</th>
+                            <th className="py-1.5 pr-3">Peak gain (dBi)</th>
+                            <th className="py-1.5 pr-3">Δ vs current</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-gray-200">
+                          <tr className="border-b border-primary/10">
+                            <td className="py-1.5 pr-3 text-primary">Current MoM</td>
+                            <td className="py-1.5 pr-3">
+                              {fmt(momResult.inputImpedance.re, 1)}
+                              {momResult.inputImpedance.im >= 0 ? "+j" : "−j"}
+                              {fmt(Math.abs(momResult.inputImpedance.im), 1)}
+                            </td>
+                            <td className="py-1.5 pr-3">
+                              {Number.isFinite(momResult.vswr50) ? fmt(momResult.vswr50, 2) : "∞"}
+                            </td>
+                            <td className="py-1.5 pr-3">{fmt(momResult.peakGainDbi, 2)}</td>
+                            <td className="py-1.5 pr-3 text-gray-500">—</td>
+                          </tr>
+                          {activeOverlays.map((r) => (
+                            <tr key={r.id} className="border-b border-primary/10">
+                              <td className="py-1.5 pr-3 truncate max-w-[180px]">{r.label}</td>
+                              <td className="py-1.5 pr-3">
+                                {fmt(r.zin.re, 1)}
+                                {r.zin.im >= 0 ? "+j" : "−j"}
+                                {fmt(Math.abs(r.zin.im), 1)}
+                              </td>
+                              <td className="py-1.5 pr-3">
+                                {Number.isFinite(r.vswr50) ? fmt(r.vswr50, 2) : "∞"}
+                              </td>
+                              <td className="py-1.5 pr-3">{fmt(r.peakGainDbi, 2)}</td>
+                              <td className="py-1.5 pr-3 text-primary">
+                                {fmt(r.peakGainDbi - momResult.peakGainDbi, 2)} dB
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </AeroCard>
+              )}
 
               <Alert className="border-primary/20 bg-primary/5">
                 <AlertDescription className="text-xs text-gray-300">
