@@ -1287,6 +1287,41 @@ export const AdvancedAnalysisPanel = ({
                 </div>
               </div>
 
+              {/* Configurable convergence thresholds */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-[11px] rounded-md border border-primary/15 bg-slate-900/30 p-2">
+                <AeroFormField label="ΔZ_in threshold (%)">
+                  <Input
+                    type="number"
+                    step={0.1}
+                    min={0}
+                    value={convThreshZinPct}
+                    onChange={(e) => setConvThreshZinPct(parseFloat(e.target.value) || 0)}
+                    className="h-8 bg-slate-900/50 border-primary/30 text-white"
+                  />
+                </AeroFormField>
+                <AeroFormField label="ΔPeakGain threshold (dB)">
+                  <Input
+                    type="number"
+                    step={0.05}
+                    min={0}
+                    value={convThreshGainDb}
+                    onChange={(e) => setConvThreshGainDb(parseFloat(e.target.value) || 0)}
+                    className="h-8 bg-slate-900/50 border-primary/30 text-white"
+                  />
+                </AeroFormField>
+                <AeroFormField label="Min current correlation">
+                  <Input
+                    type="number"
+                    step={0.001}
+                    min={0}
+                    max={1}
+                    value={convThreshCorr}
+                    onChange={(e) => setConvThreshCorr(parseFloat(e.target.value) || 0)}
+                    className="h-8 bg-slate-900/50 border-primary/30 text-white"
+                  />
+                </AeroFormField>
+              </div>
+
               {momConvergence && (
                 <Alert
                   className={
@@ -1305,7 +1340,7 @@ export const AdvancedAnalysisPanel = ({
                     {fmt(momConvergence.currentCorr, 4)}.{" "}
                     {momConvergence.converged
                       ? "Solution is converged."
-                      : "Mesh may be too coarse — increase N for stable results."}
+                      : `Failed: ${momConvergence.failedConditions.join("; ")} — increase N for stable results.`}
                   </AlertDescription>
                 </Alert>
               )}
