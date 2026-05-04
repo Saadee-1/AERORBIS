@@ -314,7 +314,18 @@ export const AdvancedAnalysisPanel = ({
     currentCorr: number;
     converged: boolean;
     refinedSegments: number;
+    failedConditions: string[];
   } | null>(null);
+
+  // Configurable convergence thresholds
+  const [convThreshZinPct, setConvThreshZinPct] = useState(5);
+  const [convThreshGainDb, setConvThreshGainDb] = useState(0.5);
+  const [convThreshCorr, setConvThreshCorr] = useState(0.99);
+
+  // Saved MoM runs (preset library)
+  const [savedMomRuns, setSavedMomRuns] = useState<SavedMomRun[]>(() => loadSavedMomRuns());
+  const [overlayIds, setOverlayIds] = useState<string[]>([]);
+  const [savePresetLabel, setSavePresetLabel] = useState("");
 
   const C0 = 299792458;
   const lambda = C0 / Math.max(frequencyHz, 1);
@@ -381,12 +392,17 @@ export const AdvancedAnalysisPanel = ({
                 num += x * y; d1 += x * x; d2 += y * y;
               }
               const corr = d1 > 0 && d2 > 0 ? num / Math.sqrt(d1 * d2) : 1;
+              const failed: string[] = [];
+              if (deltaZinPct >= convThreshZinPct) failed.push(`ΔZ_in ${deltaZinPct.toFixed(2)}% ≥ ${convThreshZinPct}%`);
+              if (deltaPeakGainDb >= convThreshGainDb) failed.push(`ΔPeakGain ${deltaPeakGainDb.toFixed(3)} dB ≥ ${convThreshGainDb} dB`);
+              if (corr <= convThreshCorr) failed.push(`corr ${corr.toFixed(4)} ≤ ${convThreshCorr}`);
               setMomConvergence({
                 deltaZinPct,
                 deltaPeakGainDb,
                 currentCorr: corr,
-                converged: deltaZinPct < 5 && deltaPeakGainDb < 0.5 && corr > 0.99,
+                converged: failed.length === 0,
                 refinedSegments: refinedN,
+                failedConditions: failed,
               });
             }
           } catch {
