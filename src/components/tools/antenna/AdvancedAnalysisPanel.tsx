@@ -518,6 +518,167 @@ export const AdvancedAnalysisPanel = ({
     );
   };
 
+  // ── Save / Load / Delete MoM run presets ─────────────────────────────
+  const handleSaveMomRun = () => {
+    if (!momResult) return;
+    const id = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const label =
+      savePresetLabel.trim() ||
+      `${antennaName} · ${(momResult.lengthM / momResult.wavelengthM).toFixed(2)}λ · ${fmtFreq(frequencyHz)}`;
+    const entry: SavedMomRun = {
+      id,
+      label,
+      savedAt: new Date().toISOString(),
+      antennaId,
+      antennaName,
+      frequencyHz,
+      inputs: {
+        lengthM: momResult.lengthM,
+        radiusM: momResult.radiusM,
+        segments: momResult.segments,
+      },
+      zin: { ...momResult.inputImpedance },
+      vswr50: momResult.vswr50,
+      peakGainDbi: momResult.peakGainDbi,
+      hpbwDeg: momResult.hpbwDeg,
+      pattern: {
+        thetaDeg: [...momResult.pattern.thetaDeg],
+        gainDbi: [...momResult.pattern.gainDbi],
+      },
+      current: momResult.current.map((c) => ({ zM: c.zM, mag: c.mag })),
+      analyticPeakGainDbi: peakGainDbi,
+    };
+    const next = [entry, ...savedMomRuns].slice(0, 12);
+    setSavedMomRuns(next);
+    persistSavedMomRuns(next);
+    setOverlayIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setSavePresetLabel("");
+  };
+
+  const handleDeleteMomRun = (id: string) => {
+    const next = savedMomRuns.filter((r) => r.id !== id);
+    setSavedMomRuns(next);
+    persistSavedMomRuns(next);
+    setOverlayIds((prev) => prev.filter((x) => x !== id));
+  };
+
+  const handleLoadMomRun = (run: SavedMomRun) => {
+    setMomLength(run.inputs.lengthM.toFixed(4));
+    setMomRadius(run.inputs.radiusM.toExponential(3));
+    setMomSegments(run.inputs.segments);
+  };
+
+  const toggleOverlay = (id: string) => {
+    setOverlayIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  // Build overlay datasets for pattern comparison chart
+  const activeOverlays = useMemo(
+    () => savedMomRuns.filter((r) => overlayIds.includes(r.id)),
+    [savedMomRuns, overlayIds],
+  );
+
+  const overlayPatternChart = useMemo(() => {
+    // Use a unified θ axis (0..180 in 2° steps) and resample each overlay
+    const thetaAxis: number[] = [];
+    for (let t = 0; t <= 180; t += 2) thetaAxis.push(t);
+    const sample = (theta: number[], gain: number[], at: number) => {
+      if (!theta.length) return null;
+      // linear interp
+      let lo = 0;
+      for (let i = 0; i < theta.length - 1; i++) {
+        if (theta[i] <= at && at <= theta[i + 1]) {
+          lo = i;
+          break;
+        }
+        if (at > theta[theta.length - 1]) lo = theta.length - 2;
+      }
+      const x0 = theta[lo], x1 = theta[lo + 1];
+      const y0 = gain[lo], y1 = gain[lo + 1];
+      if (x1 === x0) return y0;
+      const u = (at - x0) / (x1 - x0);
+      return y0 + u * (y1 - y0);
+    };
+    return thetaAxis.map((t) => {
+      const row: Record<string, number | null> = { theta: t };
+      if (momResult) {
+        row["__current"] = sample(
+          momResult.pattern.thetaDeg,
+          momResult.pattern.gainDbi,
+          t,
+        );
+      }
+      // Analytic baseline = constant peak gain reference
+      row["__analytic"] = peakGainDbi;
+      activeOverlays.forEach((r) => {
+        row[r.id] = sample(r.pattern.thetaDeg, r.pattern.gainDbi, t);
+      });
+      return row;
+    });
+  }, [momResult, activeOverlays, peakGainDbi]);
+
+  const handleExportComparison = (fmtKind: "json" | "csv") => {
+    if (!momResult) return;
+    const base = {
+      antenna: { id: antennaId, name: antennaName },
+      frequencyHz,
+      analytic: {
+        peakGainDbi,
+        eirpDbw,
+        polarizationAxialRatioDb: polResult.axialRatioDb,
+      },
+      mom: {
+        zin: momResult.inputImpedance,
+        vswr50: momResult.vswr50,
+        peakGainDbi: momResult.peakGainDbi,
+        hpbwDeg: momResult.hpbwDeg,
+      },
+      linkBudget: linkResult
+        ? { eirpDbw, distanceKm: parseFloat(distanceKm) }
+        : null,
+      savedRuns: activeOverlays.map((r) => ({
+        id: r.id,
+        label: r.label,
+        zin: r.zin,
+        vswr50: r.vswr50,
+        peakGainDbi: r.peakGainDbi,
+        analyticPeakGainDbi: r.analyticPeakGainDbi,
+      })),
+      exportedAt: new Date().toISOString(),
+    };
+    if (fmtKind === "json") {
+      downloadBlob(
+        `mom_comparison_${antennaId}_${Date.now()}.json`,
+        "application/json",
+        JSON.stringify(base, null, 2),
+      );
+      return;
+    }
+    const lines: string[] = [];
+    lines.push("# AERORBIS MoM-vs-Analytic comparison");
+    lines.push(`# antenna,${antennaName} (${antennaId})`);
+    lines.push(`# frequency_Hz,${frequencyHz}`);
+    lines.push("source,label,Zin_re_ohm,Zin_im_ohm,vswr50,peak_gain_dBi,analytic_peak_gain_dBi");
+    lines.push(
+      `analytic,registry,,,,${peakGainDbi},${peakGainDbi}`,
+    );
+    lines.push(
+      `mom,current run,${momResult.inputImpedance.re},${momResult.inputImpedance.im},${momResult.vswr50},${momResult.peakGainDbi},${peakGainDbi}`,
+    );
+    activeOverlays.forEach((r) =>
+      lines.push(
+        `mom_saved,${r.label.replace(/,/g, ";")},${r.zin.re},${r.zin.im},${r.vswr50},${r.peakGainDbi},${r.analyticPeakGainDbi}`,
+      ),
+    );
+    downloadBlob(
+      `mom_comparison_${antennaId}_${Date.now()}.csv`,
+      "text/csv",
+      lines.join("\n"),
+    );
+  };
+
   return (
     <AeroCard
       title="Advanced Analyses"
