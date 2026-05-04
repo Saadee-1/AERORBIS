@@ -21,7 +21,7 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
 } from "recharts";
-import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu, Download, GitCompare } from "lucide-react";
+import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu, Download, GitCompare, Save, Trash2, BookmarkPlus } from "lucide-react";
 
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroButton } from "@/components/common/AeroButton";
@@ -60,6 +60,49 @@ import {
   type MomResult,
 } from "@/lib/antenna/mom";
 import type { AntennaGeometry } from "@/lib/antenna/models-enhanced";
+
+// ── Saved MoM run preset (localStorage) ─────────────────────────────────
+interface SavedMomRun {
+  id: string;
+  label: string;
+  savedAt: string;
+  antennaId: string;
+  antennaName: string;
+  frequencyHz: number;
+  inputs: { lengthM: number; radiusM: number; segments: number };
+  zin: { re: number; im: number };
+  vswr50: number;
+  peakGainDbi: number;
+  hpbwDeg: number;
+  pattern: { thetaDeg: number[]; gainDbi: number[] };
+  current: { zM: number; mag: number }[];
+  analyticPeakGainDbi: number;
+}
+const MOM_RUNS_KEY = "aerorbis_mom_runs";
+const loadSavedMomRuns = (): SavedMomRun[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(MOM_RUNS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as SavedMomRun[]) : [];
+  } catch {
+    return [];
+  }
+};
+const persistSavedMomRuns = (runs: SavedMomRun[]) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(MOM_RUNS_KEY, JSON.stringify(runs));
+};
+
+// Overlay palette (semantic-token friendly via inline HSL refs)
+const OVERLAY_COLORS = [
+  "hsl(var(--accent))",
+  "hsl(45 95% 60%)",
+  "hsl(280 80% 65%)",
+  "hsl(150 70% 55%)",
+  "hsl(15 85% 60%)",
+];
 
 interface AdvancedAnalysisPanelProps {
   antennaId: string;
@@ -271,7 +314,18 @@ export const AdvancedAnalysisPanel = ({
     currentCorr: number;
     converged: boolean;
     refinedSegments: number;
+    failedConditions: string[];
   } | null>(null);
+
+  // Configurable convergence thresholds
+  const [convThreshZinPct, setConvThreshZinPct] = useState(5);
+  const [convThreshGainDb, setConvThreshGainDb] = useState(0.5);
+  const [convThreshCorr, setConvThreshCorr] = useState(0.99);
+
+  // Saved MoM runs (preset library)
+  const [savedMomRuns, setSavedMomRuns] = useState<SavedMomRun[]>(() => loadSavedMomRuns());
+  const [overlayIds, setOverlayIds] = useState<string[]>([]);
+  const [savePresetLabel, setSavePresetLabel] = useState("");
 
   const C0 = 299792458;
   const lambda = C0 / Math.max(frequencyHz, 1);
@@ -338,12 +392,17 @@ export const AdvancedAnalysisPanel = ({
                 num += x * y; d1 += x * x; d2 += y * y;
               }
               const corr = d1 > 0 && d2 > 0 ? num / Math.sqrt(d1 * d2) : 1;
+              const failed: string[] = [];
+              if (deltaZinPct >= convThreshZinPct) failed.push(`ΔZ_in ${deltaZinPct.toFixed(2)}% ≥ ${convThreshZinPct}%`);
+              if (deltaPeakGainDb >= convThreshGainDb) failed.push(`ΔPeakGain ${deltaPeakGainDb.toFixed(3)} dB ≥ ${convThreshGainDb} dB`);
+              if (corr <= convThreshCorr) failed.push(`corr ${corr.toFixed(4)} ≤ ${convThreshCorr}`);
               setMomConvergence({
                 deltaZinPct,
                 deltaPeakGainDb,
                 currentCorr: corr,
-                converged: deltaZinPct < 5 && deltaPeakGainDb < 0.5 && corr > 0.99,
+                converged: failed.length === 0,
                 refinedSegments: refinedN,
+                failedConditions: failed,
               });
             }
           } catch {
@@ -454,6 +513,167 @@ export const AdvancedAnalysisPanel = ({
     );
     downloadBlob(
       `mom_${antennaId}_${Date.now()}.csv`,
+      "text/csv",
+      lines.join("\n"),
+    );
+  };
+
+  // ── Save / Load / Delete MoM run presets ─────────────────────────────
+  const handleSaveMomRun = () => {
+    if (!momResult) return;
+    const id = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const label =
+      savePresetLabel.trim() ||
+      `${antennaName} · ${(momResult.lengthM / momResult.wavelengthM).toFixed(2)}λ · ${fmtFreq(frequencyHz)}`;
+    const entry: SavedMomRun = {
+      id,
+      label,
+      savedAt: new Date().toISOString(),
+      antennaId,
+      antennaName,
+      frequencyHz,
+      inputs: {
+        lengthM: momResult.lengthM,
+        radiusM: momResult.radiusM,
+        segments: momResult.segments,
+      },
+      zin: { ...momResult.inputImpedance },
+      vswr50: momResult.vswr50,
+      peakGainDbi: momResult.peakGainDbi,
+      hpbwDeg: momResult.hpbwDeg,
+      pattern: {
+        thetaDeg: [...momResult.pattern.thetaDeg],
+        gainDbi: [...momResult.pattern.gainDbi],
+      },
+      current: momResult.current.map((c) => ({ zM: c.zM, mag: c.mag })),
+      analyticPeakGainDbi: peakGainDbi,
+    };
+    const next = [entry, ...savedMomRuns].slice(0, 12);
+    setSavedMomRuns(next);
+    persistSavedMomRuns(next);
+    setOverlayIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setSavePresetLabel("");
+  };
+
+  const handleDeleteMomRun = (id: string) => {
+    const next = savedMomRuns.filter((r) => r.id !== id);
+    setSavedMomRuns(next);
+    persistSavedMomRuns(next);
+    setOverlayIds((prev) => prev.filter((x) => x !== id));
+  };
+
+  const handleLoadMomRun = (run: SavedMomRun) => {
+    setMomLength(run.inputs.lengthM.toFixed(4));
+    setMomRadius(run.inputs.radiusM.toExponential(3));
+    setMomSegments(run.inputs.segments);
+  };
+
+  const toggleOverlay = (id: string) => {
+    setOverlayIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  // Build overlay datasets for pattern comparison chart
+  const activeOverlays = useMemo(
+    () => savedMomRuns.filter((r) => overlayIds.includes(r.id)),
+    [savedMomRuns, overlayIds],
+  );
+
+  const overlayPatternChart = useMemo(() => {
+    // Use a unified θ axis (0..180 in 2° steps) and resample each overlay
+    const thetaAxis: number[] = [];
+    for (let t = 0; t <= 180; t += 2) thetaAxis.push(t);
+    const sample = (theta: number[], gain: number[], at: number) => {
+      if (!theta.length) return null;
+      // linear interp
+      let lo = 0;
+      for (let i = 0; i < theta.length - 1; i++) {
+        if (theta[i] <= at && at <= theta[i + 1]) {
+          lo = i;
+          break;
+        }
+        if (at > theta[theta.length - 1]) lo = theta.length - 2;
+      }
+      const x0 = theta[lo], x1 = theta[lo + 1];
+      const y0 = gain[lo], y1 = gain[lo + 1];
+      if (x1 === x0) return y0;
+      const u = (at - x0) / (x1 - x0);
+      return y0 + u * (y1 - y0);
+    };
+    return thetaAxis.map((t) => {
+      const row: Record<string, number | null> = { theta: t };
+      if (momResult) {
+        row["__current"] = sample(
+          momResult.pattern.thetaDeg,
+          momResult.pattern.gainDbi,
+          t,
+        );
+      }
+      // Analytic baseline = constant peak gain reference
+      row["__analytic"] = peakGainDbi;
+      activeOverlays.forEach((r) => {
+        row[r.id] = sample(r.pattern.thetaDeg, r.pattern.gainDbi, t);
+      });
+      return row;
+    });
+  }, [momResult, activeOverlays, peakGainDbi]);
+
+  const handleExportComparison = (fmtKind: "json" | "csv") => {
+    if (!momResult) return;
+    const base = {
+      antenna: { id: antennaId, name: antennaName },
+      frequencyHz,
+      analytic: {
+        peakGainDbi,
+        eirpDbw,
+        polarizationAxialRatioDb: polResult.axialRatioDb,
+      },
+      mom: {
+        zin: momResult.inputImpedance,
+        vswr50: momResult.vswr50,
+        peakGainDbi: momResult.peakGainDbi,
+        hpbwDeg: momResult.hpbwDeg,
+      },
+      linkBudget: linkResult
+        ? { eirpDbw, distanceKm: parseFloat(distanceKm) }
+        : null,
+      savedRuns: activeOverlays.map((r) => ({
+        id: r.id,
+        label: r.label,
+        zin: r.zin,
+        vswr50: r.vswr50,
+        peakGainDbi: r.peakGainDbi,
+        analyticPeakGainDbi: r.analyticPeakGainDbi,
+      })),
+      exportedAt: new Date().toISOString(),
+    };
+    if (fmtKind === "json") {
+      downloadBlob(
+        `mom_comparison_${antennaId}_${Date.now()}.json`,
+        "application/json",
+        JSON.stringify(base, null, 2),
+      );
+      return;
+    }
+    const lines: string[] = [];
+    lines.push("# AERORBIS MoM-vs-Analytic comparison");
+    lines.push(`# antenna,${antennaName} (${antennaId})`);
+    lines.push(`# frequency_Hz,${frequencyHz}`);
+    lines.push("source,label,Zin_re_ohm,Zin_im_ohm,vswr50,peak_gain_dBi,analytic_peak_gain_dBi");
+    lines.push(
+      `analytic,registry,,,,${peakGainDbi},${peakGainDbi}`,
+    );
+    lines.push(
+      `mom,current run,${momResult.inputImpedance.re},${momResult.inputImpedance.im},${momResult.vswr50},${momResult.peakGainDbi},${peakGainDbi}`,
+    );
+    activeOverlays.forEach((r) =>
+      lines.push(
+        `mom_saved,${r.label.replace(/,/g, ";")},${r.zin.re},${r.zin.im},${r.vswr50},${r.peakGainDbi},${r.analyticPeakGainDbi}`,
+      ),
+    );
+    downloadBlob(
+      `mom_comparison_${antennaId}_${Date.now()}.csv`,
       "text/csv",
       lines.join("\n"),
     );
@@ -1067,6 +1287,41 @@ export const AdvancedAnalysisPanel = ({
                 </div>
               </div>
 
+              {/* Configurable convergence thresholds */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-[11px] rounded-md border border-primary/15 bg-slate-900/30 p-2">
+                <AeroFormField label="ΔZ_in threshold (%)">
+                  <Input
+                    type="number"
+                    step={0.1}
+                    min={0}
+                    value={convThreshZinPct}
+                    onChange={(e) => setConvThreshZinPct(parseFloat(e.target.value) || 0)}
+                    className="h-8 bg-slate-900/50 border-primary/30 text-white"
+                  />
+                </AeroFormField>
+                <AeroFormField label="ΔPeakGain threshold (dB)">
+                  <Input
+                    type="number"
+                    step={0.05}
+                    min={0}
+                    value={convThreshGainDb}
+                    onChange={(e) => setConvThreshGainDb(parseFloat(e.target.value) || 0)}
+                    className="h-8 bg-slate-900/50 border-primary/30 text-white"
+                  />
+                </AeroFormField>
+                <AeroFormField label="Min current correlation">
+                  <Input
+                    type="number"
+                    step={0.001}
+                    min={0}
+                    max={1}
+                    value={convThreshCorr}
+                    onChange={(e) => setConvThreshCorr(parseFloat(e.target.value) || 0)}
+                    className="h-8 bg-slate-900/50 border-primary/30 text-white"
+                  />
+                </AeroFormField>
+              </div>
+
               {momConvergence && (
                 <Alert
                   className={
@@ -1085,7 +1340,7 @@ export const AdvancedAnalysisPanel = ({
                     {fmt(momConvergence.currentCorr, 4)}.{" "}
                     {momConvergence.converged
                       ? "Solution is converged."
-                      : "Mesh may be too coarse — increase N for stable results."}
+                      : `Failed: ${momConvergence.failedConditions.join("; ")} — increase N for stable results.`}
                   </AlertDescription>
                 </Alert>
               )}
@@ -1123,6 +1378,11 @@ export const AdvancedAnalysisPanel = ({
                           border: "1px solid hsl(var(--primary) / 0.3)",
                         }}
                         labelStyle={{ color: "hsl(var(--primary))" }}
+                        formatter={(value: number, name: string) => [
+                          `${Number(value).toFixed(4)} mA`,
+                          name,
+                        ]}
+                        labelFormatter={(z: number) => `z = ${Number(z).toFixed(2)} mm`}
                       />
                       <Line
                         type="monotone"
@@ -1172,6 +1432,13 @@ export const AdvancedAnalysisPanel = ({
                           border: "1px solid hsl(var(--primary) / 0.3)",
                         }}
                         labelStyle={{ color: "hsl(var(--primary))" }}
+                        formatter={(value: number, name: string) => [
+                          momScale === "dB"
+                            ? `${Number(value).toFixed(2)} dBi`
+                            : `${Number(value).toFixed(4)}`,
+                          name,
+                        ]}
+                        labelFormatter={(t: number) => `θ = ${Number(t).toFixed(2)}°`}
                       />
                       <Line
                         type="monotone"
@@ -1256,7 +1523,241 @@ export const AdvancedAnalysisPanel = ({
                   Reference Z_in (73 + j42 Ω) is the canonical resonant λ/2 dipole
                   benchmark from Balanis §8.4. For other geometries, Δ is informational.
                 </p>
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <AeroButton
+                    variant="secondary"
+                    onClick={() => handleExportComparison("csv")}
+                    icon={Download}
+                  >
+                    Comparison CSV
+                  </AeroButton>
+                  <AeroButton
+                    variant="secondary"
+                    onClick={() => handleExportComparison("json")}
+                    icon={Download}
+                  >
+                    Comparison JSON
+                  </AeroButton>
+                </div>
               </AeroCard>
+
+              {/* Save current run as preset */}
+              <AeroCard
+                title="Saved MoM Runs"
+                description="Save the current run, then toggle overlays for side-by-side pattern + Z_in comparison"
+                icon={BookmarkPlus}
+              >
+                <div className="flex flex-wrap items-end gap-2">
+                  <AeroFormField label="Preset label">
+                    <Input
+                      value={savePresetLabel}
+                      onChange={(e) => setSavePresetLabel(e.target.value)}
+                      placeholder={`${antennaName} · ${(momResult.lengthM / momResult.wavelengthM).toFixed(2)}λ`}
+                      className="h-8 bg-slate-900/50 border-primary/30 text-white min-w-[220px]"
+                    />
+                  </AeroFormField>
+                  <AeroButton variant="primary" onClick={handleSaveMomRun} icon={Save}>
+                    Save run
+                  </AeroButton>
+                </div>
+
+                {savedMomRuns.length === 0 ? (
+                  <p className="text-xs text-gray-500 mt-3">
+                    No saved runs yet. Save the current MoM solution to build a comparison library.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-1.5">
+                    {savedMomRuns.map((r, idx) => {
+                      const active = overlayIds.includes(r.id);
+                      const color = OVERLAY_COLORS[idx % OVERLAY_COLORS.length];
+                      return (
+                        <div
+                          key={r.id}
+                          className="flex flex-wrap items-center gap-2 rounded-md border border-primary/10 bg-slate-900/40 px-2 py-1.5 text-[11px]"
+                        >
+                          <span
+                            className="inline-block h-2 w-2 rounded-full"
+                            style={{ background: color }}
+                          />
+                          <span className="text-primary font-medium truncate max-w-[200px]">
+                            {r.label}
+                          </span>
+                          <span className="text-gray-400">
+                            Z={fmt(r.zin.re, 1)}{r.zin.im >= 0 ? "+j" : "−j"}
+                            {fmt(Math.abs(r.zin.im), 1)} Ω · G={fmt(r.peakGainDbi, 2)} dBi · VSWR=
+                            {Number.isFinite(r.vswr50) ? fmt(r.vswr50, 2) : "∞"}
+                          </span>
+                          <div className="ml-auto flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => toggleOverlay(r.id)}
+                              className={`px-2 py-0.5 rounded border text-[10px] ${
+                                active
+                                  ? "border-primary bg-primary/20 text-primary"
+                                  : "border-primary/20 text-gray-300 hover:bg-primary/10"
+                              }`}
+                            >
+                              {active ? "Overlay on" : "Overlay"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleLoadMomRun(r)}
+                              className="px-2 py-0.5 rounded border border-primary/20 text-gray-300 hover:bg-primary/10 text-[10px]"
+                            >
+                              Load inputs
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMomRun(r.id)}
+                              className="p-1 rounded border border-rose-500/30 text-rose-300 hover:bg-rose-500/10"
+                              aria-label="Delete saved run"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </AeroCard>
+
+              {/* Overlay comparison chart */}
+              {(activeOverlays.length > 0 || momResult) && (
+                <AeroCard
+                  title="Overlay: MoM vs Analytic vs Saved Runs"
+                  description="Visual gain-cut comparison across runs and engines"
+                  icon={GitCompare}
+                >
+                  <div className="h-72 w-full rounded-md border border-primary/10 bg-slate-900/30 p-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={overlayPatternChart}>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="hsl(var(--border))"
+                          opacity={0.3}
+                        />
+                        <XAxis
+                          dataKey="theta"
+                          label={{
+                            value: "θ (deg)",
+                            position: "insideBottom",
+                            offset: -5,
+                            fill: "hsl(var(--muted-foreground))",
+                          }}
+                          tick={globalAxisTickStyle}
+                          {...globalAxisCommonProps}
+                        />
+                        <YAxis
+                          domain={[
+                            (dataMin: number) => Math.max(-40, dataMin - 5),
+                            (dataMax: number) => dataMax + 2,
+                          ]}
+                          label={{
+                            value: "Gain (dBi)",
+                            angle: -90,
+                            position: "insideLeft",
+                            fill: "hsl(var(--primary))",
+                          }}
+                          tick={globalAxisTickStyle}
+                          {...globalAxisCommonProps}
+                        />
+                        <RechartsTooltip
+                          contentStyle={{
+                            background: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--primary) / 0.3)",
+                          }}
+                          labelStyle={{ color: "hsl(var(--primary))" }}
+                          formatter={(value: number, name: string) => [
+                            value == null ? "—" : `${Number(value).toFixed(2)} dBi`,
+                            name,
+                          ]}
+                          labelFormatter={(t: number) => `θ = ${Number(t).toFixed(1)}°`}
+                        />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="__current"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={false}
+                          name="MoM (current run)"
+                          connectNulls
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="__analytic"
+                          stroke="hsl(var(--muted-foreground))"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          dot={false}
+                          name={`Analytic peak (${fmt(peakGainDbi, 2)} dBi)`}
+                        />
+                        {activeOverlays.map((r, idx) => (
+                          <Line
+                            key={r.id}
+                            type="monotone"
+                            dataKey={r.id}
+                            stroke={OVERLAY_COLORS[idx % OVERLAY_COLORS.length]}
+                            strokeWidth={1.75}
+                            dot={false}
+                            name={r.label}
+                            connectNulls
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {activeOverlays.length > 0 && (
+                    <div className="overflow-x-auto mt-3">
+                      <table className="w-full text-[11px]">
+                        <thead>
+                          <tr className="text-left text-gray-400 border-b border-primary/20">
+                            <th className="py-1.5 pr-3">Run</th>
+                            <th className="py-1.5 pr-3">Z_in (Ω)</th>
+                            <th className="py-1.5 pr-3">VSWR</th>
+                            <th className="py-1.5 pr-3">Peak gain (dBi)</th>
+                            <th className="py-1.5 pr-3">Δ vs current</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-gray-200">
+                          <tr className="border-b border-primary/10">
+                            <td className="py-1.5 pr-3 text-primary">Current MoM</td>
+                            <td className="py-1.5 pr-3">
+                              {fmt(momResult.inputImpedance.re, 1)}
+                              {momResult.inputImpedance.im >= 0 ? "+j" : "−j"}
+                              {fmt(Math.abs(momResult.inputImpedance.im), 1)}
+                            </td>
+                            <td className="py-1.5 pr-3">
+                              {Number.isFinite(momResult.vswr50) ? fmt(momResult.vswr50, 2) : "∞"}
+                            </td>
+                            <td className="py-1.5 pr-3">{fmt(momResult.peakGainDbi, 2)}</td>
+                            <td className="py-1.5 pr-3 text-gray-500">—</td>
+                          </tr>
+                          {activeOverlays.map((r) => (
+                            <tr key={r.id} className="border-b border-primary/10">
+                              <td className="py-1.5 pr-3 truncate max-w-[180px]">{r.label}</td>
+                              <td className="py-1.5 pr-3">
+                                {fmt(r.zin.re, 1)}
+                                {r.zin.im >= 0 ? "+j" : "−j"}
+                                {fmt(Math.abs(r.zin.im), 1)}
+                              </td>
+                              <td className="py-1.5 pr-3">
+                                {Number.isFinite(r.vswr50) ? fmt(r.vswr50, 2) : "∞"}
+                              </td>
+                              <td className="py-1.5 pr-3">{fmt(r.peakGainDbi, 2)}</td>
+                              <td className="py-1.5 pr-3 text-primary">
+                                {fmt(r.peakGainDbi - momResult.peakGainDbi, 2)} dB
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </AeroCard>
+              )}
 
               <Alert className="border-primary/20 bg-primary/5">
                 <AlertDescription className="text-xs text-gray-300">
