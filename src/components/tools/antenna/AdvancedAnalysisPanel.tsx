@@ -1783,6 +1783,28 @@ export const AdvancedAnalysisPanel = ({
             </>
           )}
         </TabsContent>
+
+        {/* ─────────────── PHASE 12 — AI SOLVER ─────────────── */}
+        <TabsContent value="solver" className={`pt-4 ${spacingVertical.M}`}>
+          <AISolverChat
+            context={{
+              antenna: { id: antennaId, name: antennaName },
+              frequencyHz,
+              geometry,
+              currentMoM: momResult
+                ? {
+                    lengthM: momResult.lengthM,
+                    radiusM: momResult.radiusM,
+                    segments: momResult.segments,
+                    inputImpedance: momResult.inputImpedance,
+                    vswr50: momResult.vswr50,
+                    peakGainDbi: momResult.peakGainDbi,
+                    hpbwDeg: momResult.hpbwDeg,
+                  }
+                : null,
+            }}
+          />
+        </TabsContent>
       </Tabs>
     </AeroCard>
   );
