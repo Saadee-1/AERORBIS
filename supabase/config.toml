@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.live-satellites]
 verify_jwt = false
+
+[functions.antenna-solver]
+verify_jwt = true

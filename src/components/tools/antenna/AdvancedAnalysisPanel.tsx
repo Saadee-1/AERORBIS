@@ -21,7 +21,7 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
 } from "recharts";
-import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu, Download, GitCompare, Save, Trash2, BookmarkPlus } from "lucide-react";
+import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu, Download, GitCompare, Save, Trash2, BookmarkPlus, Sparkles } from "lucide-react";
 
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroButton } from "@/components/common/AeroButton";
@@ -60,6 +60,7 @@ import {
   type MomResult,
 } from "@/lib/antenna/mom";
 import type { AntennaGeometry } from "@/lib/antenna/models-enhanced";
+import { AISolverChat } from "./AISolverChat";
 
 // ── Saved MoM run preset (localStorage) ─────────────────────────────────
 interface SavedMomRun {
@@ -686,7 +687,7 @@ export const AdvancedAnalysisPanel = ({
       icon={Activity}
     >
       <Tabs defaultValue="bandwidth" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 bg-slate-900/50 border border-primary/20">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 bg-slate-900/50 border border-primary/20">
           <TabsTrigger value="bandwidth" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             <Activity className="h-4 w-4 mr-2" /> Bandwidth
           </TabsTrigger>
@@ -704,6 +705,9 @@ export const AdvancedAnalysisPanel = ({
           </TabsTrigger>
           <TabsTrigger value="mom" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             <Cpu className="h-4 w-4 mr-2" /> MoM Solver
+          </TabsTrigger>
+          <TabsTrigger value="solver" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+            <Sparkles className="h-4 w-4 mr-2" /> AI Solver
           </TabsTrigger>
         </TabsList>
 
@@ -1778,6 +1782,28 @@ export const AdvancedAnalysisPanel = ({
               )}
             </>
           )}
+        </TabsContent>
+
+        {/* ─────────────── PHASE 12 — AI SOLVER ─────────────── */}
+        <TabsContent value="solver" className={`pt-4 ${spacingVertical.M}`}>
+          <AISolverChat
+            context={{
+              antenna: { id: antennaId, name: antennaName },
+              frequencyHz,
+              geometry,
+              currentMoM: momResult
+                ? {
+                    lengthM: momResult.lengthM,
+                    radiusM: momResult.radiusM,
+                    segments: momResult.segments,
+                    inputImpedance: momResult.inputImpedance,
+                    vswr50: momResult.vswr50,
+                    peakGainDbi: momResult.peakGainDbi,
+                    hpbwDeg: momResult.hpbwDeg,
+                  }
+                : null,
+            }}
+          />
         </TabsContent>
       </Tabs>
     </AeroCard>
