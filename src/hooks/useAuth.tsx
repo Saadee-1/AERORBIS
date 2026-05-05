@@ -1,61 +1,93 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import {
+  User,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  updateProfile
+} from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, googleProvider, db } from "@/config/firebase";
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
+  showWelcome: boolean;
+  setShowWelcome: (v: boolean) => void;
   signUp: (email: string, password: string, username: string) => Promise<{ error: { message: string } | null }>;
   signIn: (email: string, password: string) => Promise<{ error: { message: string } | null }>;
+  signInWithGoogle: () => Promise<{ error: { message: string } | null }>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const createUserDoc = async (user: User, username?: string) => {
+  const ref = doc(db, "users", user.uid);
+  await setDoc(ref, {
+    uid: user.uid,
+    email: user.email,
+    username: username || user.displayName || user.email?.split("@")[0] || "User",
+    displayName: username || user.displayName || user.email?.split("@")[0] || "User",
+    photoURL: user.photoURL || null,
+    createdAt: serverTimestamp(),
+  }, { merge: true });
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return unsubscribe;
   }, []);
 
   const signUp = async (email: string, password: string, username: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username, display_name: username },
-      },
-    });
-    return { error };
+    try {
+      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(user, { displayName: username });
+      await createUserDoc(user, username);
+      setShowWelcome(true);
+      return { error: null };
+    } catch (err: any) {
+      return { error: { message: err.message } };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setShowWelcome(true);
+      return { error: null };
+    } catch (err: any) {
+      return { error: { message: err.message } };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      await createUserDoc(result.user);
+      setShowWelcome(true);
+      return { error: null };
+    } catch (err: any) {
+      return { error: { message: err.message } };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await firebaseSignOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, showWelcome, setShowWelcome, signUp, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

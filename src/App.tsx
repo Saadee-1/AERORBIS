@@ -30,6 +30,7 @@ import DashboardProfile from "./pages/DashboardProfile";
 import AudioVisualizer from "@/components/AudioVisualizer";
 import GlobalAudioProvider from "@/components/GlobalAudioProvider";
 import HeroIntro from "@/components/HeroIntro";
+import WelcomeAnimation from "@/components/WelcomeAnimation";
 import Navbar from "@/components/Navbar";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 
@@ -147,6 +148,7 @@ const App = () => {
                       />
                     )}
                     <AIAssistant />
+                    <WelcomeAnimation />
                   </ErrorBoundary>
                 </div>
               </BrowserRouter>
