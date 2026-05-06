@@ -36,11 +36,19 @@ interface SolverStructured {
 const STORAGE_KEY = "aerorbis_antenna_solver_history";
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/antenna-solver`;
 
-const SUGGESTIONS = [
-  "Gain of a half-wave dipole at 2.4 GHz?",
-  "Friis link budget: 20 W TX, 16 dBi antennas, 10 km, 5.8 GHz",
-  "Required VOR antenna gain for 30 NM coverage at FL100?",
-  "RCS of a 1 m metallic sphere at 10 GHz",
+const SUGGESTIONS: { label: string; prompt: string; tag: string }[] = [
+  { tag: "Friis",       label: "Friis link budget", prompt: "Friis link budget: 20 W TX, 16 dBi antennas at both ends, 10 km, 5.8 GHz. Find Pr in dBm and the link margin assuming -90 dBm sensitivity." },
+  { tag: "Radar",       label: "Radar max range",   prompt: "Radar range equation: Pt=10 kW, G=35 dBi, f=10 GHz, σ=2 m², B=1 MHz, NF=3 dB. What is the max detection range for SNR=13 dB?" },
+  { tag: "Yagi",        label: "Yagi gain",         prompt: "Estimate gain, F/B and HPBW of a 7-element Yagi-Uda with a 1.5 λ boom at 435 MHz." },
+  { tag: "Patch",       label: "Patch antenna",     prompt: "Design a rectangular microstrip patch at 2.45 GHz on εr=4.4, h=1.6 mm. Give W, L, fr, Rin, directivity and fractional bandwidth." },
+  { tag: "Horn",        label: "Pyramidal horn",    prompt: "Pyramidal horn with 150×100 mm aperture at 10 GHz. Give gain in dBi and E/H-plane HPBW." },
+  { tag: "ITU-R rain",  label: "Ku-band rain fade", prompt: "Compute ITU-R P.838 rain attenuation for a 12 GHz Ku-band link, 25 mm/h rain, 8 km path. Include gaseous loss." },
+  { tag: "VOR",         label: "VOR coverage",      prompt: "What is the theoretical VOR coverage range at FL100 (10 000 ft)? Use the FAA 1.23·√h_ft rule." },
+  { tag: "GPS",         label: "GPS link margin",   prompt: "GPS L1 (1575.42 MHz) link budget at sea level. SV EIRP=26.8 dBW, RX gain=3 dBi, T_sys=290 K. Required C/N₀=35 dB-Hz. What is the margin?" },
+  { tag: "ADS-B",       label: "ADS-B air-to-air",  prompt: "ADS-B 1090 MHz air-to-air at 150 NM, 250 W TX, 0 dBi antennas, sensitivity -84 dBm. What is the link margin?" },
+  { tag: "RCS",         label: "RCS sphere",        prompt: "RCS of a 1 m metallic sphere at 10 GHz in optical regime (m² and dBsm). Confirm ka regime." },
+  { tag: "Knife-edge",  label: "Knife-edge loss",   prompt: "Knife-edge diffraction loss for an obstacle 15 m above LOS, d1=4 km, d2=6 km, f=900 MHz." },
+  { tag: "Doppler",     label: "Doppler shift",     prompt: "Doppler shift on a 5 GHz link when relative closing velocity is 250 m/s." },
 ];
 
 function extractStructured(text: string): SolverStructured | null {
@@ -212,14 +220,16 @@ export const AISolverChat = ({ context }: Props) => {
               Ask any antenna, propagation, radar, or avionics RF question. Step-by-step
               derivations are returned with formulas and a structured result card.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {SUGGESTIONS.map((s) => (
                 <button
-                  key={s}
-                  onClick={() => send(s)}
-                  className="text-left text-xs p-2 rounded border border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-colors text-gray-300"
+                  key={s.label}
+                  onClick={() => send(s.prompt)}
+                  className="text-left text-xs p-2 rounded border border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-colors text-gray-300 group"
+                  title={s.prompt}
                 >
-                  {s}
+                  <Badge variant="outline" className="border-primary/40 text-[9px] mr-1 mb-1">{s.tag}</Badge>
+                  <div className="text-foreground/90 group-hover:text-primary transition-colors">{s.label}</div>
                 </button>
               ))}
             </div>

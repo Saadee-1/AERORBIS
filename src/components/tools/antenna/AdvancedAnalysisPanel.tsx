@@ -21,7 +21,7 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
 } from "recharts";
-import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu, Download, GitCompare, Save, Trash2, BookmarkPlus, Sparkles } from "lucide-react";
+import { Activity, Radio, Satellite, Zap, AlertTriangle, Layers, Disc3, Cpu, Download, GitCompare, Save, Trash2, BookmarkPlus, Sparkles, FlaskConical } from "lucide-react";
 
 import { AeroCard } from "@/components/common/AeroCard";
 import { AeroButton } from "@/components/common/AeroButton";
@@ -61,6 +61,7 @@ import {
 } from "@/lib/antenna/mom";
 import type { AntennaGeometry } from "@/lib/antenna/models-enhanced";
 import { AISolverChat } from "./AISolverChat";
+import { SystemsLabPanel } from "./SystemsLabPanel";
 
 // ── Saved MoM run preset (localStorage) ─────────────────────────────────
 interface SavedMomRun {
@@ -687,9 +688,13 @@ export const AdvancedAnalysisPanel = ({
       icon={Activity}
     >
       <Tabs defaultValue="solver" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 bg-slate-900/50 border border-primary/20">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-8 bg-slate-900/50 border border-primary/20">
           <TabsTrigger value="solver" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary relative">
             <Sparkles className="h-4 w-4 mr-2" /> AI Solver
+            <span className="absolute -top-1 -right-1 text-[8px] px-1 rounded bg-primary text-primary-foreground font-semibold">NEW</span>
+          </TabsTrigger>
+          <TabsTrigger value="systems" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary relative">
+            <FlaskConical className="h-4 w-4 mr-2" /> Systems Lab
             <span className="absolute -top-1 -right-1 text-[8px] px-1 rounded bg-primary text-primary-foreground font-semibold">NEW</span>
           </TabsTrigger>
           <TabsTrigger value="bandwidth" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
@@ -1805,6 +1810,11 @@ export const AdvancedAnalysisPanel = ({
                 : null,
             }}
           />
+        </TabsContent>
+
+        {/* ─────────────── PHASES 7-11 — SYSTEMS LAB ─────────────── */}
+        <TabsContent value="systems" className={`pt-4 ${spacingVertical.M}`}>
+          <SystemsLabPanel />
         </TabsContent>
       </Tabs>
     </AeroCard>
