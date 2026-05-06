@@ -204,7 +204,7 @@ function ElementsModule({ tier }: { tier: Tier }) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {Object.entries(result as Record<string, number>).map(([k, val]) => (
+        {Object.entries(result as unknown as Record<string, number>).map(([k, val]) => (
           <Stat
             key={k}
             label={k.replace(/([A-Z])/g, " $1").trim()}
