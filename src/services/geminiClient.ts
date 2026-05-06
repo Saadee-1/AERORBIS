@@ -1,115 +1,46 @@
-/**
- * Gemini API Client
- * All API calls are routed through the secure backend edge function
- */
-
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-async function getSupabaseClient(): Promise<SupabaseClient | null> {
-  try {
-    const mod = await import("@/integrations/supabase/client");
-    return mod.supabase as SupabaseClient;
-  } catch {
-    // If env vars are missing, the generated client throws at import time.
-    return null;
-  }
-}
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string;
+const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 export type GeminiResult =
   | { ok: true; content: string }
   | { ok: false; reason: "AI_DISABLED" | "NETWORK_ERROR" | "BAD_RESPONSE"; detail?: string };
 
-/**
- * Check if Smart AI is enabled
- * This now checks if the backend edge function is available
- */
 export function isSmartAiEnabled(): boolean {
-  // AI is always potentially available through the backend
-  // The actual availability depends on server-side configuration
-  return true;
+  return !!GEMINI_API_KEY;
 }
 
-/**
- * Call Gemini through secure backend edge function
- * @param prompt - The prompt to send to Gemini
- * @returns Structured result with success/error information
- */
 export async function callGeminiJSON(prompt: string): Promise<GeminiResult> {
-  const supabase = await getSupabaseClient();
-  if (!supabase) {
-    return {
-      ok: false,
-      reason: "AI_DISABLED",
-      detail: "Backend client is not configured in this build (missing backend URL).",
-    };
+  if (!GEMINI_API_KEY) {
+    return { ok: false, reason: "AI_DISABLED", detail: "Gemini API key not configured." };
   }
 
   try {
-    const { data, error } = await supabase.functions.invoke('ai-gateway', {
-      body: {
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an aerospace engineering assistant. Respond only with valid JSON.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        mode: 'json',
-        temperature: 0.3,
-        max_tokens: 2000,
-      },
+    const response = await fetch(GEMINI_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        systemInstruction: {
+          parts: [{ text: "You are an aerospace engineering assistant. Respond only with valid JSON. No markdown, no explanation, just raw JSON." }]
+        },
+        generationConfig: { temperature: 0.3, maxOutputTokens: 2000 },
+      }),
     });
 
-    if (error) {
-      // Check for specific error types
-      if (error.message?.includes('503') || error.message?.includes('unavailable')) {
-        return {
-          ok: false,
-          reason: "AI_DISABLED",
-          detail: "AI service is not configured on the server.",
-        };
-      }
-      return {
-        ok: false,
-        reason: "NETWORK_ERROR",
-        detail: error.message || 'Failed to connect to AI service',
-      };
+    if (!response.ok) {
+      return { ok: false, reason: "NETWORK_ERROR", detail: `HTTP ${response.status}` };
     }
 
-    if (data?.error) {
-      if (data.error.includes('unavailable') || data.error.includes('not configured')) {
-        return {
-          ok: false,
-          reason: "AI_DISABLED",
-          detail: data.error,
-        };
-      }
-      return {
-        ok: false,
-        reason: "NETWORK_ERROR",
-        detail: data.error,
-      };
-    }
-
-    const content = data?.content || '';
+    const data = await response.json();
+    const content = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (!content) {
-      return {
-        ok: false,
-        reason: "BAD_RESPONSE",
-        detail: "No content in AI response",
-      };
+      return { ok: false, reason: "BAD_RESPONSE", detail: "Empty response from Gemini" };
     }
 
     return { ok: true, content };
-  } catch (error) {
-    return {
-      ok: false,
-      reason: "NETWORK_ERROR",
-      detail: error instanceof Error ? error.message : 'Unknown network error',
-    };
+  } catch (err) {
+    return { ok: false, reason: "NETWORK_ERROR", detail: err instanceof Error ? err.message : "Unknown error" };
   }
 }

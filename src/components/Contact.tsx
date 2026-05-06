@@ -58,19 +58,20 @@ const Contact = () => {
     }
     setSending(true);
     try {
-      const response = await fetch('/api/contact', {
+      const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          access_key: '88af5429-2edc-41ad-b727-330c38653d2d',
           name: formData.name,
           email: formData.email,
-          category: formData.category,
-          calculator: showCalculator ? formData.calculator : undefined,
-          subject: undefined,
-          message: formData.message,
+          subject: `[AERORBIS] ${formData.category}${formData.calculator ? ` - ${formData.calculator}` : ''}`,
+          message: `Category: ${formData.category}\n${formData.calculator ? `Calculator: ${formData.calculator}\n` : ''}Message:\n${formData.message}`,
+          replyto: formData.email,
         }),
       });
-      if (!response.ok) throw new Error('Failed');
+      const data = await response.json();
+      if (!data.success) throw new Error('Failed');
       toast.success("Transmission sent! We'll respond shortly.");
       setFormData({ name: "", email: "", category: "", calculator: "", message: "" });
     } catch {

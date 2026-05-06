@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
 import { supabase } from '@/integrations/supabase/client';
+import { callAerobotAPI } from '@/lib/aerobot-api';
 
 export interface Message {
   id: string;
@@ -292,99 +293,18 @@ Use this context to explain the calculation. Reference specific inputs, results,
         toolName: currentPayload?.toolName || calculationContext?.toolName || 'N/A',
       });
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (!supabaseUrl) {
-        // If Supabase is not configured, provide a helpful response using the context
-        console.warn('Supabase URL not configured - AI Assistant will work with limited functionality');
-        
-        if (calculationContext) {
-          // Generate a basic explanation from the context
-          const explanation = `Based on your ${calculationContext.toolName || calculationContext.toolId} calculation:
+      const { content: aiContent, error: aiError } = await callAerobotAPI(apiMessages);
 
-**Inputs:** ${JSON.stringify(calculationContext.inputs, null, 2)}
-
-**Results:** ${JSON.stringify(calculationContext.results, null, 2)}
-
-**Calculation Steps:**
-${calculationContext.steps?.map((step: string, idx: number) => `${idx + 1}. ${step}`).join('\n') || 'No steps available'}
-
-This calculation was performed using the ${calculationContext.toolName || calculationContext.toolId} tool. The results show the computed values based on your input parameters.
-
-Note: Full AI analysis requires Supabase configuration. For detailed explanations, please configure your Supabase URL.`;
-
-          const assistantMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            role: 'assistant',
-            content: explanation,
-            timestamp: Date.now(),
-          };
-          setMessages(prev => [...prev, assistantMessage]);
-          setIsLoading(false);
-          return;
-        } else {
-          throw new Error('Supabase URL not configured and no calculation context available');
-        }
-      }
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/ai-chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Supabase Edge Functions expect a user JWT for protected endpoints.
-          // The anon/publishable key is still required in the `apikey` header.
-          ...(await (async () => {
-            const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-            const { data: { session } } = await supabase.auth.getSession();
-            const accessToken = session?.access_token;
-            if (!anonKey || !accessToken) {
-              return {};
-            }
-            return {
-              'apikey': anonKey,
-              'Authorization': `Bearer ${accessToken}`,
-            };
-          })()),
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // If server error but we have context, provide fallback explanation
-        if (calculationContext && data.error) {
-          console.warn('Server error but context available, providing fallback explanation');
-          const fallbackExplanation = `I encountered an issue connecting to the AI service, but I can see your calculation:
-
-**Tool:** ${calculationContext.toolName || calculationContext.toolId}
-**Inputs:** ${JSON.stringify(calculationContext.inputs, null, 2)}
-**Results:** ${JSON.stringify(calculationContext.results, null, 2)}
-
-**Steps:**
-${calculationContext.steps?.map((step: string, idx: number) => `${idx + 1}. ${step}`).join('\n') || 'No steps'}
-
-Error: ${data.error}`;
-
-          const assistantMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            role: 'assistant',
-            content: fallbackExplanation,
-            timestamp: Date.now(),
-          };
-          setMessages(prev => [...prev, assistantMessage]);
-          setIsLoading(false);
-          return;
-        }
-        throw new Error(data.error || 'Failed to get response');
+      if (aiError) {
+        throw new Error(aiError);
       }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.content,
+        content: aiContent,
         timestamp: Date.now(),
       };
-
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       const errorMessage: Message = {

@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import { useAIAssistant, ToolContext } from "@/contexts/AIAssistantContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface CalculationEventPayload {
   toolId: string;
@@ -56,6 +58,7 @@ export interface CalculationEventResponse {
  */
 export const useToolContext = () => {
   const { setToolContext, setIsOpen } = useAIAssistant();
+  const { user } = useAuth();
 
   const sendCalculationEvent = useCallback(
     async (
@@ -94,6 +97,22 @@ export const useToolContext = () => {
 
       // Always store locally first (even before trying to send to server)
       const fallbackResponse = createFallbackResponse();
+
+      // Show save CTA toast once per session for non-signed-in users
+      if (!user) {
+        const toastShown = sessionStorage.getItem('calcToastShown');
+        if (!toastShown) {
+          sessionStorage.setItem('calcToastShown', 'true');
+          toast('Save your calculations for future reference', {
+            description: 'Create a free account to save results, presets and history.',
+            duration: 8000,
+            action: {
+              label: 'Sign Up Free',
+              onClick: () => window.location.href = '/auth',
+            },
+          });
+        }
+      }
 
       // Use environment variables for Supabase endpoint
       const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;

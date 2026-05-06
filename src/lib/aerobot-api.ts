@@ -1,29 +1,12 @@
-/**
- * Aerobot API Integration
- * All API calls are routed through the secure backend edge function
- */
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string;
+const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-async function getSupabaseClient(): Promise<SupabaseClient | null> {
-  try {
-    const mod = await import("@/integrations/supabase/client");
-    return mod.supabase as SupabaseClient;
-  } catch {
-    return null;
-  }
-}
+const SYSTEM_PROMPT = `You are Aerobot, an expert aerospace engineering AI assistant built into AERORBIS. You have deep knowledge of aerodynamics, propulsion, orbital mechanics, atmospheric science, structures, materials science, and flight systems. When explaining calculations, provide expert-level interpretation with physical intuition, real-world context, and actionable insights. Be concise but thorough. Always respond in the same language the user writes in.`;
 
 export interface AerobotMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
-}
-
-export interface AerobotRequest {
-  messages: AerobotMessage[];
-  mode?: 'chat' | 'summarize';
-  temperature?: number;
-  max_tokens?: number;
 }
 
 export interface AerobotResponse {
@@ -31,57 +14,51 @@ export interface AerobotResponse {
   error?: string;
 }
 
-/**
- * Call Aerobot API through secure backend edge function
- * API keys are stored server-side for security
- */
 export async function callAerobotAPI(
   messages: AerobotMessage[],
-  options: {
-    mode?: 'chat' | 'summarize';
-    temperature?: number;
-    max_tokens?: number;
-  } = {}
+  options: { temperature?: number; max_tokens?: number } = {}
 ): Promise<AerobotResponse> {
-  const supabase = await getSupabaseClient();
-  if (!supabase) {
-    return {
-      content: '',
-      error: 'Backend client is not configured in this build (missing backend URL).',
-    };
+  if (!GEMINI_API_KEY) {
+    return { content: "", error: "Gemini API key not configured." };
   }
 
+  // Convert messages to Gemini format
+  // Gemini uses "model" instead of "assistant", no "system" role in contents
+  const contents = messages
+    .filter(m => m.role !== "system")
+    .map(m => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
   try {
-    const { data, error } = await supabase.functions.invoke('ai-gateway', {
-      body: {
-        messages,
-        mode: options.mode,
-        temperature: options.temperature,
-        max_tokens: options.max_tokens,
-      },
+    const response = await fetch(GEMINI_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents,
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        generationConfig: {
+          temperature: options.temperature ?? 0.7,
+          maxOutputTokens: options.max_tokens ?? 2048,
+        },
+      }),
     });
 
-    if (error) {
-      console.error('Aerobot API error:', error);
-      return {
-        content: '',
-        error: error.message || 'Failed to connect to AI service',
-      };
+    if (!response.ok) {
+      const errText = await response.text();
+      return { content: "", error: `Gemini API error ${response.status}: ${errText}` };
     }
 
-    if (data?.error) {
-      return {
-        content: '',
-        error: data.error,
-      };
+    const data = await response.json();
+    const content = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    if (!content) {
+      return { content: "", error: "No response from Gemini" };
     }
 
-    return { content: data?.content || '' };
-  } catch (error) {
-    console.error('Aerobot API error:', error);
-    return {
-      content: '',
-      error: error instanceof Error ? error.message : 'Failed to connect to AI service',
-    };
+    return { content };
+  } catch (err) {
+    return { content: "", error: err instanceof Error ? err.message : "Network error" };
   }
 }
