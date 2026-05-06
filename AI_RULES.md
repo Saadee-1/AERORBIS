@@ -1,4 +1,4 @@
-AI EXECUTION RULES — AEROVERSE
+AI EXECUTION RULES — AERORBIS
 0. Scope of Authority
 
 The AI is authorized to:
