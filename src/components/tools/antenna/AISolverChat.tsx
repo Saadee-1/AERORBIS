@@ -71,6 +71,7 @@ export const AISolverChat = ({ context }: Props) => {
   });
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [thinking, setThinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -89,6 +90,7 @@ export const AISolverChat = ({ context }: Props) => {
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [...prev, userMsg, { id: assistantId, role: "assistant", content: "", ts: Date.now() }]);
     setStreaming(true);
+    setThinking(true);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -139,6 +141,7 @@ export const AISolverChat = ({ context }: Props) => {
             const delta = p?.choices?.[0]?.delta?.content as string | undefined;
             if (delta) {
               acc += delta;
+              setThinking(false);
               setMessages((prev) =>
                 prev.map((m) => (m.id === assistantId ? { ...m, content: acc } : m)),
               );
@@ -160,6 +163,7 @@ export const AISolverChat = ({ context }: Props) => {
       setMessages((prev) => prev.filter((m) => m.id !== assistantId));
     } finally {
       setStreaming(false);
+      setThinking(false);
     }
   }
 
@@ -271,7 +275,8 @@ export const AISolverChat = ({ context }: Props) => {
 
         {streaming && (
           <div className="flex items-center gap-2 text-xs text-primary/70">
-            <Loader2 className="h-3 w-3 animate-spin" /> Solving…
+            <Loader2 className="h-3 w-3 animate-spin" />
+            {thinking ? "Reasoning… (Gemini is working through the derivation)" : "Streaming answer…"}
           </div>
         )}
       </div>

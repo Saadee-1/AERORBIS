@@ -54,7 +54,7 @@ serve(async (req) => {
         model: "google/gemini-2.5-pro",
         messages: [{ role: "system", content: sys }, ...messages],
         stream: true,
-        reasoning: { effort: "medium" },
+        reasoning: { effort: "low" },
       }),
     });
 
