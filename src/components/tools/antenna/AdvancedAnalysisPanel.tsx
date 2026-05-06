@@ -688,9 +688,13 @@ export const AdvancedAnalysisPanel = ({
       icon={Activity}
     >
       <Tabs defaultValue="solver" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 bg-slate-900/50 border border-primary/20">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-8 bg-slate-900/50 border border-primary/20">
           <TabsTrigger value="solver" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary relative">
             <Sparkles className="h-4 w-4 mr-2" /> AI Solver
+            <span className="absolute -top-1 -right-1 text-[8px] px-1 rounded bg-primary text-primary-foreground font-semibold">NEW</span>
+          </TabsTrigger>
+          <TabsTrigger value="systems" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary relative">
+            <FlaskConical className="h-4 w-4 mr-2" /> Systems Lab
             <span className="absolute -top-1 -right-1 text-[8px] px-1 rounded bg-primary text-primary-foreground font-semibold">NEW</span>
           </TabsTrigger>
           <TabsTrigger value="bandwidth" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
