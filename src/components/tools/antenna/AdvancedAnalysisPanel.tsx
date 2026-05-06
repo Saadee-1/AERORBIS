@@ -1811,6 +1811,11 @@ export const AdvancedAnalysisPanel = ({
             }}
           />
         </TabsContent>
+
+        {/* ─────────────── PHASES 7-11 — SYSTEMS LAB ─────────────── */}
+        <TabsContent value="systems" className={`pt-4 ${spacingVertical.M}`}>
+          <SystemsLabPanel />
+        </TabsContent>
       </Tabs>
     </AeroCard>
   );
