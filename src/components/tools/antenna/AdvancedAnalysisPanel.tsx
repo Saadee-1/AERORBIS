@@ -686,8 +686,12 @@ export const AdvancedAnalysisPanel = ({
       description="Bandwidth, polarization, link-budget, coupling, PO reflector & MoM solver"
       icon={Activity}
     >
-      <Tabs defaultValue="bandwidth" className="w-full">
+      <Tabs defaultValue="solver" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 bg-slate-900/50 border border-primary/20">
+          <TabsTrigger value="solver" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary relative">
+            <Sparkles className="h-4 w-4 mr-2" /> AI Solver
+            <span className="absolute -top-1 -right-1 text-[8px] px-1 rounded bg-primary text-primary-foreground font-semibold">NEW</span>
+          </TabsTrigger>
           <TabsTrigger value="bandwidth" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             <Activity className="h-4 w-4 mr-2" /> Bandwidth
           </TabsTrigger>
@@ -705,9 +709,6 @@ export const AdvancedAnalysisPanel = ({
           </TabsTrigger>
           <TabsTrigger value="mom" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
             <Cpu className="h-4 w-4 mr-2" /> MoM Solver
-          </TabsTrigger>
-          <TabsTrigger value="solver" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
-            <Sparkles className="h-4 w-4 mr-2" /> AI Solver
           </TabsTrigger>
         </TabsList>
 
