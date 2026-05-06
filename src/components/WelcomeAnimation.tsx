@@ -1,198 +1,368 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
-interface Particle {
-  x: number;
-  y: number;
-  targetX: number;
-  targetY: number;
-  vx: number;
-  vy: number;
-  size: number;
-  opacity: number;
-  color: string;
-  speed: number;
-}
+type Phase = "warp" | "frame" | "text" | "nameScale" | "hold" | "implode";
 
 const WelcomeAnimation = () => {
   const { user, showWelcome, setShowWelcome } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
   const navigate = useNavigate();
-  const animFrameRef = useRef<number>(0);
-  const particlesRef = useRef<Particle[]>([]);
-  const phaseRef = useRef<"converging" | "holding" | "dispersing">("converging");
+  const [phase, setPhase] = useState<Phase>("warp");
+  const [typed1, setTyped1] = useState("");
+  const [typed2, setTyped2] = useState("");
+  const [typed3, setTyped3] = useState("");
 
-  const displayName = user?.displayName || user?.email?.split("@")[0] || "Explorer";
+  const displayName = (
+    user?.displayName || user?.email?.split("@")[0] || "EXPLORER"
+  ).toUpperCase();
+  const pilotLine = `PILOT: ${displayName}`;
 
+  // Phase transitions
   useEffect(() => {
     if (!showWelcome) return;
+    setPhase("warp");
+    setTyped1(""); setTyped2(""); setTyped3("");
 
+    const timers = [
+      setTimeout(() => setPhase("frame"), 500),
+      setTimeout(() => setPhase("text"), 1000),
+      setTimeout(() => setPhase("nameScale"), 2000),
+      setTimeout(() => setPhase("hold"), 2600),
+      setTimeout(() => setPhase("implode"), 3200),
+      setTimeout(() => { setShowWelcome(false); navigate("/"); }, 3600),
+    ];
+    return () => { timers.forEach(clearTimeout); cancelAnimationFrame(rafRef.current); };
+  }, [showWelcome]);
+
+  // Typing effect
+  useEffect(() => {
+    if (phase !== "text") return;
+    const line1 = "AERORBIS COMMAND";
+    const line2 = pilotLine;
+    const line3 = "STATUS: AUTHORIZED";
+    const speed1 = 38, speed2 = 30, speed3 = 28;
+
+    let i = 0;
+    const t1 = setInterval(() => {
+      if (i < line1.length) { setTyped1(line1.slice(0, ++i)); }
+      else clearInterval(t1);
+    }, speed1);
+
+    const delay2 = line1.length * speed1 + 80;
+    let j = 0;
+    const s2 = setTimeout(() => {
+      const t2 = setInterval(() => {
+        if (j < line2.length) { setTyped2(line2.slice(0, ++j)); }
+        else clearInterval(t2);
+      }, speed2);
+    }, delay2);
+
+    const delay3 = delay2 + line2.length * speed2 + 80;
+    let k = 0;
+    const s3 = setTimeout(() => {
+      const t3 = setInterval(() => {
+        if (k < line3.length) { setTyped3(line3.slice(0, ++k)); }
+        else clearInterval(t3);
+      }, speed3);
+    }, delay3);
+
+    return () => { clearInterval(t1); clearTimeout(s2); clearTimeout(s3); };
+  }, [phase]);
+
+  // Warp canvas
+  useEffect(() => {
+    if (!showWelcome || phase !== "warp") return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    const W = canvas.width, H = canvas.height;
 
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
+    const stars = Array.from({ length: 160 }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      speed: 14 + Math.random() * 28,
+      len: 40 + Math.random() * 130,
+      a: 0.3 + Math.random() * 0.7,
+    }));
 
-    const colors = [
-      "0, 212, 170",
-      "0, 180, 150",
-      "255, 255, 255",
-      "100, 230, 200",
-    ];
-
-    particlesRef.current = Array.from({ length: 250 }, () => {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = Math.max(canvas.width, canvas.height) * (0.5 + Math.random() * 0.6);
-      return {
-        x: cx + Math.cos(angle) * radius,
-        y: cy + Math.sin(angle) * radius,
-        targetX: cx + (Math.random() - 0.5) * 80,
-        targetY: cy + (Math.random() - 0.5) * 80,
-        vx: 0,
-        vy: 0,
-        size: Math.random() * 2.5 + 0.5,
-        opacity: Math.random() * 0.8 + 0.2,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        speed: Math.random() * 0.07 + 0.035,
-      };
-    });
-
-    phaseRef.current = "converging";
-
-    const holdTimer = setTimeout(() => {
-      phaseRef.current = "holding";
-
-      const disperseTimer = setTimeout(() => {
-        phaseRef.current = "dispersing";
-        particlesRef.current.forEach(p => {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = Math.random() * 10 + 5;
-          p.vx = Math.cos(angle) * speed;
-          p.vy = Math.sin(angle) * speed;
-        });
-
-        const endTimer = setTimeout(() => {
-          setShowWelcome(false);
-          navigate("/");
-        }, 900);
-
-        return () => clearTimeout(endTimer);
-      }, 1800);
-
-      return () => clearTimeout(disperseTimer);
-    }, 1300);
-
-    const animate = () => {
-      ctx.fillStyle = "rgba(8, 10, 26, 0.18)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      particlesRef.current.forEach(p => {
-        if (phaseRef.current === "converging") {
-          p.x += (p.targetX - p.x) * p.speed;
-          p.y += (p.targetY - p.y) * p.speed;
-        } else if (phaseRef.current === "dispersing") {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.opacity *= 0.95;
-          p.vx *= 1.05;
-          p.vy *= 1.05;
-        }
-
+    const draw = () => {
+      ctx.fillStyle = "rgba(6,8,20,0.22)";
+      ctx.fillRect(0, 0, W, H);
+      stars.forEach(s => {
+        s.x -= s.speed;
+        if (s.x + s.len < 0) { s.x = W + s.len; s.y = Math.random() * H; }
+        const g = ctx.createLinearGradient(s.x, s.y, s.x + s.len, s.y);
+        g.addColorStop(0, `rgba(0,212,170,0)`);
+        g.addColorStop(0.5, `rgba(0,212,170,${s.a * 0.6})`);
+        g.addColorStop(1, `rgba(255,255,255,${s.a})`);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.color}, ${p.opacity})`;
-        ctx.fill();
-
-        if (p.size > 1.5) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${p.color}, ${p.opacity * 0.08})`;
-          ctx.fill();
-        }
+        ctx.strokeStyle = g;
+        ctx.lineWidth = s.len > 100 ? 2 : 1;
+        ctx.moveTo(s.x + s.len, s.y);
+        ctx.lineTo(s.x, s.y);
+        ctx.stroke();
       });
-
-      animFrameRef.current = requestAnimationFrame(animate);
+      rafRef.current = requestAnimationFrame(draw);
     };
+    draw();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [showWelcome, phase]);
 
-    animate();
+  const inFrame = ["frame","text","nameScale","hold","implode"].includes(phase);
+  const inText = ["text","nameScale","hold","implode"].includes(phase);
+  const inName = ["nameScale","hold","implode"].includes(phase);
+  const imploding = phase === "implode";
 
-    return () => {
-      cancelAnimationFrame(animFrameRef.current);
-      clearTimeout(holdTimer);
-    };
-  }, [showWelcome]);
+  if (!showWelcome) return null;
 
   return (
-    <AnimatePresence>
-      {showWelcome && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          style={{ background: "rgba(8, 10, 26, 0.97)" }}
-        >
-          <canvas ref={canvasRef} className="absolute inset-0" />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+      style={{ background: "#060814" }}
+    >
+      {/* Warp canvas */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-          <div className="relative z-10 text-center select-none">
+      {/* Everything implodes to center */}
+      <motion.div
+        animate={imploding ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
+        transition={imploding ? { duration: 0.35, ease: [0.4, 0, 1, 1] } : { duration: 0.01 }}
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        {/* Top line */}
+        <AnimatePresence>
+          {inFrame && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.3 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.0, duration: 0.5, type: "spring", stiffness: 180 }}
-              className="w-16 h-16 rounded-full border border-primary/40 flex items-center justify-center mx-auto mb-5"
-              style={{ boxShadow: "0 0 40px rgba(0, 212, 170, 0.35), inset 0 0 20px rgba(0,212,170,0.05)" }}
-            >
-              <span className="text-2xl">🚀</span>
-            </motion.div>
-
-            <motion.p
-              initial={{ opacity: 0, letterSpacing: "0.1em" }}
-              animate={{ opacity: 1, letterSpacing: "0.35em" }}
-              transition={{ delay: 1.2, duration: 0.6 }}
-              className="text-primary/60 text-xs uppercase mb-3 font-[Orbitron]"
-            >
-              CLEARANCE GRANTED
-            </motion.p>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 25 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.5 }}
-              className="text-5xl font-bold text-white font-[Orbitron] mb-2"
-              style={{ textShadow: "0 0 40px rgba(0, 212, 170, 0.4)" }}
-            >
-              Welcome
-            </motion.h1>
-
-            <motion.h2
-              initial={{ opacity: 0, y: 25 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.65, duration: 0.5 }}
-              className="text-4xl font-bold font-[Orbitron]"
-              style={{ color: "#00d4aa", textShadow: "0 0 30px rgba(0, 212, 170, 0.8)" }}
-            >
-              {displayName}
-            </motion.h2>
-
-            <motion.div
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: 1, opacity: 1 }}
-              transition={{ delay: 1.9, duration: 0.8 }}
-              className="mt-5 h-px w-56 mx-auto"
-              style={{ background: "linear-gradient(to right, transparent, rgba(0,212,170,0.8), transparent)" }}
+              key="top-line"
+              initial={{ scaleX: 0, y: 0 }}
+              animate={{ scaleX: 1, y: "-35vh" }}
+              transition={{
+                scaleX: { duration: 0.22, ease: "easeOut" },
+                y: { duration: 0.22, delay: 0.22, ease: "easeOut" },
+              }}
+              className="absolute w-full h-px origin-center"
+              style={{ background: "rgba(0,212,170,1)", boxShadow: "0 0 10px rgba(0,212,170,0.7)" }}
             />
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          )}
+        </AnimatePresence>
+
+        {/* Bottom line */}
+        <AnimatePresence>
+          {inFrame && (
+            <motion.div
+              key="bottom-line"
+              initial={{ scaleX: 0, y: 0 }}
+              animate={{ scaleX: 1, y: "35vh" }}
+              transition={{
+                scaleX: { duration: 0.22, ease: "easeOut" },
+                y: { duration: 0.22, delay: 0.22, ease: "easeOut" },
+              }}
+              className="absolute w-full h-px origin-center"
+              style={{ background: "rgba(0,212,170,1)", boxShadow: "0 0 10px rgba(0,212,170,0.7)" }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Left vertical */}
+        <AnimatePresence>
+          {inFrame && (
+            <motion.div
+              key="left-v"
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ duration: 0.22, delay: 0.44, ease: "easeOut" }}
+              className="absolute h-[70vh] w-px origin-top"
+              style={{ left: "10%", background: "rgba(0,212,170,0.35)" }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Right vertical */}
+        <AnimatePresence>
+          {inFrame && (
+            <motion.div
+              key="right-v"
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ duration: 0.22, delay: 0.44, ease: "easeOut" }}
+              className="absolute h-[70vh] w-px origin-top"
+              style={{ right: "10%", background: "rgba(0,212,170,0.35)" }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Corner brackets */}
+        {inFrame && [
+          { top: "calc(50% - 35vh)", left: "10%", bt: "2px solid", bl: "2px solid" },
+          { top: "calc(50% - 35vh)", right: "10%", bt: "2px solid", br: "2px solid" },
+          { bottom: "calc(50% - 35vh)", left: "10%", bb: "2px solid", bl: "2px solid" },
+          { bottom: "calc(50% - 35vh)", right: "10%", bb: "2px solid", br: "2px solid" },
+        ].map((c, i) => (
+          <motion.div
+            key={`corner-${i}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.48, duration: 0.15 }}
+            className="absolute w-5 h-5"
+            style={{
+              top: c.top, bottom: c.bottom, left: c.left, right: c.right,
+              borderTop: c.bt, borderLeft: c.bl, borderRight: c.br, borderBottom: c.bb,
+              borderColor: "rgba(0,212,170,0.9)",
+            }}
+          />
+        ))}
+
+        {/* Side data streams */}
+        <AnimatePresence>
+          {inText && !inName && (
+            <>
+              <motion.div
+                key="left-data"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute text-left"
+                style={{ left: "12%", top: "50%", transform: "translateY(-50%)" }}
+              >
+                {["ALT: 35,000 FT", "SPD: 480 KTS", "HDG: 274°", "LAT: 33.68°N", "LON: 73.04°E"].map((line, i) => (
+                  <motion.p
+                    key={i}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 0.45, x: 0 }}
+                    transition={{ delay: i * 0.07, duration: 0.2 }}
+                    className="text-xs font-mono leading-7 tracking-widest"
+                    style={{ color: "rgba(0,212,170,0.7)" }}
+                  >
+                    {line}
+                  </motion.p>
+                ))}
+              </motion.div>
+
+              <motion.div
+                key="right-data"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute text-right"
+                style={{ right: "12%", top: "50%", transform: "translateY(-50%)" }}
+              >
+                {["SYS: NOMINAL", "AUTH: LVL 5", "CLEAR: ACTIVE", "EFB: ONLINE", "COMM: SECURE"].map((line, i) => (
+                  <motion.p
+                    key={i}
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 0.45, x: 0 }}
+                    transition={{ delay: i * 0.07, duration: 0.2 }}
+                    className="text-xs font-mono leading-7 tracking-widest"
+                    style={{ color: "rgba(0,212,170,0.7)" }}
+                  >
+                    {line}
+                  </motion.p>
+                ))}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Typing text center */}
+        <AnimatePresence>
+          {inText && !inName && (
+            <motion.div
+              key="center-text"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="absolute text-center select-none px-4"
+            >
+              <p className="text-xs tracking-[0.45em] font-mono mb-3 min-h-[1rem]"
+                style={{ color: "rgba(0,212,170,0.7)" }}>
+                {typed1}<span className="animate-pulse">{typed1.length < 16 ? "_" : ""}</span>
+              </p>
+              <div className="h-px w-56 mx-auto mb-4" style={{ background: "rgba(0,212,170,0.3)" }} />
+              <p className="text-base font-[Orbitron] tracking-widest text-white mb-2 min-h-[1.5rem]">
+                {typed2}<span className="animate-pulse text-primary">{typed2.length > 0 && typed2.length < pilotLine.length ? "_" : ""}</span>
+              </p>
+              <p className="text-xs tracking-[0.35em] font-mono min-h-[1rem]"
+                style={{ color: "rgba(0,212,170,0.55)" }}>
+                {typed3}<span className="animate-pulse">{typed3.length > 0 && typed3.length < 18 ? "_" : ""}</span>
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Name reveal */}
+        <AnimatePresence>
+          {inName && (
+            <motion.div
+              key="name-reveal"
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35, type: "spring", stiffness: 200, damping: 20 }}
+              className="absolute text-center select-none"
+            >
+              <div
+                className="absolute inset-0 pointer-events-none -z-10"
+                style={{
+                  background: "radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0,212,170,0.07) 0%, transparent 70%)",
+                  transform: "scale(3)",
+                }}
+              />
+              <motion.p
+                initial={{ opacity: 0, y: -15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.25 }}
+                className="text-sm tracking-[0.6em] font-mono mb-3 uppercase"
+                style={{ color: "rgba(0,212,170,0.6)" }}
+              >
+                Welcome
+              </motion.p>
+              <h1
+                className="font-[Orbitron] font-bold"
+                style={{
+                  fontSize: "clamp(2rem, 5.5vw, 4.5rem)",
+                  color: "#00d4aa",
+                  textShadow: "0 0 30px rgba(0,212,170,0.6), 0 0 70px rgba(0,212,170,0.25)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {displayName}
+              </h1>
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 0.25, duration: 0.4 }}
+                className="h-px mt-4 mx-auto w-48 origin-center"
+                style={{ background: "linear-gradient(to right, transparent, rgba(0,212,170,0.8), transparent)" }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Implode flash */}
+      <AnimatePresence>
+        {imploding && (
+          <motion.div
+            key="flash"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.6, 0] }}
+            transition={{ duration: 0.35, times: [0, 0.25, 1] }}
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: "rgba(0,212,170,0.12)" }}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

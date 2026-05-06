@@ -665,3 +665,14 @@
 .light .section-divider {
   background: linear-gradient(90deg, transparent, hsl(150 15% 85%), transparent);
 }
+
+/* ===================================
+   CHROME AUTOFILL FIX
+   =================================== */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  transition: background-color 5000s ease-in-out 0s !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.9) !important;
+  caret-color: white !important;
+}

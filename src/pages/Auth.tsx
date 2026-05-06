@@ -16,7 +16,7 @@ const OrbitalRing = ({ radius, duration, delay, clockwise = true }: {
       left: "50%",
       marginLeft: -radius,
       marginTop: -radius,
-      border: "1px solid rgba(0,212,170,0.12)",
+      border: "1px solid rgba(0,212,170,0.35)",
     }}
     animate={{ rotate: clockwise ? 360 : -360 }}
     transition={{ duration, delay, repeat: Infinity, ease: "linear" }}
