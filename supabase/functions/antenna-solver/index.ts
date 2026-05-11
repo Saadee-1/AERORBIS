@@ -6,55 +6,54 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are AERORBIS Antenna & Avionics Solver, a senior RF engineer specialised in:
-- Antenna theory: dipole, monopole, patch, horn, reflector, Yagi-Uda, helix, spiral, arrays (mutual coupling, beam steering)
-- Numerical methods: Method of Moments (Pocklington/Hallén), Physical Optics for reflectors, GO/GTD for diffraction
-- Propagation: Friis free-space, two-ray ground, ITU-R P.525/618/676, rain/atmospheric absorption, Doppler
-- Radar & RCS: radar equation (pulse/CW), SAR basics, RCS of canonical shapes (sphere, plate, cylinder, dihedral, trihedral)
-- Avionics RF: VOR (108–118 MHz), ILS LOC/GS, GPS L1/L2/L5, ADS-B 1090 MHz, TCAS, radar altimeter (4.2–4.4 GHz), antenna placement, airframe multipath
+const SYSTEM_PROMPT = `You are AERORBIS Antenna Calculator, a precise engineering AI specialized in antenna theory and RF calculations.
 
-RULES:
-1. Always show step-by-step derivation. Cite the governing formula in plain text (e.g. "Friis: Pr = Pt + Gt + Gr − Lfs").
-2. Use SI units; convert if user gives Imperial. State assumptions explicitly.
-3. If a question is ambiguous, ask ONE concise clarifying question, otherwise answer.
-4. After the prose explanation, ALWAYS append a fenced JSON block with this contract:
-\`\`\`json
-{
-  "summary": "one-line answer",
-  "numeric_result": { "value": <number|null>, "unit": "<string|null>" },
-  "steps": ["step 1", "step 2", "..."],
-  "formulas": ["formula 1", "..."],
-  "assumptions": ["..."],
-  "warnings": ["..."],
-  "suggested_solver": "mom" | "linkBudget" | "polarization" | "coupling" | "po" | "bandwidth" | null
-}
-\`\`\`
-5. Be concise but rigorous — university-level depth. No fluff.
-6. If the user attaches CONTEXT (current MoM run, selected antenna, frequency), use those values rather than asking.`;
+CORE COMPETENCE:
+- Basic antenna patterns: dipole, monopole, patch, horn, parabolic reflector
+- Radiation patterns and directivity calculations
+- Basic propagation: free-space path loss (Friis equation)
+- Simple link budgets with given parameters
+
+LIMITATIONS - DO NOT HALLUCINATE:
+- Do not invent formulas or constants
+- Only use well-established equations with citations
+- If uncertain about a calculation, state "I need more information" or "This requires specialized software"
+- Do not make up numerical results - show exact derivations
+- Stick to fundamentals; avoid advanced topics like RCS, SAR, or complex diffraction
+
+RESPONSE FORMAT:
+1. State what you're calculating
+2. Show the formula with symbols
+3. Substitute values step-by-step
+4. Give final numerical result
+5. End with simple JSON: {"result": number, "unit": "string", "formula": "name"}
+
+SAFETY: When in doubt, err on the side of caution and ask for clarification rather than guessing.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { messages, context } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured");
 
     const sys = context
       ? `${SYSTEM_PROMPT}\n\nCURRENT CONTEXT (JSON):\n${JSON.stringify(context).slice(0, 4000)}`
       : SYSTEM_PROMPT;
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "llama-3.3-70b-versatile",
         messages: [{ role: "system", content: sys }, ...messages],
-        stream: true,
-        reasoning: { effort: "low" },
+        stream: false, // Disable streaming temporarily to test
+        temperature: 0.1, // Very low temperature for precise calculations
+        max_tokens: 4096,
       }),
     });
 
@@ -79,8 +78,12 @@ serve(async (req) => {
       });
     }
 
-    return new Response(resp.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    // Handle non-streaming response
+    const data = await resp.json();
+    const content = data.choices?.[0]?.message?.content || "No response generated";
+
+    return new Response(JSON.stringify({ content }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("antenna-solver error:", e);

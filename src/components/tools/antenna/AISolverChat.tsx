@@ -52,13 +52,48 @@ const SUGGESTIONS: { label: string; prompt: string; tag: string }[] = [
 ];
 
 function extractStructured(text: string): SolverStructured | null {
+  // First try to find JSON in code blocks
   const m = text.match(/```json\s*([\s\S]*?)\s*```/i);
-  if (!m) return null;
-  try {
-    return JSON.parse(m[1]) as SolverStructured;
-  } catch {
-    return null;
+  if (m) {
+    try {
+      const parsed = JSON.parse(m[1]);
+      return {
+        summary: parsed.result ? `${parsed.result} ${parsed.unit || ''}` : parsed.summary || '',
+        numeric_result: parsed.result ? { value: parsed.result, unit: parsed.unit || null } : null,
+        steps: [],
+        formulas: parsed.formula ? [parsed.formula] : [],
+        assumptions: [],
+        warnings: [],
+        suggested_solver: null
+      };
+    } catch {
+      return null;
+    }
   }
+
+  // Try to find JSON at the end of the text
+  const lines = text.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (line.startsWith('{') && line.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(line);
+        return {
+          summary: parsed.result ? `${parsed.result} ${parsed.unit || ''}` : parsed.summary || '',
+          numeric_result: parsed.result ? { value: parsed.result, unit: parsed.unit || null } : null,
+          steps: [],
+          formulas: parsed.formula ? [parsed.formula] : [],
+          assumptions: [],
+          warnings: [],
+          suggested_solver: null
+        };
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  return null;
 }
 
 function stripJsonBlock(text: string): string {
@@ -119,46 +154,66 @@ export const AISolverChat = ({ context }: Props) => {
         }),
       });
 
-      if (!resp.ok || !resp.body) {
+      if (!resp.ok) {
         if (resp.status === 429) throw new Error("Rate limit exceeded — please wait a moment.");
         if (resp.status === 402) throw new Error("AI credits exhausted — top up in Settings → Workspace → Usage.");
         const j = await resp.json().catch(() => ({}));
         throw new Error((j as { error?: string }).error || "Solver unavailable");
       }
 
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
-      let acc = "";
-      let done = false;
+      // Check if response is streaming or JSON
+      const contentType = resp.headers.get("content-type");
+      if (contentType?.includes("text/event-stream")) {
+        // Handle streaming response
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        let acc = "";
+        let done = false;
 
-      while (!done) {
-        const { done: rd, value } = await reader.read();
-        if (rd) break;
-        buf += decoder.decode(value, { stream: true });
-        let nl: number;
-        while ((nl = buf.indexOf("\n")) !== -1) {
-          let line = buf.slice(0, nl);
-          buf = buf.slice(nl + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line.startsWith("data: ")) continue;
-          const json = line.slice(6).trim();
-          if (json === "[DONE]") { done = true; break; }
-          try {
-            const p = JSON.parse(json);
-            const delta = p?.choices?.[0]?.delta?.content as string | undefined;
-            if (delta) {
-              acc += delta;
-              setThinking(false);
-              setMessages((prev) =>
-                prev.map((m) => (m.id === assistantId ? { ...m, content: acc } : m)),
-              );
+        while (!done) {
+          const { done: rd, value } = await reader.read();
+          if (rd) break;
+          buf += decoder.decode(value, { stream: true });
+          let nl: number;
+          while ((nl = buf.indexOf("\n")) !== -1) {
+            let line = buf.slice(0, nl);
+            buf = buf.slice(nl + 1);
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+            if (!line.startsWith("data: ")) continue;
+            const json = line.slice(6).trim();
+            if (json === "[DONE]") { done = true; break; }
+            try {
+              const p = JSON.parse(json);
+              const delta = p?.choices?.[0]?.delta?.content as string | undefined;
+              if (delta) {
+                acc += delta;
+                setThinking(false);
+                setMessages((prev) =>
+                  prev.map((m) => (m.id === assistantId ? { ...m, content: acc } : m)),
+                );
+              }
+            } catch {
+              buf = line + "\n" + buf;
+              break;
             }
-          } catch {
-            buf = line + "\n" + buf;
-            break;
           }
         }
+      } else {
+        // Handle JSON response
+        const data = await resp.json();
+        let content = data.content || "No response generated";
+
+        // Try to extract structured data from the content
+        const structured = extractStructured(content);
+        if (structured) {
+          content = stripJsonBlock(content);
+        }
+
+        setThinking(false);
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantId ? { ...m, content, structured } : m)),
+        );
       }
 
       const structured = extractStructured(acc);
