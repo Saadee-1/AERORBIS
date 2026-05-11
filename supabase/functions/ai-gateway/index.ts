@@ -73,9 +73,9 @@ serve(async (req) => {
     }
 
     // Get API key from server-side environment (not VITE_ prefixed)
-    const apiKey = Deno.env.get('LOVABLE_API_KEY') || Deno.env.get('AEROBOT_API_KEY') || Deno.env.get('GEMINI_API_KEY');
-    const apiUrl = Deno.env.get('AI_GATEWAY_URL') || 'https://ai.gateway.lovable.dev/v1/chat/completions';
-    const defaultModel = model || Deno.env.get('AI_MODEL') || 'google/gemini-3-flash-preview';
+    const apiKey = Deno.env.get('AEROBOT_API_KEY') || Deno.env.get('GROQ_API_KEY') || Deno.env.get('LOVABLE_API_KEY') || Deno.env.get('GEMINI_API_KEY');
+    const apiUrl = Deno.env.get('AEROBOT_API_URL') || Deno.env.get('AI_GATEWAY_URL') || 'https://api.groq.com/openai/v1/chat/completions';
+    const defaultModel = model || Deno.env.get('AI_MODEL') || (apiUrl.includes('groq.com') ? 'llama-3.3-70b-versatile' : 'google/gemini-3-flash-preview');
 
     if (!apiKey) {
       console.error('AI API key not configured');
