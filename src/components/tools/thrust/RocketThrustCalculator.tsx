@@ -52,6 +52,11 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine, Legend
 } from "recharts";
 import { calculateAtmosphere } from "@/tools/atmosphere/utils/calcAtmosphere";
+import { solveMachFromArea } from "@/tools/rocketEngine/utils/numeric";
+import {
+  pressureRatioFromMach,
+  temperatureRatioFromMach,
+} from "@/tools/rocketEngine/utils/isentropic";
 
 // ============================================================================
 // TYPES & CONSTANTS
@@ -180,7 +185,9 @@ const RocketThrustCalculator = () => {
 
   const [result, setResult] = useState<ThrustResult | null>(null);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
-  const [chartMode, setChartMode] = useState<"pressure" | "altitude" | "nozzle">("altitude");
+  const [chartMode, setChartMode] = useState<ChartMode>("altitude");
+  const [tier, setTier] = useState<RocketTier>("University");
+  const [gamma, setGamma] = useState<string>("1.2");
   const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
