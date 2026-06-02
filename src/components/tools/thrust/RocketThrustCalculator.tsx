@@ -624,6 +624,11 @@ const RocketThrustCalculator = () => {
                   <AccordionContent className="grid grid-cols-2 gap-4">
                     <AeroFormField label={`Chamber Pressure (Pc, ${getUnit("exitPressure")})`}><Input value={inputs.chamberPressure} onChange={(e) => handleInputChange("chamberPressure", e.target.value)} type="number" /></AeroFormField>
                     <AeroFormField label={`Throat Area (At, ${getUnit("exitArea")})`}><Input value={inputs.throatArea} onChange={(e) => handleInputChange("throatArea", e.target.value)} type="number" /></AeroFormField>
+                    {tier === "Expert" && (
+                      <AeroFormField label="Specific heat ratio (γ)">
+                        <Input value={gamma} onChange={(e) => setGamma(e.target.value)} type="number" step="0.01" placeholder="1.2" />
+                      </AeroFormField>
+                    )}
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
