@@ -319,7 +319,7 @@ const Community = () => {
             <div className="space-y-4">
               {posts.map((post, i) => (
                 <motion.div
-                  key={post.uid}
+                  key={post.id}
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
@@ -345,7 +345,7 @@ const Community = () => {
                           <CardTitle className="text-lg mt-1 text-foreground">{post.title}</CardTitle>
                         </div>
                         {user?.uid === post.author_id && (
-                          <Button variant="ghost" size="icon" onClick={() => handleDeletePost(post.uid)} className="text-muted-foreground hover:text-destructive h-8 w-8">
+                          <Button variant="ghost" size="icon" onClick={() => handleDeletePost(post.id)} className="text-muted-foreground hover:text-destructive h-8 w-8">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         )}
@@ -358,16 +358,16 @@ const Community = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleLike(post.uid)}
-                        className={`gap-1.5 text-xs ${likedPosts.has(post.uid) ? "text-red-400" : "text-muted-foreground"}`}
+                        onClick={() => handleLike(post.id)}
+                        className={`gap-1.5 text-xs ${likedPosts.has(post.id) ? "text-red-400" : "text-muted-foreground"}`}
                       >
-                        <Heart className={`w-4 h-4 ${likedPosts.has(post.uid) ? "fill-red-400" : ""}`} />
+                        <Heart className={`w-4 h-4 ${likedPosts.has(post.id) ? "fill-red-400" : ""}`} />
                         {post.likes_count}
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleOpenComments(post.uid)}
+                        onClick={() => handleOpenComments(post.id)}
                         className="gap-1.5 text-xs text-muted-foreground"
                       >
                         <MessageSquare className="w-4 h-4" />
@@ -377,7 +377,7 @@ const Community = () => {
 
                     {/* Comments section */}
                     <AnimatePresence>
-                      {selectedPost === post.uid && (
+                      {selectedPost === post.id && (
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
@@ -405,7 +405,7 @@ const Community = () => {
                                     <p className="text-xs text-muted-foreground">{c.content}</p>
                                   </div>
                                   {user?.uid === c.author_id && (
-                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteComment(c.id, post.uid)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
+                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteComment(c.id, post.id)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
                                       <Trash2 className="w-3 h-3" />
                                     </Button>
                                   )}
@@ -419,10 +419,10 @@ const Community = () => {
                                 placeholder="Write a comment..."
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && handleAddComment(post.uid)}
+                                onKeyDown={(e) => e.key === "Enter" && handleAddComment(post.id)}
                                 className="text-xs h-8 bg-background/50 border-primary/20"
                               />
-                              <Button size="sm" onClick={() => handleAddComment(post.uid)} className="h-8 px-3">
+                              <Button size="sm" onClick={() => handleAddComment(post.id)} className="h-8 px-3">
                                 <Send className="w-3 h-3" />
                               </Button>
                             </div>
