@@ -263,7 +263,7 @@ const RocketThrustCalculator = () => {
     return value;
   };
 
-  const syncChartData = useCallback((f: number, mdot: number, ve: number, ae: number, pe: number, pa: number, mode: "pressure" | "altitude" | "nozzle") => {
+  const syncChartData = useCallback((f: number, mdot: number, ve: number, ae: number, pe: number, pa: number, mode: ChartMode) => {
     if (mdot > 0 && ve > 0 && ae > 0 && pe > 0) {
       const data = [];
       if (mode === "pressure") {
@@ -308,12 +308,87 @@ const RocketThrustCalculator = () => {
             ratio: pe / (atm.pressure || 0.0001)
           });
         }
+      } else if (mode === "ispAlt") {
+        // Isp vs Altitude (effective Isp accounting for pressure thrust)
+        for (let h = 0; h <= 150000; h += 5000) {
+          const atm = calculateAtmosphere(h);
+          const force = mdot * ve + (pe - atm.pressure) * ae;
+          const ispEff = (mdot > 0) ? force / (mdot * G0_SI) : 0;
+          data.push({
+            altitude: unitSystem === "Imperial" ? h / 0.3048 : h / 1000,
+            isp: ispEff,
+          });
+        }
+      } else if (mode === "machNozzle") {
+        // Mach, p/p0, T/T0 along nozzle from throat (A/A*=1) to exit (A/A*=ε)
+        const g = parseFloat(gamma) || 1.2;
+        // Try to use At (throat area) if provided; otherwise infer ε from pressure ratio
+        let epsilon = 0;
+        const atSI = inputs.throatArea.trim() ? convertToSI(parseFloat(inputs.throatArea), "exitArea") : 0;
+        if (atSI > 0) epsilon = ae / atSI;
+        // Fallback: solve ε from Pe/Pc if Pc given
+        const pcSI = inputs.chamberPressure.trim() ? convertToSI(parseFloat(inputs.chamberPressure), "exitPressure") : 0;
+        if (epsilon <= 1 && pcSI > 0 && pe > 0 && pe < pcSI) {
+          // Get exit Mach from p/pc, then ε from area-Mach
+          const pr = pe / pcSI;
+          const Me_guess = Math.sqrt((2 / (g - 1)) * (Math.pow(pr, -(g - 1) / g) - 1));
+          const term = (2 / (g + 1)) * (1 + (g - 1) / 2 * Me_guess * Me_guess);
+          epsilon = (1 / Me_guess) * Math.pow(term, (g + 1) / (2 * (g - 1)));
+        }
+        if (epsilon > 1.01) {
+          const N = 30;
+          for (let i = 0; i <= N; i++) {
+            const r = 1 + (epsilon - 1) * (i / N);
+            let M: number;
+            if (r <= 1.0001) {
+              M = 1;
+            } else {
+              const sol = solveForMe(r, g);
+              M = sol.success ? sol.value : NaN;
+            }
+            if (!Number.isFinite(M)) continue;
+            data.push({
+              areaRatio: r,
+              mach: M,
+              pRatio: pressureRatioFromMach(M, g),
+              tRatio: temperatureRatioFromMach(M, g),
+            });
+          }
+        }
+      } else if (mode === "cfEpsilon") {
+        // Cf vs expansion ratio ε (Pe varies with ε via isentropic; use frozen γ; assume Pc given or use Pe*ε proxy)
+        const g = parseFloat(gamma) || 1.2;
+        const pcSI = inputs.chamberPressure.trim() ? convertToSI(parseFloat(inputs.chamberPressure), "exitPressure") : 0;
+        if (pcSI > 0) {
+          const paUse = pa > 0 ? pa : 101325;
+          const cfPrefactor = Math.sqrt((2 * g * g / (g - 1)) * Math.pow(2 / (g + 1), (g + 1) / (g - 1)));
+          for (let eps = 1.5; eps <= 200; eps *= 1.15) {
+            // Solve Me for this ε, then p/pc
+            const sol = solveForMe(eps, g);
+            if (!sol.success) continue;
+            const Me = sol.value;
+            const peLocal = pcSI * pressureRatioFromMach(Me, g);
+            const cfVal = cfPrefactor * Math.sqrt(1 - Math.pow(peLocal / pcSI, (g - 1) / g)) + (peLocal - paUse) / pcSI * eps;
+            data.push({ epsilon: eps, cf: cfVal });
+          }
+        }
+      } else if (mode === "mdotPc") {
+        // Mass flow vs chamber pressure (mdot = Pc*At/c*, scales linearly with Pc)
+        const atSI = inputs.throatArea.trim() ? convertToSI(parseFloat(inputs.throatArea), "exitArea") : 0;
+        const pcRef = inputs.chamberPressure.trim() ? convertToSI(parseFloat(inputs.chamberPressure), "exitPressure") : 0;
+        if (atSI > 0 && pcRef > 0 && mdot > 0) {
+          const cStar = (pcRef * atSI) / mdot; // characteristic velocity from current op point
+          for (let p = pcRef * 0.2; p <= pcRef * 2; p += pcRef * 0.1) {
+            const m = (p * atSI) / cStar;
+            data.push({ pc: convertFromSI(p, "chamberPressure"), mdot: m });
+          }
+        }
       }
       setChartData(data);
     } else {
       setChartData([]);
     }
-  }, [unitSystem, customFactors, customUnitNames, convertFromSI]);
+  }, [unitSystem, customFactors, customUnitNames, convertFromSI, gamma, inputs.throatArea, inputs.chamberPressure, convertToSI]);
 
   useEffect(() => {
     if (result) {
