@@ -65,7 +65,7 @@ import {
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type VelocityInputMode = "direct" | "fromIsp";
 type RocketTier = "Beginner" | "University" | "Expert";
-type ChartMode = "altitude" | "ambient" | "nozzle" | "ispAlt" | "machNozzle" | "cfEpsilon" | "mdotPc";
+type ChartMode = "altitude" | "pressure" | "nozzle" | "ispAlt" | "machNozzle" | "cfEpsilon" | "mdotPc";
 
 interface CalculationStep {
   equation: string;
