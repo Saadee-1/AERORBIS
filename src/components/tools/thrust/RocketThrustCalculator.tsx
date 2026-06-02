@@ -671,11 +671,24 @@ const RocketThrustCalculator = () => {
             </AeroCard>
 
             {chartData.length > 0 ? (
-              <ChartCard title={chartMode === "nozzle" ? "Nozzle Expansion" : "Performance Sweep"} headerActions={
-                <div className="flex bg-muted/50 rounded p-1 gap-1">
-                  <button onClick={() => setChartMode("altitude")} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === "altitude" ? "bg-primary text-white" : "hover:bg-muted"}`}>Altitude</button>
-                  <button onClick={() => setChartMode("nozzle")} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === "nozzle" ? "bg-primary text-white" : "hover:bg-muted"}`}>Nozzle</button>
-                  <button onClick={() => setChartMode("pressure")} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === "pressure" ? "bg-primary text-white" : "hover:bg-muted"}`}>Ambient</button>
+              <ChartCard title={
+                chartMode === "nozzle" ? "Nozzle Expansion" :
+                chartMode === "ispAlt" ? "Isp vs Altitude" :
+                chartMode === "machNozzle" ? "Mach Number Along Nozzle" :
+                chartMode === "cfEpsilon" ? "Thrust Coefficient vs ε" :
+                chartMode === "mdotPc" ? "Mass Flow vs Chamber Pressure" :
+                "Performance Sweep"
+              } headerActions={
+                <div className="flex flex-wrap bg-muted/50 rounded p-1 gap-1">
+                  {(["altitude","pressure"] as ChartMode[]).map(m => (
+                    <button key={m} onClick={() => setChartMode(m)} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === m ? "bg-primary text-white" : "hover:bg-muted"}`}>{m === "altitude" ? "Altitude" : "Ambient"}</button>
+                  ))}
+                  {(tier === "University" || tier === "Expert") && (["nozzle","ispAlt"] as ChartMode[]).map(m => (
+                    <button key={m} onClick={() => setChartMode(m)} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === m ? "bg-primary text-white" : "hover:bg-muted"}`}>{m === "nozzle" ? "Nozzle" : "Isp(h)"}</button>
+                  ))}
+                  {tier === "Expert" && (["machNozzle","cfEpsilon","mdotPc"] as ChartMode[]).map(m => (
+                    <button key={m} onClick={() => setChartMode(m)} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === m ? "bg-primary text-white" : "hover:bg-muted"}`}>{m === "machNozzle" ? "Mach(x)" : m === "cfEpsilon" ? "Cf(ε)" : "ṁ(Pc)"}</button>
+                  ))}
                 </div>
               }>
                 <div className="h-[250px] w-full">
@@ -691,6 +704,38 @@ const RocketThrustCalculator = () => {
                         <Line type="monotone" name="Ambient Pressure" dataKey="ambientPressure" stroke="#94a3b8" dot={false} strokeDasharray="5 5" />
                         <ReferenceLine y={convertFromSI(101325, "ambientPressure")} stroke="#ef4444" strokeDasharray="3 3" label={{ value: "SL", fontSize: 8, fill: "#ef4444" }} />
                       </>
+                    ) : chartMode === "ispAlt" ? (
+                      <>
+                        <XAxis dataKey="altitude" tick={{fontSize: 10}} label={{ value: unitSystem === "Imperial" ? "ft" : "km", position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis tick={{fontSize: 10}} label={{ value: "Isp (s)", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} formatter={(v: number) => `${v.toFixed(1)} s`} />
+                        <Line type="monotone" name="Effective Isp" dataKey="isp" stroke="#10b981" dot={false} strokeWidth={2} />
+                      </>
+                    ) : chartMode === "machNozzle" ? (
+                      <>
+                        <XAxis dataKey="areaRatio" tick={{fontSize: 10}} label={{ value: "A/A* (throat → exit)", position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis yAxisId="left" tick={{fontSize: 10}} label={{ value: "Mach", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                        <YAxis yAxisId="right" orientation="right" tick={{fontSize: 10}} domain={[0, 1]} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} />
+                        <Line yAxisId="left" type="monotone" name="Mach" dataKey="mach" stroke="hsl(var(--primary))" dot={false} strokeWidth={3} />
+                        <Line yAxisId="right" type="monotone" name="p/p₀" dataKey="pRatio" stroke="#f59e0b" dot={false} strokeDasharray="4 4" />
+                        <Line yAxisId="right" type="monotone" name="T/T₀" dataKey="tRatio" stroke="#3b82f6" dot={false} strokeDasharray="2 2" />
+                        <ReferenceLine yAxisId="left" y={1} stroke="#ef4444" strokeDasharray="3 3" label={{ value: "Sonic", fontSize: 8, fill: "#ef4444" }} />
+                      </>
+                    ) : chartMode === "cfEpsilon" ? (
+                      <>
+                        <XAxis dataKey="epsilon" tick={{fontSize: 10}} scale="log" domain={['auto', 'auto']} label={{ value: "ε = Ae/At", position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis tick={{fontSize: 10}} label={{ value: "Cf", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} formatter={(v: number) => v.toFixed(4)} />
+                        <Line type="monotone" name="Cf" dataKey="cf" stroke="hsl(var(--primary))" dot={false} strokeWidth={2} />
+                      </>
+                    ) : chartMode === "mdotPc" ? (
+                      <>
+                        <XAxis dataKey="pc" tick={{fontSize: 10}} label={{ value: `Pc (${getUnit("chamberPressure")})`, position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis tick={{fontSize: 10}} label={{ value: "ṁ (kg/s)", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} formatter={(v: number) => `${v.toFixed(3)} kg/s`} />
+                        <Line type="monotone" name="Mass Flow" dataKey="mdot" stroke="#8b5cf6" dot={false} strokeWidth={2} />
+                      </>
                     ) : (
                       <>
                         <XAxis dataKey={chartMode === "pressure" ? "ambientPressure" : "altitude"} tick={{fontSize: 10}} label={{ value: chartMode === "pressure" ? "Pa" : (unitSystem === "Imperial" ? "ft" : "km"), position: "insideBottomRight", offset: -5, fontSize: 10 }} />
@@ -705,6 +750,11 @@ const RocketThrustCalculator = () => {
                   </LineChart>
                 </ResponsiveContainer>
                 </div>
+                {chartMode === "machNozzle" && chartData.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground mt-2">
+                    Tip: Enter Throat Area (At) in Advanced, or set Chamber Pressure (Pc) so ε can be derived from Pe/Pc.
+                  </p>
+                )}
               </ChartCard>
             ) : (
               <ChartCard title="Performance Sweep">
