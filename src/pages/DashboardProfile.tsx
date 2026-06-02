@@ -52,7 +52,7 @@ const DashboardProfile = () => {
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
-    supabase.from('profiles').select('*').eq('id', user.id).single()
+    supabase.from('profiles').select('*').eq('id', user.uid).single()
       .then(({ data }) => {
         if (data) setProfile({
           display_name: data.display_name || '',
@@ -70,7 +70,7 @@ const DashboardProfile = () => {
       display_name: profile.display_name,
       username: profile.username,
       bio: profile.bio,
-    }).eq('id', user.id);
+    }).eq('id', user.uid);
     setSaving(false);
     if (error) toast.error("Failed to save changes");
     else toast.success("Profile updated!");
@@ -87,7 +87,7 @@ const DashboardProfile = () => {
 
   const displayName = profile.display_name || profile.username || user?.email?.split('@')[0] || 'User';
   const initials = displayName.slice(0, 2).toUpperCase();
-  const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A';
+  const memberSince = user?.metadata?.creationTime ? new Date(user.metadata?.creationTime).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A';
 
   return (
     <DashboardLayout>

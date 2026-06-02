@@ -215,11 +215,6 @@ export const AISolverChat = ({ context }: Props) => {
           prev.map((m) => (m.id === assistantId ? { ...m, content, structured } : m)),
         );
       }
-
-      const structured = extractStructured(acc);
-      setMessages((prev) =>
-        prev.map((m) => (m.id === assistantId ? { ...m, content: acc, structured } : m)),
-      );
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to reach AI solver";
       setError(msg);

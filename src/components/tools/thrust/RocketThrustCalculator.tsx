@@ -52,6 +52,11 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine, Legend
 } from "recharts";
 import { calculateAtmosphere } from "@/tools/atmosphere/utils/calcAtmosphere";
+import { solveForMe } from "@/tools/rocketEngine/utils/numeric";
+import {
+  pressureRatioFromMach,
+  temperatureRatioFromMach,
+} from "@/tools/rocketEngine/utils/isentropic";
 
 // ============================================================================
 // TYPES & CONSTANTS
@@ -59,6 +64,8 @@ import { calculateAtmosphere } from "@/tools/atmosphere/utils/calcAtmosphere";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type VelocityInputMode = "direct" | "fromIsp";
+type RocketTier = "Beginner" | "University" | "Expert";
+type ChartMode = "altitude" | "pressure" | "nozzle" | "ispAlt" | "machNozzle" | "cfEpsilon" | "mdotPc";
 
 interface CalculationStep {
   equation: string;
@@ -74,6 +81,18 @@ interface ChartPoint {
   ambientPressure?: number;
   exitPressure?: number;
   ratio?: number;
+  isp?: number;
+  // Mach-along-nozzle
+  areaRatio?: number;
+  mach?: number;
+  pRatio?: number;
+  tRatio?: number;
+  // Cf vs epsilon
+  epsilon?: number;
+  cf?: number;
+  // mdot vs Pc
+  pc?: number;
+  mdot?: number;
 }
 
 interface SavedPreset {
@@ -166,7 +185,9 @@ const RocketThrustCalculator = () => {
 
   const [result, setResult] = useState<ThrustResult | null>(null);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
-  const [chartMode, setChartMode] = useState<"pressure" | "altitude" | "nozzle">("altitude");
+  const [chartMode, setChartMode] = useState<ChartMode>("altitude");
+  const [tier, setTier] = useState<RocketTier>("University");
+  const [gamma, setGamma] = useState<string>("1.2");
   const [customPresets, setCustomPresets] = useState<SavedPreset[]>([]);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
@@ -242,7 +263,7 @@ const RocketThrustCalculator = () => {
     return value;
   };
 
-  const syncChartData = useCallback((f: number, mdot: number, ve: number, ae: number, pe: number, pa: number, mode: "pressure" | "altitude" | "nozzle") => {
+  const syncChartData = useCallback((f: number, mdot: number, ve: number, ae: number, pe: number, pa: number, mode: ChartMode) => {
     if (mdot > 0 && ve > 0 && ae > 0 && pe > 0) {
       const data = [];
       if (mode === "pressure") {
@@ -287,12 +308,87 @@ const RocketThrustCalculator = () => {
             ratio: pe / (atm.pressure || 0.0001)
           });
         }
+      } else if (mode === "ispAlt") {
+        // Isp vs Altitude (effective Isp accounting for pressure thrust)
+        for (let h = 0; h <= 150000; h += 5000) {
+          const atm = calculateAtmosphere(h);
+          const force = mdot * ve + (pe - atm.pressure) * ae;
+          const ispEff = (mdot > 0) ? force / (mdot * G0_SI) : 0;
+          data.push({
+            altitude: unitSystem === "Imperial" ? h / 0.3048 : h / 1000,
+            isp: ispEff,
+          });
+        }
+      } else if (mode === "machNozzle") {
+        // Mach, p/p0, T/T0 along nozzle from throat (A/A*=1) to exit (A/A*=ε)
+        const g = parseFloat(gamma) || 1.2;
+        // Try to use At (throat area) if provided; otherwise infer ε from pressure ratio
+        let epsilon = 0;
+        const atSI = inputs.throatArea.trim() ? convertToSI(parseFloat(inputs.throatArea), "exitArea") : 0;
+        if (atSI > 0) epsilon = ae / atSI;
+        // Fallback: solve ε from Pe/Pc if Pc given
+        const pcSI = inputs.chamberPressure.trim() ? convertToSI(parseFloat(inputs.chamberPressure), "exitPressure") : 0;
+        if (epsilon <= 1 && pcSI > 0 && pe > 0 && pe < pcSI) {
+          // Get exit Mach from p/pc, then ε from area-Mach
+          const pr = pe / pcSI;
+          const Me_guess = Math.sqrt((2 / (g - 1)) * (Math.pow(pr, -(g - 1) / g) - 1));
+          const term = (2 / (g + 1)) * (1 + (g - 1) / 2 * Me_guess * Me_guess);
+          epsilon = (1 / Me_guess) * Math.pow(term, (g + 1) / (2 * (g - 1)));
+        }
+        if (epsilon > 1.01) {
+          const N = 30;
+          for (let i = 0; i <= N; i++) {
+            const r = 1 + (epsilon - 1) * (i / N);
+            let M: number;
+            if (r <= 1.0001) {
+              M = 1;
+            } else {
+              const sol = solveForMe(r, g);
+              M = sol.success ? sol.value : NaN;
+            }
+            if (!Number.isFinite(M)) continue;
+            data.push({
+              areaRatio: r,
+              mach: M,
+              pRatio: pressureRatioFromMach(M, g),
+              tRatio: temperatureRatioFromMach(M, g),
+            });
+          }
+        }
+      } else if (mode === "cfEpsilon") {
+        // Cf vs expansion ratio ε (Pe varies with ε via isentropic; use frozen γ; assume Pc given or use Pe*ε proxy)
+        const g = parseFloat(gamma) || 1.2;
+        const pcSI = inputs.chamberPressure.trim() ? convertToSI(parseFloat(inputs.chamberPressure), "exitPressure") : 0;
+        if (pcSI > 0) {
+          const paUse = pa > 0 ? pa : 101325;
+          const cfPrefactor = Math.sqrt((2 * g * g / (g - 1)) * Math.pow(2 / (g + 1), (g + 1) / (g - 1)));
+          for (let eps = 1.5; eps <= 200; eps *= 1.15) {
+            // Solve Me for this ε, then p/pc
+            const sol = solveForMe(eps, g);
+            if (!sol.success) continue;
+            const Me = sol.value;
+            const peLocal = pcSI * pressureRatioFromMach(Me, g);
+            const cfVal = cfPrefactor * Math.sqrt(1 - Math.pow(peLocal / pcSI, (g - 1) / g)) + (peLocal - paUse) / pcSI * eps;
+            data.push({ epsilon: eps, cf: cfVal });
+          }
+        }
+      } else if (mode === "mdotPc") {
+        // Mass flow vs chamber pressure (mdot = Pc*At/c*, scales linearly with Pc)
+        const atSI = inputs.throatArea.trim() ? convertToSI(parseFloat(inputs.throatArea), "exitArea") : 0;
+        const pcRef = inputs.chamberPressure.trim() ? convertToSI(parseFloat(inputs.chamberPressure), "exitPressure") : 0;
+        if (atSI > 0 && pcRef > 0 && mdot > 0) {
+          const cStar = (pcRef * atSI) / mdot; // characteristic velocity from current op point
+          for (let p = pcRef * 0.2; p <= pcRef * 2; p += pcRef * 0.1) {
+            const m = (p * atSI) / cStar;
+            data.push({ pc: convertFromSI(p, "chamberPressure"), mdot: m });
+          }
+        }
       }
       setChartData(data);
     } else {
       setChartData([]);
     }
-  }, [unitSystem, customFactors, customUnitNames, convertFromSI]);
+  }, [unitSystem, customFactors, customUnitNames, convertFromSI, gamma, inputs.throatArea, inputs.chamberPressure, convertToSI]);
 
   useEffect(() => {
     if (result) {
@@ -456,6 +552,14 @@ const RocketThrustCalculator = () => {
                 <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={tier} onValueChange={(v) => setTier(v as RocketTier)}>
+              <SelectTrigger className="w-36 bg-muted/50 border-border text-foreground"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Beginner">Beginner</SelectItem>
+                <SelectItem value="University">University</SelectItem>
+                <SelectItem value="Expert">Expert</SelectItem>
+              </SelectContent>
+            </Select>
             <AeroButton type="button" onClick={resetCalculator} variant="outline">Reset</AeroButton>
             <AeroButton type="button" onClick={() => setIsSaveDialogOpen(true)} variant="outline" icon={Save}>Save</AeroButton>
             <AeroButton type="button" onClick={() => setIsLoadDialogOpen(true)} variant="outline" icon={FolderOpen}>Load</AeroButton>
@@ -520,6 +624,11 @@ const RocketThrustCalculator = () => {
                   <AccordionContent className="grid grid-cols-2 gap-4">
                     <AeroFormField label={`Chamber Pressure (Pc, ${getUnit("exitPressure")})`}><Input value={inputs.chamberPressure} onChange={(e) => handleInputChange("chamberPressure", e.target.value)} type="number" /></AeroFormField>
                     <AeroFormField label={`Throat Area (At, ${getUnit("exitArea")})`}><Input value={inputs.throatArea} onChange={(e) => handleInputChange("throatArea", e.target.value)} type="number" /></AeroFormField>
+                    {tier === "Expert" && (
+                      <AeroFormField label="Specific heat ratio (γ)">
+                        <Input value={gamma} onChange={(e) => setGamma(e.target.value)} type="number" step="0.01" placeholder="1.2" />
+                      </AeroFormField>
+                    )}
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -562,11 +671,24 @@ const RocketThrustCalculator = () => {
             </AeroCard>
 
             {chartData.length > 0 ? (
-              <ChartCard title={chartMode === "nozzle" ? "Nozzle Expansion" : "Performance Sweep"} headerActions={
-                <div className="flex bg-muted/50 rounded p-1 gap-1">
-                  <button onClick={() => setChartMode("altitude")} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === "altitude" ? "bg-primary text-white" : "hover:bg-muted"}`}>Altitude</button>
-                  <button onClick={() => setChartMode("nozzle")} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === "nozzle" ? "bg-primary text-white" : "hover:bg-muted"}`}>Nozzle</button>
-                  <button onClick={() => setChartMode("pressure")} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === "pressure" ? "bg-primary text-white" : "hover:bg-muted"}`}>Ambient</button>
+              <ChartCard title={
+                chartMode === "nozzle" ? "Nozzle Expansion" :
+                chartMode === "ispAlt" ? "Isp vs Altitude" :
+                chartMode === "machNozzle" ? "Mach Number Along Nozzle" :
+                chartMode === "cfEpsilon" ? "Thrust Coefficient vs ε" :
+                chartMode === "mdotPc" ? "Mass Flow vs Chamber Pressure" :
+                "Performance Sweep"
+              } headerActions={
+                <div className="flex flex-wrap bg-muted/50 rounded p-1 gap-1">
+                  {(["altitude","pressure"] as ChartMode[]).map(m => (
+                    <button key={m} onClick={() => setChartMode(m)} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === m ? "bg-primary text-white" : "hover:bg-muted"}`}>{m === "altitude" ? "Altitude" : "Ambient"}</button>
+                  ))}
+                  {(tier === "University" || tier === "Expert") && (["nozzle","ispAlt"] as ChartMode[]).map(m => (
+                    <button key={m} onClick={() => setChartMode(m)} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === m ? "bg-primary text-white" : "hover:bg-muted"}`}>{m === "nozzle" ? "Nozzle" : "Isp(h)"}</button>
+                  ))}
+                  {tier === "Expert" && (["machNozzle","cfEpsilon","mdotPc"] as ChartMode[]).map(m => (
+                    <button key={m} onClick={() => setChartMode(m)} className={`px-2 py-0.5 text-[10px] rounded transition-colors ${chartMode === m ? "bg-primary text-white" : "hover:bg-muted"}`}>{m === "machNozzle" ? "Mach(x)" : m === "cfEpsilon" ? "Cf(ε)" : "ṁ(Pc)"}</button>
+                  ))}
                 </div>
               }>
                 <div className="h-[250px] w-full">
@@ -582,6 +704,38 @@ const RocketThrustCalculator = () => {
                         <Line type="monotone" name="Ambient Pressure" dataKey="ambientPressure" stroke="#94a3b8" dot={false} strokeDasharray="5 5" />
                         <ReferenceLine y={convertFromSI(101325, "ambientPressure")} stroke="#ef4444" strokeDasharray="3 3" label={{ value: "SL", fontSize: 8, fill: "#ef4444" }} />
                       </>
+                    ) : chartMode === "ispAlt" ? (
+                      <>
+                        <XAxis dataKey="altitude" tick={{fontSize: 10}} label={{ value: unitSystem === "Imperial" ? "ft" : "km", position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis tick={{fontSize: 10}} label={{ value: "Isp (s)", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} formatter={(v: number) => `${v.toFixed(1)} s`} />
+                        <Line type="monotone" name="Effective Isp" dataKey="isp" stroke="#10b981" dot={false} strokeWidth={2} />
+                      </>
+                    ) : chartMode === "machNozzle" ? (
+                      <>
+                        <XAxis dataKey="areaRatio" tick={{fontSize: 10}} label={{ value: "A/A* (throat → exit)", position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis yAxisId="left" tick={{fontSize: 10}} label={{ value: "Mach", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                        <YAxis yAxisId="right" orientation="right" tick={{fontSize: 10}} domain={[0, 1]} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} />
+                        <Line yAxisId="left" type="monotone" name="Mach" dataKey="mach" stroke="hsl(var(--primary))" dot={false} strokeWidth={3} />
+                        <Line yAxisId="right" type="monotone" name="p/p₀" dataKey="pRatio" stroke="#f59e0b" dot={false} strokeDasharray="4 4" />
+                        <Line yAxisId="right" type="monotone" name="T/T₀" dataKey="tRatio" stroke="#3b82f6" dot={false} strokeDasharray="2 2" />
+                        <ReferenceLine yAxisId="left" y={1} stroke="#ef4444" strokeDasharray="3 3" label={{ value: "Sonic", fontSize: 8, fill: "#ef4444" }} />
+                      </>
+                    ) : chartMode === "cfEpsilon" ? (
+                      <>
+                        <XAxis dataKey="epsilon" tick={{fontSize: 10}} scale="log" domain={['auto', 'auto']} label={{ value: "ε = Ae/At", position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis tick={{fontSize: 10}} label={{ value: "Cf", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} formatter={(v: number) => v.toFixed(4)} />
+                        <Line type="monotone" name="Cf" dataKey="cf" stroke="hsl(var(--primary))" dot={false} strokeWidth={2} />
+                      </>
+                    ) : chartMode === "mdotPc" ? (
+                      <>
+                        <XAxis dataKey="pc" tick={{fontSize: 10}} label={{ value: `Pc (${getUnit("chamberPressure")})`, position: "insideBottomRight", offset: -5, fontSize: 10 }} />
+                        <YAxis tick={{fontSize: 10}} label={{ value: "ṁ (kg/s)", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '10px' }} formatter={(v: number) => `${v.toFixed(3)} kg/s`} />
+                        <Line type="monotone" name="Mass Flow" dataKey="mdot" stroke="#8b5cf6" dot={false} strokeWidth={2} />
+                      </>
                     ) : (
                       <>
                         <XAxis dataKey={chartMode === "pressure" ? "ambientPressure" : "altitude"} tick={{fontSize: 10}} label={{ value: chartMode === "pressure" ? "Pa" : (unitSystem === "Imperial" ? "ft" : "km"), position: "insideBottomRight", offset: -5, fontSize: 10 }} />
@@ -596,6 +750,11 @@ const RocketThrustCalculator = () => {
                   </LineChart>
                 </ResponsiveContainer>
                 </div>
+                {chartMode === "machNozzle" && chartData.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground mt-2">
+                    Tip: Enter Throat Area (At) in Advanced, or set Chamber Pressure (Pc) so ε can be derived from Pe/Pc.
+                  </p>
+                )}
               </ChartCard>
             ) : (
               <ChartCard title="Performance Sweep">
