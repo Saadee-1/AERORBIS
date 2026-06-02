@@ -52,7 +52,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine, Legend
 } from "recharts";
 import { calculateAtmosphere } from "@/tools/atmosphere/utils/calcAtmosphere";
-import { solveMachFromArea } from "@/tools/rocketEngine/utils/numeric";
+import { solveForMe } from "@/tools/rocketEngine/utils/numeric";
 import {
   pressureRatioFromMach,
   temperatureRatioFromMach,
