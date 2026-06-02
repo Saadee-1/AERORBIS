@@ -344,7 +344,7 @@ const Community = () => {
                           </div>
                           <CardTitle className="text-lg mt-1 text-foreground">{post.title}</CardTitle>
                         </div>
-                        {user?.id === post.author_id && (
+                        {user?.uid === post.author_id && (
                           <Button variant="ghost" size="icon" onClick={() => handleDeletePost(post.uid)} className="text-muted-foreground hover:text-destructive h-8 w-8">
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -404,7 +404,7 @@ const Community = () => {
                                     </div>
                                     <p className="text-xs text-muted-foreground">{c.content}</p>
                                   </div>
-                                  {user?.id === c.author_id && (
+                                  {user?.uid === c.author_id && (
                                     <Button variant="ghost" size="icon" onClick={() => handleDeleteComment(c.id, post.uid)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
                                       <Trash2 className="w-3 h-3" />
                                     </Button>
