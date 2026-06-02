@@ -59,6 +59,8 @@ import { calculateAtmosphere } from "@/tools/atmosphere/utils/calcAtmosphere";
 
 type UnitSystem = "SI" | "Imperial" | "Custom";
 type VelocityInputMode = "direct" | "fromIsp";
+type RocketTier = "Beginner" | "University" | "Expert";
+type ChartMode = "altitude" | "ambient" | "nozzle" | "ispAlt" | "machNozzle" | "cfEpsilon" | "mdotPc";
 
 interface CalculationStep {
   equation: string;
@@ -74,6 +76,18 @@ interface ChartPoint {
   ambientPressure?: number;
   exitPressure?: number;
   ratio?: number;
+  isp?: number;
+  // Mach-along-nozzle
+  areaRatio?: number;
+  mach?: number;
+  pRatio?: number;
+  tRatio?: number;
+  // Cf vs epsilon
+  epsilon?: number;
+  cf?: number;
+  // mdot vs Pc
+  pc?: number;
+  mdot?: number;
 }
 
 interface SavedPreset {
