@@ -552,6 +552,14 @@ const RocketThrustCalculator = () => {
                 <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={tier} onValueChange={(v) => setTier(v as RocketTier)}>
+              <SelectTrigger className="w-36 bg-muted/50 border-border text-foreground"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Beginner">Beginner</SelectItem>
+                <SelectItem value="University">University</SelectItem>
+                <SelectItem value="Expert">Expert</SelectItem>
+              </SelectContent>
+            </Select>
             <AeroButton type="button" onClick={resetCalculator} variant="outline">Reset</AeroButton>
             <AeroButton type="button" onClick={() => setIsSaveDialogOpen(true)} variant="outline" icon={Save}>Save</AeroButton>
             <AeroButton type="button" onClick={() => setIsLoadDialogOpen(true)} variant="outline" icon={FolderOpen}>Load</AeroButton>
