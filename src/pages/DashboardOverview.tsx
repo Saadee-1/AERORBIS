@@ -16,7 +16,7 @@ const DashboardOverview = () => {
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
-    supabase.from('profiles').select('display_name, username').eq('id', user.id).single()
+    supabase.from('profiles').select('display_name, username').eq('id', user.uid).single()
       .then(({ data }) => {
         if (data) setDisplayName(data.display_name || data.username || 'Engineer');
       });

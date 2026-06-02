@@ -89,7 +89,7 @@ const Community = () => {
     const { data } = await supabase
       .from("community_likes")
       .select("post_id")
-      .eq("user_id", user.id);
+      .eq("user_id", user.uid);
     if (data) {
       setLikedPosts(new Set(data.map((l: { post_id: string }) => l.post_id)));
     }
@@ -106,7 +106,7 @@ const Community = () => {
       title: newTitle.trim(),
       content: newContent.trim(),
       category: newCategory,
-      author_id: user.id,
+      author_id: user.uid,
     });
     if (error) {
       toast.error("Failed to create post");
@@ -124,11 +124,11 @@ const Community = () => {
   const handleLike = async (postId: string) => {
     if (!user) { navigate("/auth"); return; }
     if (likedPosts.has(postId)) {
-      await supabase.from("community_likes").delete().eq("post_id", postId).eq("user_id", user.id);
+      await supabase.from("community_likes").delete().eq("post_id", postId).eq("user_id", user.uid);
       setLikedPosts((prev) => { const n = new Set(prev); n.delete(postId); return n; });
       setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: p.likes_count - 1 } : p));
     } else {
-      await supabase.from("community_likes").insert({ post_id: postId, user_id: user.id });
+      await supabase.from("community_likes").insert({ post_id: postId, user_id: user.uid });
       setLikedPosts((prev) => new Set(prev).add(postId));
       setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: p.likes_count + 1 } : p));
     }
@@ -161,7 +161,7 @@ const Community = () => {
     if (!newComment.trim()) return;
     const { error } = await supabase.from("community_comments").insert({
       post_id: postId,
-      author_id: user.id,
+      author_id: user.uid,
       content: newComment.trim(),
     });
     if (error) toast.error("Failed to comment");
