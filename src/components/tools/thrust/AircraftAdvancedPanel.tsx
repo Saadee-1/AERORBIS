@@ -27,7 +27,7 @@ import {
 import { toCSV, downloadCSV } from "@/lib/thrust/rocketAdvanced";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, ResponsiveContainer,
-  ReferenceLine, Legend, ScatterChart, Scatter, ZAxis,
+  ReferenceLine, Legend,
 } from "recharts";
 
 type Tier = "Beginner" | "University" | "Expert";
