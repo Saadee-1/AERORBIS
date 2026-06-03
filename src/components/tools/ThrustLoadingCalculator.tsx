@@ -2768,6 +2768,20 @@ const ThrustLoadingCalculator = () => {
           </div>
         );
       })()}
+      <div className="mt-6">
+        <AircraftAdvancedPanel
+          tier={calculatorMode}
+          defaults={{
+            weightN: (parseFloat(massKg) || 78000) * 9.81,
+            wingAreaM2: parseFloat(wingAreaInput) || 122,
+            thrustN: parseFloat(totalThrust) || 80000,
+            cd0: parseFloat(cd0Input) || 0.025,
+            k: parseFloat(kInput) || 0.045,
+            clMax: parseFloat(clToInput) || 1.6,
+            vCruiseMs: (parseFloat(vCruiseInput) || 90) * 0.514444,
+          }}
+        />
+      </div>
     </ToolWrapper>
     </>
   );
