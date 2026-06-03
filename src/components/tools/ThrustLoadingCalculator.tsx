@@ -70,6 +70,7 @@ import {
 import { ThrustLoadingGraphs } from "./ThrustLoadingGraphs";
 import { ThrustWingSizingDiagram } from "./ThrustWingSizingDiagram";
 import { WingLoadingGraphs } from "./WingLoadingGraphs";
+import AircraftAdvancedPanel from "@/components/tools/thrust/AircraftAdvancedPanel";
 import { calculateAtmosphere } from "@/tools/atmosphere/utils/calcAtmosphere";
 import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
 import { FIELD_KEYS } from "./utils/interlinkConfig";
