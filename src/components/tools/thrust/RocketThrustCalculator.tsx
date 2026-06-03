@@ -40,6 +40,7 @@ import { AeroFormField } from "@/components/forms/AeroFormField";
 import { AeroButton } from "@/components/common/AeroButton";
 import { ChartCard } from "@/components/charts/ChartCard";
 import { AeroverseLegend, type LegendItem } from "@/components/charts/AerorbisLegend";
+import RocketAdvancedPanel from "@/components/tools/thrust/RocketAdvancedPanel";
 import { spacingVertical } from "@/styles/spacing";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
@@ -793,6 +794,18 @@ const RocketThrustCalculator = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <div className="mt-6">
+        <RocketAdvancedPanel
+          tier={tier}
+          defaults={{
+            Pc: parseFloat(inputs.chamberPressure) || 9.7e6,
+            Pa: parseFloat(inputs.ambientPressure) || 101325,
+            gamma: parseFloat(gamma) || 1.22,
+            Pe: parseFloat(inputs.exitPressure) || undefined,
+          }}
+        />
+      </div>
     </ToolWrapper>
   );
 };
