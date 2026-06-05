@@ -20,7 +20,7 @@ import { AeroButton } from "@/components/common/AeroButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Flame, Gauge, Layers, Sparkles, Zap, Activity, Download } from "lucide-react";
+import { Flame, Gauge, Layers, Sparkles, Zap, Activity, Download, Beaker, GitCompare, Atom, Mountain } from "lucide-react";
 import {
   optimumEpsilon,
   bartzHeatFlux,
@@ -30,11 +30,18 @@ import {
   toCSV,
   downloadCSV,
   type Stage,
+  PROPELLANT_SPECS,
+  nozzleTypeEfficiency,
+  equilibriumIspFactor,
+  shockDiamondCount,
 } from "@/lib/thrust/rocketAdvanced";
 import { calculateRocketEngine } from "@/tools/rocketEngine/utils/calcEngine";
+import { calculateAtmosphere } from "@/tools/atmosphere/utils/calcAtmosphere";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, ResponsiveContainer, ReferenceLine, Legend,
 } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 type Tier = "Beginner" | "University" | "Expert";
 
@@ -123,6 +130,82 @@ export default function RocketAdvancedPanel({ tier, defaults }: Props) {
   const [pe, setPe] = useState(String(defaults?.Pe ?? 50000));
   const sep = useMemo(() => summerfieldSeparation(parseFloat(pe), parseFloat(pa)), [pe, pa]);
 
+  // --- Propellant preset auto-fill ---
+  const [presetId, setPresetId] = useState<string>("lox-rp1");
+  const applyPreset = (id: string) => {
+    const p = PROPELLANT_SPECS.find((x) => x.id === id);
+    if (!p) return;
+    setPresetId(id);
+    setPc(String(p.PcTypical));
+    setGamma(String(p.gamma));
+    setThrottleTc(String(p.Tc));
+    setThrottleMolar(String(p.M_molar));
+    setBCstar(String(p.cStar));
+  };
+
+  // --- Atmosphere → Pa from altitude ---
+  const [altKm, setAltKm] = useState("0");
+  const applyAltitudeToPa = () => {
+    const h = parseFloat(altKm) * 1000;
+    if (!Number.isFinite(h) || h < 0 || h > 86000) return;
+    try {
+      const atm = calculateAtmosphere(h);
+      setPa(String(Math.round(atm.pressure)));
+    } catch { /* ignore */ }
+  };
+
+  // --- SL-opt vs Alt-opt nozzle dual sweep ---
+  const [epsSL, setEpsSL] = useState("16");
+  const [epsAlt, setEpsAlt] = useState("80");
+  const slVsAltData = useMemo(() => {
+    const Pc = parseFloat(pc);
+    const Tc = parseFloat(throttleTc);
+    const Mm = parseFloat(throttleMolar);
+    const g = parseFloat(gamma);
+    const eSL = parseFloat(epsSL), eAlt = parseFloat(epsAlt);
+    if (!(Pc > 0 && Tc > 0 && Mm > 0 && g > 1 && eSL > 1 && eAlt > 1)) return [];
+    const out: Array<{ h: number; ispSL: number; ispAlt: number }> = [];
+    for (let h = 0; h <= 80000; h += 4000) {
+      try {
+        const atm = calculateAtmosphere(h);
+        const Pa = atm.pressure;
+        const a = calculateRocketEngine({ Pc, Tc, At: 0.01, epsilon: eSL, Pa, gamma: g, M_molar: Mm });
+        const b = calculateRocketEngine({ Pc, Tc, At: 0.01, epsilon: eAlt, Pa, gamma: g, M_molar: Mm });
+        out.push({ h: h / 1000, ispSL: a.Isp, ispAlt: b.Isp });
+      } catch { /* skip */ }
+    }
+    return out;
+  }, [pc, throttleTc, throttleMolar, gamma, epsSL, epsAlt]);
+
+  // --- Nozzle-type efficiency comparison ---
+  const [coneAngle, setConeAngle] = useState("15");
+  const nozzleCompareData = useMemo(() => {
+    const ang = parseFloat(coneAngle);
+    const out: Array<{ epsilon: number; bell: number; conical: number; aerospike: number }> = [];
+    for (let e = 2; e <= 200; e *= 1.2) {
+      out.push({
+        epsilon: +e.toFixed(2),
+        bell: nozzleTypeEfficiency("bell", e, ang),
+        conical: nozzleTypeEfficiency("conical", e, ang),
+        aerospike: nozzleTypeEfficiency("aerospike", e, ang),
+      });
+    }
+    return out;
+  }, [coneAngle]);
+
+  // --- Real-gas / equilibrium uplift ---
+  const [useEquilibrium, setUseEquilibrium] = useState(false);
+  const eqFactor = useMemo(
+    () => equilibriumIspFactor(parseFloat(throttleTc)),
+    [throttleTc]
+  );
+
+  // --- Shock diamond count ---
+  const diamonds = useMemo(
+    () => shockDiamondCount(parseFloat(pe), parseFloat(pa), parseFloat(throttleEps)),
+    [pe, pa, throttleEps]
+  );
+
   const exportThrottle = () => {
     if (!throttleData.length) return;
     downloadCSV("throttling_sweep.csv", toCSV(throttleData));
@@ -135,13 +218,53 @@ export default function RocketAdvancedPanel({ tier, defaults }: Props) {
       icon={Sparkles}
     >
       <Tabs defaultValue="opt" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 bg-muted/50 mb-4 h-auto">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-muted/50 mb-4 h-auto">
+          <TabsTrigger value="presets" className="text-xs"><Beaker className="w-3 h-3 mr-1" />Presets</TabsTrigger>
           <TabsTrigger value="opt" className="text-xs"><Gauge className="w-3 h-3 mr-1" />Optimum ε</TabsTrigger>
           <TabsTrigger value="throttle" className="text-xs"><Activity className="w-3 h-3 mr-1" />Throttling</TabsTrigger>
           <TabsTrigger value="profile" className="text-xs"><Layers className="w-3 h-3 mr-1" />Nozzle Profile</TabsTrigger>
+          <TabsTrigger value="slalt" className="text-xs"><Mountain className="w-3 h-3 mr-1" />SL vs Alt</TabsTrigger>
+          <TabsTrigger value="compare" className="text-xs"><GitCompare className="w-3 h-3 mr-1" />Nozzle Type</TabsTrigger>
           {tier === "Expert" && <TabsTrigger value="stage" className="text-xs"><Zap className="w-3 h-3 mr-1" />Stages (ΔV)</TabsTrigger>}
-          {tier === "Expert" && <TabsTrigger value="heat" className="text-xs"><Flame className="w-3 h-3 mr-1" />Heat / Sep</TabsTrigger>}
+          {tier === "Expert" && <TabsTrigger value="heat" className="text-xs"><Flame className="w-3 h-3 mr-1" />Heat / Sep / Diamonds</TabsTrigger>}
         </TabsList>
+
+        {/* ============ Presets / Atmosphere link ============ */}
+        <TabsContent value="presets" className="space-y-4">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase mb-2">Propellant preset auto-fill</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+              <div className="md:col-span-2">
+                <Label className="text-xs">Propellant</Label>
+                <Select value={presetId} onValueChange={applyPreset}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PROPELLANT_SPECS.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name} — {p.notes}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <AeroButton variant="outline" onClick={() => applyPreset(presetId)}>Apply</AeroButton>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Sets Pc, γ, Tc, M_molar, c* in all panels below.
+            </p>
+          </div>
+          <div className="border-t border-border/50 pt-3">
+            <p className="text-xs text-muted-foreground uppercase mb-2">Atmosphere → Pa (ISA cross-link)</p>
+            <div className="grid grid-cols-3 gap-2 items-end">
+              <div className="col-span-2">
+                <Label className="text-xs">Altitude (km, 0–86)</Label>
+                <Input type="number" value={altKm} onChange={(e) => setAltKm(e.target.value)} step="1" />
+              </div>
+              <AeroButton variant="outline" onClick={applyAltitudeToPa}>Set Pa</AeroButton>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Current Pa: <span className="font-mono text-primary">{fmt(parseFloat(pa), 0)} Pa</span> (auto-applied to Optimum ε, Throttling, Heat/Sep).
+            </p>
+          </div>
+        </TabsContent>
 
         {/* ============ Optimum ε ============ */}
         <TabsContent value="opt" className="space-y-3">
@@ -200,6 +323,57 @@ export default function RocketAdvancedPanel({ tier, defaults }: Props) {
               80% bell nozzle (Rao approximation). Throat circle radius = 0.382 Rt; parabolic skirt to exit.
             </p>
           </div>
+        </TabsContent>
+
+        {/* ============ SL vs Alt nozzle ============ */}
+        <TabsContent value="slalt" className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label className="text-xs">ε (sea-level optimized)</Label><Input value={epsSL} onChange={(e) => setEpsSL(e.target.value)} type="number" /></div>
+            <div><Label className="text-xs">ε (altitude/vacuum optimized)</Label><Input value={epsAlt} onChange={(e) => setEpsAlt(e.target.value)} type="number" /></div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer>
+              <LineChart data={slVsAltData}>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                <XAxis dataKey="h" tick={{ fontSize: 10 }} label={{ value: "Altitude (km)", position: "insideBottom", offset: -5, fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} label={{ value: "Isp (s)", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                <RTooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: 10 }} />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
+                <Line name={`Isp · ε=${epsSL} (SL)`} dataKey="ispSL" stroke="#3b82f6" dot={false} strokeWidth={2} />
+                <Line name={`Isp · ε=${epsAlt} (Alt)`} dataKey="ispAlt" stroke="hsl(var(--primary))" dot={false} strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Same Pc, γ, Tc — only ε differs. The sea-level nozzle separates if overexpanded at low altitude; the vacuum nozzle pays a thrust penalty at sea level.
+          </p>
+          <div className="flex justify-end">
+            <AeroButton onClick={() => downloadCSV("sl_vs_alt_nozzle.csv", toCSV(slVsAltData))} variant="outline" icon={Download}>Export CSV</AeroButton>
+          </div>
+        </TabsContent>
+
+        {/* ============ Nozzle type compare ============ */}
+        <TabsContent value="compare" className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label className="text-xs">Conical half-angle α (°)</Label><Input value={coneAngle} onChange={(e) => setConeAngle(e.target.value)} type="number" step="0.5" /></div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer>
+              <LineChart data={nozzleCompareData}>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                <XAxis dataKey="epsilon" tick={{ fontSize: 10 }} scale="log" domain={["auto", "auto"]} label={{ value: "ε (log)", position: "insideBottom", offset: -5, fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} domain={[0.9, 1]} label={{ value: "η_nozzle", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                <RTooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: 10 }} />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
+                <Line name="Bell (Rao 80%)" dataKey="bell" stroke="hsl(var(--primary))" dot={false} strokeWidth={2} />
+                <Line name={`Conical α=${coneAngle}°`} dataKey="conical" stroke="#f59e0b" dot={false} strokeWidth={2} />
+                <Line name="Aerospike (alt-comp)" dataKey="aerospike" stroke="#a855f7" dot={false} strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Bell ≈ constant ~0.99. Conical loses with angle via λ=(1+cos α)/2. Aerospike gains with ε due to altitude compensation.
+          </p>
         </TabsContent>
 
         {/* ============ Stages ============ */}
@@ -276,6 +450,52 @@ export default function RocketAdvancedPanel({ tier, defaults }: Props) {
                    "✓ Attached flow"}
                 </p>
               </div>
+            </div>
+
+            {/* Shock diamonds */}
+            <div className="border-t border-border/50 pt-3">
+              <p className="text-xs text-muted-foreground mb-2 uppercase">Shock-diamond visualization</p>
+              <div className="flex items-center gap-2 p-3 rounded border border-border/50 bg-muted/20 overflow-hidden">
+                {diamonds === 0 ? (
+                  <span className="text-xs text-emerald-400">✓ Ideally expanded — no diamonds expected</span>
+                ) : (
+                  <>
+                    <div className="flex gap-1 flex-1">
+                      {Array.from({ length: diamonds }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-6 flex-1 rounded-sm"
+                          style={{
+                            background: `linear-gradient(90deg, transparent, hsl(${280 - i * 12} 90% 55% / 0.9), transparent)`,
+                            transform: `scaleX(${1 - i * 0.04})`,
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">{diamonds} cells</span>
+                  </>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Empirical fit from |ln(Pe/Pa)| and ε. Off-design flow forms repeating expansion/compression cells.
+              </p>
+            </div>
+
+            {/* Real-gas / equilibrium toggle */}
+            <div className="border-t border-border/50 pt-3">
+              <p className="text-xs text-muted-foreground mb-2 uppercase">Real-gas (equilibrium vs frozen)</p>
+              <div className="flex items-center justify-between p-3 rounded border border-border/50 bg-muted/20">
+                <div className="text-xs">
+                  <p className="font-semibold">{useEquilibrium ? "Equilibrium flow" : "Frozen flow (default)"}</p>
+                  <p className="text-muted-foreground">
+                    Equilibrium Isp uplift ≈ <span className="font-mono text-primary">{((eqFactor - 1) * 100).toFixed(2)}%</span> at Tc = {fmt(parseFloat(throttleTc), 0)} K
+                  </p>
+                </div>
+                <Switch checked={useEquilibrium} onCheckedChange={setUseEquilibrium} />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Frozen = composition fixed at chamber; Equilibrium = continual recombination releases extra energy in the nozzle (Sutton §5).
+              </p>
             </div>
           </TabsContent>
         )}
