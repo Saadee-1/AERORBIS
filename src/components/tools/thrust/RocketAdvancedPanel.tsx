@@ -325,6 +325,57 @@ export default function RocketAdvancedPanel({ tier, defaults }: Props) {
           </div>
         </TabsContent>
 
+        {/* ============ SL vs Alt nozzle ============ */}
+        <TabsContent value="slalt" className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label className="text-xs">ε (sea-level optimized)</Label><Input value={epsSL} onChange={(e) => setEpsSL(e.target.value)} type="number" /></div>
+            <div><Label className="text-xs">ε (altitude/vacuum optimized)</Label><Input value={epsAlt} onChange={(e) => setEpsAlt(e.target.value)} type="number" /></div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer>
+              <LineChart data={slVsAltData}>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                <XAxis dataKey="h" tick={{ fontSize: 10 }} label={{ value: "Altitude (km)", position: "insideBottom", offset: -5, fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} label={{ value: "Isp (s)", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                <RTooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: 10 }} />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
+                <Line name={`Isp · ε=${epsSL} (SL)`} dataKey="ispSL" stroke="#3b82f6" dot={false} strokeWidth={2} />
+                <Line name={`Isp · ε=${epsAlt} (Alt)`} dataKey="ispAlt" stroke="hsl(var(--primary))" dot={false} strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Same Pc, γ, Tc — only ε differs. The sea-level nozzle separates if overexpanded at low altitude; the vacuum nozzle pays a thrust penalty at sea level.
+          </p>
+          <div className="flex justify-end">
+            <AeroButton onClick={() => downloadCSV("sl_vs_alt_nozzle.csv", toCSV(slVsAltData))} variant="outline" icon={Download}>Export CSV</AeroButton>
+          </div>
+        </TabsContent>
+
+        {/* ============ Nozzle type compare ============ */}
+        <TabsContent value="compare" className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label className="text-xs">Conical half-angle α (°)</Label><Input value={coneAngle} onChange={(e) => setConeAngle(e.target.value)} type="number" step="0.5" /></div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer>
+              <LineChart data={nozzleCompareData}>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                <XAxis dataKey="epsilon" tick={{ fontSize: 10 }} scale="log" domain={["auto", "auto"]} label={{ value: "ε (log)", position: "insideBottom", offset: -5, fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} domain={[0.9, 1]} label={{ value: "η_nozzle", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                <RTooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: 10 }} />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
+                <Line name="Bell (Rao 80%)" dataKey="bell" stroke="hsl(var(--primary))" dot={false} strokeWidth={2} />
+                <Line name={`Conical α=${coneAngle}°`} dataKey="conical" stroke="#f59e0b" dot={false} strokeWidth={2} />
+                <Line name="Aerospike (alt-comp)" dataKey="aerospike" stroke="#a855f7" dot={false} strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Bell ≈ constant ~0.99. Conical loses with angle via λ=(1+cos α)/2. Aerospike gains with ε due to altitude compensation.
+          </p>
+        </TabsContent>
+
         {/* ============ Stages ============ */}
         {tier === "Expert" && (
           <TabsContent value="stage" className="space-y-3">
