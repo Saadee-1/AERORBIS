@@ -30,11 +30,18 @@ import {
   toCSV,
   downloadCSV,
   type Stage,
+  PROPELLANT_SPECS,
+  nozzleTypeEfficiency,
+  equilibriumIspFactor,
+  shockDiamondCount,
 } from "@/lib/thrust/rocketAdvanced";
 import { calculateRocketEngine } from "@/tools/rocketEngine/utils/calcEngine";
+import { calculateAtmosphere } from "@/tools/atmosphere/utils/calcAtmosphere";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, ResponsiveContainer, ReferenceLine, Legend,
 } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 type Tier = "Beginner" | "University" | "Expert";
 
