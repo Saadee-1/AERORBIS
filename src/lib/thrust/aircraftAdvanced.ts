@@ -233,3 +233,220 @@ export function turnRadiusM(vMs: number, nLoad: number): number {
   if (nLoad <= 1 || vMs <= 0) return Infinity;
   return (vMs * vMs) / (G * Math.sqrt(nLoad * nLoad - 1));
 }
+
+/* ============================================================ */
+/*  Phase B additions                                            */
+/* ============================================================ */
+
+/** Curated aircraft presets (sea-level reference values). */
+export interface AircraftPreset {
+  id: string;
+  name: string;
+  category: "Fighter" | "Transport" | "GA" | "UAV";
+  weightN: number;
+  wingAreaM2: number;
+  thrustN: number;
+  cd0: number;
+  k: number;
+  clMax: number;
+  vCruiseMs: number;
+  engineClass: EngineClass;
+  notes?: string;
+}
+
+export const AIRCRAFT_PRESETS: AircraftPreset[] = [
+  {
+    id: "f16",   name: "F-16C Fighting Falcon", category: "Fighter",
+    weightN: 12000 * G, wingAreaM2: 27.87, thrustN: 129000,
+    cd0: 0.020, k: 0.117, clMax: 1.4, vCruiseMs: 280, engineClass: "lowBypass",
+    notes: "F110-GE-129 afterburning turbofan",
+  },
+  {
+    id: "b737", name: "Boeing 737-800", category: "Transport",
+    weightN: 79000 * G, wingAreaM2: 124.6, thrustN: 2 * 117000,
+    cd0: 0.018, k: 0.043, clMax: 2.6, vCruiseMs: 230, engineClass: "highBypass",
+    notes: "2 × CFM56-7B27",
+  },
+  {
+    id: "c172", name: "Cessna 172 Skyhawk", category: "GA",
+    weightN: 1110 * G, wingAreaM2: 16.17, thrustN: 800,
+    cd0: 0.027, k: 0.054, clMax: 1.6, vCruiseMs: 62, engineClass: "turboprop",
+    notes: "Lycoming O-360 / propeller",
+  },
+  {
+    id: "rq4", name: "RQ-4 Global Hawk", category: "UAV",
+    weightN: 14628 * G, wingAreaM2: 50.17, thrustN: 34000,
+    cd0: 0.013, k: 0.030, clMax: 1.8, vCruiseMs: 175, engineClass: "highBypass",
+    notes: "AE3007H, high-altitude long endurance",
+  },
+  {
+    id: "su27", name: "Su-27 Flanker", category: "Fighter",
+    weightN: 23000 * G, wingAreaM2: 62.0, thrustN: 2 * 122600,
+    cd0: 0.018, k: 0.10, clMax: 1.6, vCruiseMs: 320, engineClass: "lowBypass",
+    notes: "2 × AL-31F",
+  },
+  {
+    id: "a320", name: "Airbus A320neo", category: "Transport",
+    weightN: 79000 * G, wingAreaM2: 122.6, thrustN: 2 * 120000,
+    cd0: 0.017, k: 0.041, clMax: 2.7, vCruiseMs: 233, engineClass: "highBypass",
+    notes: "2 × PW1100G geared turbofan",
+  },
+];
+
+/**
+ * Thrust required vs thrust available across Mach.
+ * T_req = q S CD0 + (W²/(q S)) k     (steady level flight)
+ * T_avail = T0 · α(h, M)
+ */
+export function thrustVsMachSweep(params: {
+  thrustN: number;
+  weightN: number;
+  wingAreaM2: number;
+  cd0: number;
+  k: number;
+  altitudeM: number;
+  engineClass: EngineClass;
+  maxMach?: number;
+  steps?: number;
+}): Array<{ mach: number; tReq: number; tAvail: number; excess: number }> {
+  const max = params.maxMach ?? 1.6;
+  const steps = params.steps ?? 50;
+  const atm = calculateAtmosphere(params.altitudeM, 0);
+  const rho = atm.density, a = atm.speedOfSound;
+  const rho0 = 1.225;
+  const exponent: Record<EngineClass, number> = {
+    turbojet: 0.7, lowBypass: 0.7, highBypass: 0.8, turboprop: 1.0,
+  };
+  const sigma = rho / rho0;
+  const out: Array<{ mach: number; tReq: number; tAvail: number; excess: number }> = [];
+  for (let i = 1; i <= steps; i++) {
+    const M = (max * i) / steps;
+    const V = M * a;
+    const q = 0.5 * rho * V * V;
+    if (q <= 0) continue;
+    const tReq = q * params.wingAreaM2 * params.cd0 +
+                 (params.weightN * params.weightN) / (q * params.wingAreaM2) * params.k;
+    let fM = 1;
+    switch (params.engineClass) {
+      case "turbojet":  fM = 1 - 0.3 * M + 0.10 * M * M; break;
+      case "lowBypass": fM = 1 - 0.4 * M + 0.18 * M * M; break;
+      case "highBypass":fM = 1 - 0.55 * M + 0.15 * M * M; break;
+      case "turboprop": fM = 1 / Math.max(0.3, 1 + M * 1.5); break;
+    }
+    const tAvail = Math.max(0, params.thrustN * Math.pow(sigma, exponent[params.engineClass]) * fM);
+    out.push({ mach: M, tReq, tAvail, excess: tAvail - tReq });
+  }
+  return out;
+}
+
+/**
+ * Constraint analysis (sizing diagram). Returns curves T/W vs W/S for:
+ * takeoff, cruise, climb, landing (vertical line), ceiling.
+ * Feasibility = all constraints satisfied (T/W above every curve, W/S left of landing line).
+ */
+export interface SizingPoint {
+  ws: number;       // wing loading (N/m²)
+  takeoff: number;
+  cruise: number;
+  climb: number;
+  ceiling: number;
+}
+
+export function sizingDiagram(params: {
+  cd0: number;
+  k: number;
+  clMaxTO: number;
+  clMaxLand: number;
+  sigmaTO?: number;      // ρ/ρ₀ at takeoff
+  takeoffParam?: number; // TOP for TO distance constraint
+  cruiseMachOrV: { mach?: number; vMs?: number; altitudeM: number };
+  climbAngleDeg?: number;
+  ceilingAltM?: number;
+  vApproachMs?: number;  // for landing W/S
+  rocClimbMs?: number;   // ROC at ceiling-defining alt
+  wsMaxNPerM2?: number;
+  steps?: number;
+}): { points: SizingPoint[]; landingWSMax: number } {
+  const sigmaTO = params.sigmaTO ?? 1.0;
+  const TOP = params.takeoffParam ?? 280; // (W/S)/(σ CLmax TW)
+  const climbAngle = ((params.climbAngleDeg ?? 3) * Math.PI) / 180;
+  const cruiseAtm = calculateAtmosphere(params.cruiseMachOrV.altitudeM, 0);
+  const Vc = params.cruiseMachOrV.vMs ?? (params.cruiseMachOrV.mach ?? 0.8) * cruiseAtm.speedOfSound;
+  const qC = 0.5 * cruiseAtm.density * Vc * Vc;
+  const ceilingAtm = calculateAtmosphere(params.ceilingAltM ?? 12000, 0);
+  const qCeil = 0.5 * ceilingAtm.density * Vc * Vc;
+  const rocClimb = params.rocClimbMs ?? 0.508; // 100 fpm
+
+  // Landing: W/S = ρ V_app² CLmax_land / (2 * 1.3²)
+  const vApp = params.vApproachMs ?? 70;
+  const landingWSMax = (1.225 * vApp * vApp * params.clMaxLand) / (2 * 1.69);
+
+  const wsMax = params.wsMaxNPerM2 ?? Math.max(landingWSMax * 1.2, 8000);
+  const steps = params.steps ?? 60;
+  const points: SizingPoint[] = [];
+  for (let i = 1; i <= steps; i++) {
+    const ws = (wsMax * i) / steps;
+    // Takeoff: T/W = (W/S) / (TOP · σ · CLmax_TO)
+    const takeoff = ws / (TOP * sigmaTO * params.clMaxTO);
+    // Cruise: T/W = qC CD0 / (W/S) + k (W/S) / qC
+    const cruise = (qC * params.cd0) / ws + (params.k * ws) / qC;
+    // Climb (steady): T/W = sin γ + (qC CD0)/ws + (k ws)/qC
+    const climb = Math.sin(climbAngle) + (qC * params.cd0) / ws + (params.k * ws) / qC;
+    // Ceiling: ROC/V + 2√(CD0 k)
+    const ceiling = rocClimb / Vc + 2 * Math.sqrt(params.cd0 * params.k) +
+                    (qCeil * params.cd0) / ws + (params.k * ws) / qCeil - (qC * params.cd0) / ws - (params.k * ws) / qC;
+    points.push({ ws, takeoff, cruise, climb, ceiling: Math.max(0, ceiling) });
+  }
+  return { points, landingWSMax };
+}
+
+/**
+ * Mission segment fuel burn (energy/Breguet method).
+ * Returns per-segment fuel kg and totals.
+ */
+export type SegmentKind = "taxi" | "climb" | "cruise" | "loiter" | "descent" | "reserve";
+export interface MissionSegment {
+  kind: SegmentKind;
+  durationS?: number;     // taxi / loiter / reserve
+  rangeM?: number;        // cruise / climb / descent
+  vMs?: number;
+  tsfcPerS: number;       // engine TSFC
+  thrustFraction?: number;// fraction of max thrust used (default cruise≈L/D-based)
+  ldRatio?: number;       // L/D for the segment
+}
+export interface SegmentResult { kind: SegmentKind; fuelKg: number; weightFraction: number; }
+
+export function missionFuelBurn(
+  startMassKg: number,
+  segments: MissionSegment[],
+  thrustMaxN: number,
+): { results: SegmentResult[]; finalMassKg: number; totalFuelKg: number } {
+  let mass = startMassKg;
+  const results: SegmentResult[] = [];
+  for (const s of segments) {
+    let frac = 1;
+    if (s.kind === "taxi") {
+      // Fuel = TSFC * T * dt; assume idle 5% thrust
+      const burn = s.tsfcPerS * (0.05 * thrustMaxN) * (s.durationS ?? 600) / G;
+      frac = Math.max(0.5, 1 - burn / mass);
+    } else if (s.kind === "cruise" && s.rangeM && s.vMs && s.ldRatio) {
+      // W1/W0 = exp(-R c / (V (L/D)))
+      frac = Math.exp(-(s.rangeM * s.tsfcPerS) / (s.vMs * s.ldRatio));
+    } else if (s.kind === "loiter" && s.durationS && s.ldRatio) {
+      frac = Math.exp(-(s.durationS * s.tsfcPerS) / s.ldRatio);
+    } else if (s.kind === "climb" && s.durationS) {
+      const burn = s.tsfcPerS * (0.9 * thrustMaxN) * s.durationS / G;
+      frac = Math.max(0.5, 1 - burn / mass);
+    } else if (s.kind === "descent" && s.durationS) {
+      const burn = s.tsfcPerS * (0.2 * thrustMaxN) * s.durationS / G;
+      frac = Math.max(0.5, 1 - burn / mass);
+    } else if (s.kind === "reserve" && s.durationS && s.ldRatio) {
+      frac = Math.exp(-(s.durationS * s.tsfcPerS) / s.ldRatio);
+    }
+    const newMass = mass * frac;
+    const fuelKg = Math.max(0, mass - newMass);
+    results.push({ kind: s.kind, fuelKg, weightFraction: frac });
+    mass = newMass;
+  }
+  return { results, finalMassKg: mass, totalFuelKg: startMassKg - mass };
+}
