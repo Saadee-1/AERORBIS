@@ -151,6 +151,91 @@ export default function AircraftAdvancedPanel({ tier, defaults }: Props) {
   const turnRate = sustainedTurnRateDegPerS(parseFloat(turnV), parseFloat(turnN));
   const turnR = turnRadiusM(parseFloat(turnV), parseFloat(turnN));
 
+  // --- Preset selector ---
+  const [presetId, setPresetId] = useState("b737");
+  const applyPreset = (id: string) => {
+    const p = AIRCRAFT_PRESETS.find((x) => x.id === id);
+    if (!p) return;
+    setPresetId(id);
+    setCd0(String(p.cd0));
+    setK(String(p.k));
+    setWeightN(String(p.weightN));
+    setWingAreaM2(String(p.wingAreaM2));
+    setThrustN(String(p.thrustN));
+    setClMax(String(p.clMax));
+    setVCruiseMs(String(p.vCruiseMs));
+    setEngClass(p.engineClass);
+    setW0(String(p.weightN));
+    setW1(String(p.weightN * 0.65));
+  };
+
+  // --- T_req vs T_avail vs Mach ---
+  const [envAlt, setEnvAlt] = useState("11000");
+  const envelope = useMemo(() => thrustVsMachSweep({
+    thrustN: parseFloat(thrustN),
+    weightN: parseFloat(weightN),
+    wingAreaM2: parseFloat(wingAreaM2),
+    cd0: parseFloat(cd0),
+    k: parseFloat(k),
+    altitudeM: parseFloat(envAlt),
+    engineClass: engClass,
+    maxMach: engClass === "turboprop" ? 0.6 : 1.6,
+  }), [thrustN, weightN, wingAreaM2, cd0, k, envAlt, engClass]);
+  const machMax = useMemo(() => {
+    const last = [...envelope].reverse().find((p) => p.excess > 0);
+    return last?.mach ?? 0;
+  }, [envelope]);
+
+  // --- Sizing diagram ---
+  const [topParam, setTopParam] = useState("280");
+  const [vAppMs, setVAppMs] = useState("70");
+  const [clMaxLand, setClMaxLand] = useState("2.4");
+  const sizing = useMemo(() => sizingDiagram({
+    cd0: parseFloat(cd0),
+    k: parseFloat(k),
+    clMaxTO: parseFloat(clMax),
+    clMaxLand: parseFloat(clMaxLand),
+    takeoffParam: parseFloat(topParam),
+    cruiseMachOrV: { vMs: parseFloat(vCruiseMs), altitudeM: parseFloat(envAlt) },
+    climbAngleDeg: 3,
+    ceilingAltM: 12000,
+    vApproachMs: parseFloat(vAppMs),
+  }), [cd0, k, clMax, clMaxLand, topParam, vCruiseMs, envAlt, vAppMs]);
+  const sizingFeas = useMemo(() => sizing.points.map((p) => ({
+    ...p,
+    minTW: Math.max(p.takeoff, p.cruise, p.climb, p.ceiling),
+    feasible: p.ws <= sizing.landingWSMax,
+  })), [sizing]);
+  const currentWS = useMemo(() => {
+    const W = parseFloat(weightN), S = parseFloat(wingAreaM2);
+    return W > 0 && S > 0 ? W / S : 0;
+  }, [weightN, wingAreaM2]);
+  const currentTW = useMemo(() => {
+    const T = parseFloat(thrustN), W = parseFloat(weightN);
+    return W > 0 ? T / W : 0;
+  }, [thrustN, weightN]);
+
+  // --- Mission segment fuel ---
+  const [missionTsfc, setMissionTsfc] = useState("1.7e-5");
+  const [segments, setSegments] = useState<MissionSegment[]>([
+    { kind: "taxi",    durationS: 600,  tsfcPerS: 1.7e-5 },
+    { kind: "climb",   durationS: 900,  tsfcPerS: 1.7e-5 },
+    { kind: "cruise",  rangeM: 3_000_000, vMs: 230, ldRatio: 17, tsfcPerS: 1.7e-5 },
+    { kind: "loiter",  durationS: 1800, ldRatio: 19, tsfcPerS: 1.7e-5 },
+    { kind: "descent", durationS: 900,  tsfcPerS: 1.7e-5 },
+    { kind: "reserve", durationS: 2700, ldRatio: 19, tsfcPerS: 1.7e-5 },
+  ]);
+  // Sync tsfc to all segments when changed
+  const segmentsT = useMemo(
+    () => segments.map((s) => ({ ...s, tsfcPerS: parseFloat(missionTsfc) || s.tsfcPerS })),
+    [segments, missionTsfc]
+  );
+  const startMassKg = useMemo(() => parseFloat(weightN) / 9.81, [weightN]);
+  const mission = useMemo(
+    () => missionFuelBurn(startMassKg, segmentsT, parseFloat(thrustN)),
+    [startMassKg, segmentsT, thrustN]
+  );
+
   const exportPolar = () => downloadCSV("drag_polar.csv", toCSV(polar.map((p) => ({ cl: p.cl, cd: p.cd, ld: p.ld }))));
   const exportCeiling = () => downloadCSV("service_ceiling.csv", toCSV(ceiling.points.map((p) => ({ altitudeM: p.altM, rocMs: p.rocMs, rocFpm: p.rocFpm, vBestMs: p.vBestMs }))));
 
