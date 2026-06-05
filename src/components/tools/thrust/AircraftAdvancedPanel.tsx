@@ -18,17 +18,20 @@ import { AeroButton } from "@/components/common/AeroButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Sparkles, Activity, Gauge, Wind, Rocket, Plane, Download } from "lucide-react";
+import { Sparkles, Activity, Gauge, Wind, Rocket, Plane, Download, Beaker, LayoutGrid, Route, BarChart3 } from "lucide-react";
 import {
   vnDiagram, cornerVelocity, serviceCeilingSweep, dragPolar, maxLD,
   breguetRangeJet, breguetEnduranceJet, breguetRangeProp, breguetEnduranceProp,
   thrustLapseSweep, sustainedTurnRateDegPerS, turnRadiusM, type EngineClass,
+  AIRCRAFT_PRESETS, thrustVsMachSweep, sizingDiagram, missionFuelBurn,
+  type MissionSegment,
 } from "@/lib/thrust/aircraftAdvanced";
 import { toCSV, downloadCSV } from "@/lib/thrust/rocketAdvanced";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, ResponsiveContainer,
-  ReferenceLine, Legend,
+  ReferenceLine, Legend, Area, ComposedChart,
 } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Tier = "Beginner" | "University" | "Expert";
 
