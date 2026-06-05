@@ -18,6 +18,76 @@ import { pressureRatioFromMach } from "@/tools/rocketEngine/utils/isentropic";
 
 const G0 = 9.80665;
 
+/* ============================================================ */
+/*  Phase B additions                                            */
+/* ============================================================ */
+
+/** Detailed propellant presets including γ, Tc, M_molar, typical c*. */
+export interface PropellantSpec {
+  id: string;
+  name: string;
+  gamma: number;
+  Tc: number;        // K
+  M_molar: number;   // kg/kmol
+  cStar: number;     // m/s
+  PcTypical: number; // Pa
+  notes?: string;
+}
+
+export const PROPELLANT_SPECS: PropellantSpec[] = [
+  { id: "lox-rp1",   name: "LOX / RP-1",   gamma: 1.22, Tc: 3500, M_molar: 22.0, cStar: 1715, PcTypical: 9.7e6,  notes: "Merlin / F-1 / RD-180" },
+  { id: "lox-lh2",   name: "LOX / LH₂",    gamma: 1.24, Tc: 3600, M_molar: 16.0, cStar: 2360, PcTypical: 20.0e6, notes: "RS-25 / RL10" },
+  { id: "lox-ch4",   name: "LOX / CH₄",    gamma: 1.23, Tc: 3550, M_molar: 20.0, cStar: 1830, PcTypical: 30.0e6, notes: "Raptor / BE-4" },
+  { id: "n2o4-mmh",  name: "N₂O₄ / MMH",   gamma: 1.24, Tc: 3400, M_molar: 21.5, cStar: 1720, PcTypical: 10.0e6, notes: "Hypergolic storable" },
+  { id: "solid-apcp",name: "Solid APCP",   gamma: 1.18, Tc: 3300, M_molar: 30.0, cStar: 1580, PcTypical: 7.0e6,  notes: "Shuttle SRB-class" },
+  { id: "hydrazine", name: "Hydrazine (mono)", gamma: 1.27, Tc: 1200, M_molar: 16.0, cStar: 1180, PcTypical: 2.0e6, notes: "ACS / RCS" },
+];
+
+/**
+ * Approximate nozzle-type thrust-coefficient efficiency factor.
+ * Bell (Rao 80%) ≈ 0.99 baseline; conical uses divergence loss
+ * λ = (1 + cos α)/2; aerospike has altitude-compensation (η rises with εeff).
+ */
+export function nozzleTypeEfficiency(
+  type: "bell" | "conical" | "aerospike",
+  epsilon: number,
+  halfAngleDeg = 15,
+): number {
+  if (type === "bell") return 0.99;
+  if (type === "conical") {
+    const a = (halfAngleDeg * Math.PI) / 180;
+    return (1 + Math.cos(a)) / 2; // divergence efficiency
+  }
+  // aerospike: rises asymptotically with ε (altitude-compensation benefit)
+  const e = Math.max(1, epsilon);
+  return Math.min(0.985, 0.93 + 0.02 * Math.log10(e));
+}
+
+/**
+ * Real-gas (equilibrium-flow) Isp uplift over frozen-flow assumption.
+ * Engineering rule of thumb: equilibrium recombination gains 3–6 % over frozen
+ * for hot bipropellants; we scale with Tc.
+ */
+export function equilibriumIspFactor(Tc: number): number {
+  if (Tc <= 0) return 1;
+  // 0% gain at Tc≤2000 K, ~5% gain at Tc=3700 K (typical LOX/LH2)
+  const f = (Tc - 2000) / (3700 - 2000);
+  return 1 + 0.05 * Math.max(0, Math.min(1, f));
+}
+
+/**
+ * Estimate the number of visible shock-diamond cells from off-design ratio.
+ * Empirical fit: count grows roughly with √(|ln(Pe/Pa)|) · ε^0.25.
+ * Returns 0 when ideally expanded (Pe≈Pa).
+ */
+export function shockDiamondCount(Pe: number, Pa: number, epsilon: number): number {
+  if (Pe <= 0 || Pa <= 0 || epsilon < 1) return 0;
+  const lr = Math.abs(Math.log(Pe / Pa));
+  if (lr < 0.05) return 0;
+  const n = Math.round(2 + 2.5 * Math.sqrt(lr) * Math.pow(epsilon, 0.25));
+  return Math.min(12, n);
+}
+
 /** Tsiolkovsky rocket equation. */
 export function tsiolkovsky(Ve: number, m0: number, mf: number): number {
   if (Ve <= 0 || m0 <= 0 || mf <= 0 || mf >= m0) return 0;
