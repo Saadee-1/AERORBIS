@@ -130,6 +130,82 @@ export default function RocketAdvancedPanel({ tier, defaults }: Props) {
   const [pe, setPe] = useState(String(defaults?.Pe ?? 50000));
   const sep = useMemo(() => summerfieldSeparation(parseFloat(pe), parseFloat(pa)), [pe, pa]);
 
+  // --- Propellant preset auto-fill ---
+  const [presetId, setPresetId] = useState<string>("lox-rp1");
+  const applyPreset = (id: string) => {
+    const p = PROPELLANT_SPECS.find((x) => x.id === id);
+    if (!p) return;
+    setPresetId(id);
+    setPc(String(p.PcTypical));
+    setGamma(String(p.gamma));
+    setThrottleTc(String(p.Tc));
+    setThrottleMolar(String(p.M_molar));
+    setBCstar(String(p.cStar));
+  };
+
+  // --- Atmosphere → Pa from altitude ---
+  const [altKm, setAltKm] = useState("0");
+  const applyAltitudeToPa = () => {
+    const h = parseFloat(altKm) * 1000;
+    if (!Number.isFinite(h) || h < 0 || h > 86000) return;
+    try {
+      const atm = calculateAtmosphere(h);
+      setPa(String(Math.round(atm.pressure)));
+    } catch { /* ignore */ }
+  };
+
+  // --- SL-opt vs Alt-opt nozzle dual sweep ---
+  const [epsSL, setEpsSL] = useState("16");
+  const [epsAlt, setEpsAlt] = useState("80");
+  const slVsAltData = useMemo(() => {
+    const Pc = parseFloat(pc);
+    const Tc = parseFloat(throttleTc);
+    const Mm = parseFloat(throttleMolar);
+    const g = parseFloat(gamma);
+    const eSL = parseFloat(epsSL), eAlt = parseFloat(epsAlt);
+    if (!(Pc > 0 && Tc > 0 && Mm > 0 && g > 1 && eSL > 1 && eAlt > 1)) return [];
+    const out: Array<{ h: number; ispSL: number; ispAlt: number }> = [];
+    for (let h = 0; h <= 80000; h += 4000) {
+      try {
+        const atm = calculateAtmosphere(h);
+        const Pa = atm.pressure;
+        const a = calculateRocketEngine({ Pc, Tc, At: 0.01, epsilon: eSL, Pa, gamma: g, M_molar: Mm });
+        const b = calculateRocketEngine({ Pc, Tc, At: 0.01, epsilon: eAlt, Pa, gamma: g, M_molar: Mm });
+        out.push({ h: h / 1000, ispSL: a.Isp, ispAlt: b.Isp });
+      } catch { /* skip */ }
+    }
+    return out;
+  }, [pc, throttleTc, throttleMolar, gamma, epsSL, epsAlt]);
+
+  // --- Nozzle-type efficiency comparison ---
+  const [coneAngle, setConeAngle] = useState("15");
+  const nozzleCompareData = useMemo(() => {
+    const ang = parseFloat(coneAngle);
+    const out: Array<{ epsilon: number; bell: number; conical: number; aerospike: number }> = [];
+    for (let e = 2; e <= 200; e *= 1.2) {
+      out.push({
+        epsilon: +e.toFixed(2),
+        bell: nozzleTypeEfficiency("bell", e, ang),
+        conical: nozzleTypeEfficiency("conical", e, ang),
+        aerospike: nozzleTypeEfficiency("aerospike", e, ang),
+      });
+    }
+    return out;
+  }, [coneAngle]);
+
+  // --- Real-gas / equilibrium uplift ---
+  const [useEquilibrium, setUseEquilibrium] = useState(false);
+  const eqFactor = useMemo(
+    () => equilibriumIspFactor(parseFloat(throttleTc)),
+    [throttleTc]
+  );
+
+  // --- Shock diamond count ---
+  const diamonds = useMemo(
+    () => shockDiamondCount(parseFloat(pe), parseFloat(pa), parseFloat(throttleEps)),
+    [pe, pa, throttleEps]
+  );
+
   const exportThrottle = () => {
     if (!throttleData.length) return;
     downloadCSV("throttling_sweep.csv", toCSV(throttleData));
