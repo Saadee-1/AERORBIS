@@ -218,13 +218,53 @@ export default function RocketAdvancedPanel({ tier, defaults }: Props) {
       icon={Sparkles}
     >
       <Tabs defaultValue="opt" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 bg-muted/50 mb-4 h-auto">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-muted/50 mb-4 h-auto">
+          <TabsTrigger value="presets" className="text-xs"><Beaker className="w-3 h-3 mr-1" />Presets</TabsTrigger>
           <TabsTrigger value="opt" className="text-xs"><Gauge className="w-3 h-3 mr-1" />Optimum ε</TabsTrigger>
           <TabsTrigger value="throttle" className="text-xs"><Activity className="w-3 h-3 mr-1" />Throttling</TabsTrigger>
           <TabsTrigger value="profile" className="text-xs"><Layers className="w-3 h-3 mr-1" />Nozzle Profile</TabsTrigger>
+          <TabsTrigger value="slalt" className="text-xs"><Mountain className="w-3 h-3 mr-1" />SL vs Alt</TabsTrigger>
+          <TabsTrigger value="compare" className="text-xs"><GitCompare className="w-3 h-3 mr-1" />Nozzle Type</TabsTrigger>
           {tier === "Expert" && <TabsTrigger value="stage" className="text-xs"><Zap className="w-3 h-3 mr-1" />Stages (ΔV)</TabsTrigger>}
-          {tier === "Expert" && <TabsTrigger value="heat" className="text-xs"><Flame className="w-3 h-3 mr-1" />Heat / Sep</TabsTrigger>}
+          {tier === "Expert" && <TabsTrigger value="heat" className="text-xs"><Flame className="w-3 h-3 mr-1" />Heat / Sep / Diamonds</TabsTrigger>}
         </TabsList>
+
+        {/* ============ Presets / Atmosphere link ============ */}
+        <TabsContent value="presets" className="space-y-4">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase mb-2">Propellant preset auto-fill</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+              <div className="md:col-span-2">
+                <Label className="text-xs">Propellant</Label>
+                <Select value={presetId} onValueChange={applyPreset}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PROPELLANT_SPECS.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name} — {p.notes}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <AeroButton variant="outline" onClick={() => applyPreset(presetId)}>Apply</AeroButton>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Sets Pc, γ, Tc, M_molar, c* in all panels below.
+            </p>
+          </div>
+          <div className="border-t border-border/50 pt-3">
+            <p className="text-xs text-muted-foreground uppercase mb-2">Atmosphere → Pa (ISA cross-link)</p>
+            <div className="grid grid-cols-3 gap-2 items-end">
+              <div className="col-span-2">
+                <Label className="text-xs">Altitude (km, 0–86)</Label>
+                <Input type="number" value={altKm} onChange={(e) => setAltKm(e.target.value)} step="1" />
+              </div>
+              <AeroButton variant="outline" onClick={applyAltitudeToPa}>Set Pa</AeroButton>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Current Pa: <span className="font-mono text-primary">{fmt(parseFloat(pa), 0)} Pa</span> (auto-applied to Optimum ε, Throttling, Heat/Sep).
+            </p>
+          </div>
+        </TabsContent>
 
         {/* ============ Optimum ε ============ */}
         <TabsContent value="opt" className="space-y-3">
