@@ -256,15 +256,40 @@ export default function AircraftAdvancedPanel({ tier, defaults }: Props) {
         <div><Label className="text-[10px]">Thrust SL (N)</Label><Input value={thrustN} onChange={(e) => setThrustN(e.target.value)} type="number" /></div>
       </div>
 
-      <Tabs defaultValue="polar" className="w-full">
-        <TabsList className="grid grid-cols-3 md:grid-cols-6 bg-muted/50 mb-4 h-auto">
+      <Tabs defaultValue="presets" className="w-full">
+        <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-10 bg-muted/50 mb-4 h-auto">
+          <TabsTrigger value="presets" className="text-xs"><Beaker className="w-3 h-3 mr-1" />Presets</TabsTrigger>
           <TabsTrigger value="polar" className="text-xs"><Activity className="w-3 h-3 mr-1" />Drag Polar</TabsTrigger>
           <TabsTrigger value="ceiling" className="text-xs"><Gauge className="w-3 h-3 mr-1" />Ceiling</TabsTrigger>
           <TabsTrigger value="breguet" className="text-xs"><Plane className="w-3 h-3 mr-1" />Breguet</TabsTrigger>
+          <TabsTrigger value="envelope" className="text-xs"><BarChart3 className="w-3 h-3 mr-1" />T vs Mach</TabsTrigger>
+          <TabsTrigger value="sizing" className="text-xs"><LayoutGrid className="w-3 h-3 mr-1" />Sizing</TabsTrigger>
+          <TabsTrigger value="mission" className="text-xs"><Route className="w-3 h-3 mr-1" />Mission</TabsTrigger>
           {tier === "Expert" && <TabsTrigger value="vn" className="text-xs"><Wind className="w-3 h-3 mr-1" />V-n</TabsTrigger>}
           {tier === "Expert" && <TabsTrigger value="lapse" className="text-xs"><Rocket className="w-3 h-3 mr-1" />Lapse</TabsTrigger>}
           {tier === "Expert" && <TabsTrigger value="turn" className="text-xs"><Activity className="w-3 h-3 mr-1" />Turn</TabsTrigger>}
         </TabsList>
+
+        {/* ----- Presets ----- */}
+        <TabsContent value="presets" className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+            <div className="md:col-span-2">
+              <Label className="text-xs">Aircraft preset</Label>
+              <Select value={presetId} onValueChange={applyPreset}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {AIRCRAFT_PRESETS.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name} ({p.category}) — {p.notes}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <AeroButton variant="outline" onClick={() => applyPreset(presetId)}>Apply</AeroButton>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Auto-fills CD₀, k, W, S, T₀, CLmax, V_cruise and engine class across all Advanced tabs.
+          </p>
+        </TabsContent>
 
         {/* ----- Drag polar ----- */}
         <TabsContent value="polar" className="space-y-3">
