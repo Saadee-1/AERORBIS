@@ -451,6 +451,52 @@ export default function RocketAdvancedPanel({ tier, defaults }: Props) {
                 </p>
               </div>
             </div>
+
+            {/* Shock diamonds */}
+            <div className="border-t border-border/50 pt-3">
+              <p className="text-xs text-muted-foreground mb-2 uppercase">Shock-diamond visualization</p>
+              <div className="flex items-center gap-2 p-3 rounded border border-border/50 bg-muted/20 overflow-hidden">
+                {diamonds === 0 ? (
+                  <span className="text-xs text-emerald-400">✓ Ideally expanded — no diamonds expected</span>
+                ) : (
+                  <>
+                    <div className="flex gap-1 flex-1">
+                      {Array.from({ length: diamonds }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-6 flex-1 rounded-sm"
+                          style={{
+                            background: `linear-gradient(90deg, transparent, hsl(${280 - i * 12} 90% 55% / 0.9), transparent)`,
+                            transform: `scaleX(${1 - i * 0.04})`,
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">{diamonds} cells</span>
+                  </>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Empirical fit from |ln(Pe/Pa)| and ε. Off-design flow forms repeating expansion/compression cells.
+              </p>
+            </div>
+
+            {/* Real-gas / equilibrium toggle */}
+            <div className="border-t border-border/50 pt-3">
+              <p className="text-xs text-muted-foreground mb-2 uppercase">Real-gas (equilibrium vs frozen)</p>
+              <div className="flex items-center justify-between p-3 rounded border border-border/50 bg-muted/20">
+                <div className="text-xs">
+                  <p className="font-semibold">{useEquilibrium ? "Equilibrium flow" : "Frozen flow (default)"}</p>
+                  <p className="text-muted-foreground">
+                    Equilibrium Isp uplift ≈ <span className="font-mono text-primary">{((eqFactor - 1) * 100).toFixed(2)}%</span> at Tc = {fmt(parseFloat(throttleTc), 0)} K
+                  </p>
+                </div>
+                <Switch checked={useEquilibrium} onCheckedChange={setUseEquilibrium} />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Frozen = composition fixed at chamber; Equilibrium = continual recombination releases extra energy in the nozzle (Sutton §5).
+              </p>
+            </div>
           </TabsContent>
         )}
       </Tabs>
