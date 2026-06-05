@@ -20,7 +20,7 @@ import { AeroButton } from "@/components/common/AeroButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Flame, Gauge, Layers, Sparkles, Zap, Activity, Download } from "lucide-react";
+import { Flame, Gauge, Layers, Sparkles, Zap, Activity, Download, Beaker, GitCompare, Atom, Mountain } from "lucide-react";
 import {
   optimumEpsilon,
   bartzHeatFlux,
