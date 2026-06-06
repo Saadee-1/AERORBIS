@@ -32,6 +32,7 @@ import {
   ReferenceLine, Legend, Area, ComposedChart,
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertTriangle, Info } from "lucide-react";
 
 type Tier = "Beginner" | "University" | "Expert";
 
@@ -241,6 +242,27 @@ export default function AircraftAdvancedPanel({ tier, defaults }: Props) {
 
   const colors = ["hsl(var(--primary))", "#3b82f6", "#f59e0b", "#10b981", "#ef4444"];
 
+  // --- Unit-consistency sanity checks ---
+  const warnings = useMemo(() => {
+    const w: string[] = [];
+    const W = parseFloat(weightN), S = parseFloat(wingAreaM2), T = parseFloat(thrustN);
+    const V = parseFloat(vCruiseMs), H = parseFloat(envAlt);
+    const W0v = parseFloat(w0), W1v = parseFloat(w1);
+    if (!(W > 0)) w.push("Weight must be > 0 N.");
+    if (!(S > 0)) w.push("Wing area must be > 0 m².");
+    if (!(T > 0)) w.push("Sea-level thrust must be > 0 N.");
+    if (W > 0 && W < 500) w.push("Weight looks small — confirm value is in Newtons, not kg.");
+    if (T > 0 && T < 50) w.push("Thrust looks small — confirm value is in Newtons, not kgf.");
+    if (V > 350) w.push(`V_cruise = ${V.toFixed(0)} m/s seems high (Mach ≈ ${(V/340).toFixed(2)} at SL).`);
+    if (H < 0 || H > 25000) w.push("Altitude outside 0–25 000 m envelope used by the atmosphere model.");
+    if (W0v > 0 && W1v >= W0v) w.push("Breguet requires W₁ < W₀ (final < initial weight).");
+    if (engClass === "turboprop" && parseFloat(envAlt) >= 0 && machMax > 0.7) w.push("Turboprop sweep beyond M ≈ 0.7 is non-physical.");
+    if (currentWS > 0 && currentWS > sizing.landingWSMax) w.push(`Design W/S (${currentWS.toFixed(0)} N/m²) exceeds landing limit (${sizing.landingWSMax.toFixed(0)} N/m²).`);
+    const floorAtPoint = sizingFeas.reduce((acc, p) => Math.abs(p.ws - currentWS) < Math.abs(acc.ws - currentWS) ? p : acc, sizingFeas[0]);
+    if (floorAtPoint && currentTW > 0 && currentTW < floorAtPoint.minTW) w.push(`Design T/W (${currentTW.toFixed(3)}) below feasibility floor (${floorAtPoint.minTW.toFixed(3)}).`);
+    return w;
+  }, [weightN, wingAreaM2, thrustN, vCruiseMs, envAlt, w0, w1, engClass, machMax, currentWS, currentTW, sizing.landingWSMax, sizingFeas]);
+
   return (
     <AeroCard
       title="Advanced Aircraft Analysis"
@@ -255,6 +277,32 @@ export default function AircraftAdvancedPanel({ tier, defaults }: Props) {
         <div><Label className="text-[10px]">Wing area (m²)</Label><Input value={wingAreaM2} onChange={(e) => setWingAreaM2(e.target.value)} type="number" /></div>
         <div><Label className="text-[10px]">Thrust SL (N)</Label><Input value={thrustN} onChange={(e) => setThrustN(e.target.value)} type="number" /></div>
       </div>
+
+      {/* Units legend */}
+      <div className="mb-3 p-2 rounded border border-border/40 bg-muted/10 flex items-start gap-2">
+        <Info className="w-3.5 h-3.5 mt-0.5 text-primary flex-shrink-0" />
+        <div className="text-[10px] text-muted-foreground leading-relaxed">
+          <span className="font-semibold text-foreground">Units (SI):</span>{" "}
+          Altitude <span className="text-primary">m</span> · Speed <span className="text-primary">m/s</span> ·
+          Mach <span className="text-primary">dimensionless</span> · Weight/Thrust <span className="text-primary">N</span> ·
+          Wing area <span className="text-primary">m²</span> · W/S <span className="text-primary">N/m²</span>
+          {" "}(V-n internally uses kg/m²) · T/W <span className="text-primary">dimensionless</span> ·
+          TSFC/BSFC <span className="text-primary">1/s</span> · ROC <span className="text-primary">m/s</span> (100 fpm ≈ 0.508 m/s).
+        </div>
+      </div>
+
+      {/* Sanity warnings */}
+      {warnings.length > 0 && (
+        <div className="mb-3 p-2 rounded border border-yellow-500/40 bg-yellow-500/10">
+          <div className="flex items-center gap-1.5 mb-1">
+            <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
+            <span className="text-[11px] font-semibold text-yellow-400">Sanity checks ({warnings.length})</span>
+          </div>
+          <ul className="text-[10px] text-yellow-200/90 space-y-0.5 list-disc list-inside">
+            {warnings.map((m, i) => <li key={i}>{m}</li>)}
+          </ul>
+        </div>
+      )}
 
       <Tabs defaultValue="presets" className="w-full">
         <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-10 bg-muted/50 mb-4 h-auto">
