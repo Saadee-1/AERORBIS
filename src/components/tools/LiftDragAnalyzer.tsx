@@ -57,6 +57,7 @@ import { useChartExport } from "@/hooks/useChartExport";
 import { ChartExportButtons } from "@/components/charts/ChartExportButtons";
 import { isaAtAltitudeMeters } from "./utils/isaAtmosphere";
 import { LDAdvancedPanel } from "@/components/tools/ld/LDAdvancedPanel";
+import { LDPerformancePanel } from "@/components/tools/ld/LDPerformancePanel";
 
 interface LiftDragAnalyzerProps {
   onSelectionChange?: (baseAirfoilId: string, comparedAirfoilIds: string[]) => void;
@@ -2341,6 +2342,23 @@ const point: Record<string, unknown> = { alpha };
             b={parseFloat(inputs.wingSpan) || 1}
             velocity_ms={parseFloat(inputs.airspeed) || 1}
             density={parseFloat(inputs.airDensity) || 1.225}
+          />
+        </div>
+      )}
+
+      {/* ─── Phase 2: Performance Envelope Panel ─── */}
+      {result && (
+        <div className="mt-6">
+          <LDPerformancePanel
+            cl={polarData?.cl ?? []}
+            cd={polarData?.cd ?? []}
+            AR={result.aspectRatio}
+            e={parseFloat(inputs.oswaldEfficiency) || 0.85}
+            S={parseFloat(inputs.wingArea) || 1}
+            b={parseFloat(inputs.wingSpan) || 1}
+            velocity_ms={parseFloat(inputs.airspeed) || 1}
+            density={parseFloat(inputs.airDensity) || 1.225}
+            CL_max={(AIRFOIL_DATA as Record<string, { CL_max?: number }>)[inputs.airfoil]?.CL_max ?? 1.5}
           />
         </div>
       )}
