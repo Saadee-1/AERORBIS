@@ -173,7 +173,7 @@ export type SlatType = 'none' | 'fixed' | 'leadingedge' | 'krueger';
 /** ΔCL_max from flap deflection. Raymer/Roskam empirical. */
 export interface HighLiftDelta {
   dClMax: number;
-  dCd0: number;
+  dCD0: number;
   dAlphaStall_deg: number; // shift in α_stall
 }
 
@@ -211,7 +211,7 @@ export function highLiftDelta(params: {
 
   return {
     dClMax: dClMaxFlap + sc.dClMax,
-    dCd0: dCd0Flap + sc.dCd0,
+    dCD0: dCd0Flap + sc.dCd0,
     dAlphaStall_deg: dAlphaFlap + sc.alphaShift,
   };
 }
