@@ -2364,6 +2364,34 @@ const point: Record<string, unknown> = { alpha };
         </div>
       )}
 
+      {/* ─── Phase 3 & 4: Presets, Drag Breakdown, Sensitivity, Solver, Interlinks ─── */}
+      {result && (
+        <div className="mt-6">
+          <LDExtrasPanel
+            CL={result.CL}
+            CD={result.CD}
+            AR={result.aspectRatio}
+            e={parseFloat(inputs.oswaldEfficiency) || 0.85}
+            S={parseFloat(inputs.wingArea) || 1}
+            b={parseFloat(inputs.wingSpan) || 1}
+            velocity_ms={parseFloat(inputs.airspeed) || 1}
+            density={parseFloat(inputs.airDensity) || 1.225}
+            k_factor={result.k_factor}
+            CL_max={(AIRFOIL_DATA as Record<string, { CL_max?: number }>)[inputs.airfoil]?.CL_max ?? 1.5}
+            onApplyPreset={(p) => setInputs(prev => ({
+              ...prev,
+              wingArea: String(p.wingArea),
+              wingSpan: String(p.wingSpan),
+              airspeed: String(p.airspeed),
+              airDensity: String(p.airDensity),
+              oswaldEfficiency: String(p.oswaldEfficiency),
+              angleOfAttack: String(p.angleOfAttack),
+            }))}
+            onImportField={(field, value) => setInputs(prev => ({ ...prev, [field]: String(value) }))}
+          />
+        </div>
+      )}
+
     </ToolWrapper>
   );
 };
