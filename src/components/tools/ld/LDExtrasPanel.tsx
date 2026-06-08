@@ -16,17 +16,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AeroCard } from "@/components/common/AeroCard";
 import { ChartCard } from "@/components/charts/ChartCard";
-import { AlertTriangle, Plane, Layers, TrendingUp, Calculator, Ruler, Link as LinkIcon } from "lucide-react";
+import { AlertTriangle, Plane, Layers, TrendingUp, Calculator, Ruler, Link as LinkIcon, Send, Undo2 } from "lucide-react";
 import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
+import { importDataToSession } from "@/components/tools/utils/interlink";
+import { FIELD_KEYS, type FieldKey } from "@/components/tools/utils/interlinkConfig";
 import { AIRCRAFT_PRESETS, type AircraftPreset } from "@/lib/ld/aircraftPresets";
 import { dragBreakdownSweep } from "@/lib/ld/dragBreakdown";
 import { sensitivitySweep, type SensitivityParam } from "@/lib/ld/sensitivity";
 import { solveLift, type LdSolveVar } from "@/lib/ld/ldSolver";
 
 const fmt = (v: number, d = 3) => (Number.isFinite(v) ? v.toFixed(d) : "—");
+const g0 = 9.80665;
 
 export interface LDExtrasPanelProps {
   CL: number;
