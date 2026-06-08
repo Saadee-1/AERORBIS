@@ -265,12 +265,9 @@ export function LDExtrasPanel(props: LDExtrasPanelProps) {
             <Button
               size="sm"
               disabled={!presetId || !onApplyPreset}
-              onClick={() => {
-                const p = AIRCRAFT_PRESETS.find(x => x.id === presetId);
-                if (p && onApplyPreset) onApplyPreset(p);
-              }}
+              onClick={() => setPresetPreviewOpen(true)}
             >
-              Apply to Inputs
+              Preview & Apply
             </Button>
           </div>
           {presetId && (() => {
@@ -408,38 +405,181 @@ export function LDExtrasPanel(props: LDExtrasPanelProps) {
         {/* ── Interlinks ── */}
         <TabsContent value="interlinks" className="space-y-3 pt-3">
           <p className="text-xs text-muted-foreground">
-            Quick-import current cruise-state values into companion tools (Wing Loading, Thrust calculators).
+            Auto-transfer current cruise-state values to companion tools. Review the preview
+            below, deselect anything you don’t want to send, then confirm.
           </p>
+
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <Cell label="W/S [N/m²]" v={wingLoading} />
             <Cell label="W [N] (implied)" v={W_N} />
-            <Cell label="CL_max" v={CL_max} />
-            <Cell label="L/D current" v={CD > 0 ? CL / CD : NaN} />
+            <Cell label="V_s [m/s]" v={stallSpeedMs} />
+            <Cell label="L/D current" v={LD_current} />
             <Cell label="Mach (SL)" v={mach} />
             <Cell label="q [Pa]" v={0.5 * density * velocity_ms * velocity_ms} />
           </div>
-          {onImportField && (
-            <div className="flex gap-2 flex-wrap pt-2">
-              <Button size="sm" variant="outline" onClick={() => onImportField('oswaldEfficiency', e)}>
-                Push e → input
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => onImportField('airDensity', density)}>
-                Push ρ → input
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => onImportField('airspeed', velocity_ms)}>
-                Push V → input
-              </Button>
-            </div>
-          )}
+
+          <div className="flex gap-2 flex-wrap pt-2">
+            <Button size="sm" onClick={openPushDialog}>
+              <Send className="h-3 w-3 mr-1" /> Push to Tools…
+            </Button>
+            {onImportField && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => { onImportField('oswaldEfficiency', e); toast.success('Pushed e to input.'); }}>
+                  e → input
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => { onImportField('airDensity', density); toast.success('Pushed ρ to input.'); }}>
+                  ρ → input
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => { onImportField('airspeed', velocity_ms); toast.success('Pushed V to input.'); }}>
+                  V → input
+                </Button>
+              </>
+            )}
+          </div>
+
           <Alert>
             <LinkIcon className="h-4 w-4" />
             <AlertDescription className="text-xs">
-              Tip: copy W/S into the Wing Loading Calculator and L/D into the Thrust Calculator’s T/W tab
-              for a coupled cruise-performance analysis.
+              Push writes to the shared design session — Wing Loading, Thrust, Climb and Atmosphere
+              tools will pick up the values automatically via their inline import hints.
             </AlertDescription>
           </Alert>
         </TabsContent>
       </Tabs>
+
+      {/* ── Push-to-Tools confirmation dialog ── */}
+      <Dialog open={pushOpen} onOpenChange={setPushOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-4 w-4 text-primary" />
+              Confirm transfer to companion tools
+            </DialogTitle>
+            <DialogDescription>
+              Review each field before pushing. Existing session values will be overwritten;
+              use the toast’s “Undo” to revert.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[55vh] overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10"></TableHead>
+                  <TableHead>Field</TableHead>
+                  <TableHead className="text-right">Current</TableHead>
+                  <TableHead className="text-right">New</TableHead>
+                  <TableHead>Targets</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transferRows.map(r => {
+                  const cur = (currentSession as Record<string, unknown>)[r.key];
+                  const curNum = typeof cur === 'number' ? cur : (typeof cur === 'string' ? parseFloat(cur) : NaN);
+                  return (
+                    <TableRow key={r.key} className={!r.valid ? 'opacity-50' : ''}>
+                      <TableCell>
+                        <Checkbox
+                          checked={!!selected[r.key]}
+                          disabled={!r.valid}
+                          onCheckedChange={(c) => setSelected(s => ({ ...s, [r.key]: !!c }))}
+                        />
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <div className="font-medium">{r.label}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono">{r.key} [{r.unit}]</div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs">
+                        {Number.isFinite(curNum) ? curNum.toPrecision(4) : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs text-primary">
+                        {r.valid ? r.value.toPrecision(4) : <span className="text-destructive">invalid</span>}
+                      </TableCell>
+                      <TableCell className="text-[10px] text-muted-foreground">
+                        {r.targets.join(' · ')}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="ghost" size="sm" onClick={() => {
+              const all: Record<string, boolean> = {};
+              transferRows.forEach(r => { all[r.key] = r.valid; });
+              setSelected(all);
+            }}>Select all</Button>
+            <Button variant="ghost" size="sm" onClick={() => setSelected({})}>Clear</Button>
+            <Button variant="outline" size="sm" onClick={() => setPushOpen(false)}>Cancel</Button>
+            <Button size="sm" onClick={handleConfirmPush}>
+              <Send className="h-3 w-3 mr-1" /> Confirm Push
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Preset Apply confirmation dialog ── */}
+      <Dialog open={presetPreviewOpen} onOpenChange={setPresetPreviewOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plane className="h-4 w-4 text-primary" />
+              Apply preset to inputs
+            </DialogTitle>
+            <DialogDescription>
+              The following analyzer inputs will be replaced with preset values.
+            </DialogDescription>
+          </DialogHeader>
+          {(() => {
+            const p = AIRCRAFT_PRESETS.find(x => x.id === presetId);
+            if (!p) return null;
+            const rows: Array<[string, number, number, string]> = [
+              ['Wing area S',       S,            p.wingArea,         'm²'],
+              ['Wing span b',       b,            p.wingSpan,         'm'],
+              ['Airspeed V',        velocity_ms,  p.airspeed,         'm/s'],
+              ['Air density ρ',     density,      p.airDensity,       'kg/m³'],
+              ['Oswald eff. e',     e,            p.oswaldEfficiency, '—'],
+            ];
+            return (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Input</TableHead>
+                    <TableHead className="text-right">Current</TableHead>
+                    <TableHead className="text-right">Preset</TableHead>
+                    <TableHead>Unit</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map(([lbl, cur, nxt, u]) => (
+                    <TableRow key={lbl}>
+                      <TableCell className="text-xs">{lbl}</TableCell>
+                      <TableCell className="text-right font-mono text-xs">{fmt(cur, 3)}</TableCell>
+                      <TableCell className="text-right font-mono text-xs text-primary">{fmt(nxt, 3)}</TableCell>
+                      <TableCell className="text-[10px] text-muted-foreground">{u}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            );
+          })()}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => setPresetPreviewOpen(false)}>Cancel</Button>
+            <Button size="sm" onClick={() => {
+              const p = AIRCRAFT_PRESETS.find(x => x.id === presetId);
+              if (p && onApplyPreset) {
+                onApplyPreset(p);
+                toast.success(`Applied preset: ${p.name}`);
+              }
+              setPresetPreviewOpen(false);
+            }}>
+              <Undo2 className="h-3 w-3 mr-1 rotate-180" /> Apply preset
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AeroCard>
   );
 }
