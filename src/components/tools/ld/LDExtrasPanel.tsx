@@ -29,7 +29,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { importDataToSession } from "@/components/tools/utils/interlink";
+import { importDataToSession, getAvailableDataAny } from "@/components/tools/utils/interlink";
 import { FIELD_KEYS, type FieldKey } from "@/components/tools/utils/interlinkConfig";
 import { AIRCRAFT_PRESETS, type AircraftPreset } from "@/lib/ld/aircraftPresets";
 import { dragBreakdownSweep } from "@/lib/ld/dragBreakdown";
@@ -167,14 +167,11 @@ export function LDExtrasPanel(props: LDExtrasPanelProps) {
   };
 
   // Read current designSession for preview "current value" column
-  const currentSession = useMemo(() => {
-    if (typeof window === 'undefined') return {} as Record<string, unknown>;
-    try {
-      const raw = localStorage.getItem('aerorbis_design_session');
-      return raw ? JSON.parse(raw) as Record<string, unknown> : {};
-    } catch { return {}; }
+  const currentSession = useMemo(
+    () => getAvailableDataAny() as Record<string, unknown>,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pushOpen]);
+    [pushOpen]
+  );
 
   const handleConfirmPush = () => {
     const payload: Partial<Record<FieldKey, number>> = {};
