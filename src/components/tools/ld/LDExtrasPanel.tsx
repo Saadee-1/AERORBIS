@@ -112,7 +112,7 @@ export function LDExtrasPanel(props: LDExtrasPanelProps) {
   const [presetId, setPresetId] = useState<string>('');
 
   return (
-    <AeroCard variant="default" hover={false} className="p-4 sm:p-6 space-y-4">
+    <AeroCard className="p-4 sm:p-6 space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h3 className="font-display tracking-wider text-primary text-lg uppercase">
