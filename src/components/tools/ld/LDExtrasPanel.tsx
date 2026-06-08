@@ -121,6 +121,87 @@ export function LDExtrasPanel(props: LDExtrasPanelProps) {
 
   // ── Preset selection ──
   const [presetId, setPresetId] = useState<string>('');
+  const [presetPreviewOpen, setPresetPreviewOpen] = useState(false);
+
+  // ── Push-to-Tools (cross-tool transfer) ──
+  type TransferKey =
+    | typeof FIELD_KEYS.cd0 | typeof FIELD_KEYS.k | typeof FIELD_KEYS.clMax
+    | typeof FIELD_KEYS.ldClimb | typeof FIELD_KEYS.wingAreaM2 | typeof FIELD_KEYS.densityKgM3
+    | typeof FIELD_KEYS.wingLoadingKgm2 | typeof FIELD_KEYS.stallSpeedMs | typeof FIELD_KEYS.weightN;
+
+  interface TransferRow {
+    key: TransferKey;
+    label: string;
+    value: number;
+    unit: string;
+    targets: string[];     // human-readable target tools
+    valid: boolean;
+  }
+
+  const wingLoadingKgm2 = wingLoading > 0 ? wingLoading / g0 : NaN;
+  const stallSpeedMs = (CL_max > 0 && density > 0 && wingLoading > 0)
+    ? Math.sqrt((2 * wingLoading) / (density * CL_max))
+    : NaN;
+  const LD_current = CD > 0 ? CL / CD : NaN;
+
+  const transferRows: TransferRow[] = useMemo(() => [
+    { key: FIELD_KEYS.cd0,             label: 'Parasite drag CD₀',  value: CD0_base,      unit: '—',     targets: ['Climb', 'Thrust Loading'], valid: CD0_base > 0 },
+    { key: FIELD_KEYS.k,               label: 'Induced factor k',   value: k,             unit: '—',     targets: ['Climb'],                   valid: k > 0 },
+    { key: FIELD_KEYS.clMax,           label: 'CL max',             value: CL_max,        unit: '—',     targets: ['Wing Loading', 'Climb'],   valid: CL_max > 0 },
+    { key: FIELD_KEYS.ldClimb,         label: 'L/D (cruise)',       value: LD_current,    unit: '—',     targets: ['Climb', 'Thrust'],         valid: Number.isFinite(LD_current) && LD_current > 0 },
+    { key: FIELD_KEYS.wingAreaM2,      label: 'Wing area S',        value: S,             unit: 'm²',    targets: ['Wing Loading', 'Thrust Loading'], valid: S > 0 },
+    { key: FIELD_KEYS.densityKgM3,     label: 'Air density ρ',      value: density,       unit: 'kg/m³', targets: ['Climb', 'Thrust', 'Atmosphere'], valid: density > 0 },
+    { key: FIELD_KEYS.weightN,         label: 'Weight W (implied)', value: W_N,           unit: 'N',     targets: ['Wing Loading', 'Thrust Loading'], valid: W_N > 0 },
+    { key: FIELD_KEYS.wingLoadingKgm2, label: 'Wing loading W/S',   value: wingLoadingKgm2, unit: 'kg/m²', targets: ['Wing Loading', 'Thrust Loading'], valid: Number.isFinite(wingLoadingKgm2) && wingLoadingKgm2 > 0 },
+    { key: FIELD_KEYS.stallSpeedMs,    label: 'Stall speed V_s',    value: stallSpeedMs,  unit: 'm/s',   targets: ['Wing Loading', 'Climb'],   valid: Number.isFinite(stallSpeedMs) && stallSpeedMs > 0 },
+  ], [CD0_base, k, CL_max, LD_current, S, density, W_N, wingLoadingKgm2, stallSpeedMs]);
+
+  const [pushOpen, setPushOpen] = useState(false);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  // pre-select all valid rows when dialog opens
+  const openPushDialog = () => {
+    const init: Record<string, boolean> = {};
+    transferRows.forEach(r => { init[r.key] = r.valid; });
+    setSelected(init);
+    setPushOpen(true);
+  };
+
+  // Read current designSession for preview "current value" column
+  const currentSession = useMemo(() => {
+    if (typeof window === 'undefined') return {} as Record<string, unknown>;
+    try {
+      const raw = localStorage.getItem('aerorbis_design_session');
+      return raw ? JSON.parse(raw) as Record<string, unknown> : {};
+    } catch { return {}; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pushOpen]);
+
+  const handleConfirmPush = () => {
+    const payload: Partial<Record<FieldKey, number>> = {};
+    let count = 0;
+    transferRows.forEach(r => {
+      if (selected[r.key] && r.valid) {
+        payload[r.key as FieldKey] = +r.value.toFixed(6);
+        count++;
+      }
+    });
+    if (count === 0) {
+      toast.error('No fields selected to push.');
+      return;
+    }
+    const prev = importDataToSession(payload as Record<string, number | string>);
+    setPushOpen(false);
+    toast.success(`Pushed ${count} value${count === 1 ? '' : 's'} to companion tools.`, {
+      description: 'Open Wing Loading, Thrust, or Climb to see the imported values.',
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          importDataToSession(prev as Record<string, number | string>);
+          toast.message('Push reverted.');
+        },
+      },
+    });
+  };
 
   return (
     <AeroCard className="p-4 sm:p-6 space-y-4">
