@@ -58,6 +58,7 @@ import { ChartExportButtons } from "@/components/charts/ChartExportButtons";
 import { isaAtAltitudeMeters } from "./utils/isaAtmosphere";
 import { LDAdvancedPanel } from "@/components/tools/ld/LDAdvancedPanel";
 import { LDPerformancePanel } from "@/components/tools/ld/LDPerformancePanel";
+import { LDExtrasPanel } from "@/components/tools/ld/LDExtrasPanel";
 
 interface LiftDragAnalyzerProps {
   onSelectionChange?: (baseAirfoilId: string, comparedAirfoilIds: string[]) => void;
