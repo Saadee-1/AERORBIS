@@ -159,7 +159,7 @@ const thrustSchema = z.object({
 const RocketThrustCalculator = () => {
   const { toast } = useToast();
   const { updateToolContext, sendCalculationEvent } = useToolContext();
-  const { data: designSession } = useDesignSession();
+  const { data: designSession, updateDesignSession } = useDesignSession();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("SI");
@@ -509,6 +509,15 @@ const RocketThrustCalculator = () => {
       };
 
       setResult(calcResult);
+
+      // Publish thrust to design session so other tools (Climb, Thrust Loading) can consume it
+      if (Number.isFinite(resultThrust) && resultThrust > 0) {
+        updateDesignSession({
+          totalThrustN: resultThrust,
+          perEngineThrustN: resultThrust,
+          numEngines: 1,
+        });
+      }
 
       const payload = buildAeroversePayload({
         toolName: "Thrust Calculator",
