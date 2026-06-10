@@ -77,21 +77,31 @@ const SUGGESTIONS: { label: string; prompt: string; tag: string }[] = [
   { tag: "Doppler",     label: "Doppler shift",     prompt: "Doppler shift on a 5 GHz link when relative closing velocity is 250 m/s." },
 ];
 
+function parseStructuredFields(parsed: Record<string, unknown>): SolverStructured {
+  return {
+    summary: (parsed.summary as string) || '',
+    numeric_result: parsed.numeric_result
+      ? (parsed.numeric_result as { value: number | null; unit: string | null })
+      : (parsed.result !== undefined
+        ? { value: parsed.result as number | null, unit: (parsed.unit as string) || null }
+        : null),
+    steps: Array.isArray(parsed.steps) ? (parsed.steps as string[]) : [],
+    formulas: Array.isArray(parsed.formulas)
+      ? (parsed.formulas as string[])
+      : (parsed.formula ? [parsed.formula as string] : []),
+    assumptions: Array.isArray(parsed.assumptions) ? (parsed.assumptions as string[]) : [],
+    warnings: Array.isArray(parsed.warnings) ? (parsed.warnings as string[]) : [],
+    suggested_solver: (parsed.suggested_solver as string) || null,
+  };
+}
+
 function extractStructured(text: string): SolverStructured | null {
   // First try to find JSON in code blocks
   const m = text.match(/```json\s*([\s\S]*?)\s*```/i);
   if (m) {
     try {
       const parsed = JSON.parse(m[1]);
-      return {
-        summary: parsed.result ? `${parsed.result} ${parsed.unit || ''}` : parsed.summary || '',
-        numeric_result: parsed.result ? { value: parsed.result, unit: parsed.unit || null } : null,
-        steps: [],
-        formulas: parsed.formula ? [parsed.formula] : [],
-        assumptions: [],
-        warnings: [],
-        suggested_solver: null
-      };
+      return parseStructuredFields(parsed);
     } catch {
       return null;
     }
@@ -104,15 +114,7 @@ function extractStructured(text: string): SolverStructured | null {
     if (line.startsWith('{') && line.endsWith('}')) {
       try {
         const parsed = JSON.parse(line);
-        return {
-          summary: parsed.result ? `${parsed.result} ${parsed.unit || ''}` : parsed.summary || '',
-          numeric_result: parsed.result ? { value: parsed.result, unit: parsed.unit || null } : null,
-          steps: [],
-          formulas: parsed.formula ? [parsed.formula] : [],
-          assumptions: [],
-          warnings: [],
-          suggested_solver: null
-        };
+        return parseStructuredFields(parsed);
       } catch {
         continue;
       }
@@ -173,24 +175,40 @@ export const AISolverChat = ({ context }: Props) => {
 
       const endpoint = "https://api.groq.com/openai/v1/chat/completions";
 
-      const resp = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: sysPrompt },
-            ...messages.map((m) => ({ role: m.role, content: m.content })),
-            { role: "user", content: text }
-          ],
-          temperature: 0.3,
-          max_tokens: 4096,
-          stream: true,
-        }),
-      });
+      let resp: Response | null = null;
+      const maxRetries = 2;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        resp = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+              { role: "system", content: sysPrompt },
+              ...messages.map((m) => ({ role: m.role, content: m.content })),
+              { role: "user", content: text }
+            ],
+            temperature: 0.3,
+            max_tokens: 4096,
+            stream: true,
+          }),
+        });
+        // Retry on 429 or 5xx
+        if ((resp.status === 429 || resp.status >= 500) && attempt < maxRetries) {
+          const retryAfter = resp.headers.get('retry-after');
+          const delayMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : 1000 * Math.pow(2, attempt);
+          await new Promise(r => setTimeout(r, delayMs));
+          continue;
+        }
+        break;
+      }
+
+      if (!resp) {
+        throw new Error("Network error: failed to reach API");
+      }
 
       if (!resp.ok) {
         if (resp.status === 429) throw new Error("Rate limit exceeded — please wait a moment.");
@@ -245,9 +263,9 @@ export const AISolverChat = ({ context }: Props) => {
           )
         );
       } else {
-        // Handle JSON response
+        // Handle JSON response (non-streaming)
         const data = await resp.json();
-        let content = data.content || "No response generated";
+        let content = data?.choices?.[0]?.message?.content || "No response generated";
 
         // Try to extract structured data from the content
         const structured = extractStructured(content);
@@ -381,7 +399,7 @@ export const AISolverChat = ({ context }: Props) => {
         {streaming && (
           <div className="flex items-center gap-2 text-xs text-primary/70">
             <Loader2 className="h-3 w-3 animate-spin" />
-            {thinking ? "Reasoning… (Gemini is working through the derivation)" : "Streaming answer…"}
+            {thinking ? "Reasoning… (AI is working through the derivation)" : "Streaming answer…"}
           </div>
         )}
       </div>

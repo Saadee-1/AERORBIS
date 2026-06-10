@@ -60,13 +60,23 @@ export function labelForField(k: FieldKey | string) {
     wingAreaM2: 'Wing Area (m²)',
     wingLoadingKgm2: 'Wing Loading (kg/m²)',
     totalThrustN: 'Total Thrust (N)',
+    perEngineThrustN: 'Per-Engine Thrust (N)',
+    numEngines: 'Number of Engines',
     cd0: 'C_D0',
     k: 'Induced Factor (k)',
     clMax: 'CL_max',
     stallSpeedMs: 'Stall Speed (m/s)',
     densityKgM3: 'Air Density (kg/m³)',
+    pressurePa: 'Pressure (Pa)',
+    ldClimb: 'L/D (Climb)',
     vClimbVyMs: 'V_y (m/s)',
     vClimbVxMs: 'V_x (m/s)',
+    rocVyMs: 'ROC at V_y (m/s)',
+    gammaVy: 'Climb Gradient (γ)',
+    takeoffRunwayM: 'Takeoff Runway (m)',
+    clTo: 'CL (Takeoff)',
+    muRoll: 'Rolling Friction (μ)',
+    other: 'Other',
   };
   return map[k] ?? k;
 }

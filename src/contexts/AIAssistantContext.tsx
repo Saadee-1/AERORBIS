@@ -144,15 +144,6 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
     const requestId = extractRequestId(content) || currentPayload?.requestId;
     
     if (currentPayload) {
-      // Use the payload that was set via openAssistantWithPayload
-      console.log('✅ Using currentPayload from context:', {
-        toolName: currentPayload.toolName,
-        requestId: currentPayload.requestId,
-        hasInputs: Object.keys(currentPayload.inputs).length > 0,
-        hasResults: Object.keys(currentPayload.results).length > 0,
-        stepsCount: currentPayload.metadata.steps?.length || 0,
-      });
-      
       calculationContext = {
         requestId: currentPayload.requestId || requestId || `calc-${Date.now()}`,
         toolId: currentPayload.toolName,
@@ -172,13 +163,10 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
       // Fallback: Load from localStorage
       try {
         const storageKey = `calc-${requestId}`;
-        console.log('Looking for calculation data in localStorage with key:', storageKey);
         const storedData = localStorage.getItem(storageKey);
         
         if (storedData) {
-          console.log('Found stored data, parsing...');
           const parsed = JSON.parse(storedData);
-          console.log('Parsed data keys:', Object.keys(parsed));
           
           // Check if data hasn't expired
           if (!parsed.expiresAt || parsed.expiresAt > Date.now()) {
@@ -192,64 +180,44 @@ export const AIAssistantProvider: React.FC<{ children: ReactNode }> = ({ childre
               metadata: parsed.metadata || {},
               timestamp: parsed.timestamp || new Date().toISOString(),
             };
-            console.log('✅ Calculation context loaded from localStorage:', {
-              toolName: calculationContext.toolName,
-              hasInputs: Object.keys(calculationContext.inputs).length > 0,
-              hasResults: Object.keys(calculationContext.results).length > 0,
-              stepsCount: calculationContext.steps.length,
-            });
           } else {
             // Data expired, remove it
-            console.warn('❌ Calculation context expired, removing from localStorage');
             localStorage.removeItem(storageKey);
           }
-        } else {
-          console.warn(`❌ No calculation data found in localStorage for key: ${storageKey}`);
-          // Try to list all calc- keys to help debug
-          const allKeys = Object.keys(localStorage).filter(k => k.startsWith('calc-'));
-          console.log('Available calc- keys in localStorage:', allKeys);
         }
       } catch (error) {
-        console.error('❌ Error reading calculation context from localStorage:', error);
+        console.error('Error reading calculation context from localStorage:', error);
       }
-    } else {
-      console.log('⚠️ No requestId found in message and no currentPayload available');
     }
 
-    // Build user message content - ALWAYS include payload JSON if available
+    // Build user message content — ALWAYS preserve the user's actual question
+    // Append context so the AI can reference it while answering the real question
     let userMessageContent = content;
     
     if (currentPayload) {
-      // CRITICAL: Include full payload JSON in user message so Gemini receives it directly
-      // Wrap in code block to preserve formatting and avoid truncation
       const payloadJson = JSON.stringify(currentPayload, null, 2);
-      userMessageContent = `Explain this calculation concisely using the payload below.
+      // Truncate very large payloads to avoid token limits (keep first 6000 chars)
+      const truncatedJson = payloadJson.length > 6000 
+        ? payloadJson.slice(0, 6000) + '\n... (truncated)' 
+        : payloadJson;
+      userMessageContent = `${content}
 
 \`\`\`json
-${payloadJson}
+${truncatedJson}
 \`\`\``;
-
-      console.log('✅ Including full payload JSON in user message:', {
-        toolName: currentPayload.toolName,
-        requestId: currentPayload.requestId,
-        payloadSize: payloadJson.length,
-      });
     } else if (calculationContext) {
-      // Fallback: Include calculation context in user message if no structured payload
       const contextJson = JSON.stringify(calculationContext, null, 2);
+      const truncatedContext = contextJson.length > 6000 
+        ? contextJson.slice(0, 6000) + '\n... (truncated)' 
+        : contextJson;
       userMessageContent = `${content}
 
 Calculation Context:
 \`\`\`json
-${contextJson}
+${truncatedContext}
 \`\`\`
 
-Use this context to explain the calculation. Reference specific inputs, results, and steps.`;
-
-      console.log('✅ Including calculation context in user message:', {
-        toolName: calculationContext.toolName,
-        requestId: calculationContext.requestId,
-      });
+Use this context to answer the question above. Reference specific inputs, results, and steps.`;
     }
 
     const userMessage: Message = {
@@ -268,29 +236,6 @@ Use this context to explain the calculation. Reference specific inputs, results,
         role: m.role,
         content: m.content,
       }));
-
-      const requestBody = { 
-        messages: apiMessages, 
-        mode, 
-        language, 
-        toolContext: currentPayload ? {
-          tool: currentPayload.toolName,
-          inputs: currentPayload.inputs,
-          results: currentPayload.results
-        } : toolContext, 
-        requestId: currentPayload?.requestId || requestId,
-        calculationContext, // Pass the full context (from payload or localStorage)
-        aeroversePayload: currentPayload // Also pass the structured payload if available
-      };
-      
-      console.log('Sending AI chat request:', {
-        hasRequestId: !!requestId,
-        hasCalculationContext: !!calculationContext,
-        hasCurrentPayload: !!currentPayload,
-        calculationContextKeys: calculationContext ? Object.keys(calculationContext) : null,
-        messageCount: apiMessages.length,
-        toolName: currentPayload?.toolName || calculationContext?.toolName || 'N/A',
-      });
 
       const { content: aiContent, error: aiError } = await callAerobotAPI(apiMessages);
 
@@ -318,7 +263,7 @@ Use this context to explain the calculation. Reference specific inputs, results,
     }
   };
 
-    const clearChat = () => {
+  const clearChat = () => {
     // Save current session to history before clearing (if it has messages)
     if (messages.length > 0) {
       const sessionTitle = messages[0]?.content.slice(0, 50) || 'New Chat';
@@ -336,10 +281,10 @@ Use this context to explain the calculation. Reference specific inputs, results,
     
     // Clear current messages but keep history
     setMessages([]);
-      localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
     // Clear payload when clearing chat
-      setCurrentPayload(null);
-      setToolContext(null);
+    setCurrentPayload(null);
+    setToolContext(null);
   };
 
   const loadChatSession = (sessionId: string) => {

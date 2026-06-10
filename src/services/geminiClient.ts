@@ -1,9 +1,10 @@
 import { auth } from '@/config/firebase';
 import { getGroqApiKey } from '@/lib/aerobot-api';
 
+// In dev mode, use the Vite proxy; in production, call Groq directly (Groq supports CORS for browser requests)
 const GROQ_ENDPOINT = import.meta.env.DEV
   ? "/api-groq/openai/v1/chat/completions"
-  : "https://corsproxy.io/?url=https://api.groq.com/openai/v1/chat/completions";
+  : "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export type GeminiResult =

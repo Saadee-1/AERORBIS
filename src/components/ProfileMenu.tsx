@@ -55,12 +55,12 @@ const ProfileMenu = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity"
+        className="relative w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity border border-primary/30 hover:border-primary/50"
         style={{
-          background: `conic-gradient(from 0deg, rgba(0,212,170,1) ${65 * 3.6}deg, rgba(255,255,255,0.1) ${65 * 3.6}deg)`,
+          background: "rgba(0,212,170,0.08)",
         }}
       >
-        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-card border border-border overflow-hidden">
+        <div className="w-9 h-9 flex items-center justify-center rounded-full bg-card border border-border overflow-hidden">
           {user.photoURL ? (
             <img src={user.photoURL} alt={displayName} className="w-full h-full object-cover" />
           ) : (

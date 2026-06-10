@@ -665,7 +665,7 @@ const AIAssistant: React.FC = () => {
                       ref={inputRef}
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={handleKeyPress}
+                      onKeyDown={handleKeyPress}
                       placeholder={mode === 'chat' ? 'Ask Aerobot anything...' : 'Paste text to summarize...'}
                       disabled={isLoading}
                       className="flex-1 bg-slate-900/70 border-emerald-500/30 text-gray-200 placeholder:text-gray-500
