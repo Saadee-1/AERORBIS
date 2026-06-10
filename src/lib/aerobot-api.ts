@@ -1,8 +1,6 @@
 import { auth } from '@/config/firebase';
 
-const GROQ_ENDPOINT = import.meta.env.DEV
-  ? "/api-groq/openai/v1/chat/completions"
-  : "https://corsproxy.io/?url=https://api.groq.com/openai/v1/chat/completions";
+const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 const SYSTEM_PROMPT = `You are Aerobot, an expert aerospace engineering AI assistant built into AERORBIS. You have deep knowledge of aerodynamics, propulsion, orbital mechanics, atmospheric science, structures, materials science, and flight systems. When explaining calculations, provide expert-level interpretation with physical intuition, real-world context, and actionable insights. Be concise but thorough. Always respond in the same language the user writes in.`;
