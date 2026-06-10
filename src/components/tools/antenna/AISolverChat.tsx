@@ -171,9 +171,7 @@ export const AISolverChat = ({ context }: Props) => {
         ? `${SYSTEM_PROMPT}\n\nCURRENT CONTEXT (JSON):\n${JSON.stringify(context).slice(0, 4000)}`
         : SYSTEM_PROMPT;
 
-      const endpoint = import.meta.env.DEV
-        ? "/api-groq/openai/v1/chat/completions"
-        : "https://corsproxy.io/?url=https://api.groq.com/openai/v1/chat/completions";
+      const endpoint = "https://api.groq.com/openai/v1/chat/completions";
 
       const resp = await fetch(endpoint, {
         method: "POST",
@@ -238,6 +236,14 @@ export const AISolverChat = ({ context }: Props) => {
             }
           }
         }
+        // Streaming complete — extract structured JSON from final text
+        const structured = extractStructured(acc);
+        const displayContent = structured ? stripJsonBlock(acc) : acc;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, content: displayContent, structured } : m
+          )
+        );
       } else {
         // Handle JSON response
         const data = await resp.json();
