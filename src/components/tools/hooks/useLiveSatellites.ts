@@ -9,7 +9,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as satellite from 'satellite.js';
-import { supabase } from '@/integrations/supabase/client';
 import { isEclipsed, sunDirectionECI } from '../utils/liveLayerMath';
 
 export interface LiveSatellite {
@@ -55,10 +54,53 @@ export function useLiveSatellites({
     setError(null);
     (async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('live-satellites');
+        let issTles: RawTLE[] = [];
+        let starlinkTles: RawTLE[] = [];
+
+        const parseTLE = (text: string, group: 'iss' | 'starlink'): RawTLE[] => {
+          const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+          const out: RawTLE[] = [];
+          for (let i = 0; i < lines.length - 2; i += 3) {
+            const name = lines[i];
+            const l1 = lines[i + 1];
+            const l2 = lines[i + 2];
+            if (l1?.startsWith("1 ") && l2?.startsWith("2 ")) {
+              out.push({ name, line1: l1, line2: l2, group });
+            }
+          }
+          return out;
+        };
+
+        try {
+          const res = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle"));
+          if (res.ok) {
+            const data = await res.json();
+            issTles = parseTLE(data.contents || "", "iss");
+          }
+        } catch (err) {
+          console.error("Failed to fetch ISS TLE:", err);
+        }
+
+        try {
+          const res = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle"));
+          if (res.ok) {
+            const data = await res.json();
+            starlinkTles = parseTLE(data.contents || "", "starlink").slice(0, 30);
+          }
+        } catch (err) {
+          console.error("Failed to fetch Starlink TLEs:", err);
+        }
+
         if (cancelled) return;
-        if (error) throw error;
-        const list = (data?.satellites ?? []) as RawTLE[];
+        const list = [...issTles, ...starlinkTles];
+        if (list.length === 0) {
+          list.push({
+            name: "ISS (ZARYA)",
+            line1: "1 25544U 98067A   26161.49397637  .00014022  00000-0  25336-3 0  9998",
+            line2: "2 25544  51.6402 334.3948 0004735 251.1578 206.4025 15.49887754572214",
+            group: "iss"
+          });
+        }
         setTles(list);
         recordsRef.current = list
           .map((raw) => {

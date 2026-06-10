@@ -10,7 +10,19 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/config/firebase";
+import {
+  collection,
+  doc,
+  addDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  runTransaction,
+  deleteDoc
+} from "firebase/firestore";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -66,32 +78,68 @@ const Community = () => {
 
   const fetchPosts = async () => {
     setLoading(true);
-    let query = supabase
-      .from("community_posts")
-      .select("*, profiles!community_posts_author_id_fkey(username, display_name, avatar_url)")
-      .order("created_at", { ascending: false });
+    try {
+      const postsCol = collection(db, "community_posts");
+      let q;
+      if (filterCategory !== "all") {
+        q = query(postsCol, where("category", "==", filterCategory), orderBy("created_at", "desc"));
+      } else {
+        q = query(postsCol, orderBy("created_at", "desc"));
+      }
 
-    if (filterCategory !== "all") {
-      query = query.eq("category", filterCategory);
-    }
+      const querySnapshot = await getDocs(q);
+      const fetchedPosts: Post[] = [];
 
-    const { data, error } = await query;
-    if (error) {
+      for (const d of querySnapshot.docs) {
+        const postData = d.data();
+        // Fetch author profile from users collection
+        let profile = { username: "Unknown", display_name: "Unknown", avatar_url: null };
+        try {
+          const userDocRef = doc(db, "users", postData.author_id);
+          const userSnap = await getDoc(userDocRef);
+          if (userSnap.exists()) {
+            const uData = userSnap.data();
+            profile = {
+              username: uData.username || "",
+              display_name: uData.displayName || uData.display_name || "",
+              avatar_url: uData.photoURL || uData.avatar_url || null
+            };
+          }
+        } catch (err) {
+          console.error("Error loading user profile for post:", err);
+        }
+
+        fetchedPosts.push({
+          id: d.id,
+          title: postData.title || "",
+          content: postData.content || "",
+          category: postData.category || "general",
+          author_id: postData.author_id || "",
+          likes_count: postData.likes_count || 0,
+          comments_count: postData.comments_count || 0,
+          created_at: postData.created_at || new Date().toISOString(),
+          profiles: profile
+        });
+      }
+
+      setPosts(fetchedPosts);
+    } catch (error) {
+      console.error("Error loading posts:", error);
       toast.error("Failed to load posts");
-    } else {
-      setPosts((data as unknown as Post[]) || []);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchUserLikes = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("community_likes")
-      .select("post_id")
-      .eq("user_id", user.uid);
-    if (data) {
-      setLikedPosts(new Set(data.map((l: { post_id: string }) => l.post_id)));
+    try {
+      const likesCol = collection(db, "community_likes");
+      const q = query(likesCol, where("user_id", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      setLikedPosts(new Set(querySnapshot.docs.map((d) => d.data().post_id as string)));
+    } catch (error) {
+      console.error("Error loading user likes:", error);
     }
   };
 
@@ -102,52 +150,131 @@ const Community = () => {
       return;
     }
     setPosting(true);
-    const { error } = await supabase.from("community_posts").insert({
-      title: newTitle.trim(),
-      content: newContent.trim(),
-      category: newCategory,
-      author_id: user.uid,
-    });
-    if (error) {
-      toast.error("Failed to create post");
-    } else {
+    try {
+      const postsCol = collection(db, "community_posts");
+      await addDoc(postsCol, {
+        title: newTitle.trim(),
+        content: newContent.trim(),
+        category: newCategory,
+        author_id: user.uid,
+        likes_count: 0,
+        comments_count: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
       toast.success("Post created!");
       setNewTitle("");
       setNewContent("");
       setNewCategory("general");
       setShowNewPost(false);
       fetchPosts();
+    } catch (error) {
+      console.error("Error creating post:", error);
+      toast.error("Failed to create post");
+    } finally {
+      setPosting(false);
     }
-    setPosting(false);
   };
 
   const handleLike = async (postId: string) => {
     if (!user) { navigate("/auth"); return; }
-    if (likedPosts.has(postId)) {
-      await supabase.from("community_likes").delete().eq("post_id", postId).eq("user_id", user.uid);
-      setLikedPosts((prev) => { const n = new Set(prev); n.delete(postId); return n; });
-      setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: p.likes_count - 1 } : p));
-    } else {
-      await supabase.from("community_likes").insert({ post_id: postId, user_id: user.uid });
-      setLikedPosts((prev) => new Set(prev).add(postId));
-      setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: p.likes_count + 1 } : p));
+    try {
+      const isLiked = likedPosts.has(postId);
+      const postDocRef = doc(db, "community_posts", postId);
+      
+      await runTransaction(db, async (transaction) => {
+        const postDoc = await transaction.get(postDocRef);
+        if (!postDoc.exists()) {
+          throw new Error("Post does not exist!");
+        }
+
+        const likesCount = postDoc.data().likes_count || 0;
+        
+        if (isLiked) {
+          // Unlike: Delete like doc and decrement likes_count
+          const likesCol = collection(db, "community_likes");
+          const q = query(likesCol, where("post_id", "==", postId), where("user_id", "==", user.uid));
+          const querySnapshot = await getDocs(q);
+          for (const d of querySnapshot.docs) {
+            transaction.delete(doc(db, "community_likes", d.id));
+          }
+          transaction.update(postDocRef, { likes_count: Math.max(0, likesCount - 1) });
+        } else {
+          // Like: Create like doc and increment likes_count
+          const newLikeRef = doc(collection(db, "community_likes"));
+          transaction.set(newLikeRef, {
+            post_id: postId,
+            user_id: user.uid,
+            created_at: new Date().toISOString()
+          });
+          transaction.update(postDocRef, { likes_count: likesCount + 1 });
+        }
+      });
+
+      if (isLiked) {
+        setLikedPosts((prev) => { const n = new Set(prev); n.delete(postId); return n; });
+        setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: Math.max(0, p.likes_count - 1) } : p));
+      } else {
+        setLikedPosts((prev) => new Set(prev).add(postId));
+        setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: p.likes_count + 1 } : p));
+      }
+    } catch (error) {
+      console.error("Error setting like:", error);
+      toast.error("Action failed");
     }
   };
 
   const handleDeletePost = async (postId: string) => {
-    const { error } = await supabase.from("community_posts").delete().eq("id", postId);
-    if (error) toast.error("Failed to delete");
-    else { toast.success("Post deleted"); fetchPosts(); setSelectedPost(null); }
+    try {
+      await deleteDoc(doc(db, "community_posts", postId));
+      toast.success("Post deleted");
+      fetchPosts();
+      setSelectedPost(null);
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast.error("Failed to delete");
+    }
   };
 
   // Comments
   const fetchComments = async (postId: string) => {
-    const { data } = await supabase
-      .from("community_comments")
-      .select("*, profiles!community_comments_author_id_fkey(username, display_name, avatar_url)")
-      .eq("post_id", postId)
-      .order("created_at", { ascending: true });
-    setComments((data as unknown as Comment[]) || []);
+    try {
+      const commentsCol = collection(db, "community_comments");
+      const q = query(commentsCol, where("post_id", "==", postId), orderBy("created_at", "asc"));
+      const querySnapshot = await getDocs(q);
+      const fetchedComments: Comment[] = [];
+
+      for (const d of querySnapshot.docs) {
+        const commentData = d.data();
+        let profile = { username: "Unknown", display_name: "Unknown", avatar_url: null };
+        try {
+          const userDocRef = doc(db, "users", commentData.author_id);
+          const userSnap = await getDoc(userDocRef);
+          if (userSnap.exists()) {
+            const uData = userSnap.data();
+            profile = {
+              username: uData.username || "",
+              display_name: uData.displayName || uData.display_name || "",
+              avatar_url: uData.photoURL || uData.avatar_url || null
+            };
+          }
+        } catch (err) {
+          console.error("Error loading profile for comment:", err);
+        }
+
+        fetchedComments.push({
+          id: d.id,
+          content: commentData.content || "",
+          author_id: commentData.author_id || "",
+          created_at: commentData.created_at || new Date().toISOString(),
+          profiles: profile
+        });
+      }
+
+      setComments(fetchedComments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    }
   };
 
   const handleOpenComments = (postId: string) => {
@@ -159,24 +286,55 @@ const Community = () => {
   const handleAddComment = async (postId: string) => {
     if (!user) { navigate("/auth"); return; }
     if (!newComment.trim()) return;
-    const { error } = await supabase.from("community_comments").insert({
-      post_id: postId,
-      author_id: user.uid,
-      content: newComment.trim(),
-    });
-    if (error) toast.error("Failed to comment");
-    else {
+
+    try {
+      const postDocRef = doc(db, "community_posts", postId);
+      await runTransaction(db, async (transaction) => {
+        const postDoc = await transaction.get(postDocRef);
+        if (!postDoc.exists()) {
+          throw new Error("Post does not exist!");
+        }
+
+        const commentsCount = postDoc.data().comments_count || 0;
+        const newCommentRef = doc(collection(db, "community_comments"));
+        
+        transaction.set(newCommentRef, {
+          post_id: postId,
+          author_id: user.uid,
+          content: newComment.trim(),
+          created_at: new Date().toISOString()
+        });
+
+        transaction.update(postDocRef, { comments_count: commentsCount + 1 });
+      });
+
       setNewComment("");
       fetchComments(postId);
       setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comments_count: p.comments_count + 1 } : p));
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast.error("Failed to comment");
     }
   };
 
   const handleDeleteComment = async (commentId: string, postId: string) => {
-    const { error } = await supabase.from("community_comments").delete().eq("id", commentId);
-    if (!error) {
+    try {
+      const postDocRef = doc(db, "community_posts", postId);
+      await runTransaction(db, async (transaction) => {
+        const postDoc = await transaction.get(postDocRef);
+        if (!postDoc.exists()) {
+          throw new Error("Post does not exist!");
+        }
+
+        const commentsCount = postDoc.data().comments_count || 0;
+        transaction.delete(doc(db, "community_comments", commentId));
+        transaction.update(postDocRef, { comments_count: Math.max(0, commentsCount - 1) });
+      });
+
       fetchComments(postId);
-      setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comments_count: p.comments_count - 1 } : p));
+      setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comments_count: Math.max(0, p.comments_count - 1) } : p));
+    } catch (error) {
+      console.error("Error deleting comment:", error);
     }
   };
 

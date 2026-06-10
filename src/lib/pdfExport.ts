@@ -5,16 +5,8 @@
  */
 
 import { safeToFixed } from './safeNumbers';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase integration removed. Using client-side PDF export fallback.
 
-async function getSupabaseEdgeAuth(): Promise<{ anonKey: string; accessToken: string } | null> {
-  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!anonKey) return null;
-  const { data: { session } } = await supabase.auth.getSession();
-  const accessToken = session?.access_token;
-  if (!accessToken) return null;
-  return { anonKey, accessToken };
-}
 
 export interface PDFExportOptions {
   includeAssistantExplanation?: boolean;
@@ -200,79 +192,8 @@ export async function exportToPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    // Use environment variables for Supabase endpoint
-    const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-    const auth = await getSupabaseEdgeAuth();
-    if (!auth) {
-      const html = generatePDFFromLocalStorage(requestId, options);
-      return { status: 'ready', html, requestId };
-    }
-
-    try {
-      const response = await fetch(`${assistantEventsUrl}/export/pdf`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.accessToken}`,
-          'apikey': auth.anonKey,
-        },
-        mode: 'cors',
-        body: JSON.stringify({
-          requestId,
-          options: {
-            includeAssistantExplanation: true,
-            explanationLevel: 'detailed',
-            includeCharts: true,
-            includeAttachments: true,
-            format: 'A4',
-            language: 'en',
-            showLaTeX: true,
-            author: localStorage.getItem('userName') || 'User',
-            ...options,
-          },
-        }),
-      });
-
-      if (response.ok) {
-        return await response.json();
-      } else {
-        // If server fails, fall back to localStorage
-        try {
-          const errorText = await response.text();
-          console.error('PDF export from server failed:', {
-            status: response.status,
-            statusText: response.statusText,
-            error: errorText,
-            url: `${assistantEventsUrl}/export/pdf`,
-          });
-        } catch (textError) {
-          console.error('PDF export from server failed - failed to read response:', {
-            status: response.status,
-            statusText: response.statusText,
-            textError,
-            url: `${assistantEventsUrl}/export/pdf`,
-          });
-        }
-        const html = generatePDFFromLocalStorage(requestId, options);
-        return {
-          status: 'ready',
-          html,
-          requestId,
-        };
-      }
-    } catch (fetchError) {
-      // Network error, use localStorage fallback
-      console.error('PDF export fetch failed, using localStorage fallback:', {
-        error: fetchError,
-        url: `${assistantEventsUrl}/export/pdf`,
-      });
-      const html = generatePDFFromLocalStorage(requestId, options);
-      return {
-        status: 'ready',
-        html,
-        requestId,
-      };
-    }
+    const html = generatePDFFromLocalStorage(requestId, options);
+    return { status: 'ready', html, requestId };
   } catch (error) {
     console.error('PDF export error:', error);
     throw error;
@@ -287,57 +208,9 @@ export async function exportBatchPDF(
   options: PDFExportOptions = {}
 ): Promise<PDFExportResponse> {
   try {
-    // Use environment variables for Supabase endpoint
-    const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-    const auth = await getSupabaseEdgeAuth();
-    if (!auth) {
-      throw new Error('Batch export requires sign-in (no Supabase session available).');
-    }
-
-    const response = await fetch(`${assistantEventsUrl}/export/batch`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${auth.accessToken}`,
-        'apikey': auth.anonKey,
-      },
-      mode: 'cors',
-      body: JSON.stringify({
-        requestIds,
-        options: {
-          includeAssistantExplanation: true,
-          explanationLevel: 'detailed',
-          includeCharts: true,
-          format: 'A4',
-          language: 'en',
-          author: localStorage.getItem('userName') || 'User',
-          ...options,
-        },
-      }),
-    });
-
-    if (!response.ok) {
-      try {
-        const errorText = await response.text();
-        console.error('Batch PDF export failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText,
-          url: `${assistantEventsUrl}/export/batch`,
-        });
-        throw new Error(`Batch PDF export failed: ${errorText}`);
-      } catch (textError) {
-        console.error('Batch PDF export failed - failed to read response:', {
-          status: response.status,
-          statusText: response.statusText,
-          textError,
-          url: `${assistantEventsUrl}/export/batch`,
-        });
-        throw new Error(`Batch PDF export failed: ${response.status} ${response.statusText}`);
-      }
-    }
-
-    return await response.json();
+    const htmls = requestIds.map(id => generatePDFFromLocalStorage(id, options));
+    const html = htmls.join('<div style="page-break-after: always;"></div>');
+    return { status: 'ready', html, requestId: requestIds[0] };
   } catch (error) {
     console.error('Batch PDF export error:', error);
     throw error;
@@ -400,50 +273,11 @@ export async function downloadHTMLAsPDF(
  * Get calculation context by requestId
  */
 export async function getCalculationContext(requestId: string) {
-  try {
-    // Use environment variables for Supabase endpoint
-    const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-    const auth = await getSupabaseEdgeAuth();
-    if (!auth) {
-      throw new Error('Not authenticated (no Supabase session available).');
-    }
-
-    const response = await fetch(`${assistantEventsUrl}/context/${requestId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${auth.accessToken}`,
-        'apikey': auth.anonKey,
-      },
-      mode: 'cors',
-    });
-
-    if (!response.ok) {
-      try {
-        const errorText = await response.text();
-        console.error('Failed to get context:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText,
-          url: `${assistantEventsUrl}/context/${requestId}`,
-        });
-        throw new Error(`Failed to get context: ${errorText}`);
-      } catch (textError) {
-        console.error('Failed to get context - failed to read response:', {
-          status: response.status,
-          statusText: response.statusText,
-          textError,
-          url: `${assistantEventsUrl}/context/${requestId}`,
-        });
-        throw new Error(`Failed to get context: ${response.status} ${response.statusText}`);
-      }
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Get context error:', error);
-    throw error;
+  const storedData = localStorage.getItem(`calc-${requestId}`);
+  if (!storedData) {
+    throw new Error('Calculation context not found locally.');
   }
+  return JSON.parse(storedData);
 }
 
 /**
@@ -453,55 +287,7 @@ export async function getExplanation(
   requestId: string,
   explanationLevel: 'brief' | 'detailed' | 'teaching' = 'detailed'
 ): Promise<string> {
-  try {
-    // Use environment variables for Supabase endpoint
-    const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-    const auth = await getSupabaseEdgeAuth();
-    if (!auth) {
-      throw new Error('Not authenticated (no Supabase session available).');
-    }
-
-    const response = await fetch(`${assistantEventsUrl}/explain`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${auth.accessToken}`,
-        'apikey': auth.anonKey,
-      },
-      mode: 'cors',
-      body: JSON.stringify({
-        requestId,
-        explanationLevel,
-      }),
-    });
-
-    if (!response.ok) {
-      try {
-        const errorText = await response.text();
-        console.error('Explanation request failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText,
-          url: `${assistantEventsUrl}/explain`,
-        });
-        throw new Error(`Explanation request failed: ${errorText}`);
-      } catch (textError) {
-        console.error('Explanation request failed - failed to read response:', {
-          status: response.status,
-          statusText: response.statusText,
-          textError,
-          url: `${assistantEventsUrl}/explain`,
-        });
-        throw new Error(`Explanation request failed: ${response.status} ${response.statusText}`);
-      }
-    }
-
-    const data = await response.json();
-    return data.explanation || '';
-  } catch (error) {
-    console.error('Get explanation error:', error);
-    throw error;
-  }
+  return "Explanation is handled directly by the AI Assistant chat.";
 }
 
 // ============================================================================

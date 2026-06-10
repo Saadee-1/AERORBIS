@@ -1481,6 +1481,15 @@ const point: Record<string, unknown> = { alpha };
                   helperText="True airspeed (TAS): actual velocity relative to the air mass. Assumes steady flight (no acceleration). Used to compute dynamic pressure q = 0.5 × ρ × V², which determines lift and drag forces."
                 >
                   <Input id="airspeed" type="number" value={inputs.airspeed} onChange={(e) => setInputs({ ...inputs, airspeed: e.target.value })} min="0.001" step="0.1" />
+                  {unitSystem === "SI" && (
+                    <InlineInterlinkHint 
+                      fieldKey={FIELD_KEYS.vClimbVyMs} 
+                      className="mt-1" 
+                      currentValue={inputs.airspeed}
+                      onImport={(value) => setInputs({ ...inputs, airspeed: String(value) })}
+                      onUndo={(prevValue) => setInputs({ ...inputs, airspeed: prevValue === null ? '' : String(prevValue) })}
+                    />
+                  )}
                 </AeroFormField>
                 <AeroFormField 
                   label={`Air Density (${getUnit("density")})`}

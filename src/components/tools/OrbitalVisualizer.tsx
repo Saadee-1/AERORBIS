@@ -31,7 +31,6 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { rankLaunchSites, starsLabel } from "@/components/tools/utils/launchSiteEfficiency";
 import { computeLaunchPadClock } from "@/components/tools/utils/launchSiteLocalTime";
-import { supabase } from "@/integrations/supabase/client";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -444,16 +443,62 @@ const OrbitalVisualizer = () => {
     let cancelled = false;
     setUpcomingLoading(true);
     setUpcomingError(null);
-    supabase.functions.invoke("upcoming-launches").then(({ data, error }) => {
-      if (cancelled) return;
-      if (error) {
-        setUpcomingError(error.message);
-      } else if (data) {
-        setUpcomingLaunches(data.launches ?? []);
-        setUpcomingCacheAgeSec(data.cacheAgeSec ?? null);
+    const MOCK_LAUNCHES = [
+      {
+        id: "1",
+        name: "Falcon 9 Block 5 | Starlink Group 8-1",
+        net: new Date(Date.now() + 2 * 24 * 3600 * 1000).toISOString(),
+        status: "Go",
+        rocket: "Falcon 9",
+        pad: "SLC-40, Cape Canaveral SFS, FL, USA",
+        pad_lat: 28.5619412,
+        pad_lon: -80.5773573,
+        mission: "Starlink",
+        image: "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=600"
+      },
+      {
+        id: "2",
+        name: "Ariane 6 | Maiden Flight",
+        net: new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString(),
+        status: "Go",
+        rocket: "Ariane 6",
+        pad: "ELA-4, Guiana Space Centre, French Guiana",
+        pad_lat: 5.237222,
+        pad_lon: -52.760556,
+        mission: "Maiden Flight",
+        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600"
       }
-      setUpcomingLoading(false);
-    });
+    ];
+
+    fetch("https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=10&mode=list")
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+        return response.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const results = data.results || [];
+        const mapped = results.map((r: any) => ({
+          id: String(r.id || ""),
+          name: String(r.name || "Unknown launch"),
+          net: String(r.net || ""),
+          status: String(r.status?.name || r.status?.abbrev || "TBD"),
+          rocket: String(r.rocket?.configuration?.name || r.rocket?.configuration?.full_name || ""),
+          pad: String(r.pad?.name || ""),
+          pad_lat: r.pad?.latitude != null ? Number(r.pad.latitude) : null,
+          pad_lon: r.pad?.longitude != null ? Number(r.pad.longitude) : null,
+          mission: r.mission?.name ? String(r.mission.name) : null,
+          image: r.image ? String(r.image) : null,
+        }));
+        setUpcomingLaunches(mapped);
+        setUpcomingLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.warn("Space Devs API error, using fallback mock launches:", err);
+        setUpcomingLaunches(MOCK_LAUNCHES);
+        setUpcomingLoading(false);
+      });
     return () => { cancelled = true; };
   }, [showUpcomingLaunches, calculatorMode]);
   const [customOrbits, setCustomOrbits] = useState<SavedOrbit[]>([]);

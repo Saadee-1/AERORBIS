@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AeroverseAIPayload } from '@/ai/schema/AerorbisPayload';
-import { supabase } from '@/integrations/supabase/client';
 import { callAerobotAPI } from '@/lib/aerobot-api';
 
 export interface Message {

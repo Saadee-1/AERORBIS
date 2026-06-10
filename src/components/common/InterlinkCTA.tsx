@@ -1,7 +1,8 @@
 // src/components/common/InterlinkCTA.tsx
 import React, { useMemo, useState, useEffect } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Link2, Check, Undo2, ArrowUpRight, HelpCircle, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   getAvailableDataForTool,
   getAvailableDataAny,
@@ -33,7 +34,6 @@ type Props = {
 function findPublisher(fieldKey: string) {
   for (const pub of INTERLINK_PUBLISHERS) {
     if (pub.publishes.includes(fieldKey as FieldKey)) {
-      // Use TOOL_ROUTES for correct route
       const route = TOOL_ROUTES[pub.toolId] || `/tools/launch?tool=${pub.toolId}`;
       return {
         toolId: pub.toolId,
@@ -50,6 +50,28 @@ function getSessionValue(fieldKey: string): number | string | undefined {
   const available = getAvailableDataAny();
   return available[fieldKey as FieldKey];
 }
+
+/** Explanations of tool data sharing flows for tooltips */
+const FIELD_EXPLANATIONS: Record<string, string> = {
+  massKg: "Aircraft MTOW / Gross Mass, calculated in Wing Loading and used here for wing loading, thrust, or climb calculations.",
+  weightN: "Aircraft gravitational weight. Calculated in Wing Loading and shared here to solve level cruise lift & drag requirements.",
+  wingAreaM2: "Reference wing planform area. Calculated in Wing Loading and shared here for aerodynamic sizing & performance constraints.",
+  wingLoadingKgm2: "Wing loading ratio (mass/area). Calculated in Wing Sizing, imported here for thrust loading or take-off run analysis.",
+  totalThrustN: "Total engine thrust. Solved in Thrust Calculator, imported here to determine thrust loading & rate of climb.",
+  perEngineThrustN: "Thrust output from a single engine. Used to calculate engine-out gradient safety limits.",
+  numEngines: "Total engine count, used to compute aggregate thrust and engine-out gradients.",
+  cd0: "Zero-lift drag coefficient (parasite drag). Solved in L/D Analyzer, imported here to compute climb drag losses.",
+  k: "Induced drag factor (k = 1/π·AR·e). Determined in L/D Analyzer, used here for climb rate estimation.",
+  clMax: "Maximum lift coefficient representing stall limits. Solved in Wing Loading or L/D Analyzer.",
+  ldClimb: "Aerodynamic lift-to-drag ratio (L/D) in climb. Solved in L/D Analyzer, imported here to calculate climb rate.",
+  stallSpeedMs: "Minimum steady flight airspeed. Calculated in Wing Loading, imported here to set safe take-off and climb climbout limits.",
+  densityKgM3: "Atmospheric air density at altitude. Solved dynamically in Atmosphere/ISA and imported here for aerodynamic forces.",
+  pressurePa: "Ambient atmospheric pressure. Solved in Atmosphere/ISA and imported here for rocket nozzle pressure expansion calculations.",
+  vClimbVyMs: "Speed for best rate of climb (Vy). Computed in Climb Performance, shared with other navigation tools.",
+  vClimbVxMs: "Speed for best angle of climb (Vx). Computed in Climb Performance, shared with other navigation tools.",
+  rocVyMs: "Best vertical rate of climb. Computed in Climb Performance, shared with other navigation tools.",
+  gammaVy: "Flight path angle at best rate of climb. Computed in Climb Performance, shared with other navigation tools.",
+};
 
 /**
  * Inline interlink hint component - shows subtle hints below input fields
@@ -82,6 +104,7 @@ export function InlineInterlinkHint({
   const [sessionValue, setSessionValue] = useState<number | string | undefined>(undefined);
   const [importedSessionValue, setImportedSessionValue] = useState<number | string | undefined>(undefined);
   const [preImportSessionValue, setPreImportSessionValue] = useState<number | string | undefined>(undefined);
+  const [isHovered, setIsHovered] = useState(false);
   
   // Support both old and new API
   const targetFieldKey = fieldKey || (requiredFields?.[0]);
@@ -114,26 +137,22 @@ export function InlineInterlinkHint({
     
     updateValue();
     
-    // Listen for designSession updates (re-evaluate on any change)
     const handleUpdate = () => {
       updateValue();
     };
     
     window.addEventListener('designSessionUpdated', handleUpdate);
     return () => window.removeEventListener('designSessionUpdated', handleUpdate);
-  }, [targetFieldKey]); // Removed importedValue dependency - state is derived
+  }, [targetFieldKey]);
   
   if (!targetFieldKey || !publisher) return null;
   
   const hasData = sessionValue !== undefined && sessionValue !== null;
   
-  // DERIVE local value state (null/empty means missing)
-  // Use currentValue prop if provided, otherwise fallback to reading from input
   const getLocalValue = (): string | number | null => {
     if (currentValue !== undefined) {
       return currentValue === '' ? null : currentValue;
     }
-    // Fallback: try to read from input field (backward compatibility)
     const input = findAssociatedInput();
     if (input) {
       const val = input.value;
@@ -145,60 +164,54 @@ export function InlineInterlinkHint({
   const localValue = getLocalValue();
   const isLocalValueEmpty = localValue === null || localValue === '';
   
-  // Use TOOL_ROUTES for correct route
   const toolId = 'toolId' in publisher ? publisher.toolId : sourceTool;
   const toolPath = toolId && TOOL_ROUTES[toolId] 
     ? TOOL_ROUTES[toolId] 
     : ('path' in publisher ? publisher.path : `/tools/launch?tool=${sourceTool}`);
   const toolLabel = 'label' in publisher ? publisher.label : sourceTool;
   
-  // Helper to compare values (handles string/number conversion)
   const valuesMatch = (local: string | number | null, session: number | string | undefined): boolean => {
     if (local === null || session === undefined) return false;
     if (typeof local === 'number' && typeof session === 'number') {
-      return Math.abs(local - session) < 1e-10; // Floating point comparison
+      return Math.abs(local - session) < 1e-10;
     }
-    // Convert both to strings for comparison
     return String(local) === String(session);
   };
   
   const handleImport = () => {
     if (!hasData || sessionValue === undefined) return;
     
-    // Store previous value for undo - preserve type consistency
     let currentFieldValue: number | string | null = null;
-    const input = findAssociatedInput();
-    if (input) {
-      const inputValue = input.value;
-      if (inputValue === '') {
-        currentFieldValue = ''; // Empty string, not null
-      } else if (typeof sessionValue === 'number') {
-        const parsed = parseFloat(inputValue);
-        currentFieldValue = isNaN(parsed) ? inputValue : parsed;
-      } else {
-        currentFieldValue = inputValue;
+    if (currentValue !== undefined) {
+      currentFieldValue = currentValue;
+    } else {
+      const input = findAssociatedInput();
+      if (input) {
+        const inputValue = input.value;
+        if (inputValue === '') {
+          currentFieldValue = '';
+        } else if (typeof sessionValue === 'number') {
+          const parsed = parseFloat(inputValue);
+          currentFieldValue = isNaN(parsed) ? inputValue : parsed;
+        } else {
+          currentFieldValue = inputValue;
+        }
       }
     }
     setPreviousValue(currentFieldValue);
-    
-    // Track the session value that was imported
     setImportedSessionValue(sessionValue);
     
-    // Track what was in session BEFORE we import (to restore on undo)
     const dsBeforeImport = getDesignSession();
     setPreImportSessionValue(dsBeforeImport[targetFieldKey as FieldKey]);
     
-    // Import data to session (this updates designSession)
     const data: Record<string, number | string> = {};
     data[targetFieldKey] = sessionValue;
     importDataToSession(data);
     
-    // Notify parent component to update its state (if callback provided)
     if (onImport) {
       onImport(sessionValue);
     } else {
-      // Update input field value directly as fallback (for backward compatibility)
-      // Only do DOM manipulation when callback is NOT provided
+      const input = findAssociatedInput();
       if (input) {
         input.value = String(sessionValue);
         input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -207,28 +220,24 @@ export function InlineInterlinkHint({
     }
   };
   
-  const handleUndo = () => {
-    // Restore local value AND restore designSession to pre-import state
+  const handleUndo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
     if (previousValue === null) {
-      // No field found or no previous value - restore session to pre-import state
       const ds = getDesignSession();
       if (preImportSessionValue === undefined) {
-        // Session was empty before import - always restore to empty state (delete field)
         if (ds[targetFieldKey as FieldKey] !== undefined) {
           delete (ds as Record<string, unknown>)[targetFieldKey];
           saveDesignSession(ds);
         }
-        // Always dispatch event to notify other components
         if (typeof window !== 'undefined') {
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
           }, 0);
         }
       } else {
-        // Session had a value before import - restore it
         (ds as Record<string, string | number>)[targetFieldKey] = preImportSessionValue;
         saveDesignSession(ds);
-        // Dispatch event to notify other components
         if (typeof window !== 'undefined') {
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
@@ -236,8 +245,8 @@ export function InlineInterlinkHint({
         }
       }
       setPreviousValue(null);
-      setImportedSessionValue(undefined); // Clear imported session value tracking
-      setPreImportSessionValue(undefined); // Clear pre-import session value tracking
+      setImportedSessionValue(undefined);
+      setPreImportSessionValue(undefined);
       if (onUndo) {
         onUndo(null);
       }
@@ -246,21 +255,16 @@ export function InlineInterlinkHint({
     
     const input = findAssociatedInput();
     
-    // Notify parent component to update its state (if callback provided)
     if (onUndo) {
       onUndo(previousValue);
     } else {
-      // Restore previous local value only (as fallback for backward compatibility)
-      // Only do DOM manipulation when callback is NOT provided
       if (previousValue === '') {
-        // Previous was empty - restore to empty
         if (input) {
           input.value = '';
           input.dispatchEvent(new Event('input', { bubbles: true }));
           input.dispatchEvent(new Event('change', { bubbles: true }));
         }
       } else if (typeof previousValue === 'number' || typeof previousValue === 'string') {
-        // Restore non-empty value
         if (input) {
           input.value = String(previousValue);
           input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -269,25 +273,20 @@ export function InlineInterlinkHint({
       }
     }
     
-    // Restore designSession to pre-import state (what was in session BEFORE we imported)
     const ds = getDesignSession();
     if (preImportSessionValue === undefined) {
-      // Session was empty before import - always restore to empty state (delete field)
       if (ds[targetFieldKey as FieldKey] !== undefined) {
         delete (ds as Record<string, unknown>)[targetFieldKey];
         saveDesignSession(ds);
       }
-      // Always dispatch event to notify other components
       if (typeof window !== 'undefined') {
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
         }, 0);
       }
     } else {
-      // Session had a value before import - restore it (so import option appears again)
       (ds as Record<string, string | number>)[targetFieldKey] = preImportSessionValue;
       saveDesignSession(ds);
-      // Dispatch event to notify other components with correct source
       if (typeof window !== 'undefined') {
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('designSessionUpdated', { detail: { source: 'undo' } }));
@@ -295,82 +294,146 @@ export function InlineInterlinkHint({
       }
     }
     
-    // Clear undo state - import will be available again if session data exists
     setPreviousValue(null);
-    setImportedSessionValue(undefined); // Clear imported session value tracking
-    setPreImportSessionValue(undefined); // Clear pre-import session value tracking
+    setImportedSessionValue(undefined);
+    setPreImportSessionValue(undefined);
   };
-  
-  // STATE MACHINE: Derive state from localValue and sessionValue
-  
-  // State 1: After import (show undo) - localValue has value AND we have previousValue AND values match imported value
-  // Compare against importedSessionValue, not sessionValue, so undo remains available even if session changes
+
+  const getExplanation = () => {
+    return FIELD_EXPLANATIONS[targetFieldKey] || `Active interlink variable sharing values between tools.`;
+  };
+
   const isImported = !isLocalValueEmpty && previousValue !== null && importedSessionValue !== undefined && valuesMatch(localValue, importedSessionValue);
+  
+  let pillState: 'imported' | 'available' | 'updated' | 'override' | 'missing' | 'none' = 'none';
   if (isImported) {
-    return (
-      <div className={cn("text-[11px] text-primary/80 mt-1 flex items-center gap-2", className)}>
-        <span>Imported: {typeof importedSessionValue === 'number' ? importedSessionValue.toPrecision(4) : importedSessionValue}</span>
-        <button
-          onClick={handleUndo}
-          className="text-primary hover:text-primary/80 underline"
-        >
-          Undo
-        </button>
-      </div>
-    );
+    pillState = 'imported';
+  } else if (isLocalValueEmpty && hasData) {
+    pillState = 'available';
+  } else if (previousValue !== null && hasData && !valuesMatch(localValue, sessionValue) && 
+             importedSessionValue !== undefined && !valuesMatch(importedSessionValue, sessionValue)) {
+    pillState = 'updated';
+  } else if (!isLocalValueEmpty && hasData && !valuesMatch(localValue, sessionValue)) {
+    pillState = 'override';
+  } else if (isLocalValueEmpty && !hasData) {
+    pillState = 'missing';
   }
-  
-  // State 2a: Data available (show import) - localValue empty AND sessionValue exists
-  if (isLocalValueEmpty && hasData) {
-    return (
-      <div className={cn("text-[11px] text-primary/60 mt-1 flex items-center gap-2", className)}>
-        <span>Available from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
-        <button
-          onClick={handleImport}
-          className="text-primary hover:text-primary/80 underline"
-        >
-          Import
-        </button>
-      </div>
-    );
-  }
-  
-  // State 2b: New data available after previous import - previousValue exists AND sessionValue changed
-  // This handles the case where user imported a value, then another tool updated the sessionValue
-  // Only show if sessionValue has actually changed from what we imported (not just user editing)
-  if (previousValue !== null && hasData && !valuesMatch(localValue, sessionValue) && 
-      importedSessionValue !== undefined && !valuesMatch(importedSessionValue, sessionValue)) {
-    return (
-      <div className={cn("text-[11px] text-primary/60 mt-1 flex items-center gap-2", className)}>
-        <span>Updated from {toolLabel}: {typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</span>
-        <button
-          onClick={handleImport}
-          className="text-primary hover:text-primary/80 underline"
-        >
-          Import
-        </button>
-      </div>
-    );
-  }
-  
-  // State 3: Missing data (show redirect) - localValue empty AND sessionValue undefined
-  if (isLocalValueEmpty && !hasData) {
-    return (
-      <button
-        onClick={() => navigate(toolPath)}
-        className={cn(
-          "text-[11px] text-slate-400 hover:text-primary mt-1 flex items-center gap-1",
-          className
-        )}
-      >
-        Don't know? Compute in {toolLabel}
-        <ArrowRight className="w-3 h-3" />
-      </button>
-    );
-  }
-  
-  // State 4: Field has manual value - don't show hint
-  return null;
+
+  if (pillState === 'none') return null;
+
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className={cn("mt-1.5 flex select-none", className)}>
+            <AnimatePresence mode="wait">
+              {pillState === 'imported' && (
+                <motion.div
+                  key="imported"
+                  initial={{ opacity: 0, y: -2, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 2, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.08)]"
+                >
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  </span>
+                  <span>Synced: <strong className="font-mono">{typeof importedSessionValue === 'number' ? importedSessionValue.toPrecision(4) : importedSessionValue}</strong></span>
+                  <span className="opacity-30">|</span>
+                  <button
+                    onClick={handleUndo}
+                    className="flex items-center gap-0.5 text-emerald-400 hover:text-emerald-200 transition-colors hover:underline"
+                    aria-label="Undo import"
+                  >
+                    <Undo2 className="w-2.5 h-2.5" />
+                    <span>Undo</span>
+                  </button>
+                </motion.div>
+              )}
+
+              {(pillState === 'available' || pillState === 'updated') && (
+                <motion.div
+                  key="available"
+                  initial={{ opacity: 0, y: -2, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 2, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={handleImport}
+                  onMouseEnter={() => setIsHovered(true)}
+                  onMouseLeave={() => setIsHovered(false)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/15 hover:border-indigo-400/40 cursor-pointer shadow-[0_0_6px_rgba(99,102,241,0.06)] hover:shadow-[0_0_10px_rgba(99,102,241,0.2)] group"
+                >
+                  <Link2 className="w-3 h-3 text-indigo-400/80 animate-pulse group-hover:scale-110 transition-transform" />
+                  <span>
+                    {pillState === 'updated' ? 'New Value' : 'From'} {toolLabel}:{' '}
+                    <strong className="font-mono">{typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</strong>
+                  </span>
+                  <span className="opacity-30">|</span>
+                  <span className="text-indigo-400/80 underline font-medium hover:text-indigo-200 transition-colors flex items-center gap-0.5">
+                    Sync <RefreshCw className={cn("w-2.5 h-2.5 transition-transform duration-500", isHovered && "rotate-180")} />
+                  </span>
+                </motion.div>
+              )}
+
+              {pillState === 'override' && (
+                <motion.div
+                  key="override"
+                  initial={{ opacity: 0, y: -2, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 2, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={handleImport}
+                  onMouseEnter={() => setIsHovered(true)}
+                  onMouseLeave={() => setIsHovered(false)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all bg-slate-800/60 border border-slate-700 hover:border-indigo-500/40 text-slate-400 hover:text-indigo-300 hover:bg-slate-800/80 cursor-pointer shadow-[0_0_6px_rgba(0,0,0,0.1)] group"
+                >
+                  <Link2 className="w-3 h-3 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+                  <span>From {toolLabel}: <strong className="font-mono">{typeof sessionValue === 'number' ? sessionValue.toPrecision(4) : sessionValue}</strong></span>
+                  <span className="opacity-30">|</span>
+                  <span className="text-indigo-400/80 underline font-medium hover:text-indigo-200 transition-colors flex items-center gap-0.5">
+                    Sync <RefreshCw className={cn("w-2.5 h-2.5 transition-transform duration-500", isHovered && "rotate-180")} />
+                  </span>
+                </motion.div>
+              )}
+
+              {pillState === 'missing' && (
+                <motion.div
+                  key="missing"
+                  initial={{ opacity: 0, y: -2, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 2, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() => navigate(toolPath)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all border border-dashed border-slate-700/60 hover:border-indigo-500/40 text-slate-400 hover:text-indigo-300 hover:bg-slate-900/40 cursor-pointer group"
+                >
+                  <ArrowUpRight className="w-3 h-3 opacity-60 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  <span>Calculate in {toolLabel}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent className="bg-slate-950 border border-slate-800 text-slate-200 p-2.5 max-w-[280px] rounded shadow-xl backdrop-blur-md">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-indigo-400 font-medium text-xs">
+              <Link2 className="w-3 h-3" />
+              <span>Interlink Active: {labelForField(targetFieldKey)}</span>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-normal">{getExplanation()}</p>
+            <div className="pt-1 border-t border-slate-800 text-[10px] text-slate-400 flex items-center justify-between">
+              <span>Source: {toolLabel}</span>
+              {pillState === 'imported' && <span className="text-emerald-400 font-medium">✓ Active</span>}
+              {pillState === 'available' && <span className="text-indigo-400 font-medium">● Available to sync</span>}
+              {pillState === 'override' && <span className="text-amber-400 font-medium">▲ Different from session</span>}
+              {pillState === 'missing' && <span className="text-slate-500 font-medium">○ Uncalculated</span>}
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 export default function InterlinkCTA(props: Props) {

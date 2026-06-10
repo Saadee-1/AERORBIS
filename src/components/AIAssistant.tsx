@@ -101,6 +101,7 @@ const AIAssistant: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [lastTypedMessageId, setLastTypedMessageId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -121,12 +122,13 @@ const AIAssistant: React.FC = () => {
     }
   }, [isOpen]);
 
-    // Typing effect for the last assistant message
+  // Typing effect for the last assistant message
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.role === 'assistant' && !isTyping) {
+    if (lastMessage?.role === 'assistant' && lastMessage.id !== lastTypedMessageId) {
       setIsTyping(true);
       setTypingText('');
+      setLastTypedMessageId(lastMessage.id);
       let index = 0;
       const text = lastMessage.content;
       
@@ -142,7 +144,7 @@ const AIAssistant: React.FC = () => {
 
       return () => clearInterval(timer);
     }
-  }, [messages, isTyping]);
+  }, [messages, lastTypedMessageId]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;

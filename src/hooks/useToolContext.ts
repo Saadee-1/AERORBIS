@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { useAIAssistant, ToolContext } from "@/contexts/AIAssistantContext";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -114,98 +113,7 @@ export const useToolContext = () => {
         }
       }
 
-      // Use environment variables for Supabase endpoint
-      const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-      // Prefer authenticated calls to the edge function. If not signed in, keep everything local.
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!supabaseAnonKey || !accessToken) {
-        return fallbackResponse;
-      }
-
-      // Try to send to server, but don't fail if it doesn't work
-      try {
-        const response = await fetch(
-          assistantEventsUrl,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${accessToken}`,
-              "apikey": supabaseAnonKey,
-            },
-            mode: "cors",
-            body: JSON.stringify(event),
-          },
-        ).catch((fetchError) => {
-          // Network error (CORS, connection refused, etc.)
-          console.warn(
-            "Network error sending calculation event (this is OK, using local storage):",
-            fetchError,
-          );
-          return null;
-        });
-
-        if (response && response.ok) {
-          try {
-            const result: CalculationEventResponse = await response.json();
-            // Update localStorage with server response
-            const storageData = {
-              ...event,
-              ...result,
-              storedAt: Date.now(),
-              expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
-            };
-            localStorage.setItem(
-              `calc-${requestId}`,
-              JSON.stringify(storageData),
-            );
-            return result;
-          } catch (parseError) {
-            console.warn(
-              "Failed to parse server response (using fallback):",
-              parseError,
-            );
-            return fallbackResponse;
-          }
-        } else {
-          // Server returned error, but we already have fallback stored
-          if (response) {
-            try {
-              const errorText = await response.text();
-              console.error(
-                "Server returned error (using local storage):",
-                {
-                  status: response.status,
-                  statusText: response.statusText,
-                  error: errorText,
-                  url: assistantEventsUrl,
-                }
-              );
-            } catch (textError) {
-              console.error(
-                "Server returned error (using local storage) - failed to read response:",
-                {
-                  status: response.status,
-                  statusText: response.statusText,
-                  textError,
-                  url: assistantEventsUrl,
-                }
-              );
-            }
-          }
-          return fallbackResponse;
-        }
-      } catch (error) {
-        // Any other error (network, timeout, etc.)
-        console.warn(
-          "Error sending calculation event (using local storage, this is OK):",
-          error,
-        );
-        return fallbackResponse;
-      }
+      return fallbackResponse;
     },
     [],
   );
@@ -222,72 +130,7 @@ export const useToolContext = () => {
         isFinal?: boolean;
       },
     ): Promise<boolean> => {
-      try {
-        const userId =
-          "user-" + (localStorage.getItem("userId") || "anonymous");
-
-        const event = {
-          eventType: "calculation.update" as const,
-          requestId,
-          userId,
-          timestamp: new Date().toISOString(),
-          ...payload,
-        };
-
-        // Use environment variables for Supabase endpoint
-        const assistantEventsUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assistant-events`;
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-        const { data: { session } } = await supabase.auth.getSession();
-        const accessToken = session?.access_token;
-        if (!supabaseAnonKey || !accessToken) {
-          return false;
-        }
-
-        const response = await fetch(
-          assistantEventsUrl,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${accessToken}`,
-              "apikey": supabaseAnonKey,
-            },
-            mode: "cors",
-            body: JSON.stringify(event),
-          },
-        );
-
-        if (!response.ok) {
-          try {
-            const errorText = await response.text();
-            console.error(
-              "Error sending calculation update:",
-              {
-                status: response.status,
-                statusText: response.statusText,
-                error: errorText,
-                url: assistantEventsUrl,
-              }
-            );
-          } catch (textError) {
-            console.error(
-              "Error sending calculation update - failed to read response:",
-              {
-                status: response.status,
-                statusText: response.statusText,
-                textError,
-                url: assistantEventsUrl,
-              }
-            );
-          }
-        }
-
-        return response.ok;
-      } catch (error) {
-        console.error("Error sending calculation update:", error);
-        return false;
-      }
+      return true;
     },
     [],
   );

@@ -1,261 +1,100 @@
-# Aircraft Stability & Control Derivatives Calculator
+# AERORBIS — Aerospace Engineering, Design, & AI Analysis Platform
 
-High-fidelity stability analysis based on Raymer, Roskam, Anderson, and USAF DATCOM formulations.
+AERORBIS is a premium, high-fidelity aerospace engineering platform designed to help students, aerospace researchers, and engineers model, calculate, and analyze complex aerospace systems. 
 
-## Overview
+The application runs entirely client-side, utilizing local storage, public APIs, and Cloud Firestore for the community forum, requiring zero server maintenance or paid backend services.
 
-This tool computes aerodynamic stability derivatives used in aircraft design, including longitudinal stability (pitching moment derivatives, neutral point, static margin), lateral/directional stability, and control surface effectiveness.
+---
 
-## Features
+## Key Features & Tools
 
-- **Longitudinal Stability**: C_mα, neutral point, static margin, tail volume coefficient
-- **Lift Curve Slopes**: Wing and tail lift curve slopes with finite wing corrections
-- **Downwash Analysis**: USAF DATCOM and Roskam empirical models
-- **Control Derivatives**: Elevator, aileron, and rudder effectiveness
-- **Tail Sizing**: Analysis and recommendations for tail volume
-- **Performance Charts**: Cm vs α, stability margin vs CG, tail volume sizing
-- **Aircraft Presets**: Common configurations (UAV, trainer, fighter, transport)
-- **AI Integration**: Structured payloads for AI assistant explanations
-- **PDF Export**: Complete calculation reports
+### 1. Aerospace Engineering Calculators
 
-## Physics & Formulas
+AERORBIS hosts a robust suite of interactive, production-ready aerospace calculators:
 
-### Core Calculations
+*   **Orbital Path & Delta-V Planner**: Interactive 3D orbital trajectory simulation, planetary flybys, and Hohmann transfer delta-V analysis. Includes real-time upcoming rocket launch tracking using the Space Devs API.
+*   **Satellite Tracking Visualizer**: Propagates ISS and Starlink satellites in real-time over a 3D Earth using SGP4 orbital mechanics, fetching live TLE orbital data directly from CelesTrak.
+*   **Aerodynamic Lift, Drag & Stability Analyzer**: High-fidelity stability analysis based on Raymer, Roskam, Anderson, and USAF DATCOM formulations. Simulates pitching moments, neutral point, static margin, and lift-drag polars.
+*   **Fluid Mechanics & Performance**: Wing loading, thrust loading, climb performance, and Reynolds number calculators.
+*   **Standard Atmosphere Calculator**: Calculates temperature, pressure, density, speed of sound, and viscosity across tropospheric, stratospheric, and mesospheric layers (up to 86 km) under the US Standard Atmosphere 1976 model.
+*   **Materials Database**: Interactive structural materials library showcasing density, yield strength, thermal properties, and spaceflight compatibility.
 
-#### 1. Wing Lift Curve Slope (Finite Wing)
+### 2. Interactive AI Assistants (Aerobot & RF Solver)
 
-```
-a_w = a0 / (1 + a0/(π*e*AR))
-```
+*   **Aerobot AI Assistant**: A conversational aerospace advisor built on top of the Groq API (powered by Llama-3.3-70B). Aerobot has immediate access to your active calculator state (inputs, results, steps, warnings) to explain design calculations.
+*   **Antenna & Avionics Solver**: A specialized natural-language solver to estimate link budgets, Doppler shifts, rain attenuation (Ku-band), and radar cross-sections.
 
-Where:
-- `a0` = Airfoil lift curve slope (typically 2π per radian)
-- `AR` = Aspect ratio
-- `e` = Wing efficiency (Oswald efficiency, 0.7-0.95)
+### 3. Collaborative Community Hub
 
-#### 2. Tail Lift Curve Slope
+*   **Community Forum**: Share calculation results, discuss design choices, and post ideas. Built securely on top of Cloud Firestore.
 
-```
-a_t = η * a0 / (1 + a0/(π*e_t*AR_t))
-```
+---
 
-Where:
-- `η` = Tail effectiveness factor (typically 0.9)
-- `e_t` = Tail efficiency
-- `AR_t` = Tail aspect ratio
+## How it Works: Free Client-Side Architecture
 
-#### 3. Downwash Gradient
+AERORBIS is built to be completely free to run and host by shifting all computation and data fetching to the client browser:
 
-**USAF DATCOM:**
-```
-ε_α = 2*a_w / (π*AR)
-```
+1.  **Database Storage**: User profiles and community posts are stored in Cloud Firestore under the free Firebase Spark plan.
+2.  **API Key Safety**: Your Groq API key is stored safely in your local environment file (`.env.local`). Direct browser-to-API requests are handled locally without exposing credentials to a third-party server.
+3.  **TLE & Launch Data**: Live TLE coordinates are retrieved directly from CelesTrak using `allorigins.win` CORS proxy. Launch schedules are queried directly from the public Space Devs API, with offline mock fallbacks in place.
+4.  **Local History**: Your calculations, assistant sessions, and custom orbits are persisted locally inside `localStorage` for privacy and speed.
 
-**Roskam Empirical:**
-```
-ε_α = a_w / (π*AR) * (1.1 + AR/(AR+4))
-```
-
-#### 4. Tail Volume Coefficient
-
-```
-V_H = (S_t * l_t) / (S_w * c̄)
-```
-
-Where:
-- `S_t` = Tail area (m²)
-- `l_t` = Tail arm (m)
-- `S_w` = Wing area (m²)
-- `c̄` = Mean aerodynamic chord (m)
-
-#### 5. Pitching Moment Derivative
-
-**Wing contribution:**
-```
-C_mα,w = a_w * (x_cg - x_ac,w) / c̄
-```
-
-**Tail contribution:**
-```
-C_mα,t = -a_t * (1 - ε_α) * (S_t/S_w) * (l_t/c̄)
-```
-
-**Total:**
-```
-C_mα = C_mα,w + C_mα,t
-```
-
-#### 6. Neutral Point
-
-```
-x_np = x_ac,w + (a_t/a_w) * (1 - ε_α) * V_H * c̄
-```
-
-#### 7. Static Margin
-
-```
-SM = (x_np - x_cg) / c̄
-```
-
-Aircraft is stable if SM > 0.
-
-#### 8. Control Derivatives
-
-**Elevator:**
-```
-C_mδe = -η_t * a_t * (S_t/S_w) * (l_t/c̄) * τ_e
-```
-
-**Aileron (simplified DATCOM):**
-```
-C_lδa = K_a * (S_a/S_w)
-```
-
-**Rudder (simplified DATCOM):**
-```
-C_nδr = K_r * (S_r/S_v)
-```
-
-## Input Parameters
-
-### Required
-
-- **Wing Geometry**: S_w, AR, c̄, x_ac,w, x_cg
-- **Tail Geometry**: S_t, AR_t, l_t
-
-### Optional
-
-- **Wing**: sweep_w, taper_w, b_w (for lateral stability)
-- **Tail**: sweep_t, taper_t
-- **Vertical Tail**: S_v, l_v (for directional stability)
-- **Aerodynamics**: a0, e_w, e_t, η_t, downwash model
-- **Control Surfaces**: S_e, τ_e, S_a, K_a, S_r, K_r
-
-## Output Parameters
-
-### Longitudinal Stability
-
-- **a_w**: Wing lift curve slope (per rad)
-- **a_t**: Tail lift curve slope (per rad)
-- **ε_α**: Downwash gradient
-- **V_H**: Tail volume coefficient
-- **C_mα**: Total pitching moment derivative (per rad)
-- **x_np**: Neutral point position (m)
-- **SM**: Static margin
-
-### Control Derivatives
-
-- **C_mδe**: Elevator effectiveness (per rad)
-- **C_lδa**: Aileron effectiveness (per rad)
-- **C_nδr**: Rudder effectiveness (per rad)
-
-### Lateral/Directional (Estimated)
-
-- **C_lβ**: Lateral stability derivative (per rad)
-- **C_nβ**: Directional stability derivative (per rad)
-
-## Aircraft Presets
-
-| Preset | Category | S_w (m²) | AR | V_H | Notes |
-|--------|----------|----------|----|----|-------|
-| Small UAV | UAV | 0.5 | 8 | ~0.6 | Representative small UAV |
-| Trainer | Trainer | 15 | 7 | ~0.7 | Cessna 172-like |
-| Fighter | Fighter | 50 | 3.5 | ~0.48 | F-16-like |
-| Transport | Transport | 200 | 10 | ~0.9 | Boeing 737-like |
-| General Aviation | GA | 20 | 7.5 | ~0.75 | Typical GA aircraft |
-
-## Validation & Warnings
-
-The tool validates inputs and provides warnings for:
-
-- **Unstable Configuration**: SM < 0 → "Aircraft is statically unstable"
-- **Marginal Stability**: |C_mα| < 0.05 → "Marginal stability detected"
-- **Tail Volume**: V_H outside 0.5-1.2 range
-- **CG Position**: Very far forward or aft relative to wing AC
-- **Efficiency Factors**: Outside typical ranges
-
-## Charts
-
-- **Cm vs α**: Pitching moment coefficient vs angle of attack
-- **Stability Margin vs CG**: SM variation with CG position
-- **Tail Volume Sizing**: SM vs tail volume coefficient
-
-## Assumptions & Limitations
-
-### Current Implementation
-
-- **Constant Lift Curve Slopes**: Assumes linear lift curves (no stall effects)
-- **Simplified Downwash**: Uses DATCOM or Roskam models (not full 3D flow)
-- **Ideal Tail**: Assumes tail operates in clean flow (no interference)
-- **Control Surfaces**: Simplified DATCOM-style estimates (not detailed hinge moment analysis)
-- **Lateral/Directional**: Simplified estimates (not full 6-DOF analysis)
-
-### Future Enhancements
-
-- **Nonlinear Effects**: Stall, compressibility, Mach effects
-- **3D Flow Analysis**: Full downwash field calculation
-- **Interference Effects**: Wing-tail interference, fuselage effects
-- **Dynamic Derivatives**: C_mq, C_lp, C_nr with full calculations
-- **Control Hinge Moments**: Detailed control surface analysis
-
-## References
-
-- **Raymer** - Aircraft Design: A Conceptual Approach
-- **Roskam** - Airplane Design (Parts I-VIII)
-- **Anderson** - Fundamentals of Aerodynamics
-- **USAF DATCOM** - USAF Stability and Control DATCOM
-- Standard stability and control theory (textbook formulas)
+---
 
 ## File Structure
 
-```
-src/tools/stability/
-├── index.tsx                 # Main tool UI
-├── components/
-│   ├── InputPanel.tsx       # Input form (tabbed)
-│   ├── ResultsPanel.tsx     # Results display
-│   ├── TailSizingPanel.tsx # Tail sizing analysis
-│   └── ChartsPanel.tsx      # Performance charts
-├── utils/
-│   ├── calcStability.ts     # Core stability calculations
-│   ├── aerodynamics.ts      # Aerodynamic relations
-│   ├── units.ts             # Unit conversions
-│   └── payloadBuilder.ts   # AI payload builder
-├── data/
-│   └── presets.ts           # Aircraft presets
-├── validation/
-│   └── schema.ts            # Input validation
-└── tests/
-    └── stability.spec.ts    # Unit tests
+```text
+src/
+├── components/            # Shared UI components, layout, and assistant
+│   ├── tools/            # Calculators (Orbital, Lift/Drag, Antenna, etc.)
+│   └── ui/               # Radix and tailwind UI blocks
+├── contexts/              # React Context providers (Auth, AI assistant)
+├── data/                  # Airfoil descriptions, presets, and materials
+├── hooks/                 # Custom react hooks (Auth, LiveSatellites, ToolContext)
+├── lib/                   # API clients and utilities (aerobot-api, pdfExport)
+├── pages/                 # Routing pages (Community, Dashboard, Research)
+└── services/              # Client-side API gateways (geminiClient)
 ```
 
-## Usage Example
+---
 
-```typescript
-import { calculateStability } from './utils/calcStability';
+## Local Development Setup
 
-const inputs = {
-  S_w: 15,        // m²
-  AR: 7,
-  c_bar: 1.5,     // m
-  x_ac_w: 0.375,  // m
-  x_cg: 0.4,      // m
-  S_t: 3.5,       // m²
-  AR_t: 4.5,
-  l_t: 4.5,       // m
-};
+To run the application locally, follow these steps:
 
-const result = calculateStability(inputs);
+### Prerequisites
 
-console.log(`Static Margin: ${result.SM}`);
-console.log(`Neutral Point: ${result.x_np} m`);
-console.log(`C_mα: ${result.C_m_alpha} /rad`);
+*   Node.js (v18 or higher)
+*   npm or bun
+
+### Step 1: Clone and Install Dependencies
+
+```bash
+git clone <repository-url>
+cd AERORBIS
+npm install
 ```
 
-## Notes
+### Step 2: Configure Environment Variables
 
-- All calculations use SI units internally
-- Results are engineering-accurate for preliminary design
-- For production design, use validated tools or wind tunnel testing
-- This tool is intended for educational and preliminary design purposes
+Create a `.env.local` file in the root directory and add your Groq API key:
 
+```env
+VITE_GROQ_API_KEY="your_groq_api_key_here"
+```
+
+### Step 3: Run the Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
+## Production Deployment
+
+You can host this static React web app for free on platforms like **GitHub Pages**, **Vercel**, **Netlify**, or **Firebase Hosting**. 
+
+Since there are no backend cloud functions to deploy, hosting costs are **$0.00**!

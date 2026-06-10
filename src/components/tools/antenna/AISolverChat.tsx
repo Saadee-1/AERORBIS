@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { AeroButton } from "@/components/common/AeroButton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from "@/config/firebase";
 
 type Role = "user" | "assistant";
 interface Msg {
@@ -34,7 +34,32 @@ interface SolverStructured {
 }
 
 const STORAGE_KEY = "aerorbis_antenna_solver_history";
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/antenna-solver`;
+const SYSTEM_PROMPT = `You are AERORBIS Antenna & Avionics Solver, a senior RF engineer specialised in:
+- Antenna theory: dipole, monopole, patch, horn, reflector, Yagi-Uda, helix, spiral, arrays (mutual coupling, beam steering)
+- Numerical methods: Method of Moments (Pocklington/Hallén), Physical Optics for reflectors, GO/GTD for diffraction
+- Propagation: Friis free-space, two-ray ground, ITU-R P.525/618/676, rain/atmospheric absorption, Doppler
+- Radar & RCS: radar equation (pulse/CW), SAR basics, RCS of canonical shapes (sphere, plate, cylinder, dihedral, trihedral)
+- Avionics RF: VOR (108–118 MHz), ILS LOC/GS, GPS L1/L2/L5, ADS-B 1090 MHz, TCAS, radar altimeter (4.2–4.4 GHz), antenna placement, airframe multipath
+
+RULES:
+1. Always show step-by-step derivation. Cite the governing formula in plain text (e.g. "Friis: Pr = Pt + Gt + Gr − Lfs").
+2. Use SI units; convert if user gives Imperial. State assumptions explicitly.
+3. If a question is ambiguous, ask ONE concise clarifying question, otherwise answer.
+4. After the prose explanation, ALWAYS append a fenced JSON block with this contract:
+\`\`\`json
+{
+  "summary": "one-line answer",
+  "numeric_result": { "value": <number|null>, "unit": "<string|null>" },
+  "steps": ["step 1", "step 2", "..."],
+  "formulas": ["formula 1", "..."],
+  "assumptions": ["..."],
+  "warnings": ["..."],
+  "suggested_solver": "mom" | "linkBudget" | "polarization" | "coupling" | "po" | "bandwidth" | null
+}
+\`\`\`
+5. Be concise but rigorous — university-level depth. No fluff.
+6. If the user attaches CONTEXT (current MoM run, selected antenna, frequency), use those values rather than asking.`;
+
 
 const SUGGESTIONS: { label: string; prompt: string; tag: string }[] = [
   { tag: "Friis",       label: "Friis link budget", prompt: "Friis link budget: 20 W TX, 16 dBi antennas at both ends, 10 km, 5.8 GHz. Find Pr in dBm and the link margin assuming -90 dBm sensitivity." },
@@ -136,29 +161,38 @@ export const AISolverChat = ({ context }: Props) => {
     setThinking(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const authHeader = session?.access_token
-        ? `Bearer ${session.access_token}`
-        : `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`;
+      const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+      if (!apiKey) {
+        throw new Error("Groq API key not configured. Please set VITE_GROQ_API_KEY in your .env.local file.");
+      }
 
-      const resp = await fetch(CHAT_URL, {
+      const sysPrompt = context
+        ? `${SYSTEM_PROMPT}\n\nCURRENT CONTEXT (JSON):\n${JSON.stringify(context).slice(0, 4000)}`
+        : SYSTEM_PROMPT;
+
+      const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: authHeader,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
-          context: context ?? undefined,
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: sysPrompt },
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            { role: "user", content: text }
+          ],
+          temperature: 0.3,
+          max_tokens: 4096,
+          stream: true,
         }),
       });
 
       if (!resp.ok) {
         if (resp.status === 429) throw new Error("Rate limit exceeded — please wait a moment.");
-        if (resp.status === 402) throw new Error("AI credits exhausted — top up in Settings → Workspace → Usage.");
         const j = await resp.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error || "Solver unavailable");
+        throw new Error((j as { error?: { message?: string } })?.error?.message || "Solver unavailable");
       }
 
       // Check if response is streaming or JSON

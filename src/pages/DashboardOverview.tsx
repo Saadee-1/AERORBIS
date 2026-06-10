@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useRef, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/config/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const DashboardOverview = () => {
   const { user } = useAuth();
@@ -16,10 +17,15 @@ const DashboardOverview = () => {
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
-    supabase.from('profiles').select('display_name, username').eq('id', user.uid).single()
-      .then(({ data }) => {
-        if (data) setDisplayName(data.display_name || data.username || 'Engineer');
-      });
+    const userDocRef = doc(db, "users", user.uid);
+    getDoc(userDocRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setDisplayName(data.displayName || data.display_name || data.username || 'Engineer');
+      }
+    }).catch((err) => {
+      console.error("Error fetching display name:", err);
+    });
   }, [user, navigate]);
 
   const welcomeRef = useRef<HTMLDivElement>(null);

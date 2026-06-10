@@ -26,6 +26,8 @@ import { useDesignSession } from "@/contexts/designSession";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
+import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
+import { FIELD_KEYS } from "@/components/tools/utils/interlinkConfig";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
 import { ToolSection } from "@/components/layout/ToolSection";
@@ -538,6 +540,14 @@ export default function StandardAtmosphereCalculator() {
                     }
                     return null;
                   })()}
+                  {unitSystem === "SI" && (
+                    <InlineInterlinkHint 
+                      fieldKey={FIELD_KEYS.vClimbVyMs} 
+                      currentValue={velocity} 
+                      onImport={(v) => setVelocity(String(v))} 
+                      onUndo={(prev) => setVelocity(prev === null ? "" : String(prev))} 
+                    />
+                  )}
                 </AeroFormField>
               </div>
             </AeroCard>

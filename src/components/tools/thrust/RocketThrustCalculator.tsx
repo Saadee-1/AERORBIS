@@ -615,6 +615,14 @@ const RocketThrustCalculator = () => {
                 </AeroFormField>
                 <AeroFormField label={`Total Thrust (${getUnit("thrust")})`}>
                   <Input value={inputs.thrust} onChange={(e) => handleInputChange("thrust", e.target.value)} type="number" />
+                  {unitSystem === "SI" && (
+                    <InlineInterlinkHint 
+                      fieldKey={FIELD_KEYS.totalThrustN} 
+                      currentValue={inputs.thrust} 
+                      onImport={(v) => handleInputChange("thrust", String(v))} 
+                      onUndo={(prev) => handleInputChange("thrust", prev === null ? "" : String(prev))} 
+                    />
+                  )}
                 </AeroFormField>
                 <AeroFormField label={`Exit Area (Ae, ${getUnit("exitArea")})`}>
                   <Input value={inputs.exitArea} onChange={(e) => handleInputChange("exitArea", e.target.value)} type="number" />

@@ -1,17 +1,16 @@
-﻿import { supabase } from '@/integrations/supabase/client';
+import { auth } from '@/config/firebase';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY as string | undefined;
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const SUPABASE_FUNCTION_AI_GATEWAY = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-gateway` : undefined;
+const FIREBASE_FUNCTION_AI_GATEWAY = "https://us-central1-aerorbis-dad0a.cloudfunctions.net/aiGateway";
 
 export type GeminiResult =
   | { ok: true; content: string }
   | { ok: false; reason: "AI_DISABLED" | "NETWORK_ERROR" | "BAD_RESPONSE"; detail?: string };
 
 export function isSmartAiEnabled(): boolean {
-  return !!GROQ_API_KEY || !!SUPABASE_FUNCTION_AI_GATEWAY;
+  return !!GROQ_API_KEY || !!FIREBASE_FUNCTION_AI_GATEWAY;
 }
 
 export async function callGeminiJSON(prompt: string): Promise<GeminiResult> {
@@ -53,21 +52,26 @@ export async function callGeminiJSON(prompt: string): Promise<GeminiResult> {
     }
   }
 
-  if (!SUPABASE_FUNCTION_AI_GATEWAY) {
+  if (!FIREBASE_FUNCTION_AI_GATEWAY) {
     return { ok: false, reason: "AI_DISABLED", detail: "Groq API key not configured and no proxy endpoint is available." };
   }
 
   try {
-    const { data: session } = await supabase.auth.getSession();
-    const authHeader = session?.session?.access_token
-      ? `Bearer ${session.session.access_token}`
-      : undefined;
+    let authHeader = "";
+    if (auth.currentUser) {
+      try {
+        const idToken = await auth.currentUser.getIdToken();
+        authHeader = `Bearer ${idToken}`;
+      } catch (err) {
+        console.warn("Failed to get Firebase ID token:", err);
+      }
+    }
 
     if (!authHeader) {
       return { ok: false, reason: "AI_DISABLED", detail: "Please sign in to use Smart AI or configure VITE_GROQ_API_KEY." };
     }
 
-    const response = await fetch(SUPABASE_FUNCTION_AI_GATEWAY, {
+    const response = await fetch(FIREBASE_FUNCTION_AI_GATEWAY, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

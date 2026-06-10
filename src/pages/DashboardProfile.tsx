@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Bell, Lock, Palette, LogOut, Upload, Shield, Wifi, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/config/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -52,28 +53,39 @@ const DashboardProfile = () => {
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
-    supabase.from('profiles').select('*').eq('id', user.uid).single()
-      .then(({ data }) => {
-        if (data) setProfile({
-          display_name: data.display_name || '',
+    const userDocRef = doc(db, "users", user.uid);
+    getDoc(userDocRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setProfile({
+          display_name: data.displayName || data.display_name || '',
           username: data.username || '',
           bio: data.bio || '',
-          avatar_url: data.avatar_url || '',
+          avatar_url: data.photoURL || data.avatar_url || '',
         });
-      });
+      }
+    }).catch((err) => {
+      console.error("Error fetching user profile:", err);
+    });
   }, [user, navigate]);
 
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from('profiles').update({
-      display_name: profile.display_name,
-      username: profile.username,
-      bio: profile.bio,
-    }).eq('id', user.uid);
-    setSaving(false);
-    if (error) toast.error("Failed to save changes");
-    else toast.success("Profile updated!");
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, {
+        displayName: profile.display_name,
+        username: profile.username,
+        bio: profile.bio,
+      });
+      toast.success("Profile updated!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to save changes");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSignOut = async () => {

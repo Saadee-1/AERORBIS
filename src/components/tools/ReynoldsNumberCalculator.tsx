@@ -23,6 +23,8 @@ import { AskAIButton } from "@/components/tools/AskAIButton";
 import { buildAeroversePayload } from "@/ai/buildPayload";
 import { ToolWrapper } from "@/components/layout/ToolWrapper";
 import { ToolHeader } from "@/components/layout/ToolHeader";
+import { InlineInterlinkHint } from "@/components/common/InterlinkCTA";
+import { FIELD_KEYS } from "@/components/tools/utils/interlinkConfig";
 import { ToolSection } from "@/components/layout/ToolSection";
 import { ToolActions } from "@/components/layout/ToolActions";
 import { AeroCard } from "@/components/common/AeroCard";
@@ -702,6 +704,14 @@ const ReynoldsNumberCalculator = () => {
                   className="bg-muted/50" 
                   placeholder="e.g., 1.225" 
                 />
+                {unitSystem === "SI" && (
+                  <InlineInterlinkHint 
+                    fieldKey={FIELD_KEYS.densityKgM3} 
+                    currentValue={inputs.density} 
+                    onImport={(v) => handleInputChange("density", String(v))} 
+                    onUndo={(prev) => handleInputChange("density", prev === null ? "" : String(prev))} 
+                  />
+                )}
               </AeroFormField>
               <AeroFormField label={`Velocity (V) ${getUnit("velocity")}`}>
                 <Input 
@@ -713,6 +723,14 @@ const ReynoldsNumberCalculator = () => {
                   className="bg-muted/50" 
                   placeholder="e.g., 50" 
                 />
+                {unitSystem === "SI" && (
+                  <InlineInterlinkHint 
+                    fieldKey={FIELD_KEYS.vClimbVyMs} 
+                    currentValue={inputs.velocity} 
+                    onImport={(v) => handleInputChange("velocity", String(v))} 
+                    onUndo={(prev) => handleInputChange("velocity", prev === null ? "" : String(prev))} 
+                  />
+                )}
               </AeroFormField>
               <AeroFormField label={`Characteristic Length (L) ${getUnit("length")}`}>
                 <Input 
