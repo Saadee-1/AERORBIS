@@ -1,7 +1,9 @@
 import { auth } from '@/config/firebase';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY as string | undefined;
-const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_ENDPOINT = import.meta.env.DEV
+  ? "/api-groq/openai/v1/chat/completions"
+  : "https://corsproxy.io/?url=https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 const FIREBASE_FUNCTION_AI_GATEWAY = "https://us-central1-aerorbis-dad0a.cloudfunctions.net/aiGateway";
 

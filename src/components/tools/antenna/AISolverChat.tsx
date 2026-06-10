@@ -170,7 +170,11 @@ export const AISolverChat = ({ context }: Props) => {
         ? `${SYSTEM_PROMPT}\n\nCURRENT CONTEXT (JSON):\n${JSON.stringify(context).slice(0, 4000)}`
         : SYSTEM_PROMPT;
 
-      const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const endpoint = import.meta.env.DEV
+        ? "/api-groq/openai/v1/chat/completions"
+        : "https://corsproxy.io/?url=https://api.groq.com/openai/v1/chat/completions";
+
+      const resp = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
