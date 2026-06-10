@@ -526,6 +526,8 @@ const RocketThrustCalculator = () => {
         units: { thrust: "N", isp: "s" },
       });
 
+      setLastPayload(payload);
+      setLastRequestId(payload.requestId || `calc-${Date.now()}`);
       await updateToolContext(payload);
       syncChartData(resultThrust, resultMdot, resultVe, resultAe, resultPe, resultPa, chartMode);
       sendCalculationEvent(buildCalculationEvent({
@@ -658,7 +660,9 @@ const RocketThrustCalculator = () => {
 
         <div>
           <div className={spacingVertical.L}>
-            <AeroCard title="Results">
+            <AeroCard title="Results" headerActions={
+              <AskAIButton requestId={lastRequestId} payload={lastPayload || undefined} disabled={!lastPayload} />
+            }>
               {result ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-primary/10 rounded-lg border border-primary/30">
