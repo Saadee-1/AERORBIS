@@ -13,6 +13,7 @@ import { AeroButton } from "@/components/common/AeroButton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { auth } from "@/config/firebase";
+import { getGroqApiKey } from "@/lib/aerobot-api";
 
 type Role = "user" | "assistant";
 interface Msg {
@@ -161,9 +162,9 @@ export const AISolverChat = ({ context }: Props) => {
     setThinking(true);
 
     try {
-      const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+      const apiKey = getGroqApiKey();
       if (!apiKey) {
-        throw new Error("Groq API key not configured. Please set VITE_GROQ_API_KEY in your .env.local file.");
+        throw new Error("Groq API key not configured. Please set VITE_GROQ_API_KEY in your environment or configure your key in the Aerobot settings.");
       }
 
       const sysPrompt = context

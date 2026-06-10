@@ -108,6 +108,33 @@ const AIAssistant: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { clearToolContext } = useToolContext();
 
+  const [apiKey, setApiKey] = useState(() => {
+    try {
+      return localStorage.getItem('aerorbis_user_groq_key') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [showKeyConfig, setShowKeyConfig] = useState(false);
+  const [keyInputValue, setKeyInputValue] = useState(apiKey);
+  const hasApiKey = !!import.meta.env.VITE_GROQ_API_KEY || !!apiKey;
+
+  const handleSaveKey = (key: string) => {
+    const trimmed = key.trim();
+    try {
+      if (trimmed) {
+        localStorage.setItem('aerorbis_user_groq_key', trimmed);
+        setApiKey(trimmed);
+      } else {
+        localStorage.removeItem('aerorbis_user_groq_key');
+        setApiKey('');
+      }
+      setShowKeyConfig(false);
+    } catch (err) {
+      console.error('Failed to save API key:', err);
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -280,9 +307,19 @@ const AIAssistant: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-emerald-500/30 rounded-xl">
-                    <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10">
+                     <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10">
                       <History className="w-4 h-4 mr-2" />
                       {showHistory ? 'Hide' : 'Show'} History
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        setKeyInputValue(apiKey);
+                        setShowKeyConfig(true);
+                      }} 
+                      className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      API Key Settings
                     </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
@@ -458,124 +495,193 @@ const AIAssistant: React.FC = () => {
               )}
             </AnimatePresence>
 
-            {/* Messages Area - Maximum Space with proper flex */}
-              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-500/20 scrollbar-track-transparent">
-                {messages.length === 0 && (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center space-y-3">
-                    <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
-                                  flex items-center justify-center shadow-[0_0_30px_hsl(160_84%_39%/0.5)]">
-                      <AstronautIcon className="w-10 h-10 text-emerald-500" />
-                    </div>
-                      <p className="text-gray-400 text-sm">
-                        {mode === 'chat'
-                          ? 'Ask me anything about aerospace!'
-                          : 'Paste text to summarize…'}
-                      </p>
-                      {hasToolData && mode === 'chat' && (
-                        <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-left max-w-xs mx-auto">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Rocket className="w-4 h-4 text-emerald-500" />
-                          <span className="text-xs font-semibold text-emerald-500">Tool Context Active</span>
-                        </div>
-                        <p className="text-xs text-gray-400">
-                            I can explain results from {toolContext?.tool}. Ask follow-up questions to dive deeper.
-                        </p>
-                      </div>
+            {/* API Key Configuration UI */}
+            {showKeyConfig || !hasApiKey ? (
+              <div className="flex-1 flex flex-col justify-center p-6 space-y-6 overflow-y-auto">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
+                                flex items-center justify-center shadow-[0_0_30px_hsl(160_84%_39%/0.5)]">
+                    <AstronautIcon className="w-10 h-10 text-emerald-500" />
+                  </div>
+                  <h4 className="text-sm font-bold text-gray-200">Configure Aerobot</h4>
+                  <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+                    Aerobot is currently 100% serverless and client-side to run on the free Spark plan.
+                    To ask questions, please provide a Groq API key.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">
+                      Groq API Key
+                    </label>
+                    <Input
+                      type="password"
+                      value={keyInputValue}
+                      onChange={(e) => setKeyInputValue(e.target.value)}
+                      placeholder="gsk_..."
+                      className="bg-slate-900/70 border-emerald-500/30 text-gray-200 placeholder:text-gray-650
+                               focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="text-[10px] text-gray-500 flex justify-between items-center">
+                    <span>Keys are saved locally in your browser.</span>
+                    <a
+                      href="https://console.groq.com/keys"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-500 hover:underline"
+                    >
+                      Get free key ↗
+                    </a>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    {hasApiKey && (
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setKeyInputValue(apiKey);
+                          setShowKeyConfig(false);
+                        }}
+                        className="flex-1 text-gray-400 hover:text-white border border-slate-700 hover:bg-slate-800 rounded-xl"
+                      >
+                        Cancel
+                      </Button>
                     )}
+                    <Button
+                      onClick={() => handleSaveKey(keyInputValue)}
+                      disabled={!keyInputValue.trim() && !hasApiKey}
+                      className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-400 text-white rounded-xl shadow-[0_0_20px_hsl(160_84%_39%/0.4)]"
+                    >
+                      Save Key
+                    </Button>
                   </div>
                 </div>
-              )}
+              </div>
+            ) : (
+              <>
+                {/* Messages Area - Maximum Space with proper flex */}
+                <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-500/20 scrollbar-track-transparent">
+                  {messages.length === 0 && (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center space-y-3">
+                        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
+                                      flex items-center justify-center shadow-[0_0_30px_hsl(160_84%_39%/0.5)]">
+                          <AstronautIcon className="w-10 h-10 text-emerald-500" />
+                        </div>
+                        <p className="text-gray-400 text-sm">
+                          {mode === 'chat'
+                            ? 'Ask me anything about aerospace!'
+                            : 'Paste text to summarize…'}
+                        </p>
+                        {hasToolData && mode === 'chat' && (
+                          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-left max-w-xs mx-auto">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Rocket className="w-4 h-4 text-emerald-500" />
+                              <span className="text-xs font-semibold text-emerald-500">Tool Context Active</span>
+                            </div>
+                            <p className="text-xs text-gray-400">
+                              I can explain results from {toolContext?.tool}. Ask follow-up questions to dive deeper.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-              {messages.map((message, index) => {
-                const isLastAssistant = message.role === 'assistant' && index === messages.length - 1;
-                const displayContent = isLastAssistant && isTyping ? typingText : message.content;
+                  {messages.map((message, index) => {
+                    const isLastAssistant = message.role === 'assistant' && index === messages.length - 1;
+                    const displayContent = isLastAssistant && isTyping ? typingText : message.content;
 
-                return (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={cn(
-                      'flex gap-3',
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
-                    )}
-                  >
-                    {message.role === 'assistant' && (
+                    return (
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={cn(
+                          'flex gap-3',
+                          message.role === 'user' ? 'justify-end' : 'justify-start'
+                        )}
+                      >
+                        {message.role === 'assistant' && (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
+                                        flex items-center justify-center flex-shrink-0 mt-1">
+                            <AstronautIcon className="w-5 h-5 text-emerald-500" />
+                          </div>
+                        )}
+                        <div
+                          className={cn(
+                            'max-w-[75%] p-3 rounded-2xl',
+                            message.role === 'user'
+                              ? 'bg-gradient-to-r from-emerald-500/20 to-teal-400/20 border border-emerald-500/30 text-gray-200'
+                              : 'bg-slate-800/60 backdrop-blur-sm border border-emerald-500/20 text-gray-300'
+                          )}
+                        >
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{displayContent}</p>
+                          {isLastAssistant && isTyping && (
+                            <span className="inline-block w-1 h-4 ml-1 bg-emerald-500 animate-pulse" />
+                          )}
+                        </div>
+                        {message.role === 'user' && (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-emerald-500/20 
+                                        flex items-center justify-center flex-shrink-0 mt-1">
+                            <MessageSquare className="w-5 h-5 text-primary" />
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+
+                  {isLoading && !isTyping && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex justify-start gap-3"
+                    >
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
-                                    flex items-center justify-center flex-shrink-0 mt-1">
+                                    flex items-center justify-center flex-shrink-0">
                         <AstronautIcon className="w-5 h-5 text-emerald-500" />
                       </div>
-                    )}
-                    <div
-                      className={cn(
-                        'max-w-[75%] p-3 rounded-2xl',
-                        message.role === 'user'
-                          ? 'bg-gradient-to-r from-emerald-500/20 to-teal-400/20 border border-emerald-500/30 text-gray-200'
-                          : 'bg-slate-800/60 backdrop-blur-sm border border-emerald-500/20 text-gray-300'
-                      )}
-                    >
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{displayContent}</p>
-                      {isLastAssistant && isTyping && (
-                        <span className="inline-block w-1 h-4 ml-1 bg-emerald-500 animate-pulse" />
-                      )}
-                    </div>
-                    {message.role === 'user' && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-emerald-500/20 
-                                    flex items-center justify-center flex-shrink-0 mt-1">
-                        <MessageSquare className="w-5 h-5 text-primary" />
+                      <div className="bg-slate-800/60 backdrop-blur-sm border border-emerald-500/20 p-4 rounded-2xl">
+                        <div className="flex gap-1.5">
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
                       </div>
-                    )}
-                  </motion.div>
-                );
-              })}
+                    </motion.div>
+                  )}
 
-              {isLoading && !isTyping && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex justify-start gap-3"
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
-                                flex items-center justify-center flex-shrink-0">
-                    <AstronautIcon className="w-5 h-5 text-emerald-500" />
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input Area - Always Visible */}
+                <div className="p-3 border-t border-emerald-500/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky bottom-0">
+                  <div className="flex gap-2">
+                    <Input
+                      ref={inputRef}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder={mode === 'chat' ? 'Ask Aerobot anything...' : 'Paste text to summarize...'}
+                      disabled={isLoading}
+                      className="flex-1 bg-slate-900/70 border-emerald-500/30 text-gray-200 placeholder:text-gray-500
+                               focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 rounded-xl"
+                    />
+                    <Button
+                      onClick={handleSend}
+                      disabled={isLoading || !inputValue.trim()}
+                      className="bg-gradient-to-r from-emerald-500 to-emerald-400 text-white hover:shadow-[0_0_30px_hsl(160_84%_39%/0.6)]
+                               disabled:opacity-50 disabled:cursor-not-allowed rounded-xl px-4"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <div className="bg-slate-800/60 backdrop-blur-sm border border-emerald-500/20 p-4 rounded-2xl">
-                    <div className="flex gap-1.5">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area - Always Visible */}
-              <div className="p-3 border-t border-emerald-500/20 bg-gradient-to-r from-slate-800/80 to-slate-900/80 flex-shrink-0 sticky bottom-0">
-              <div className="flex gap-2">
-                <Input
-                  ref={inputRef}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder={mode === 'chat' ? 'Ask Aerobot anything...' : 'Paste text to summarize...'}
-                  disabled={isLoading}
-                  className="flex-1 bg-slate-900/70 border-emerald-500/30 text-gray-200 placeholder:text-gray-500
-                           focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 rounded-xl"
-                />
-                <Button
-                  onClick={handleSend}
-                  disabled={isLoading || !inputValue.trim()}
-                  className="bg-gradient-to-r from-emerald-500 to-emerald-400 text-white hover:shadow-[0_0_30px_hsl(160_84%_39%/0.6)]
-                           disabled:opacity-50 disabled:cursor-not-allowed rounded-xl px-4"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
