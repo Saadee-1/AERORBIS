@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToolContext } from '@/hooks/useToolContext';
+import { getGroqApiKey } from '@/lib/aerobot-api';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -117,7 +118,7 @@ const AIAssistant: React.FC = () => {
   });
   const [showKeyConfig, setShowKeyConfig] = useState(false);
   const [keyInputValue, setKeyInputValue] = useState(apiKey);
-  const hasApiKey = !!import.meta.env.VITE_GROQ_API_KEY || !!apiKey;
+  const hasApiKey = !!getGroqApiKey();
 
   const handleSaveKey = (key: string) => {
     const trimmed = key.trim();
