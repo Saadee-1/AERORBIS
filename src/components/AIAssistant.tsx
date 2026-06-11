@@ -111,33 +111,6 @@ const AIAssistant: React.FC = () => {
   const { clearToolContext } = useToolContext();
   const { confirm, ConfirmDialog } = useAeroConfirm();
 
-  const [apiKey, setApiKey] = useState(() => {
-    try {
-      return localStorage.getItem('aerorbis_user_groq_key') || '';
-    } catch {
-      return '';
-    }
-  });
-  const [showKeyConfig, setShowKeyConfig] = useState(false);
-  const [keyInputValue, setKeyInputValue] = useState(apiKey);
-  const hasApiKey = !!getGroqApiKey();
-
-  const handleSaveKey = (key: string) => {
-    const trimmed = key.trim();
-    try {
-      if (trimmed) {
-        localStorage.setItem('aerorbis_user_groq_key', trimmed);
-        setApiKey(trimmed);
-      } else {
-        localStorage.removeItem('aerorbis_user_groq_key');
-        setApiKey('');
-      }
-      setShowKeyConfig(false);
-    } catch (err) {
-      console.error('Failed to save API key:', err);
-    }
-  };
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -309,99 +282,100 @@ const AIAssistant: React.FC = () => {
                       <Menu className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-emerald-500/30 rounded-xl">
-                     <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10">
-                      <History className="w-4 h-4 mr-2" />
-                      {showHistory ? 'Hide' : 'Show'} History
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => {
-                        setKeyInputValue(apiKey);
-                        setShowKeyConfig(true);
-                      }} 
-                      className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10"
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      API Key Settings
-                    </DropdownMenuItem>
+                      <DropdownMenuContent align="end" className="w-64 bg-slate-900/95 backdrop-blur-xl border-emerald-500/30 rounded-2xl shadow-[0_0_40px_hsl(160_84%_39%/0.2)] p-2">
+                      <div className="px-2 py-2 mb-1">
+                        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Session Info</p>
+                      </div>
+                      <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} className="text-gray-300 focus:text-emerald-400 focus:bg-emerald-500/10 cursor-pointer rounded-xl transition-colors mb-1">
+                        <History className="w-4 h-4 mr-3 text-emerald-500" />
+                        {showHistory ? 'Hide History' : 'Show History'}
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
                           clearToolContext();
                           startNewChat();
                         }}
-                        className="text-emerald-500 focus:text-emerald-400 focus:bg-emerald-500/10"
+                        className="text-gray-300 focus:text-emerald-400 focus:bg-emerald-500/10 cursor-pointer rounded-xl transition-colors mb-1"
                       >
-                      <Plus className="w-4 h-4 mr-2" />
-                      New Chat
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={clearChat} 
-                      disabled={messages.length === 0}
-                      className="text-red-400 focus:text-red-300 focus:bg-red-400/10 disabled:opacity-50"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Clear Chat
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-emerald-500/20" />
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs text-gray-400 mb-1.5">Mode</p>
-                      <div className="flex gap-1">
-                        <Button
-                          variant={mode === 'chat' ? 'default' : 'ghost'}
-                          size="sm"
-                          onClick={() => setMode('chat')}
-                          className={cn(
-                            'flex-1 text-xs h-7',
-                            mode === 'chat' 
-                              ? 'bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30' 
-                              : 'text-gray-400 hover:text-emerald-500'
-                          )}
-                        >
-                          Chat
-                        </Button>
-                        <Button
-                          variant={mode === 'summarize' ? 'default' : 'ghost'}
-                          size="sm"
-                          onClick={() => setMode('summarize')}
-                          className={cn(
-                            'flex-1 text-xs h-7',
-                            mode === 'summarize' 
-                              ? 'bg-primary/20 text-primary hover:bg-primary/30' 
-                              : 'text-muted-foreground hover:text-primary'
-                          )}
-                        >
-                          Summarize
-                        </Button>
+                        <Plus className="w-4 h-4 mr-3 text-emerald-500" />
+                        New Chat
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={clearChat} 
+                        disabled={messages.length === 0}
+                        className="text-red-400 focus:text-red-300 focus:bg-red-400/10 cursor-pointer rounded-xl transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-3" />
+                        Clear Current Chat
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuSeparator className="bg-emerald-500/20 my-2" />
+                      
+                      <div className="px-2 py-2">
+                        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-3">Preferences</p>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <p className="text-[10px] text-gray-400 font-medium">Interaction Mode</p>
+                            <div className="flex gap-1 bg-slate-950/50 p-1 rounded-xl">
+                              <Button
+                                variant={mode === 'chat' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setMode('chat')}
+                                className={cn(
+                                  'flex-1 text-xs h-7 rounded-lg transition-all duration-300',
+                                  mode === 'chat' 
+                                    ? 'bg-emerald-500 text-white shadow-[0_0_15px_hsl(160_84%_39%/0.4)]' 
+                                    : 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-500/10'
+                                )}
+                              >
+                                Chat
+                              </Button>
+                              <Button
+                                variant={mode === 'summarize' ? 'default' : 'ghost'}
+                                size="sm"
+                                onClick={() => setMode('summarize')}
+                                className={cn(
+                                  'flex-1 text-xs h-7 rounded-lg transition-all duration-300',
+                                  mode === 'summarize' 
+                                    ? 'bg-emerald-500 text-white shadow-[0_0_15px_hsl(160_84%_39%/0.4)]' 
+                                    : 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-500/10'
+                                )}
+                              >
+                                Summarize
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-[10px] text-gray-400 font-medium">Response Language</p>
+                            <Select value={language} onValueChange={setLanguage}>
+                              <SelectTrigger className="w-full h-8 bg-slate-950/50 border border-transparent hover:border-emerald-500/30 text-emerald-500 text-xs rounded-xl transition-all focus:ring-1 focus:ring-emerald-500/50">
+                                <Globe className="w-3 h-3 mr-2" />
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-900 border-emerald-500/30 rounded-xl shadow-2xl backdrop-blur-xl">
+                                {LANGUAGES.map((lang) => (
+                                  <SelectItem 
+                                    key={lang.code} 
+                                    value={lang.code}
+                                    className="text-gray-300 focus:bg-emerald-500/20 focus:text-emerald-500 text-xs rounded-lg cursor-pointer"
+                                  >
+                                    {lang.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <DropdownMenuSeparator className="bg-emerald-500/20" />
-                    <div className="px-2 py-1.5">
-                      <p className="text-xs text-gray-400 mb-1.5">Language</p>
-                      <Select value={language} onValueChange={setLanguage}>
-                        <SelectTrigger className="w-full h-7 bg-slate-800 border-emerald-500/30 text-emerald-500 text-xs">
-                          <Globe className="w-3 h-3 mr-1" />
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-slate-900 border-emerald-500/30">
-                          {LANGUAGES.map((lang) => (
-                            <SelectItem 
-                              key={lang.code} 
-                              value={lang.code}
-                              className="text-gray-300 focus:bg-emerald-500/20 focus:text-emerald-500 text-xs"
-                            >
-                              {lang.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <DropdownMenuSeparator className="bg-emerald-500/20" />
+
+                      <DropdownMenuSeparator className="bg-emerald-500/20 my-2" />
+                      
                       <DropdownMenuItem 
                         onClick={() => setIsOpen(false)} 
-                        className="text-gray-400 focus:text-gray-300 focus:bg-slate-800"
+                        className="text-gray-400 focus:text-gray-300 focus:bg-slate-800 rounded-xl cursor-pointer mb-1"
                       >
-                        <Minimize2 className="w-4 h-4 mr-2" />
-                        Minimize
+                        <Minimize2 className="w-4 h-4 mr-3" />
+                        Minimize Window
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => {
@@ -409,12 +383,12 @@ const AIAssistant: React.FC = () => {
                           startNewChat();
                           setIsOpen(false);
                         }} 
-                        className="text-red-400 focus:text-red-300 focus:bg-red-400/10"
+                        className="text-red-400 focus:text-red-300 focus:bg-red-400/10 rounded-xl cursor-pointer"
                       >
-                        <X className="w-4 h-4 mr-2" />
-                        Exit
+                        <X className="w-4 h-4 mr-3" />
+                        Exit Aerobot
                       </DropdownMenuItem>
-                  </DropdownMenuContent>
+                    </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
                   variant="ghost"
@@ -497,75 +471,8 @@ const AIAssistant: React.FC = () => {
               )}
             </AnimatePresence>
 
-            {/* API Key Configuration UI */}
-            {showKeyConfig || !hasApiKey ? (
-              <div className="flex-1 flex flex-col justify-center p-6 space-y-6 overflow-y-auto">
-                <div className="text-center space-y-3">
-                  <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 
-                                flex items-center justify-center shadow-[0_0_30px_hsl(160_84%_39%/0.5)]">
-                    <AstronautIcon className="w-10 h-10 text-emerald-500" />
-                  </div>
-                  <h4 className="text-sm font-bold text-gray-200">Configure Aerobot</h4>
-                  <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
-                    Aerobot is currently 100% serverless and client-side to run on the free Spark plan.
-                    To ask questions, please provide a Groq API key.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">
-                      Groq API Key
-                    </label>
-                    <Input
-                      type="password"
-                      value={keyInputValue}
-                      onChange={(e) => setKeyInputValue(e.target.value)}
-                      placeholder="gsk_..."
-                      className="bg-slate-900/70 border-emerald-500/30 text-gray-200 placeholder:text-gray-650
-                               focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 rounded-xl"
-                    />
-                  </div>
-
-                  <div className="text-[10px] text-gray-500 flex justify-between items-center">
-                    <span>Keys are saved locally in your browser.</span>
-                    <a
-                      href="https://console.groq.com/keys"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-emerald-500 hover:underline"
-                    >
-                      Get free key ↗
-                    </a>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    {hasApiKey && (
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          setKeyInputValue(apiKey);
-                          setShowKeyConfig(false);
-                        }}
-                        className="flex-1 text-gray-400 hover:text-white border border-slate-700 hover:bg-slate-800 rounded-xl"
-                      >
-                        Cancel
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => handleSaveKey(keyInputValue)}
-                      disabled={!keyInputValue.trim() && !hasApiKey}
-                      className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-400 text-white rounded-xl shadow-[0_0_20px_hsl(160_84%_39%/0.4)]"
-                    >
-                      Save Key
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* Messages Area - Maximum Space with proper flex */}
-                <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-500/20 scrollbar-track-transparent">
+            {/* Messages Area - Maximum Space with proper flex */}
+            <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-500/20 scrollbar-track-transparent">
                   {messages.length === 0 && (
                     <div className="h-full flex items-center justify-center">
                       <div className="text-center space-y-3">
@@ -682,8 +589,6 @@ const AIAssistant: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-              </>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
