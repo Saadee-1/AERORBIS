@@ -13,10 +13,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+            "group toast group-[.toaster]:bg-slate-950/95 group-[.toaster]:text-slate-100 group-[.toaster]:border-emerald-500/20 group-[.toaster]:shadow-[0_0_40px_rgba(16,185,129,0.08)] group-[.toaster]:backdrop-blur-xl group-[.toaster]:rounded-xl",
+          description: "group-[.toast]:text-slate-400",
+          actionButton: "group-[.toast]:bg-emerald-600 group-[.toast]:text-white group-[.toast]:hover:bg-emerald-500 group-[.toast]:rounded-lg group-[.toast]:font-semibold",
+          cancelButton: "group-[.toast]:bg-slate-800 group-[.toast]:text-slate-300 group-[.toast]:hover:bg-slate-700 group-[.toast]:rounded-lg",
+          success: "group-[.toast]:border-emerald-500/40 group-[.toast]:bg-slate-950/95",
+          error: "group-[.toast]:border-red-500/40 group-[.toast]:bg-slate-950/95",
+          info: "group-[.toast]:border-sky-500/40 group-[.toast]:bg-slate-950/95",
+          warning: "group-[.toast]:border-amber-500/40 group-[.toast]:bg-slate-950/95",
         },
       }}
       {...props}

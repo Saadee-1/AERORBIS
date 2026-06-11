@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend, type LegendProps } from "recharts";
 import { globalAxisTickStyle, globalAxisCommonProps, makeXAxisLabel, makeYAxisLabel } from "@/lib/chartAxisTheme";
 import { useToolContext } from "@/hooks/useToolContext";
+import { useAeroConfirm } from "@/hooks/useAeroConfirm";
 import { PDFExportButton } from "@/components/tools/PDFExportButton";
 import { AskAIButton } from "@/components/tools/AskAIButton";
 import { useDesignSession } from "@/contexts/designSession";
@@ -390,6 +391,7 @@ interface ComputedLD {
 const LiftDragAnalyzer = ({ onSelectionChange, onRegisterUpdateSelection }: LiftDragAnalyzerProps = {}) => {
   const { updateToolContext, sendCalculationEvent } = useToolContext();
   const { updateDesignSession } = useDesignSession();
+  const { confirm, ConfirmDialog } = useAeroConfirm();
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [lastPayload, setLastPayload] = useState<AeroverseAIPayload | null>(null);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
@@ -1341,6 +1343,7 @@ const point: Record<string, unknown> = { alpha };
   }, [comparisonPolars]);
 
   return (
+    <>
     <ToolWrapper>
       <ToolHeader
         title="Advanced Lift-to-Drag Analyzer"
@@ -2102,10 +2105,9 @@ const point: Record<string, unknown> = { alpha };
                             {setup.name}
                           </button>
                           <button
-                            onClick={() => {
-                              if (window.confirm(`Delete "${setup.name}"?`)) {
-                                deleteSetup(setup.id);
-                              }
+                            onClick={async () => {
+                              const ok = await confirm(`Delete preset "${setup.name}"? This cannot be undone.`, 'Delete Preset', { variant: 'danger', confirmLabel: 'Delete' });
+                              if (ok) deleteSetup(setup.id);
                             }}
                             className="text-slate-400 hover:text-red-400 transition-colors p-0.5"
                             aria-label={`Delete ${setup.name}`}
@@ -2402,6 +2404,8 @@ const point: Record<string, unknown> = { alpha };
       )}
 
     </ToolWrapper>
+    {ConfirmDialog}
+    </>
   );
 };
 

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToolContext } from '@/hooks/useToolContext';
 import { getGroqApiKey } from '@/lib/aerobot-api';
+import { useAeroConfirm } from '@/hooks/useAeroConfirm';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -108,6 +109,7 @@ const AIAssistant: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { clearToolContext } = useToolContext();
+  const { confirm, ConfirmDialog } = useAeroConfirm();
 
   const [apiKey, setApiKey] = useState(() => {
     try {
@@ -467,11 +469,10 @@ const AIAssistant: React.FC = () => {
                               {session.title}
                             </p>
                             <button
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                if (confirm('Delete this chat?')) {
-                                  deleteChatSession(session.id);
-                                }
+                                const ok = await confirm('Delete this chat session? This cannot be undone.', 'Delete Chat', { variant: 'danger', confirmLabel: 'Delete' });
+                                if (ok) deleteChatSession(session.id);
                               }}
                               className="text-red-400 hover:text-red-300 transition-colors"
                             >
@@ -686,6 +687,7 @@ const AIAssistant: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      {ConfirmDialog}
     </>
   );
 };
